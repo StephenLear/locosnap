@@ -23,6 +23,7 @@ import { RarityTier } from "../types";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
+import ParticleEffect from "../components/ParticleEffect";
 import * as FileSystem from "expo-file-system";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -227,6 +228,9 @@ export default function CardRevealScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Particle effects for Rare+ */}
+      <ParticleEffect tier={currentRarity.tier} trigger={revealComplete} />
+
       {/* Rarity tier announcement */}
       {revealComplete && (
         <Animated.View

@@ -76,6 +76,8 @@ export interface HistoryItem {
   rarity: RarityInfo;
   blueprintUrl: string | null;
   spottedAt: string; // ISO date string
+  latitude: number | null;
+  longitude: number | null;
 }
 
 // ── Achievement definitions ──────────────────────────────────

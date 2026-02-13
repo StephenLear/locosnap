@@ -10,6 +10,10 @@ import { StatusBar } from "expo-status-bar";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
 import { colors } from "../constants/theme";
+import {
+  registerForPushNotifications,
+  scheduleStreakReminder,
+} from "../services/notifications";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -49,6 +53,10 @@ export default function RootLayout() {
   useEffect(() => {
     initialize();
     loadHistory();
+
+    // Register for push notifications + schedule streak reminder
+    registerForPushNotifications().catch(() => {});
+    scheduleStreakReminder().catch(() => {});
   }, []);
 
   return (

@@ -28,7 +28,11 @@ import {
   AchievementType,
 } from "../services/supabase";
 import { useAuthStore } from "./authStore";
-import { RarityTier } from "../types";
+import { RarityTier, ACHIEVEMENT_DEFINITIONS } from "../types";
+import {
+  notifyBlueprintReady,
+  notifyAchievementUnlocked,
+} from "../services/notifications";
 
 const HISTORY_KEY = "locosnap_history";
 const MAX_HISTORY = 50;
@@ -54,6 +58,9 @@ interface TrainState {
   // Photo URI for upload
   currentPhotoUri: string | null;
 
+  // Location
+  currentLocation: { latitude: number; longitude: number } | null;
+
   // Actions
   startScan: () => void;
   setScanResults: (
@@ -65,6 +72,7 @@ interface TrainState {
   setScanError: (error: string) => void;
   setBlueprintStatus: (status: BlueprintStatus) => void;
   setPhotoUri: (uri: string) => void;
+  setLocation: (location: { latitude: number; longitude: number } | null) => void;
   clearCurrentScan: () => void;
   loadHistory: () => Promise<void>;
   saveToHistory: () => Promise<void>;
@@ -86,6 +94,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
   currentSpotId: null,
   isSyncing: false,
   currentPhotoUri: null,
+  currentLocation: null,
 
   startScan: () => {
     set({
@@ -98,6 +107,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       blueprintStatus: null,
       currentSpotId: null,
       currentPhotoUri: null,
+      // Keep location — it's set before scan starts
     });
   },
 
@@ -129,6 +139,9 @@ export const useTrainStore = create<TrainState>((set, get) => ({
         // Re-save to local history with blueprint URL
         get().saveToHistory();
 
+        // Send local push notification
+        notifyBlueprintReady(state.currentTrain.class).catch(() => {});
+
         // Upload blueprint to cloud if authenticated
         const auth = useAuthStore.getState();
         if (auth.user && state.currentSpotId && status.imageUrl) {
@@ -150,6 +163,10 @@ export const useTrainStore = create<TrainState>((set, get) => ({
     set({ currentPhotoUri: uri });
   },
 
+  setLocation: (location) => {
+    set({ currentLocation: location });
+  },
+
   clearCurrentScan: () => {
     set({
       isScanning: false,
@@ -161,6 +178,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       blueprintStatus: null,
       currentSpotId: null,
       currentPhotoUri: null,
+      currentLocation: null,
     });
   },
 
@@ -217,6 +235,8 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       rarity: state.currentRarity,
       blueprintUrl: state.blueprintStatus?.imageUrl || null,
       spottedAt: new Date().toISOString(),
+      latitude: state.currentLocation?.latitude || null,
+      longitude: state.currentLocation?.longitude || null,
     };
 
     // Check for duplicates (same train spotted recently)
@@ -275,6 +295,8 @@ export const useTrainStore = create<TrainState>((set, get) => ({
           photoUrl,
           blueprintUrl: state.blueprintStatus?.imageUrl || null,
           confidence: state.currentTrain.confidence,
+          latitude: state.currentLocation?.latitude,
+          longitude: state.currentLocation?.longitude,
         });
 
         if (spotId) {
@@ -342,6 +364,13 @@ export const useTrainStore = create<TrainState>((set, get) => ({
 
           if (newAchievements.length > 0) {
             console.log("[GAMIFICATION] New achievements unlocked:", newAchievements);
+            // Send push notification for each new achievement
+            for (const type of newAchievements) {
+              const def = ACHIEVEMENT_DEFINITIONS.find((d) => d.type === type);
+              if (def) {
+                notifyAchievementUnlocked(def.name, def.description).catch(() => {});
+              }
+            }
           }
         }
       } catch (err) {

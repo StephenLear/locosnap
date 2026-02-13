@@ -387,11 +387,11 @@ Build only what's needed to test: Spot → Card → Collect → Share
 5. ~~Streak tracking (daily check, auto-increment, auto-reset)~~ **DONE**
 
 ### V1.2 — Polish & Growth (+2 weeks)
-- Push notifications (blueprint ready, streak reminders)
+- ~~Push notifications (blueprint ready, streak reminders, achievement alerts)~~ **DONE**
 - Analytics (PostHog)
 - Error tracking (Sentry)
-- Card animations and particle effects for rare+
-- Location tagging (optional GPS)
+- ~~Card animations and particle effects for rare+~~ **DONE**
+- ~~Location tagging (optional GPS)~~ **DONE**
 
 ### V2 — Pro & Monetization
 - Pro subscription via App Store

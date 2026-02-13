@@ -17,6 +17,7 @@ import {
   Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -44,6 +45,7 @@ export default function HomeScreen() {
     setScanError,
     setBlueprintStatus,
     setPhotoUri,
+    setLocation,
     saveToHistory,
   } = useTrainStore();
 
@@ -98,6 +100,23 @@ export default function HomeScreen() {
 
     startScan();
     setPhotoUri(imageUri);
+
+    // Capture GPS location (non-blocking — don't fail scan if location unavailable)
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted") {
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        setLocation({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        });
+      }
+    } catch {
+      // Location unavailable — continue without it
+      setLocation(null);
+    }
 
     try {
       const result = await identifyTrain(imageUri);

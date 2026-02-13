@@ -67,6 +67,7 @@ export default function ResultsScreen() {
     currentFacts,
     currentRarity,
     blueprintStatus,
+    currentLocation,
   } = useTrainStore();
 
   if (!currentTrain) {
@@ -136,6 +137,14 @@ export default function ResultsScreen() {
               <Text style={styles.trainYear}>
                 Built {currentTrain.yearBuilt} · {currentTrain.designation}
               </Text>
+            )}
+            {currentLocation && (
+              <View style={styles.locationRow}>
+                <Ionicons name="location" size={12} color={colors.primary} />
+                <Text style={styles.locationText}>
+                  {currentLocation.latitude.toFixed(4)}°N, {currentLocation.longitude.toFixed(4)}°W
+                </Text>
+              </View>
             )}
           </View>
           <View
@@ -438,6 +447,17 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     color: colors.textMuted,
     marginTop: 2,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: spacing.xs,
+  },
+  locationText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.primary,
+    fontWeight: fonts.weights.medium,
   },
   confidenceBadge: {
     paddingHorizontal: spacing.md,
