@@ -6,6 +6,7 @@ import { create } from "zustand";
 import { supabase } from "../config/supabase";
 import { Session, User } from "@supabase/supabase-js";
 import { track, identifyUser, resetIdentity, addBreadcrumb } from "../services/analytics";
+import { loginRevenueCat, logoutRevenueCat, syncProStatus } from "../services/purchases";
 
 export interface Profile {
   id: string;
@@ -57,6 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         set({ session, user: session.user, isGuest: false, isLoading: false });
+        loginRevenueCat(session.user.id);
         get().fetchProfile();
       } else {
         set({ isLoading: false });
@@ -70,6 +72,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isGuest: !session,
         });
         if (session) {
+          loginRevenueCat(session.user.id);
           get().fetchProfile();
         } else {
           set({ profile: null });
@@ -125,6 +128,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     track("sign_out");
+    await logoutRevenueCat();
     await supabase.auth.signOut();
     set({ session: null, user: null, profile: null, isGuest: false });
     resetIdentity();
@@ -174,6 +178,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ profile: updated || data });
       } else {
         set({ profile: data });
+      }
+
+      // Sync Pro status with RevenueCat entitlements
+      const isPro = await syncProStatus(user.id);
+      if (isPro !== data.is_pro) {
+        // RevenueCat disagrees with DB — update local state
+        const currentProfile = get().profile;
+        if (currentProfile) {
+          set({ profile: { ...currentProfile, is_pro: isPro } });
+        }
       }
     }
   },

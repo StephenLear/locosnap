@@ -8,6 +8,7 @@ import { config } from "./config/env";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import identifyRouter from "./routes/identify";
 import blueprintStatusRouter from "./routes/imageStatus";
+import webhooksRouter from "./routes/webhooks";
 import { cleanupOldTasks } from "./services/imageGen";
 import { getVisionProvider } from "./services/vision";
 import { getSupabase } from "./config/supabase";
@@ -49,6 +50,7 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/identify", identifyRouter);
 app.use("/api/blueprint", blueprintStatusRouter);
+app.use("/api/webhooks", webhooksRouter);
 
 // ── Error Handling ──────────────────────────────────────────
 app.use(notFoundHandler);
@@ -81,12 +83,14 @@ app.listen(config.port, () => {
 ║  OpenAI:      ${(config.hasOpenAI ? "Yes" : "No").padEnd(30)}║
 ║  Replicate:   ${(config.hasReplicate ? "Yes" : "No").padEnd(30)}║
 ║  Supabase:    ${(config.hasSupabase ? "Connected" : "Not configured").padEnd(30)}║
+║  RevenueCat:  ${(config.hasRevenueCat ? "Webhook ready" : "Not configured").padEnd(30)}║
 ║  Cache:       ${`${stats.totalEntries} trains cached`.padEnd(30)}║
 ╚══════════════════════════════════════════════╝
 
 Endpoints:
   POST /api/identify        — Upload train photo for identification
   GET  /api/blueprint/:id   — Check blueprint generation status
+  POST /api/webhooks/revenuecat — RevenueCat subscription webhook
   GET  /api/health          — Health check
   `);
 });

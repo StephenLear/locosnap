@@ -392,7 +392,7 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         {/* Upgrade to Pro (if not Pro) */}
         {!profile?.is_pro && !isGuest && (
-          <TouchableOpacity style={styles.upgradeBtn}>
+          <TouchableOpacity style={styles.upgradeBtn} onPress={() => router.push("/paywall?source=profile")}>
             <Ionicons name="rocket" size={20} color="#fff" />
             <View style={styles.upgradeBtnContent}>
               <Text style={styles.upgradeBtnTitle}>Upgrade to Pro</Text>

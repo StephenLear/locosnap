@@ -20,6 +20,7 @@ import {
   ErrorBoundary,
   wrap,
 } from "../services/analytics";
+import { initPurchases } from "../services/purchases";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -68,6 +69,7 @@ function RootLayout() {
 
   useEffect(() => {
     initAnalytics();
+    initPurchases();
     initialize();
     loadHistory();
 
@@ -124,6 +126,14 @@ function RootLayout() {
               title: "Blueprint",
               presentation: "fullScreenModal",
               headerBackTitle: "Close",
+            }}
+          />
+          <Stack.Screen
+            name="paywall"
+            options={{
+              presentation: "modal",
+              headerShown: false,
+              animation: "slide_from_bottom",
             }}
           />
         </Stack>

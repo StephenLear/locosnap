@@ -65,4 +65,11 @@ export const config = {
   get hasSentry(): boolean {
     return this.sentryDsn.length > 0;
   },
+
+  // RevenueCat
+  revenuecatWebhookSecret: optionalEnv("REVENUECAT_WEBHOOK_SECRET", ""),
+
+  get hasRevenueCat(): boolean {
+    return this.revenuecatWebhookSecret.length > 0;
+  },
 };

@@ -56,6 +56,12 @@ export default function BlueprintScreen() {
           Upgrade for unlimited scans and engineering-style drawings.
         </Text>
         <TouchableOpacity
+          style={[styles.proGateBtn, { backgroundColor: colors.accent, marginBottom: spacing.md }]}
+          onPress={() => router.push("/paywall?source=blueprint")}
+        >
+          <Text style={styles.proGateBtnText}>Upgrade to Pro</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={styles.proGateBtn}
           onPress={() => router.back()}
         >

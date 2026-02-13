@@ -394,7 +394,7 @@ Build only what's needed to test: Spot → Card → Collect → Share
 - ~~Location tagging (optional GPS)~~ **DONE**
 
 ### V2 — Pro & Monetization
-- Pro subscription via App Store
+- ~~Pro subscription via App Store (RevenueCat + webhook + paywall)~~ **DONE**
 - Pro-exclusive blueprint styles
 - Collection comparisons
 - Advanced filters and search

@@ -51,7 +51,8 @@
           "photosPermission": "Allow LocoSnap to access your photos to identify trains."
         }
       ],
-      "@sentry/react-native"
+      "@sentry/react-native",
+      "react-native-purchases"
     ]
   }
 }

@@ -245,7 +245,11 @@ export default function ResultsScreen() {
         </TouchableOpacity>
       ) : (
         /* Free users: locked Pro upsell */
-        <View style={[styles.blueprintBtn, styles.blueprintBtnLocked]}>
+        <TouchableOpacity
+          style={[styles.blueprintBtn, styles.blueprintBtnLocked]}
+          onPress={() => router.push("/paywall?source=blueprint")}
+          activeOpacity={0.7}
+        >
           <View style={styles.proBadge}>
             <Ionicons name="lock-closed" size={14} color="#f59e0b" />
             <Text style={styles.proBadgeText}>PRO</Text>
@@ -259,7 +263,7 @@ export default function ResultsScreen() {
             </Text>
           </View>
           <Ionicons name="star" size={20} color="#f59e0b" />
-        </View>
+        </TouchableOpacity>
       )}
 
       {/* ── Specs Section ────────────────────────────── */}

@@ -94,8 +94,11 @@ export default function HomeScreen() {
       track("daily_limit_hit");
       Alert.alert(
         "Daily Limit Reached",
-        "You've used all 5 free scans today. Upgrade to Pro for unlimited scans, or come back tomorrow!",
-        [{ text: "OK" }]
+        "You've used all 5 free scans today. Upgrade to Pro for unlimited scans!",
+        [
+          { text: "Maybe Later", style: "cancel" },
+          { text: "Upgrade to Pro", onPress: () => router.push("/paywall?source=daily_limit") },
+        ]
       );
       return;
     }
