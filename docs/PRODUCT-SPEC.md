@@ -1,141 +1,155 @@
-# Car Spotter — Product Specification
+# LocoSnap — Product Specification
 
-**Version:** 1.0 (MVP)
+**Version:** 2.0 (MVP)
 **Date:** 2026-02-13
-**One-liner:** Pokemon Go meets Shazam — for cars.
+**One-liner:** Pokemon Go meets Shazam — for trains.
 
 ---
 
 ## 1. Problem Statement
 
-Car enthusiasts love spotting interesting vehicles in the wild, but there's no satisfying way to capture, collect, and share those moments. Existing car ID apps are utility-only (identify and forget), have aggressive paywalls, and compete directly with free AI chatbots. There's no app that turns car spotting into a hobby with progression, social proof, and collectibility.
+Trainspotters love identifying and collecting sightings of locomotives, but there's no satisfying way to capture, classify, and share those moments. Existing train ID apps are utility-only (identify and forget), have zero gamification, and miss the rich collecting culture that trainspotters already have. There's no app that turns trainspotting into a digital hobby with progression, rarity tiers, and collectible cards — despite a passionate global community and mainstream cultural momentum (Francis Bourgeois: 3.3M TikTok followers).
 
 ## 2. Target Users
 
-### Primary: Car Enthusiasts (18-35)
-- Follow car accounts on Instagram/TikTok/YouTube
-- Notice interesting cars on the street and want to know what they are
-- Would enjoy building a collection and showing it off
-- Active on r/cars, r/whatisthiscar, car forums
+### Primary: Active Trainspotters (16-45)
+- Regular platform visitors, heritage railway goers, mainline bashers
+- Keep notebooks/spreadsheets of sightings
+- Active on r/trainspotting, r/trains, RealTimeTrains, Railcam communities
+- Would love a digital "book" that replaces pen-and-paper logging
+- UK-centric initially (strongest culture), expanding to Europe/US/Japan
 
-### Secondary: Casual Spotters
-- See a cool car, get curious, snap a photo
-- Don't know much about cars but think the blueprint card is cool
-- Share to social media for engagement
+### Secondary: Casual Enthusiasts / Francis Bourgeois Fans
+- Think trains are cool but don't call themselves "trainspotters"
+- Drawn in by TikTok/YouTube trainspotting content
+- Would enjoy a fun way to identify trains they see on commutes
+- Share blueprint cards to social media
 
-### Tertiary: Car Content Creators
-- YouTubers, TikTokers, Instagram pages about cars
-- Use the blueprint cards as content assets
-- Drive organic growth through sharing
+### Tertiary: Heritage Railway Visitors & Families
+- Visit preserved railways on weekends
+- Kids who love trains — parents want an educational, fun activity
+- Heritage steam = guaranteed "rare" or better rarity tier = satisfying experience
 
 ## 3. Core Loop
 
 ```
-SPOT → SCAN → COLLECT → SHARE → REPEAT
-  |        |        |         |
-  |   AI identifies  |    Post to social
-  |   + generates    |    Compare w/ friends
-  |   blueprint card |    Climb leaderboard
-  |                  |
-  |           Added to your Garage
-  |           Rarity assigned
-  |           Stats recorded
+SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
+  |          |           |          |
+  |     AI identifies    |     Post to social
+  |     class, operator, |     Compare collections
+  |     type, rarity     |     Climb leaderboard
+  |                      |
+  |             Added to your Shed
+  |             Rarity assigned (Common → Legendary)
+  |             Blueprint generated
   |
-  See a car in the wild
+  See a train at the station/trackside/heritage railway
 ```
 
 ## 4. Feature Spec (MVP)
 
-### 4.1 Scan (Home Screen)
+### 4.1 Spot (Home Screen)
 
-**As a** car spotter,
-**I want to** take a photo of a car I see,
+**As a** trainspotter,
+**I want to** take a photo of a train I see,
 **so that** I can identify it and add it to my collection.
 
 **Acceptance criteria:**
-- [ ] Camera viewfinder with "Scan" button
-- [ ] Option to pick from photo library
-- [ ] Loading state while AI processes (2-5 seconds)
-- [ ] Shows identified car name + confidence score
+- [x] Camera viewfinder with "Spot" button
+- [x] Option to pick from photo library
+- [x] Loading state while AI processes (2-8 seconds)
+- [x] Shows identified class + operator + confidence score
 - [ ] If confidence < 70%, show "Not sure — is this a [guess]?" with confirm/retry
-- [ ] Rate limit: 5 free scans/day (no paywall, just daily reset)
-- [ ] Counter showing remaining daily scans
+- [ ] Rate limit: 5 free spots/day (no paywall, just daily reset)
+- [ ] Counter showing remaining daily spots
 
 ### 4.2 Card Reveal
 
-**As a** car spotter,
-**I want to** see my newly identified car as a collectible card,
+**As a** trainspotter,
+**I want to** see my newly identified train as a collectible card,
 **so that** I feel a sense of reward and excitement.
 
 **Acceptance criteria:**
 - [ ] Animated card reveal (flip/slide animation)
-- [ ] Card shows: car photo (user's photo), make/model/year, rarity tier badge
-- [ ] Card back shows: key specs (HP, 0-60, price range), NHTSA safety rating, one-line AI review
-- [ ] Rarity tier visually distinct (color border, badge, particle effects for Epic+)
-- [ ] "New!" badge if this is a car model you haven't collected before
-- [ ] "Duplicate" handling: still shows the card, adds to your spot count for that model
-- [ ] "Add to Garage" button
+- [ ] Card shows: user's photo, class name, named loco if applicable, rarity tier badge
+- [ ] Card back shows: key specs (power, max speed, builder), one-line AI summary, fun fact
+- [ ] Rarity tier visually distinct (colour border, badge, particle effects for Epic+)
+- [ ] "New!" badge if this is a class you haven't collected before
+- [ ] "Duplicate" handling: still shows the card, adds to your spot count for that class
+- [ ] "Add to Shed" button
 - [ ] "Share" button (generates shareable image)
 
-### 4.3 Garage (Collection Screen)
+### 4.3 The Shed (Collection Screen)
 
-**As a** car spotter,
-**I want to** browse all the cars I've collected,
+**As a** trainspotter,
+**I want to** browse all the trains I've collected,
 **so that** I can see my progress and revisit past spots.
 
 **Acceptance criteria:**
-- [ ] Grid view of all collected cards (sorted by most recent)
-- [ ] Filter by: rarity tier, brand, body type
-- [ ] Sort by: date spotted, rarity, name
-- [ ] Collection stats at top: total unique models, total spots, rarity breakdown
-- [ ] Tap card to see full details (specs, review, map location if available, date spotted)
+- [x] List/grid of collected cards (sorted by most recent)
+- [ ] Filter by: rarity tier, operator, train type (Steam/Diesel/Electric/DMU/EMU/HST)
+- [ ] Sort by: date spotted, rarity, class name
+- [ ] Collection stats at top: total unique classes, total spots, rarity breakdown
+- [x] Tap card to see full details (specs, facts, blueprint, date spotted)
 - [ ] "Spotted X times" counter on duplicates
-- [ ] Empty state for new users: "Your garage is empty — go spot your first car!"
+- [x] Empty state: "Your shed is empty — go spot your first train!"
 
-### 4.4 Blueprint Infographic
+### 4.4 Technical Blueprint
 
-**As a** car spotter,
-**I want to** see a detailed engineering-style blueprint of my spotted car,
+**As a** trainspotter,
+**I want to** see a detailed engineering-style blueprint of my spotted train,
 **so that** I have a premium visual to save and share.
 
 **Acceptance criteria:**
-- [ ] Generated async after scan (15-60 seconds)
-- [ ] Industrial blueprint aesthetic: steel grey, navy, orange accents, dimension lines
-- [ ] Shows: profile view, key dimensions, engine specs, performance stats
-- [ ] Notification/badge when blueprint is ready
-- [ ] Full-screen viewer with pinch-to-zoom
-- [ ] Save to camera roll
-- [ ] Share to social media
-- [ ] Blueprint is the "premium" version of the card — free users get basic card, blueprint is Pro
+- [x] Generated async after scan (15-60 seconds)
+- [x] Locomotive works drawing aesthetic: steel grey, navy, orange accents, dimension lines
+- [x] Shows: side elevation, cross-section, tech specs panel, wheel arrangement
+- [x] Full-screen viewer with save + share
+- [x] Save to camera roll
+- [x] Share to social media
+- [ ] Blueprint is the "premium" version — free users get basic card, blueprint is Pro
 
-### 4.5 Leaderboard
+### 4.5 Results Detail
 
-**As a** car spotter,
-**I want to** see how my collection compares to others,
-**so that** I feel motivated to spot more cars.
+**As a** trainspotter,
+**I want to** see comprehensive info about my spotted train,
+**so that** I can learn about it and satisfy my curiosity.
 
 **Acceptance criteria:**
-- [ ] Global leaderboard: top spotters by unique models collected
-- [ ] Weekly leaderboard: most spots this week (resets Monday)
+- [x] Rarity badge with tier, reason, production/surviving counts
+- [x] Train identity: class, name, operator, type, designation, year built
+- [x] Confidence score with colour coding
+- [x] Full specs: max speed, power, weight, length, gauge, builder, fuel, route, status
+- [x] Facts: summary, historical significance, fun facts, notable events
+- [x] Blueprint status/viewer link
+
+### 4.6 Leaderboard (V1.1)
+
+**As a** trainspotter,
+**I want to** see how my collection compares to others,
+**so that** I feel motivated to spot more trains.
+
+**Acceptance criteria:**
+- [ ] Global leaderboard: top spotters by unique classes collected
+- [ ] Weekly leaderboard: most spots this week
 - [ ] Rarity leaderboard: most Epic/Legendary cards
 - [ ] Your rank highlighted
-- [ ] Tap a user to see their public garage (top cards only)
+- [ ] Regional leaderboards (UK regions initially)
 
-### 4.6 Profile & Stats
+### 4.7 Profile & Stats (V1.1)
 
-**As a** car spotter,
+**As a** trainspotter,
 **I want to** see my stats and achievements,
 **so that** I can track my progress.
 
 **Acceptance criteria:**
-- [ ] Username + avatar (from sign-up)
-- [ ] Stats: total spots, unique models, rarest find, longest streak, favourite brand
-- [ ] Level system: Novice Spotter → Street Watcher → Car Hawk → Auto Legend → Grand Collector
-- [ ] Level-up thresholds based on unique models collected
-- [ ] Badges/achievements: "First Spot", "10 Unique Cars", "Spotted a Legendary", "7-Day Streak", "Brand Collector (10+ from one brand)"
+- [ ] Username + avatar
+- [ ] Stats: total spots, unique classes, rarest find, longest streak, favourite operator
+- [ ] Level system: Platform Newbie → Casual Spotter → Basher → Grinder → Copping Legend
+- [ ] Badges/achievements: "First Cop" (first spot), "10 Unique Classes", "Copped a Legendary", "7-Day Streak", "Shed Full" (50+ unique), "Heritage Hunter" (10+ steam locos)
 - [ ] Daily streak tracker
 
-### 4.7 Authentication
+### 4.8 Authentication (V1)
 
 **As a** new user,
 **I want to** create an account quickly,
@@ -145,24 +159,24 @@ SPOT → SCAN → COLLECT → SHARE → REPEAT
 - [ ] Sign up with Apple / Google (social auth)
 - [ ] Magic link email as fallback
 - [ ] No username/password flow (friction killer)
-- [ ] Guest mode: can scan and collect locally, prompted to sign up to save to cloud + join leaderboards
-- [ ] Account required for: leaderboards, sharing public garage, cloud sync
+- [ ] Guest mode: can scan and collect locally, prompted to sign up to save to cloud
+- [ ] Account required for: leaderboards, sharing public shed, cloud sync
 
 ## 5. Rarity System
 
-| Tier | Badge Colour | Car Type | Examples | Likelihood |
-|------|-------------|----------|----------|------------|
-| **Common** | Grey | Mass market sedans, SUVs, hatchbacks | Toyota Camry, Honda Civic, Ford Escape | ~55% |
-| **Uncommon** | Green | Sports cars, trucks, popular premium | Mustang, F-150 Raptor, BMW 3 Series | ~25% |
-| **Rare** | Blue | Luxury, performance variants | Mercedes AMG, Audi RS, Lexus LC | ~12% |
-| **Epic** | Purple | Exotic sports, classic muscle | Porsche 911 GT3, Corvette Z06, vintage Mustang | ~6% |
-| **Legendary** | Gold | Hypercars, ultra-rare, one-offs | Ferrari, Lamborghini, Bugatti, McLaren | ~2% |
+| Tier | Badge Colour | Train Type | Examples | Likelihood |
+|------|-------------|------------|----------|------------|
+| **Common** | Grey | Modern EMUs/DMUs in regular service | Class 350, Class 377, Class 800, Class 158 | ~50% |
+| **Uncommon** | Green | Freight locos, older classes still running | Class 66, Class 37 on charters, Class 68 | ~25% |
+| **Rare** | Blue | Heritage locos on mainline, withdrawn survivors | Deltic on mainline, Class 50, preserved diesel | ~15% |
+| **Epic** | Purple | Famous named locomotives, few survivors | Flying Scotsman, Tornado, APT prototype | ~7% |
+| **Legendary** | Gold | World-record holders, last of kind, royal trains | Mallard, unique prototypes, working Garratts | ~3% |
 
 **Rarity is determined by:**
-1. Production volume (lower = rarer)
-2. Price bracket (higher = rarer)
-3. Age (classic/vintage = rarer)
-4. Regional scarcity (based on NHTSA registration data if available)
+1. Number surviving (fewer = rarer)
+2. Age and historical significance
+3. Operational status (in-service = more common than preserved)
+4. Named locomotive status (named individuals score higher than unnamed classmates)
 
 ## 6. Screens Map
 
@@ -173,31 +187,32 @@ App Launch
 │   ├── Sign in with Google
 │   └── Continue as Guest
 │
-├── [Tab] Home / Scan
+├── [Tab] Spot (Home)
 │   ├── Camera viewfinder
 │   ├── Photo library picker
-│   ├── Scanning animation
+│   ├── Scanning animation ("Identifying train...")
 │   └── Card Reveal modal
-│       ├── Card front (photo + ID)
-│       ├── Card back (specs + review)
-│       ├── Add to Garage
+│       ├── Card front (photo + class + rarity)
+│       ├── Card back (specs + fun fact)
+│       ├── Add to Shed
 │       └── Share
 │
-├── [Tab] Garage
-│   ├── Collection grid
+├── [Tab] Shed (Collection)
+│   ├── Collection grid with rarity borders
 │   ├── Filters / sort
 │   ├── Card detail view
 │   │   ├── Full specs
+│   │   ├── Facts & history
 │   │   ├── Blueprint viewer
-│   │   └── Spot history (dates, locations)
-│   └── Collection stats
+│   │   └── Spot history (dates)
+│   └── Collection stats header
 │
-├── [Tab] Leaderboard
+├── [Tab] Leaderboard (V1.1)
 │   ├── Global ranking
 │   ├── Weekly ranking
 │   └── Rarity ranking
 │
-└── [Tab] Profile
+└── [Tab] Profile (V1.1)
     ├── Stats overview
     ├── Level + progress bar
     ├── Achievements / badges
@@ -225,22 +240,28 @@ is_pro: boolean (default false)
 created_at: timestamp
 ```
 
-### Car (Reference Table — populated from AI + NHTSA)
+### Train (Reference Table — populated from AI identification)
 ```
 id: uuid (PK)
-make: string
-model: string
-year: int
-trim: string?
-body_type: string
+class: string
+name: string? (named locos only)
+operator: string
+type: string (Steam, Diesel, Electric, DMU, EMU, HST)
+designation: string (wheel arrangement)
 rarity_tier: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
-horsepower: int?
-zero_to_sixty: float?
-price_range_low: int?
-price_range_high: int?
-nhtsa_safety_rating: float?
-review_summary: text?
-review_score: float?
+max_speed: string?
+power: string?
+weight: string?
+length: string?
+gauge: string?
+builder: string?
+number_built: int?
+number_surviving: int?
+status: string?
+fuel_type: string?
+summary: text?
+historical_significance: text?
+fun_facts: jsonb (string array)
 blueprint_prompt: text?
 created_at: timestamp
 ```
@@ -249,7 +270,7 @@ created_at: timestamp
 ```
 id: uuid (PK)
 user_id: uuid (FK → User)
-car_id: uuid (FK → Car)
+train_id: uuid (FK → Train)
 photo_url: string
 blueprint_url: string?
 blueprint_status: 'queued' | 'processing' | 'completed' | 'failed'
@@ -257,7 +278,7 @@ confidence: float
 latitude: float?
 longitude: float?
 spotted_at: timestamp
-is_first_spot: boolean (was this a new model for the user?)
+is_first_spot: boolean (new class for this user?)
 ```
 
 ### Achievement
@@ -270,24 +291,25 @@ unlocked_at: timestamp
 
 ## 8. Tech Stack
 
-### Reuse from CarSnap
+### Built (Complete)
 | Layer | Technology | Status |
 |-------|-----------|--------|
-| Frontend framework | React Native (Expo) | Keep |
-| Backend framework | Express + TypeScript | Keep |
-| Car ID service | Claude/OpenAI Vision | Keep |
-| Specs service | NHTSA API | Keep |
-| Review service | Claude/OpenAI | Keep |
-| Infographic gen | Replicate/DALL-E | Keep |
-| State management | Zustand | Keep |
+| Frontend framework | React Native (Expo) | Done |
+| Backend framework | Express + TypeScript | Done |
+| Train ID service | Claude/OpenAI Vision | Done |
+| Specs service | AI-generated (train APIs fragmented) | Done |
+| Facts service | AI-generated history & trivia | Done |
+| Rarity service | AI-classified (Common → Legendary) | Done |
+| Blueprint generation | Replicate SDXL / DALL-E 3 | Done |
+| State management | Zustand + AsyncStorage | Done |
+| API client | Axios with polling | Done |
 
-### New (Required for Pivot)
+### To Add (Required for Full MVP)
 | Layer | Technology | Reason |
 |-------|-----------|--------|
 | Database | Supabase (Postgres) | User accounts, collection storage, leaderboards |
 | Auth | Supabase Auth | Apple/Google sign-in, magic links, free tier |
 | Cloud storage | Supabase Storage | User photos, blueprint images |
-| Real-time | Supabase Realtime | Live leaderboard updates |
 | Push notifications | Expo Notifications | Blueprint ready, streak reminders |
 | Analytics | PostHog | Track scan rates, retention, collection progress |
 | Error tracking | Sentry | Crash reports, API failure monitoring |
@@ -296,7 +318,7 @@ unlocked_at: timestamp
 | Service | Free Tier |
 |---------|-----------|
 | Supabase | 500MB DB, 1GB storage, 50K auth users |
-| Vercel (backend) | 100GB bandwidth |
+| Render/Railway (backend) | Free tier |
 | PostHog | 1M events/month |
 | Sentry | 5K errors/month |
 | Expo | Unlimited OTA updates |
@@ -305,42 +327,55 @@ unlocked_at: timestamp
 ## 9. Monetization
 
 ### Free Tier
-- 5 scans per day (resets at midnight local time)
-- Basic card art (clean, simple design)
+- 5 spots per day (resets at midnight local time)
+- Basic card art
 - Collection + leaderboard access
 - Share cards to social
 
 ### Pro ($2.99/month or $24.99/year)
-- Unlimited scans
-- Premium blueprint infographics for every car
-- Exclusive card frames/styles
-- Detailed spec comparisons between cars in your collection
+- Unlimited spots
+- Premium technical blueprints for every train
+- Exclusive card frames/styles (heritage livery, British Rail blue, etc.)
+- Detailed spec comparisons between trains in your collection
 - No ads (if ads are added to free tier later)
 
 ### Key Principle
-**Never paywall the core identification.** Every competitor does this and users hate it. The 5 free daily scans are generous enough for casual use. Pro is for power users who spot 10+ cars a day and want the premium content.
+**Never paywall the core identification.** The 5 free daily spots are generous for casual use. Pro is for power users who spot 10+ trains a day and want the premium content. This is the same mistake every competitor makes — and their 1-star reviews prove users hate it.
 
-## 10. MVP Scope (What to Build First)
+## 10. MVP Scope
 
-### V1 — The Core Loop (2-3 weeks)
+### V1 — The Core Loop (current + 2-3 weeks)
 Build only what's needed to test: Spot → Card → Collect → Share
 
-1. Scan screen (reuse existing camera + vision code)
-2. Card reveal with rarity tier
-3. Garage screen (grid of collected cards)
-4. Card detail with specs
-5. User auth (Supabase — Apple/Google sign-in)
-6. Cloud storage for collection
-7. Share card as image
-8. Daily scan limit (5/day)
+1. ~~Spot screen (camera + vision AI)~~ **DONE**
+2. ~~Results screen (specs, facts, rarity)~~ **DONE**
+3. ~~Collection screen (list of past spots)~~ **DONE**
+4. ~~Blueprint generation + viewer~~ **DONE**
+5. Card reveal animation (flip/slide)
+6. User auth (Supabase — Apple/Google sign-in)
+7. Cloud storage for collection (Supabase)
+8. Share card as image
+9. Daily scan limit (5/day)
 
-### V1 Does NOT Include
-- Leaderboards (add in V1.1)
-- Blueprint infographics (add in V1.1 — already built, just needs integration)
-- Achievements/badges (add in V1.2)
-- Pro subscription (add after validating retention)
-- Push notifications (add after user base)
-- Analytics (add before public launch, but not needed for testing)
+### V1.1 — Social & Gamification (+2 weeks)
+- Leaderboards (global, weekly, rarity)
+- Profile + stats page
+- Achievement badges
+- Level system
+- Streak tracking
+
+### V1.2 — Polish & Growth (+2 weeks)
+- Push notifications (blueprint ready, streak reminders)
+- Analytics (PostHog)
+- Error tracking (Sentry)
+- Card animations and particle effects for rare+
+- Location tagging (optional GPS)
+
+### V2 — Pro & Monetization
+- Pro subscription via App Store
+- Pro-exclusive blueprint styles
+- Collection comparisons
+- Advanced filters and search
 
 ## 11. Success Metrics (First 30 Days)
 
@@ -348,19 +383,15 @@ Build only what's needed to test: Spot → Card → Collect → Share
 |--------|--------|---------------|
 | Day 1 retention | >40% | Do people come back after first use? |
 | Day 7 retention | >20% | Does the collection loop retain? |
-| Scans per user per day | >2 | Are people actively spotting? |
-| Unique models per user (30 days) | >15 | Is the collection growing? |
-| Share rate | >10% of cards shared | Is the content worth sharing? |
+| Spots per user per day | >2 | Are people actively spotting? |
+| Unique classes per user (30 days) | >10 | Is the collection growing? |
+| Share rate | >15% of cards shared | Are blueprints/cards worth sharing? |
 | Organic installs from shares | Any | Is the viral loop working? |
 
-## 12. Name — Needs Resolution
+## 12. Competitive Advantage
 
-"CarSnap" is taken on the iOS App Store by another developer. Working title options:
-- **SpotCar** / **CarSpot**
-- **SpotDeck**
-- **AutoSpotter**
-- **CarDex** (Pokedex vibes)
-- **SnapDeck**
-- **SpotLog**
-
-**Action needed:** Check App Store availability before committing to a name.
+1. **No gamified trainspotting app exists.** Train Identifier (only competitor) has Pokemon-style cards but 0 ratings — land-grab opportunity.
+2. **Cultural moment.** Francis Bourgeois (3.3M TikTok, BBC appearances) has made trainspotting mainstream cool. Timing is perfect.
+3. **Deep collecting culture.** Trainspotters already collect — they've just never had a digital tool that respects the hobby. We're digitising an analog behaviour.
+4. **Blueprint virality.** The engineering-style blueprints are the "screenshot moment" — shareable content that markets the app organically.
+5. **Never paywall identification.** Every car ID app competitor paywalls scans and gets destroyed in 1-star reviews. We won't make that mistake.

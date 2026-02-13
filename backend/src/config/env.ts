@@ -1,5 +1,5 @@
 // ============================================================
-// CarSnap — Environment Configuration
+// LocoSnap — Environment Configuration
 // ============================================================
 
 import dotenv from "dotenv";

@@ -1,7 +1,7 @@
 {
-  "name": "carsnap-backend",
+  "name": "locosnap-backend",
   "version": "1.0.0",
-  "description": "CarSnap API — Car identification, reviews, and infographic generation",
+  "description": "LocoSnap API — Train identification, specs, facts, rarity, and blueprint generation",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node src/index.ts",

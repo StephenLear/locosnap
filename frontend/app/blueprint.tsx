@@ -1,6 +1,6 @@
 // ============================================================
-// CarSnap — Infographic Viewer Screen
-// Full-screen view of the generated engineering infographic
+// LocoSnap — Blueprint Viewer Screen
+// Full-screen view of the generated engineering blueprint
 // ============================================================
 
 import React, { useState } from "react";
@@ -18,26 +18,28 @@ import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Ionicons } from "@expo/vector-icons";
-import { useCarStore } from "../store/carStore";
-import { colors, fonts, spacing, borderRadius } from "../constants/theme";
+import { useTrainStore } from "../store/trainStore";
+import { colors, fonts, spacing } from "../constants/theme";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-export default function InfographicScreen() {
-  const { infographicStatus, currentCar } = useCarStore();
+export default function BlueprintScreen() {
+  const { blueprintStatus, currentTrain } = useTrainStore();
   const [saving, setSaving] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const imageUrl = infographicStatus?.imageUrl;
+  const imageUrl = blueprintStatus?.imageUrl;
 
-  if (!imageUrl || !currentCar) {
+  if (!imageUrl || !currentTrain) {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="image-outline" size={64} color={colors.textMuted} />
-        <Text style={styles.emptyText}>No infographic available</Text>
+        <Text style={styles.emptyText}>No blueprint available</Text>
       </View>
     );
   }
+
+  const trainLabel = `${currentTrain.class}${currentTrain.name ? ` "${currentTrain.name}"` : ""} — ${currentTrain.operator}`;
 
   const saveToGallery = async () => {
     try {
@@ -54,7 +56,7 @@ export default function InfographicScreen() {
       }
 
       // Download the image
-      const filename = `CarSnap_${currentCar.year}_${currentCar.make}_${currentCar.model}.png`;
+      const filename = `LocoSnap_${currentTrain.class.replace(/\s+/g, "_")}_${currentTrain.operator.replace(/\s+/g, "_")}.png`;
       const fileUri = FileSystem.documentDirectory + filename;
 
       const download = await FileSystem.downloadAsync(imageUrl, fileUri);
@@ -62,7 +64,7 @@ export default function InfographicScreen() {
       // Save to gallery
       await MediaLibrary.saveToLibraryAsync(download.uri);
 
-      Alert.alert("Saved!", "Infographic saved to your photo library.");
+      Alert.alert("Saved!", "Blueprint saved to your photo library.");
     } catch (error) {
       Alert.alert("Error", "Could not save the image. Please try again.");
       console.error("Save error:", error);
@@ -71,9 +73,9 @@ export default function InfographicScreen() {
     }
   };
 
-  const shareInfographic = async () => {
+  const shareBlueprint = async () => {
     try {
-      const filename = `CarSnap_${currentCar.year}_${currentCar.make}_${currentCar.model}.png`;
+      const filename = `LocoSnap_${currentTrain.class.replace(/\s+/g, "_")}_${currentTrain.operator.replace(/\s+/g, "_")}.png`;
       const fileUri = FileSystem.documentDirectory + filename;
 
       // Download first
@@ -83,7 +85,7 @@ export default function InfographicScreen() {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
           mimeType: "image/png",
-          dialogTitle: `${currentCar.year} ${currentCar.make} ${currentCar.model} — CarSnap Infographic`,
+          dialogTitle: `${currentTrain.class} — LocoSnap Blueprint`,
         });
       }
     } catch (error) {
@@ -99,23 +101,20 @@ export default function InfographicScreen() {
         {!imageLoaded && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={colors.accent} />
-            <Text style={styles.loadingText}>Loading infographic...</Text>
+            <Text style={styles.loadingText}>Loading blueprint...</Text>
           </View>
         )}
         <Image
           source={{ uri: imageUrl }}
-          style={styles.infographicImage}
+          style={styles.blueprintImage}
           resizeMode="contain"
           onLoad={() => setImageLoaded(true)}
         />
       </View>
 
-      {/* Car label */}
+      {/* Train label */}
       <View style={styles.labelBar}>
-        <Text style={styles.labelText}>
-          {currentCar.year} {currentCar.make} {currentCar.model}{" "}
-          {currentCar.trim}
-        </Text>
+        <Text style={styles.labelText}>{trainLabel}</Text>
       </View>
 
       {/* Action buttons */}
@@ -139,7 +138,7 @@ export default function InfographicScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn} onPress={shareInfographic}>
+        <TouchableOpacity style={styles.actionBtn} onPress={shareBlueprint}>
           <Ionicons
             name="share-outline"
             size={22}
@@ -184,7 +183,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.md,
   },
-  infographicImage: {
+  blueprintImage: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT * 0.75,
   },

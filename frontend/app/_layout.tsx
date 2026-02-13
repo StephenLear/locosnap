@@ -1,15 +1,15 @@
 // ============================================================
-// CarSnap — Root Layout
+// LocoSnap — Root Layout
 // ============================================================
 
 import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCarStore } from "../store/carStore";
+import { useTrainStore } from "../store/trainStore";
 import { colors } from "../constants/theme";
 
 export default function RootLayout() {
-  const loadHistory = useCarStore((state) => state.loadHistory);
+  const loadHistory = useTrainStore((state) => state.loadHistory);
 
   useEffect(() => {
     loadHistory();
@@ -39,9 +39,9 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
-          name="infographic"
+          name="blueprint"
           options={{
-            title: "Infographic",
+            title: "Blueprint",
             presentation: "fullScreenModal",
             headerBackTitle: "Close",
           }}

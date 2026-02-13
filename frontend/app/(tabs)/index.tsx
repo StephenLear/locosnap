@@ -1,6 +1,6 @@
 // ============================================================
-// CarSnap — Home / Camera Screen
-// The main scan screen where users take or select car photos
+// LocoSnap — Home / Camera Screen
+// The main spot screen where users take or select train photos
 // ============================================================
 
 import React, { useState, useRef } from "react";
@@ -19,8 +19,8 @@ import * as ImagePicker from "expo-image-picker";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useCarStore } from "../../store/carStore";
-import { identifyCar, pollInfographicStatus } from "../../services/api";
+import { useTrainStore } from "../../store/trainStore";
+import { identifyTrain, pollBlueprintStatus } from "../../services/api";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -39,9 +39,9 @@ export default function HomeScreen() {
     startScan,
     setScanResults,
     setScanError,
-    setInfographicStatus,
+    setBlueprintStatus,
     saveToHistory,
-  } = useCarStore();
+  } = useTrainStore();
 
   // Pulse animation for the scan button
   React.useEffect(() => {
@@ -68,32 +68,32 @@ export default function HomeScreen() {
     startScan();
 
     try {
-      const result = await identifyCar(imageUri);
+      const result = await identifyTrain(imageUri);
 
       if (!result.success || !result.data) {
         setScanError(
-          result.error || "Could not identify the car. Try a different photo."
+          result.error || "Could not identify the train. Try a different photo."
         );
         return;
       }
 
-      const { car, specs, reviews, infographic } = result.data;
-      setScanResults(car, specs, reviews);
+      const { train, specs, facts, rarity, blueprint } = result.data;
+      setScanResults(train, specs, facts, rarity);
       saveToHistory();
 
       // Navigate to results
       router.push("/results");
 
-      // Start polling for infographic in background
-      if (infographic?.taskId) {
-        const { promise } = pollInfographicStatus(
-          infographic.taskId,
+      // Start polling for blueprint in background
+      if (blueprint?.taskId) {
+        const { promise } = pollBlueprintStatus(
+          blueprint.taskId,
           (status) => {
-            setInfographicStatus(status);
+            setBlueprintStatus(status);
           }
         );
         promise.then(() => {
-          // Infographic complete or failed — status already updated via callback
+          // Blueprint complete or failed — status already updated via callback
         });
       }
     } catch (error) {
@@ -137,7 +137,7 @@ export default function HomeScreen() {
       if (!result.granted) {
         Alert.alert(
           "Camera Permission Required",
-          "CarSnap needs camera access to identify cars. Please enable it in your device settings.",
+          "LocoSnap needs camera access to identify trains. Please enable it in your device settings.",
           [{ text: "OK" }]
         );
         return;
@@ -155,7 +155,7 @@ export default function HomeScreen() {
           <View style={styles.viewfinder}>
             <View style={styles.viewfinderCorner} />
             <Text style={styles.viewfinderText}>
-              Point at a car and tap the shutter
+              Point at a train and tap the shutter
             </Text>
           </View>
 
@@ -196,9 +196,9 @@ export default function HomeScreen() {
               >
                 <ActivityIndicator size="large" color={colors.accent} />
               </Animated.View>
-              <Text style={styles.scanningText}>Identifying car...</Text>
+              <Text style={styles.scanningText}>Identifying train...</Text>
               <Text style={styles.scanningSubtext}>
-                Analyzing make, model, and year
+                Analysing class, operator, and rarity
               </Text>
             </View>
           </View>
@@ -206,15 +206,15 @@ export default function HomeScreen() {
           <View style={styles.placeholderContainer}>
             <View style={styles.iconCircle}>
               <Ionicons
-                name="car-sport"
+                name="train"
                 size={64}
                 color={colors.accent}
               />
             </View>
-            <Text style={styles.heroTitle}>Snap a Car</Text>
+            <Text style={styles.heroTitle}>Spot a Train</Text>
             <Text style={styles.heroSubtitle}>
               Take a photo or pick one from your library to instantly identify
-              any car and get reviews + a technical infographic
+              any train and get specs, facts + a technical blueprint
             </Text>
           </View>
         )}

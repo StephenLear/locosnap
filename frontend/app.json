@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "CarSnap",
-    "slug": "carsnap",
+    "name": "LocoSnap",
+    "slug": "locosnap",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "scheme": "carsnap",
+    "scheme": "locosnap",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -15,10 +15,10 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.carsnap.app",
+      "bundleIdentifier": "com.locosnap.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "CarSnap needs camera access to take photos of cars for identification.",
-        "NSPhotoLibraryUsageDescription": "CarSnap needs photo library access to select car photos for identification."
+        "NSCameraUsageDescription": "LocoSnap needs camera access to take photos of trains for identification.",
+        "NSPhotoLibraryUsageDescription": "LocoSnap needs photo library access to select train photos for identification."
       }
     },
     "android": {
@@ -26,7 +26,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a0f1a"
       },
-      "package": "com.carsnap.app",
+      "package": "com.locosnap.app",
       "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
     },
     "web": {
@@ -37,13 +37,13 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow CarSnap to access your camera to identify cars."
+          "cameraPermission": "Allow LocoSnap to access your camera to identify trains."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow CarSnap to access your photos to identify cars."
+          "photosPermission": "Allow LocoSnap to access your photos to identify trains."
         }
       ]
     ]

@@ -1,5 +1,5 @@
 // ============================================================
-// CarSnap — Tab Layout
+// LocoSnap — Tab Layout
 // ============================================================
 
 import { Tabs } from "expo-router";
@@ -37,8 +37,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Scan",
-          headerTitle: "CarSnap",
+          title: "Spot",
+          headerTitle: "LocoSnap",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="camera" size={size} color={color} />
           ),
@@ -47,9 +47,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: "History",
+          title: "Collection",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time" size={size} color={color} />
+            <Ionicons name="albums" size={size} color={color} />
           ),
         }}
       />

@@ -1,16 +1,16 @@
 // ============================================================
-// CarSnap — Infographic Generation Service
-// Generates industrial engineering-style infographics of cars
+// LocoSnap — Blueprint Generation Service
+// Generates engineering-style blueprint illustrations of trains
 // ============================================================
 
 import Replicate from "replicate";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../config/env";
-import { CarIdentification, CarSpecs, InfographicTask } from "../types";
+import { TrainIdentification, TrainSpecs, BlueprintTask } from "../types";
 
 // In-memory task store (upgrade to Redis for production)
-const taskStore = new Map<string, InfographicTask>();
+const taskStore = new Map<string, BlueprintTask>();
 
 // Initialize Replicate client (if available)
 let replicate: Replicate | null = null;
@@ -21,61 +21,57 @@ if (config.hasReplicate) {
 }
 
 /**
- * Build the detailed infographic prompt based on Steve's template
+ * Build the detailed blueprint prompt for a train
  */
-function buildInfographicPrompt(
-  car: CarIdentification,
-  specs: CarSpecs
+function buildBlueprintPrompt(
+  train: TrainIdentification,
+  specs: TrainSpecs
 ): string {
-  const hpText = specs.horsepower ? `${specs.horsepower} HP` : "N/A";
-  const torqueText = specs.torque ? `${specs.torque} lb-ft` : "N/A";
-  const engineText = specs.engine || "N/A";
-  const weightText = specs.curbWeight || "N/A";
-  const wheelbaseText = specs.wheelbase || "N/A";
-  const safetyText = specs.safetyRating
-    ? `${specs.safetyRating}/5 Stars`
-    : "N/A";
-  const transmissionText = specs.transmission || "N/A";
-  const drivetrainText = specs.drivetrain || "N/A";
+  const powerText = specs.power ?? "N/A";
+  const weightText = specs.weight ?? "N/A";
+  const lengthText = specs.length ?? "N/A";
+  const speedText = specs.maxSpeed ?? "N/A";
+  const gaugeText = specs.gauge ?? "Standard gauge";
+  const builderText = specs.builder ?? "N/A";
+  const fuelText = specs.fuelType ?? "N/A";
+  const designationText = train.designation || "N/A";
 
-  const fuelText = specs.fuelEconomy
-    ? `${specs.fuelEconomy.city}/${specs.fuelEconomy.highway} MPG`
-    : "N/A";
+  return `Industrial engineering-style blueprint of a ${train.class}${train.name ? ` "${train.name}"` : ""} ${train.type} locomotive/train (${train.operator}, ${train.color} livery). Ultra-precise technical rendering of the railway vehicle placed at centre, with accurate proportions, wheel arrangement (${designationText}), boiler/body details, and surface textures.
 
-  return `Industrial engineering-style infographic of a ${car.year} ${car.make} ${car.model} ${car.trim} (${car.color} ${car.bodyStyle}). Ultra-precise technical rendering of the vehicle placed at the center, with accurate proportions, textures, materials, and surface details. Surround the vehicle with industrial-grade technical elements:
+Surround the train with industrial-grade technical elements:
 
-• Blueprint-inspired dimension lines showing length, width, height, wheelbase (${wheelbaseText}), and ground clearance with tolerance annotations (±0.01mm).
-• Cross-section cutaway view revealing the engine bay (${engineText}), transmission (${transmissionText}), suspension, exhaust system, and chassis structure with engineering hatching patterns.
-• Exploded-view assembly diagram showing bolts, brackets, joints, wiring harness, bearings, brake components, and internal mechanisms.
-• Material specification blocks: Aluminum Alloy body panels, High-Strength Steel frame, Carbon Fiber accents, Tempered Glass, Polyurethane bumpers, Chrome/Satin trim.
-• Process flow arrows describing manufacturing steps: CNC Machining → Casting → Welding (TIG/MIG) → Injection Molding → Stamping.
-• Load & stress indicator graphics with arrows, vector force diagrams showing suspension forces, aerodynamic flow vectors, thermal flow from engine bay, and torque direction indicators.
-• Part numbering following industrial annotation style (Part A01, A02, B01, etc.) for major components.
-• Tech data panels showing: Weight: ${weightText}, Engine: ${engineText}, Power: ${hpText}, Torque: ${torqueText}, Transmission: ${transmissionText}, Drivetrain: ${drivetrainText}, Fuel Economy: ${fuelText}, Safety: ${safetyText}.
-• QR-style data block and barcode element in corner for extra industrial feel.
+• Blueprint-inspired dimension lines showing overall length (${lengthText}), height, width, wheelbase, bogie centres, and buffer height with tolerance annotations (±0.01mm).
+• Cross-section cutaway view revealing ${train.type === "Steam" ? "boiler, firebox, cylinders, valve gear, smokebox, tender" : train.type === "Electric" ? "traction motors, pantograph mechanism, transformer, power electronics" : "engine block, turbocharger, transmission, final drive, fuel tanks"} with engineering hatching patterns.
+• Exploded-view assembly diagram showing bogies, coupling rods, ${train.type === "Steam" ? "driving wheels, connecting rods, piston assemblies, safety valves" : "suspension units, brake discs, wheel sets, traction motor mounts"}.
+• Material specification blocks: ${train.type === "Steam" ? "Boiler plate steel, Cast iron cylinders, Copper firebox, Brass fittings" : "Aluminium alloy body, High-strength steel underframe, Glass fibre nose cone, Composite brake pads"}.
+• Wheel arrangement diagram: ${designationText} with numbered axles and power transmission paths.
+• Tech data panels showing: Power: ${powerText}, Max Speed: ${speedText}, Weight: ${weightText}, Length: ${lengthText}, Gauge: ${gaugeText}, Builder: ${builderText}, Fuel: ${fuelText}.
+• Railway-specific elements: loading gauge outline, coupling height markers, signal sighting line.
+• Works plate style data block in corner: ${train.class}, ${train.operator}, built by ${builderText}.
 
 Design style:
 - Clean, structured, engineering-oriented layout
-- Color palette: steel grey, dark navy (#1a2332), orange/yellow safety accents (#ff6b00)
-- Background: technical drafting sheet with subtle grid lines
-- Sharp sans-serif typeface in engineering annotation style
-- Minimal shadows, prioritizing clarity and precision
-- Multiple viewing angles: 3/4 front view (main), side profile, and detail callouts
+- Color palette: steel grey, dark navy (#1a2332), orange/yellow safety accents (#ff6b00), white technical lines
+- Background: technical drafting sheet with subtle grid lines and drawing border
+- Sharp sans-serif typeface in engineering annotation style (like a railway works drawing)
+- Minimal shadows, prioritising clarity and precision
+- Multiple viewing angles: side elevation (main), front/rear end views, and detail callouts
+- Include a small track/rail cross-section detail
 
-Aspect Ratio: 9:16 (portrait). Overall vibe: serious, precise, manufacturing-grade, like a factory technical poster or industrial tooling catalog.`;
+Aspect Ratio: 9:16 (portrait). Overall vibe: serious, precise, locomotive works drawing — like a Swindon, Crewe, or Doncaster works technical poster.`;
 }
 
 /**
- * Start infographic generation (async)
+ * Start blueprint generation (async)
  * Returns a task ID that can be polled for status
  */
-export async function startInfographicGeneration(
-  car: CarIdentification,
-  specs: CarSpecs
+export async function startBlueprintGeneration(
+  train: TrainIdentification,
+  specs: TrainSpecs
 ): Promise<string> {
   const taskId = uuidv4();
 
-  const task: InfographicTask = {
+  const task: BlueprintTask = {
     taskId,
     status: "queued",
     imageUrl: null,
@@ -86,15 +82,15 @@ export async function startInfographicGeneration(
 
   taskStore.set(taskId, task);
 
-  const prompt = buildInfographicPrompt(car, specs);
+  const prompt = buildBlueprintPrompt(train, specs);
 
   // Run generation in background (don't await)
   generateImage(taskId, prompt).catch((error) => {
-    console.error(`Image generation failed for task ${taskId}:`, error);
+    console.error(`Blueprint generation failed for task ${taskId}:`, error);
     const t = taskStore.get(taskId);
     if (t) {
       t.status = "failed";
-      t.error = (error as Error).message || "Image generation failed";
+      t.error = (error as Error).message || "Blueprint generation failed";
     }
   });
 
@@ -119,7 +115,7 @@ async function generateImage(taskId: string, prompt: string): Promise<void> {
           input: {
             prompt: prompt,
             negative_prompt:
-              "blurry, low quality, cartoon, anime, watermark, text errors, distorted, unrealistic proportions",
+              "blurry, low quality, cartoon, anime, watermark, text errors, distorted, unrealistic proportions, cars, automobiles",
             width: 768,
             height: 1344, // 9:16 ratio
             num_inference_steps: 50,
@@ -182,9 +178,9 @@ async function generateImage(taskId: string, prompt: string): Promise<void> {
 }
 
 /**
- * Check the status of an infographic generation task
+ * Check the status of a blueprint generation task
  */
-export function getTaskStatus(taskId: string): InfographicTask | null {
+export function getTaskStatus(taskId: string): BlueprintTask | null {
   return taskStore.get(taskId) || null;
 }
 

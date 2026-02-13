@@ -1,14 +1,15 @@
 // ============================================================
-// CarSnap — Car Identification Route
+// LocoSnap — Train Identification Route
 // POST /api/identify — The main endpoint
 // ============================================================
 
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { identifyCarFromImage } from "../services/vision";
-import { getReviewSummary } from "../services/reviews";
-import { getCarSpecs } from "../services/nhtsa";
-import { startInfographicGeneration } from "../services/imageGen";
+import { identifyTrainFromImage } from "../services/vision";
+import { getTrainSpecs } from "../services/trainSpecs";
+import { getTrainFacts } from "../services/trainFacts";
+import { classifyRarity } from "../services/rarity";
+import { startBlueprintGeneration } from "../services/imageGen";
 import { AppError } from "../middleware/errorHandler";
 import { IdentifyResponse } from "../types";
 
@@ -56,19 +57,19 @@ router.post(
         `[IDENTIFY] Processing image: ${req.file.originalname} (${(req.file.size / 1024).toFixed(1)}KB)`
       );
 
-      // Step 1: Identify the car using Vision API (Claude or OpenAI)
-      console.log("[IDENTIFY] Step 1: Identifying car...");
-      const car = await identifyCarFromImage(
+      // Step 1: Identify the train using Vision API (Claude or OpenAI)
+      console.log("[IDENTIFY] Step 1: Identifying train...");
+      const train = await identifyTrainFromImage(
         req.file.buffer,
         req.file.mimetype
       );
 
-      if (!car) {
+      if (!train) {
         const response: IdentifyResponse = {
           success: false,
           data: null,
           error:
-            "Could not identify a vehicle in this image. Please try a clearer photo of a car.",
+            "Could not identify a train in this image. Please try a clearer photo of a locomotive or train.",
           processingTimeMs: Date.now() - startTime,
         };
         res.status(422).json(response);
@@ -76,30 +77,35 @@ router.post(
       }
 
       console.log(
-        `[IDENTIFY] Found: ${car.year} ${car.make} ${car.model} (${car.confidence}% confidence)`
+        `[IDENTIFY] Found: ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.confidence}% confidence)`
       );
 
-      // Step 2 & 3: Fetch specs and reviews in parallel
+      // Step 2: Fetch specs and facts in parallel
       console.log(
-        "[IDENTIFY] Step 2-3: Fetching specs and reviews in parallel..."
+        "[IDENTIFY] Step 2: Fetching specs and facts in parallel..."
       );
-      const [specs, reviews] = await Promise.all([
-        getCarSpecs(car.make, car.model, car.year),
-        getReviewSummary(car.make, car.model, car.year),
+      const [specs, facts] = await Promise.all([
+        getTrainSpecs(train),
+        getTrainFacts(train),
       ]);
 
-      // Step 4: Start infographic generation (async — returns immediately)
-      console.log("[IDENTIFY] Step 4: Starting infographic generation...");
-      const taskId = await startInfographicGeneration(car, specs);
+      // Step 2b: Classify rarity (needs specs)
+      console.log("[IDENTIFY] Step 2b: Classifying rarity...");
+      const rarity = await classifyRarity(train, specs);
 
-      // Return full results (infographic still generating in background)
+      // Step 3: Start blueprint generation (async — returns immediately)
+      console.log("[IDENTIFY] Step 3: Starting blueprint generation...");
+      const taskId = await startBlueprintGeneration(train, specs);
+
+      // Return full results (blueprint still generating in background)
       const response: IdentifyResponse = {
         success: true,
         data: {
-          car,
+          train,
           specs,
-          reviews,
-          infographic: {
+          facts,
+          rarity,
+          blueprint: {
             taskId,
             status: "queued",
           },
@@ -109,7 +115,7 @@ router.post(
       };
 
       console.log(
-        `[IDENTIFY] Complete in ${response.processingTimeMs}ms. Infographic task: ${taskId}`
+        `[IDENTIFY] Complete in ${response.processingTimeMs}ms. Blueprint task: ${taskId}`
       );
 
       res.json(response);

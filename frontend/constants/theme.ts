@@ -1,5 +1,5 @@
 // ============================================================
-// CarSnap — Design System / Theme Constants
+// LocoSnap — Design System / Theme Constants
 // ============================================================
 
 export const colors = {

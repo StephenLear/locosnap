@@ -1,31 +1,31 @@
 // ============================================================
-// CarSnap — API Client Service
-// Handles all communication with the CarSnap backend
+// LocoSnap — API Client Service
+// Handles all communication with the LocoSnap backend
 // ============================================================
 
 import axios, { AxiosError } from "axios";
 import {
   API_BASE_URL,
-  INFOGRAPHIC_POLL_INTERVAL,
-  INFOGRAPHIC_TIMEOUT,
+  BLUEPRINT_POLL_INTERVAL,
+  BLUEPRINT_TIMEOUT,
 } from "../constants/api";
-import { IdentifyResponse, InfographicStatus } from "../types";
+import { IdentifyResponse, BlueprintStatus } from "../types";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60000, // 60s for car identification (Claude can be slow)
+  timeout: 60000, // 60s for train identification (Claude can be slow)
 });
 
 /**
- * Upload a car photo and get identification results
+ * Upload a train photo and get identification results
  */
-export async function identifyCar(
+export async function identifyTrain(
   imageUri: string
 ): Promise<IdentifyResponse> {
   const formData = new FormData();
 
   // React Native FormData for image upload
-  const filename = imageUri.split("/").pop() || "car.jpg";
+  const filename = imageUri.split("/").pop() || "train.jpg";
   const match = /\.(\w+)$/.exec(filename);
   const type = match ? `image/${match[1]}` : "image/jpeg";
 
@@ -60,34 +60,34 @@ export async function identifyCar(
     }
 
     throw new Error(
-      "Could not connect to CarSnap servers. Please try again later."
+      "Could not connect to LocoSnap servers. Please try again later."
     );
   }
 }
 
 /**
- * Check infographic generation status
+ * Check blueprint generation status
  */
-export async function checkInfographicStatus(
+export async function checkBlueprintStatus(
   taskId: string
-): Promise<InfographicStatus> {
+): Promise<BlueprintStatus> {
   try {
-    const response = await api.get<InfographicStatus>(
-      `/api/image/${taskId}`
+    const response = await api.get<BlueprintStatus>(
+      `/api/blueprint/${taskId}`
     );
     return response.data;
   } catch {
-    throw new Error("Could not check infographic status.");
+    throw new Error("Could not check blueprint status.");
   }
 }
 
 /**
- * Poll for infographic completion
+ * Poll for blueprint completion
  * Returns the image URL when ready, or null if it times out
  */
-export function pollInfographicStatus(
+export function pollBlueprintStatus(
   taskId: string,
-  onUpdate: (status: InfographicStatus) => void
+  onUpdate: (status: BlueprintStatus) => void
 ): { cancel: () => void; promise: Promise<string | null> } {
   let cancelled = false;
   let timeoutId: ReturnType<typeof setTimeout>;
@@ -106,19 +106,19 @@ export function pollInfographicStatus(
         return;
       }
 
-      if (Date.now() - startTime > INFOGRAPHIC_TIMEOUT) {
+      if (Date.now() - startTime > BLUEPRINT_TIMEOUT) {
         onUpdate({
           taskId,
           status: "failed",
           imageUrl: null,
-          error: "Infographic generation timed out. You can try again later.",
+          error: "Blueprint generation timed out. You can try again later.",
         });
         resolve(null);
         return;
       }
 
       try {
-        const status = await checkInfographicStatus(taskId);
+        const status = await checkBlueprintStatus(taskId);
         onUpdate(status);
 
         if (status.status === "completed" && status.imageUrl) {
@@ -132,10 +132,10 @@ export function pollInfographicStatus(
         }
 
         // Continue polling
-        timeoutId = setTimeout(poll, INFOGRAPHIC_POLL_INTERVAL);
+        timeoutId = setTimeout(poll, BLUEPRINT_POLL_INTERVAL);
       } catch {
         // Network error — retry
-        timeoutId = setTimeout(poll, INFOGRAPHIC_POLL_INTERVAL * 2);
+        timeoutId = setTimeout(poll, BLUEPRINT_POLL_INTERVAL * 2);
       }
     };
 

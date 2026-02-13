@@ -1,5 +1,5 @@
 // ============================================================
-// CarSnap Backend — Express Server
+// LocoSnap Backend — Express Server
 // ============================================================
 
 import express from "express";
@@ -7,7 +7,7 @@ import cors from "cors";
 import { config } from "./config/env";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import identifyRouter from "./routes/identify";
-import imageStatusRouter from "./routes/imageStatus";
+import blueprintStatusRouter from "./routes/imageStatus";
 import { cleanupOldTasks } from "./services/imageGen";
 import { getVisionProvider } from "./services/vision";
 
@@ -28,23 +28,23 @@ app.use(express.json({ limit: "1mb" }));
 app.get("/api/health", (_req, res) => {
   res.json({
     status: "ok",
-    service: "CarSnap API",
+    service: "LocoSnap API",
     version: "1.0.0",
     visionProvider: getVisionProvider(),
-    imageGenAvailable: config.hasImageGen,
+    blueprintGenAvailable: config.hasImageGen,
     timestamp: new Date().toISOString(),
   });
 });
 
 app.use("/api/identify", identifyRouter);
-app.use("/api/image", imageStatusRouter);
+app.use("/api/blueprint", blueprintStatusRouter);
 
 // ── Error Handling ──────────────────────────────────────────
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ── Periodic Cleanup ────────────────────────────────────────
-// Clean up old image generation tasks every 30 minutes
+// Clean up old blueprint generation tasks every 30 minutes
 setInterval(
   () => {
     cleanupOldTasks();
@@ -56,21 +56,21 @@ setInterval(
 app.listen(config.port, () => {
   console.log(`
 ╔══════════════════════════════════════════════╗
-║          CarSnap API Server                  ║
+║          LocoSnap API Server                 ║
 ╠══════════════════════════════════════════════╣
 ║  Port:        ${String(config.port).padEnd(30)}║
 ║  Environment: ${config.nodeEnv.padEnd(30)}║
 ║  Vision:      ${getVisionProvider().padEnd(30)}║
-║  Image Gen:   ${(config.hasImageGen ? "Ready" : "Not configured").padEnd(30)}║
+║  Blueprints:  ${(config.hasImageGen ? "Ready" : "Not configured").padEnd(30)}║
 ║  Anthropic:   ${(config.hasAnthropic ? "Yes" : "No").padEnd(30)}║
 ║  OpenAI:      ${(config.hasOpenAI ? "Yes" : "No").padEnd(30)}║
 ║  Replicate:   ${(config.hasReplicate ? "Yes" : "No").padEnd(30)}║
 ╚══════════════════════════════════════════════╝
 
 Endpoints:
-  POST /api/identify     — Upload car photo for identification
-  GET  /api/image/:id    — Check infographic generation status
-  GET  /api/health       — Health check
+  POST /api/identify        — Upload train photo for identification
+  GET  /api/blueprint/:id   — Check blueprint generation status
+  GET  /api/health          — Health check
   `);
 });
 

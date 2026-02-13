@@ -1,6 +1,6 @@
 // ============================================================
-// CarSnap — Results Screen
-// Shows identified car info, specs, reviews, and infographic
+// LocoSnap — Results Screen
+// Shows identified train info, specs, facts, rarity, and blueprint
 // ============================================================
 
 import React from "react";
@@ -10,50 +10,29 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useCarStore } from "../store/carStore";
+import { useTrainStore } from "../store/trainStore";
+import { RarityTier } from "../types";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
-// ── Score Bar Component ─────────────────────────────────
-function ScoreBar({
-  label,
-  score,
-  maxScore = 10,
-}: {
-  label: string;
-  score: number;
-  maxScore?: number;
-}) {
-  const percentage = (score / maxScore) * 100;
-  const barColor =
-    score >= 7.5
-      ? colors.success
-      : score >= 5
-        ? colors.warning
-        : colors.danger;
+// ── Rarity colours ──────────────────────────────────────
+const rarityColors: Record<RarityTier, string> = {
+  common: "#94a3b8",
+  uncommon: "#22c55e",
+  rare: "#3b82f6",
+  epic: "#a855f7",
+  legendary: "#f59e0b",
+};
 
-  return (
-    <View style={styles.scoreBarContainer}>
-      <View style={styles.scoreBarHeader}>
-        <Text style={styles.scoreBarLabel}>{label}</Text>
-        <Text style={[styles.scoreBarValue, { color: barColor }]}>
-          {score.toFixed(1)}
-        </Text>
-      </View>
-      <View style={styles.scoreBarTrack}>
-        <View
-          style={[
-            styles.scoreBarFill,
-            { width: `${percentage}%`, backgroundColor: barColor },
-          ]}
-        />
-      </View>
-    </View>
-  );
-}
+const rarityLabels: Record<RarityTier, string> = {
+  common: "COMMON",
+  uncommon: "UNCOMMON",
+  rare: "RARE",
+  epic: "EPIC",
+  legendary: "LEGENDARY",
+};
 
 // ── Spec Row Component ──────────────────────────────────
 function SpecRow({
@@ -83,53 +62,90 @@ function SpecRow({
 export default function ResultsScreen() {
   const router = useRouter();
   const {
-    currentCar,
+    currentTrain,
     currentSpecs,
-    currentReviews,
-    infographicStatus,
-  } = useCarStore();
+    currentFacts,
+    currentRarity,
+    blueprintStatus,
+  } = useTrainStore();
 
-  if (!currentCar) {
+  if (!currentTrain) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No car data available</Text>
+        <Text style={styles.emptyText}>No train data available</Text>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.emptyLink}>Go back and scan a car</Text>
+          <Text style={styles.emptyLink}>Go back and spot a train</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  const safetyStars = currentSpecs?.safetyRating
-    ? "★".repeat(Math.round(currentSpecs.safetyRating)) +
-      "☆".repeat(5 - Math.round(currentSpecs.safetyRating))
-    : null;
+  const rarityColor = currentRarity
+    ? rarityColors[currentRarity.tier]
+    : colors.textMuted;
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* ── Car Identity Card ──────────────────────── */}
+      {/* ── Rarity Badge ─────────────────────────────── */}
+      {currentRarity && (
+        <View
+          style={[
+            styles.rarityBadge,
+            { borderColor: rarityColor, backgroundColor: `${rarityColor}15` },
+          ]}
+        >
+          <View style={styles.rarityHeader}>
+            <Ionicons name="diamond" size={20} color={rarityColor} />
+            <Text style={[styles.rarityTier, { color: rarityColor }]}>
+              {rarityLabels[currentRarity.tier]}
+            </Text>
+          </View>
+          <Text style={styles.rarityReason}>{currentRarity.reason}</Text>
+          {(currentRarity.productionCount || currentRarity.survivingCount) && (
+            <View style={styles.rarityStats}>
+              {currentRarity.productionCount && (
+                <Text style={styles.rarityStat}>
+                  {currentRarity.productionCount} built
+                </Text>
+              )}
+              {currentRarity.survivingCount && (
+                <Text style={[styles.rarityStat, { color: rarityColor }]}>
+                  {currentRarity.survivingCount} surviving
+                </Text>
+              )}
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* ── Train Identity Card ──────────────────────── */}
       <View style={styles.identityCard}>
         <View style={styles.identityHeader}>
           <View style={styles.identityInfo}>
-            <Text style={styles.carYear}>{currentCar.year}</Text>
-            <Text style={styles.carName}>
-              {currentCar.make} {currentCar.model}
+            <Text style={styles.trainClass}>{currentTrain.class}</Text>
+            {currentTrain.name && (
+              <Text style={styles.trainName}>"{currentTrain.name}"</Text>
+            )}
+            <Text style={styles.trainMeta}>
+              {currentTrain.operator} · {currentTrain.type} · {currentTrain.color}
             </Text>
-            <Text style={styles.carTrim}>
-              {currentCar.trim} · {currentCar.color} · {currentCar.bodyStyle}
-            </Text>
+            {currentTrain.yearBuilt && (
+              <Text style={styles.trainYear}>
+                Built {currentTrain.yearBuilt} · {currentTrain.designation}
+              </Text>
+            )}
           </View>
           <View
             style={[
               styles.confidenceBadge,
               {
                 backgroundColor:
-                  currentCar.confidence >= 80
+                  currentTrain.confidence >= 80
                     ? "rgba(34, 197, 94, 0.15)"
-                    : currentCar.confidence >= 60
+                    : currentTrain.confidence >= 60
                       ? "rgba(234, 179, 8, 0.15)"
                       : "rgba(239, 68, 68, 0.15)",
               },
@@ -140,71 +156,71 @@ export default function ResultsScreen() {
                 styles.confidenceText,
                 {
                   color:
-                    currentCar.confidence >= 80
+                    currentTrain.confidence >= 80
                       ? colors.success
-                      : currentCar.confidence >= 60
+                      : currentTrain.confidence >= 60
                         ? colors.warning
                         : colors.danger,
                 },
               ]}
             >
-              {currentCar.confidence}%
+              {currentTrain.confidence}%
             </Text>
             <Text style={styles.confidenceLabel}>match</Text>
           </View>
         </View>
-        {currentCar.description && (
-          <Text style={styles.carDescription}>{currentCar.description}</Text>
+        {currentTrain.description && (
+          <Text style={styles.trainDescription}>{currentTrain.description}</Text>
         )}
       </View>
 
-      {/* ── Infographic Button ─────────────────────── */}
+      {/* ── Blueprint Button ─────────────────────────── */}
       <TouchableOpacity
         style={[
-          styles.infographicBtn,
-          infographicStatus?.status === "completed"
-            ? styles.infographicBtnReady
-            : styles.infographicBtnLoading,
+          styles.blueprintBtn,
+          blueprintStatus?.status === "completed"
+            ? styles.blueprintBtnReady
+            : styles.blueprintBtnLoading,
         ]}
         onPress={() => {
-          if (infographicStatus?.status === "completed") {
-            router.push("/infographic");
+          if (blueprintStatus?.status === "completed") {
+            router.push("/blueprint");
           }
         }}
-        disabled={infographicStatus?.status !== "completed"}
+        disabled={blueprintStatus?.status !== "completed"}
       >
         <Ionicons
           name={
-            infographicStatus?.status === "completed"
+            blueprintStatus?.status === "completed"
               ? "image"
-              : infographicStatus?.status === "failed"
+              : blueprintStatus?.status === "failed"
                 ? "alert-circle"
                 : "hourglass"
           }
           size={24}
           color={
-            infographicStatus?.status === "completed"
+            blueprintStatus?.status === "completed"
               ? colors.accent
               : colors.textSecondary
           }
         />
-        <View style={styles.infographicBtnContent}>
-          <Text style={styles.infographicBtnTitle}>
-            {infographicStatus?.status === "completed"
-              ? "View Technical Infographic"
-              : infographicStatus?.status === "failed"
-                ? "Infographic Generation Failed"
-                : "Generating Infographic..."}
+        <View style={styles.blueprintBtnContent}>
+          <Text style={styles.blueprintBtnTitle}>
+            {blueprintStatus?.status === "completed"
+              ? "View Technical Blueprint"
+              : blueprintStatus?.status === "failed"
+                ? "Blueprint Generation Failed"
+                : "Generating Blueprint..."}
           </Text>
-          <Text style={styles.infographicBtnSubtitle}>
-            {infographicStatus?.status === "completed"
-              ? "Industrial engineering-style blueprint"
-              : infographicStatus?.status === "failed"
-                ? infographicStatus.error || "Try again later"
+          <Text style={styles.blueprintBtnSubtitle}>
+            {blueprintStatus?.status === "completed"
+              ? "Locomotive works drawing style"
+              : blueprintStatus?.status === "failed"
+                ? blueprintStatus.error || "Try again later"
                 : "This may take up to 60 seconds"}
           </Text>
         </View>
-        {infographicStatus?.status === "completed" && (
+        {blueprintStatus?.status === "completed" && (
           <Ionicons
             name="chevron-forward"
             size={20}
@@ -213,151 +229,109 @@ export default function ResultsScreen() {
         )}
       </TouchableOpacity>
 
-      {/* ── Specs Section ──────────────────────────── */}
+      {/* ── Specs Section ────────────────────────────── */}
       {currentSpecs && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Specifications</Text>
           <View style={styles.specsCard}>
-            {safetyStars && (
-              <View style={styles.safetyRow}>
-                <Text style={styles.safetyLabel}>NHTSA Safety</Text>
-                <Text style={styles.safetyStars}>{safetyStars}</Text>
+            {currentSpecs.status && (
+              <View style={styles.statusRow}>
+                <Text style={styles.statusLabel}>Status</Text>
+                <Text
+                  style={[
+                    styles.statusValue,
+                    {
+                      color: currentSpecs.status.toLowerCase().includes("service")
+                        ? colors.success
+                        : currentSpecs.status.toLowerCase().includes("preserved")
+                          ? colors.warning
+                          : colors.textSecondary,
+                    },
+                  ]}
+                >
+                  {currentSpecs.status}
+                </Text>
               </View>
             )}
-            <SpecRow
-              icon="speedometer"
-              label="Engine"
-              value={currentSpecs.engine}
-            />
-            <SpecRow
-              icon="flash"
-              label="Horsepower"
-              value={
-                currentSpecs.horsepower
-                  ? `${currentSpecs.horsepower} HP`
-                  : null
-              }
-            />
-            <SpecRow
-              icon="cog"
-              label="Transmission"
-              value={currentSpecs.transmission}
-            />
-            <SpecRow
-              icon="navigate"
-              label="Drivetrain"
-              value={currentSpecs.drivetrain}
-            />
-            <SpecRow
-              icon="resize"
-              label="Wheelbase"
-              value={currentSpecs.wheelbase}
-            />
-            <SpecRow
-              icon="scale"
-              label="Curb Weight"
-              value={currentSpecs.curbWeight}
-            />
-            {currentSpecs.fuelEconomy && (
+            <SpecRow icon="speedometer" label="Max Speed" value={currentSpecs.maxSpeed} />
+            <SpecRow icon="flash" label="Power" value={currentSpecs.power} />
+            <SpecRow icon="scale" label="Weight" value={currentSpecs.weight} />
+            <SpecRow icon="resize" label="Length" value={currentSpecs.length} />
+            <SpecRow icon="git-merge" label="Gauge" value={currentSpecs.gauge} />
+            <SpecRow icon="construct" label="Builder" value={currentSpecs.builder} />
+            <SpecRow icon="flame" label="Fuel" value={currentSpecs.fuelType} />
+            <SpecRow icon="map" label="Route" value={currentSpecs.route} />
+            {currentSpecs.numberBuilt && (
               <SpecRow
-                icon="leaf"
-                label="Fuel Economy"
-                value={`${currentSpecs.fuelEconomy.city}/${currentSpecs.fuelEconomy.highway} MPG (city/hwy)`}
+                icon="layers"
+                label="Built"
+                value={`${currentSpecs.numberBuilt} units`}
+              />
+            )}
+            {currentSpecs.numberSurviving && (
+              <SpecRow
+                icon="heart"
+                label="Surviving"
+                value={`${currentSpecs.numberSurviving} units`}
               />
             )}
           </View>
         </View>
       )}
 
-      {/* ── Reviews Section ────────────────────────── */}
-      {currentReviews && (
+      {/* ── Facts Section ────────────────────────────── */}
+      {currentFacts && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Reviews</Text>
-
-          {/* Overall score hero */}
-          <View style={styles.overallScoreCard}>
-            <Text style={styles.overallScoreValue}>
-              {currentReviews.overallScore.toFixed(1)}
-            </Text>
-            <Text style={styles.overallScoreLabel}>/ 10 Overall</Text>
-          </View>
-
-          {/* Score breakdowns */}
-          <View style={styles.scoresCard}>
-            <ScoreBar label="Safety" score={currentReviews.safetyScore} />
-            <ScoreBar
-              label="Reliability"
-              score={currentReviews.reliabilityScore}
-            />
-            <ScoreBar
-              label="Performance"
-              score={currentReviews.performanceScore}
-            />
-            <ScoreBar label="Comfort" score={currentReviews.comfortScore} />
-            <ScoreBar label="Value" score={currentReviews.valueScore} />
-          </View>
+          <Text style={styles.sectionTitle}>Facts & History</Text>
 
           {/* Summary */}
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryText}>{currentReviews.summary}</Text>
+            <Text style={styles.summaryText}>{currentFacts.summary}</Text>
           </View>
 
-          {/* Pros & Cons */}
-          {(currentReviews.pros.length > 0 || currentReviews.cons.length > 0) && (
-            <View style={styles.prosConsContainer}>
-              {currentReviews.pros.length > 0 && (
-                <View style={styles.prosCard}>
-                  <Text style={styles.prosTitle}>Pros</Text>
-                  {currentReviews.pros.map((pro, i) => (
-                    <View key={i} style={styles.prosConRow}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={16}
-                        color={colors.success}
-                      />
-                      <Text style={styles.prosConText}>{pro}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-              {currentReviews.cons.length > 0 && (
-                <View style={styles.consCard}>
-                  <Text style={styles.consTitle}>Cons</Text>
-                  {currentReviews.cons.map((con, i) => (
-                    <View key={i} style={styles.prosConRow}>
-                      <Ionicons
-                        name="close-circle"
-                        size={16}
-                        color={colors.danger}
-                      />
-                      <Text style={styles.prosConText}>{con}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+          {/* Historical significance */}
+          {currentFacts.historicalSignificance && (
+            <View style={styles.significanceCard}>
+              <View style={styles.significanceHeader}>
+                <Ionicons name="star" size={16} color={colors.warning} />
+                <Text style={styles.significanceTitle}>Historical Significance</Text>
+              </View>
+              <Text style={styles.significanceText}>
+                {currentFacts.historicalSignificance}
+              </Text>
             </View>
           )}
 
-          {/* Sources */}
-          {currentReviews.sources.length > 0 && (
-            <View style={styles.sourcesCard}>
-              <Text style={styles.sourcesTitle}>Review Sources</Text>
-              {currentReviews.sources.map((source, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={styles.sourceRow}
-                  onPress={() => Linking.openURL(source.url)}
-                >
-                  <Text style={styles.sourceName}>{source.name}</Text>
-                  <Text style={styles.sourceScore}>
-                    {source.score.toFixed(1)}/10
-                  </Text>
+          {/* Fun facts */}
+          {currentFacts.funFacts.length > 0 && (
+            <View style={styles.factsCard}>
+              <Text style={styles.factsTitle}>Fun Facts</Text>
+              {currentFacts.funFacts.map((fact, i) => (
+                <View key={i} style={styles.factRow}>
                   <Ionicons
-                    name="open-outline"
-                    size={14}
-                    color={colors.textMuted}
+                    name="bulb"
+                    size={16}
+                    color={colors.accent}
                   />
-                </TouchableOpacity>
+                  <Text style={styles.factText}>{fact}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Notable events */}
+          {currentFacts.notableEvents.length > 0 && (
+            <View style={styles.eventsCard}>
+              <Text style={styles.eventsTitle}>Notable Events</Text>
+              {currentFacts.notableEvents.map((event, i) => (
+                <View key={i} style={styles.factRow}>
+                  <Ionicons
+                    name="flag"
+                    size={16}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.factText}>{event}</Text>
+                </View>
               ))}
             </View>
           )}
@@ -394,6 +368,39 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
+  // Rarity badge
+  rarityBadge: {
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+  },
+  rarityHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  rarityTier: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.bold,
+    letterSpacing: 2,
+  },
+  rarityReason: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  rarityStats: {
+    flexDirection: "row",
+    gap: spacing.lg,
+  },
+  rarityStat: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textMuted,
+    fontWeight: fonts.weights.medium,
+  },
+
   // Identity card
   identityCard: {
     backgroundColor: colors.surface,
@@ -411,21 +418,26 @@ const styles = StyleSheet.create({
   identityInfo: {
     flex: 1,
   },
-  carYear: {
-    fontSize: fonts.sizes.sm,
-    color: colors.accent,
-    fontWeight: fonts.weights.semibold,
-    marginBottom: 2,
-  },
-  carName: {
+  trainClass: {
     fontSize: fonts.sizes.xxl,
     fontWeight: fonts.weights.bold,
     color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  trainName: {
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.semibold,
+    color: colors.accent,
     marginBottom: 4,
   },
-  carTrim: {
+  trainMeta: {
     fontSize: fonts.sizes.sm,
     color: colors.textSecondary,
+  },
+  trainYear: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textMuted,
+    marginTop: 2,
   },
   confidenceBadge: {
     paddingHorizontal: spacing.md,
@@ -442,15 +454,15 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     color: colors.textMuted,
   },
-  carDescription: {
+  trainDescription: {
     fontSize: fonts.sizes.sm,
     color: colors.textSecondary,
     marginTop: spacing.md,
     lineHeight: 20,
   },
 
-  // Infographic button
-  infographicBtn: {
+  // Blueprint button
+  blueprintBtn: {
     flexDirection: "row",
     alignItems: "center",
     padding: spacing.lg,
@@ -458,24 +470,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     borderWidth: 1,
   },
-  infographicBtnReady: {
+  blueprintBtnReady: {
     backgroundColor: "rgba(255, 107, 0, 0.08)",
     borderColor: "rgba(255, 107, 0, 0.3)",
   },
-  infographicBtnLoading: {
+  blueprintBtnLoading: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
   },
-  infographicBtnContent: {
+  blueprintBtnContent: {
     flex: 1,
     marginLeft: spacing.md,
   },
-  infographicBtnTitle: {
+  blueprintBtnTitle: {
     fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.semibold,
     color: colors.textPrimary,
   },
-  infographicBtnSubtitle: {
+  blueprintBtnSubtitle: {
     fontSize: fonts.sizes.xs,
     color: colors.textSecondary,
     marginTop: 2,
@@ -500,7 +512,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  safetyRow: {
+  statusRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -509,14 +521,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  safetyLabel: {
+  statusLabel: {
     fontSize: fonts.sizes.sm,
     color: colors.textSecondary,
     fontWeight: fonts.weights.medium,
   },
-  safetyStars: {
-    fontSize: fonts.sizes.lg,
-    color: colors.warning,
+  statusValue: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold,
   },
   specRow: {
     flexDirection: "row",
@@ -536,64 +548,7 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.medium,
   },
 
-  // Reviews
-  overallScoreCard: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "center",
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  overallScoreValue: {
-    fontSize: 48,
-    fontWeight: fonts.weights.bold,
-    color: colors.accent,
-  },
-  overallScoreLabel: {
-    fontSize: fonts.sizes.lg,
-    color: colors.textSecondary,
-    marginLeft: spacing.sm,
-  },
-  scoresCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  scoreBarContainer: {
-    marginBottom: spacing.md,
-  },
-  scoreBarHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  scoreBarLabel: {
-    fontSize: fonts.sizes.sm,
-    color: colors.textSecondary,
-  },
-  scoreBarValue: {
-    fontSize: fonts.sizes.sm,
-    fontWeight: fonts.weights.bold,
-  },
-  scoreBarTrack: {
-    height: 6,
-    backgroundColor: colors.surfaceHighlight,
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  scoreBarFill: {
-    height: "100%",
-    borderRadius: 3,
-  },
-
-  // Summary
+  // Facts
   summaryCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
@@ -607,78 +562,68 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 22,
   },
-
-  // Pros & Cons
-  prosConsContainer: {
-    gap: spacing.md,
+  significanceCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
     marginBottom: spacing.md,
-  },
-  prosCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: "rgba(234, 179, 8, 0.3)",
   },
-  consCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  prosTitle: {
-    fontSize: fonts.sizes.md,
-    fontWeight: fonts.weights.semibold,
-    color: colors.success,
-    marginBottom: spacing.sm,
-  },
-  consTitle: {
-    fontSize: fonts.sizes.md,
-    fontWeight: fonts.weights.semibold,
-    color: colors.danger,
-    marginBottom: spacing.sm,
-  },
-  prosConRow: {
+  significanceHeader: {
     flexDirection: "row",
     alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  significanceTitle: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
+    color: colors.warning,
+  },
+  significanceText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  factsCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  factsTitle: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
+    color: colors.accent,
+    marginBottom: spacing.sm,
+  },
+  eventsCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  eventsTitle: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
+    color: colors.primary,
+    marginBottom: spacing.sm,
+  },
+  factRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     paddingVertical: 4,
   },
-  prosConText: {
+  factText: {
     fontSize: fonts.sizes.sm,
     color: colors.textPrimary,
     marginLeft: spacing.sm,
     flex: 1,
-  },
-
-  // Sources
-  sourcesCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  sourcesTitle: {
-    fontSize: fonts.sizes.sm,
-    fontWeight: fonts.weights.semibold,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-  },
-  sourceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing.sm,
-  },
-  sourceName: {
-    flex: 1,
-    fontSize: fonts.sizes.sm,
-    color: colors.textPrimary,
-  },
-  sourceScore: {
-    fontSize: fonts.sizes.sm,
-    color: colors.accent,
-    fontWeight: fonts.weights.semibold,
-    marginRight: spacing.sm,
+    lineHeight: 20,
   },
 });

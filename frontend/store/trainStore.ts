@@ -1,28 +1,30 @@
 // ============================================================
-// CarSnap — Zustand State Management
+// LocoSnap — Zustand State Management
 // ============================================================
 
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  CarIdentification,
-  CarSpecs,
-  AggregatedReviews,
-  InfographicStatus,
+  TrainIdentification,
+  TrainSpecs,
+  TrainFacts,
+  RarityInfo,
+  BlueprintStatus,
   HistoryItem,
 } from "../types";
 
-const HISTORY_KEY = "carsnap_history";
+const HISTORY_KEY = "locosnap_history";
 const MAX_HISTORY = 50;
 
-interface CarState {
+interface TrainState {
   // Current scan state
   isScanning: boolean;
   scanError: string | null;
-  currentCar: CarIdentification | null;
-  currentSpecs: CarSpecs | null;
-  currentReviews: AggregatedReviews | null;
-  infographicStatus: InfographicStatus | null;
+  currentTrain: TrainIdentification | null;
+  currentSpecs: TrainSpecs | null;
+  currentFacts: TrainFacts | null;
+  currentRarity: RarityInfo | null;
+  blueprintStatus: BlueprintStatus | null;
 
   // History
   history: HistoryItem[];
@@ -31,12 +33,13 @@ interface CarState {
   // Actions
   startScan: () => void;
   setScanResults: (
-    car: CarIdentification,
-    specs: CarSpecs,
-    reviews: AggregatedReviews
+    train: TrainIdentification,
+    specs: TrainSpecs,
+    facts: TrainFacts,
+    rarity: RarityInfo
   ) => void;
   setScanError: (error: string) => void;
-  setInfographicStatus: (status: InfographicStatus) => void;
+  setBlueprintStatus: (status: BlueprintStatus) => void;
   clearCurrentScan: () => void;
   loadHistory: () => Promise<void>;
   saveToHistory: () => Promise<void>;
@@ -44,14 +47,15 @@ interface CarState {
   viewHistoryItem: (item: HistoryItem) => void;
 }
 
-export const useCarStore = create<CarState>((set, get) => ({
+export const useTrainStore = create<TrainState>((set, get) => ({
   // Initial state
   isScanning: false,
   scanError: null,
-  currentCar: null,
+  currentTrain: null,
   currentSpecs: null,
-  currentReviews: null,
-  infographicStatus: null,
+  currentFacts: null,
+  currentRarity: null,
+  blueprintStatus: null,
   history: [],
   historyLoaded: false,
 
@@ -59,20 +63,22 @@ export const useCarStore = create<CarState>((set, get) => ({
     set({
       isScanning: true,
       scanError: null,
-      currentCar: null,
+      currentTrain: null,
       currentSpecs: null,
-      currentReviews: null,
-      infographicStatus: null,
+      currentFacts: null,
+      currentRarity: null,
+      blueprintStatus: null,
     });
   },
 
-  setScanResults: (car, specs, reviews) => {
+  setScanResults: (train, specs, facts, rarity) => {
     set({
       isScanning: false,
       scanError: null,
-      currentCar: car,
+      currentTrain: train,
       currentSpecs: specs,
-      currentReviews: reviews,
+      currentFacts: facts,
+      currentRarity: rarity,
     });
   },
 
@@ -83,13 +89,13 @@ export const useCarStore = create<CarState>((set, get) => ({
     });
   },
 
-  setInfographicStatus: (status) => {
-    set({ infographicStatus: status });
+  setBlueprintStatus: (status) => {
+    set({ blueprintStatus: status });
 
-    // Auto-save to history when infographic completes
+    // Auto-save to history when blueprint completes
     if (status.status === "completed" && status.imageUrl) {
       const state = get();
-      if (state.currentCar) {
+      if (state.currentTrain) {
         get().saveToHistory();
       }
     }
@@ -99,10 +105,11 @@ export const useCarStore = create<CarState>((set, get) => ({
     set({
       isScanning: false,
       scanError: null,
-      currentCar: null,
+      currentTrain: null,
       currentSpecs: null,
-      currentReviews: null,
-      infographicStatus: null,
+      currentFacts: null,
+      currentRarity: null,
+      blueprintStatus: null,
     });
   },
 
@@ -123,26 +130,26 @@ export const useCarStore = create<CarState>((set, get) => ({
 
   saveToHistory: async () => {
     const state = get();
-    if (!state.currentCar || !state.currentSpecs || !state.currentReviews) {
+    if (!state.currentTrain || !state.currentSpecs || !state.currentFacts || !state.currentRarity) {
       return;
     }
 
     const item: HistoryItem = {
       id: Date.now().toString(),
-      car: state.currentCar,
+      train: state.currentTrain,
       specs: state.currentSpecs,
-      reviews: state.currentReviews,
-      infographicUrl: state.infographicStatus?.imageUrl || null,
-      scannedAt: new Date().toISOString(),
+      facts: state.currentFacts,
+      rarity: state.currentRarity,
+      blueprintUrl: state.blueprintStatus?.imageUrl || null,
+      spottedAt: new Date().toISOString(),
     };
 
-    // Check for duplicates (same car scanned recently)
+    // Check for duplicates (same train spotted recently)
     const isDuplicate = state.history.some(
       (h) =>
-        h.car.make === item.car.make &&
-        h.car.model === item.car.model &&
-        h.car.year === item.car.year &&
-        Date.now() - new Date(h.scannedAt).getTime() < 60000
+        h.train.class === item.train.class &&
+        h.train.operator === item.train.operator &&
+        Date.now() - new Date(h.spottedAt).getTime() < 60000
     );
 
     if (isDuplicate) return;
@@ -171,14 +178,15 @@ export const useCarStore = create<CarState>((set, get) => ({
 
   viewHistoryItem: (item) => {
     set({
-      currentCar: item.car,
+      currentTrain: item.train,
       currentSpecs: item.specs,
-      currentReviews: item.reviews,
-      infographicStatus: item.infographicUrl
+      currentFacts: item.facts,
+      currentRarity: item.rarity,
+      blueprintStatus: item.blueprintUrl
         ? {
             taskId: "history",
             status: "completed",
-            imageUrl: item.infographicUrl,
+            imageUrl: item.blueprintUrl,
             error: null,
           }
         : null,

@@ -1,6 +1,6 @@
 // ============================================================
-// CarSnap — History Screen
-// Shows previously scanned cars
+// LocoSnap — Collection Screen
+// Shows previously spotted trains with rarity badges
 // ============================================================
 
 import React from "react";
@@ -14,9 +14,17 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useCarStore } from "../../store/carStore";
-import { HistoryItem } from "../../types";
+import { useTrainStore } from "../../store/trainStore";
+import { HistoryItem, RarityTier } from "../../types";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
+
+const rarityColors: Record<RarityTier, string> = {
+  common: "#94a3b8",
+  uncommon: "#22c55e",
+  rare: "#3b82f6",
+  epic: "#a855f7",
+  legendary: "#f59e0b",
+};
 
 function formatDate(isoString: string): string {
   const date = new Date(isoString);
@@ -31,7 +39,7 @@ function formatDate(isoString: string): string {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("en-GB", {
     month: "short",
     day: "numeric",
     year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
@@ -47,47 +55,41 @@ function HistoryCard({
   onPress: () => void;
   onDelete: () => void;
 }) {
-  const scoreColor =
-    item.reviews.overallScore >= 7.5
-      ? colors.success
-      : item.reviews.overallScore >= 5
-        ? colors.warning
-        : colors.danger;
+  const rarityColor = rarityColors[item.rarity.tier];
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardContent}>
-        {/* Car icon or infographic thumbnail */}
-        <View style={styles.cardIcon}>
-          <Ionicons name="car-sport" size={28} color={colors.accent} />
+        {/* Train icon with rarity glow */}
+        <View style={[styles.cardIcon, { borderColor: rarityColor }]}>
+          <Ionicons name="train" size={28} color={rarityColor} />
         </View>
 
-        {/* Car info */}
+        {/* Train info */}
         <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle}>
-            {item.car.make} {item.car.model}
-          </Text>
+          <Text style={styles.cardTitle}>{item.train.class}</Text>
           <Text style={styles.cardSubtitle}>
-            {item.car.year} · {item.car.trim} · {item.car.color}
+            {item.train.operator} · {item.train.type}
+            {item.train.name ? ` · "${item.train.name}"` : ""}
           </Text>
-          <Text style={styles.cardDate}>{formatDate(item.scannedAt)}</Text>
+          <Text style={styles.cardDate}>{formatDate(item.spottedAt)}</Text>
         </View>
 
-        {/* Score */}
-        <View style={styles.cardScore}>
-          <Text style={[styles.cardScoreValue, { color: scoreColor }]}>
-            {item.reviews.overallScore.toFixed(1)}
+        {/* Rarity tier */}
+        <View style={styles.cardRarity}>
+          <Ionicons name="diamond" size={14} color={rarityColor} />
+          <Text style={[styles.cardRarityText, { color: rarityColor }]}>
+            {item.rarity.tier.toUpperCase()}
           </Text>
-          <Text style={styles.cardScoreLabel}>/10</Text>
         </View>
 
-        {/* Infographic indicator */}
-        {item.infographicUrl && (
+        {/* Blueprint indicator */}
+        {item.blueprintUrl && (
           <Ionicons
             name="image"
             size={16}
             color={colors.accent}
-            style={styles.infographicIcon}
+            style={styles.blueprintIcon}
           />
         )}
       </View>
@@ -102,7 +104,7 @@ function HistoryCard({
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const { history, removeFromHistory, viewHistoryItem } = useCarStore();
+  const { history, removeFromHistory, viewHistoryItem } = useTrainStore();
 
   const handlePress = (item: HistoryItem) => {
     viewHistoryItem(item);
@@ -111,8 +113,8 @@ export default function HistoryScreen() {
 
   const handleDelete = (item: HistoryItem) => {
     Alert.alert(
-      "Remove from History",
-      `Remove ${item.car.year} ${item.car.make} ${item.car.model}?`,
+      "Remove from Collection",
+      `Remove ${item.train.class}${item.train.name ? ` "${item.train.name}"` : ""} (${item.train.operator})?`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -127,10 +129,10 @@ export default function HistoryScreen() {
   if (history.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="time-outline" size={64} color={colors.textMuted} />
-        <Text style={styles.emptyTitle}>No Scans Yet</Text>
+        <Ionicons name="albums-outline" size={64} color={colors.textMuted} />
+        <Text style={styles.emptyTitle}>No Spots Yet</Text>
         <Text style={styles.emptySubtitle}>
-          Cars you scan will appear here so you can revisit them anytime
+          Trains you spot will appear here so you can build your collection
         </Text>
       </View>
     );
@@ -204,6 +206,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: spacing.md,
+    borderWidth: 1,
   },
   cardInfo: {
     flex: 1,
@@ -223,21 +226,18 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 2,
   },
-  cardScore: {
-    flexDirection: "row",
-    alignItems: "baseline",
+  cardRarity: {
+    flexDirection: "column",
+    alignItems: "center",
     marginLeft: spacing.sm,
+    gap: 2,
   },
-  cardScoreValue: {
-    fontSize: fonts.sizes.xl,
+  cardRarityText: {
+    fontSize: 9,
     fontWeight: fonts.weights.bold,
+    letterSpacing: 1,
   },
-  cardScoreLabel: {
-    fontSize: fonts.sizes.xs,
-    color: colors.textMuted,
-    marginLeft: 2,
-  },
-  infographicIcon: {
+  blueprintIcon: {
     marginLeft: spacing.sm,
   },
   deleteBtn: {

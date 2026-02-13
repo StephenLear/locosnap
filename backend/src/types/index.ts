@@ -1,65 +1,50 @@
 // ============================================================
-// CarSnap — Shared Types
+// LocoSnap — Shared Types
 // ============================================================
 
-export interface CarIdentification {
-  make: string;
-  model: string;
-  year: number;
-  trim: string;
+export type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary";
+
+export interface TrainIdentification {
+  class: string; // e.g. "Class 43", "A4", "Class 800"
+  name: string | null; // e.g. "Flying Scotsman", "Mallard" (named locos only)
+  operator: string; // e.g. "LNER", "GWR", "Network Rail"
+  type: string; // e.g. "Steam", "Diesel", "Electric", "DMU", "EMU", "HST"
+  designation: string; // e.g. "4-6-2 Pacific", "Bo-Bo", "2-Co-Co-2"
+  yearBuilt: number | null;
   confidence: number; // 0-100
-  color: string;
-  bodyStyle: string; // sedan, SUV, truck, coupe, etc.
+  color: string; // livery colour
   description: string;
 }
 
-export interface CarSpecs {
-  safetyRating: number | null; // 1-5 stars (NHTSA)
-  crashTestRatings: {
-    overall: number | null;
-    frontal: number | null;
-    side: number | null;
-    rollover: number | null;
-  };
-  fuelEconomy: {
-    city: number | null; // MPG
-    highway: number | null;
-    combined: number | null;
-  } | null;
-  engine: string | null;
-  horsepower: number | null;
-  torque: number | null;
-  transmission: string | null;
-  drivetrain: string | null;
-  wheelbase: string | null;
-  curbWeight: string | null;
-  dimensions: {
-    length: string | null;
-    width: string | null;
-    height: string | null;
-  } | null;
+export interface TrainSpecs {
+  maxSpeed: string | null; // e.g. "125 mph"
+  power: string | null; // e.g. "2,250 HP" or "5,000 kW"
+  weight: string | null; // e.g. "76 tonnes"
+  length: string | null; // e.g. "22.1 m"
+  gauge: string | null; // e.g. "Standard (1,435 mm)"
+  builder: string | null; // e.g. "Doncaster Works", "Hitachi"
+  numberBuilt: number | null;
+  numberSurviving: number | null;
+  status: string | null; // e.g. "In service", "Preserved", "Withdrawn"
+  route: string | null; // e.g. "East Coast Main Line"
+  fuelType: string | null; // e.g. "Coal", "Diesel", "Electric (25kV AC)"
 }
 
-export interface ReviewSource {
-  name: string;
-  score: number; // 0-10
-  url: string;
-}
-
-export interface AggregatedReviews {
-  overallScore: number; // 0-10
-  safetyScore: number;
-  reliabilityScore: number;
-  performanceScore: number;
-  comfortScore: number;
-  valueScore: number;
+export interface TrainFacts {
   summary: string;
-  pros: string[];
-  cons: string[];
-  sources: ReviewSource[];
+  historicalSignificance: string | null;
+  funFacts: string[];
+  notableEvents: string[];
 }
 
-export interface InfographicTask {
+export interface RarityInfo {
+  tier: RarityTier;
+  reason: string; // e.g. "Heritage steam locomotive — only 1 surviving"
+  productionCount: number | null;
+  survivingCount: number | null;
+}
+
+export interface BlueprintTask {
   taskId: string;
   status: "queued" | "processing" | "completed" | "failed";
   imageUrl: string | null;
@@ -71,10 +56,11 @@ export interface InfographicTask {
 export interface IdentifyResponse {
   success: boolean;
   data: {
-    car: CarIdentification;
-    specs: CarSpecs;
-    reviews: AggregatedReviews;
-    infographic: {
+    train: TrainIdentification;
+    specs: TrainSpecs;
+    facts: TrainFacts;
+    rarity: RarityInfo;
+    blueprint: {
       taskId: string;
       status: string;
     };
@@ -83,7 +69,7 @@ export interface IdentifyResponse {
   processingTimeMs: number;
 }
 
-export interface ImageStatusResponse {
+export interface BlueprintStatusResponse {
   taskId: string;
   status: "queued" | "processing" | "completed" | "failed";
   imageUrl: string | null;

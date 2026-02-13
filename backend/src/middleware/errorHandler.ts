@@ -1,5 +1,5 @@
 // ============================================================
-// CarSnap — Error Handling Middleware
+// LocoSnap — Error Handling Middleware
 // ============================================================
 
 import { Request, Response, NextFunction } from "express";

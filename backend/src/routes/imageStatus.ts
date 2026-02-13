@@ -1,11 +1,11 @@
 // ============================================================
-// CarSnap — Image Status Route
-// GET /api/image/:taskId — Poll infographic generation status
+// LocoSnap — Blueprint Status Route
+// GET /api/blueprint/:taskId — Poll blueprint generation status
 // ============================================================
 
 import { Router, Request, Response } from "express";
 import { getTaskStatus } from "../services/imageGen";
-import { ImageStatusResponse } from "../types";
+import { BlueprintStatusResponse } from "../types";
 
 const router = Router();
 
@@ -20,11 +20,11 @@ router.get("/:taskId", (req: Request, res: Response): void => {
       status: "not_found",
       imageUrl: null,
       error: "Task not found. It may have expired.",
-    } as ImageStatusResponse & { status: string });
+    } as BlueprintStatusResponse & { status: string });
     return;
   }
 
-  const response: ImageStatusResponse = {
+  const response: BlueprintStatusResponse = {
     taskId: task.taskId,
     status: task.status,
     imageUrl: task.imageUrl,
