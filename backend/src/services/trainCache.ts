@@ -18,6 +18,7 @@ import {
   TrainSpecs,
   TrainFacts,
   RarityInfo,
+  BlueprintStyle,
 } from "../types";
 
 // ── Types ───────────────────────────────────────────────────
@@ -26,7 +27,8 @@ interface CachedTrainData {
   specs: TrainSpecs;
   facts: TrainFacts;
   rarity: RarityInfo;
-  blueprintUrl: string | null; // cached blueprint image URL
+  blueprintUrl: string | null; // legacy: default "technical" style
+  blueprintUrls?: Record<string, string>; // style-keyed blueprint URLs
   cachedAt: string; // ISO timestamp
   hitCount: number;
 }
@@ -125,9 +127,11 @@ function saveCache(): void {
 /**
  * Look up cached data for a train.
  * Returns null on cache miss.
+ * Pass a style to get the style-specific cached blueprint URL.
  */
 export function getCachedTrainData(
-  train: TrainIdentification
+  train: TrainIdentification,
+  style: BlueprintStyle = "technical"
 ): {
   specs: TrainSpecs;
   facts: TrainFacts;
@@ -152,16 +156,21 @@ export function getCachedTrainData(
   entry.hitCount++;
   totalHits++;
 
+  // Resolve blueprint URL: check style-specific map first, then legacy field
+  const blueprintUrl =
+    entry.blueprintUrls?.[style] ??
+    (style === "technical" ? entry.blueprintUrl : null);
+
   console.log(
-    `[CACHE] HIT for "${key}" (${entry.hitCount} total hits)` +
-      (entry.blueprintUrl ? " [has blueprint]" : " [no blueprint yet]")
+    `[CACHE] HIT for "${key}" style="${style}" (${entry.hitCount} total hits)` +
+      (blueprintUrl ? " [has blueprint]" : " [no blueprint yet]")
   );
 
   return {
     specs: entry.specs,
     facts: entry.facts,
     rarity: entry.rarity,
-    blueprintUrl: entry.blueprintUrl,
+    blueprintUrl,
   };
 }
 
@@ -209,17 +218,27 @@ export function setCachedTrainData(
 /**
  * Update a cached entry with a completed blueprint URL.
  * Called when blueprint generation finishes.
+ * Stores in style-keyed map + legacy field for backwards compat.
  */
 export function setCachedBlueprint(
   train: TrainIdentification,
-  blueprintUrl: string
+  blueprintUrl: string,
+  style: BlueprintStyle = "technical"
 ): void {
   const key = getCacheKey(train);
   const entry = cache.get(key);
 
   if (entry) {
-    entry.blueprintUrl = blueprintUrl;
-    console.log(`[CACHE] Blueprint URL stored for "${key}"`);
+    // Store in style-keyed map
+    if (!entry.blueprintUrls) entry.blueprintUrls = {};
+    entry.blueprintUrls[style] = blueprintUrl;
+
+    // Also update legacy field for default style
+    if (style === "technical") {
+      entry.blueprintUrl = blueprintUrl;
+    }
+
+    console.log(`[CACHE] Blueprint URL stored for "${key}" style="${style}"`);
     saveCache();
   }
 }
@@ -234,7 +253,9 @@ export function getCacheStats(): CacheStats {
 
   let entriesWithBlueprints = 0;
   for (const entry of cache.values()) {
-    if (entry.blueprintUrl) entriesWithBlueprints++;
+    if (entry.blueprintUrl || (entry.blueprintUrls && Object.keys(entry.blueprintUrls).length > 0)) {
+      entriesWithBlueprints++;
+    }
   }
 
   return {

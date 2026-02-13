@@ -126,7 +126,8 @@ export default function HomeScreen() {
     }
 
     try {
-      const result = await identifyTrain(imageUri);
+      const { selectedBlueprintStyle } = useTrainStore.getState();
+      const result = await identifyTrain(imageUri, selectedBlueprintStyle);
 
       if (!result.success || !result.data) {
         track("scan_failed", { error: result.error || "unknown" });

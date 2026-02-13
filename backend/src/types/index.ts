@@ -4,6 +4,8 @@
 
 export type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
+export type BlueprintStyle = "technical" | "vintage" | "schematic" | "cinematic";
+
 export interface TrainIdentification {
   class: string; // e.g. "Class 43", "A4", "Class 800"
   name: string | null; // e.g. "Flying Scotsman", "Mallard" (named locos only)

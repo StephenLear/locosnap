@@ -395,9 +395,9 @@ Build only what's needed to test: Spot → Card → Collect → Share
 
 ### V2 — Pro & Monetization
 - ~~Pro subscription via App Store (RevenueCat + webhook + paywall)~~ **DONE**
-- Pro-exclusive blueprint styles
-- Collection comparisons
-- Advanced filters and search
+- ~~Pro-exclusive blueprint styles (4 styles: Technical, Vintage, Schematic, Cinematic)~~ **DONE**
+- ~~Collection comparisons (side-by-side spec comparison)~~ **DONE**
+- ~~Advanced filters and search (text search, builder filter, blueprint toggle, compare mode)~~ **DONE**
 
 ## 11. Success Metrics (First 30 Days)
 

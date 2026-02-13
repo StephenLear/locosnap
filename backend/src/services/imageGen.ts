@@ -7,7 +7,7 @@ import Replicate from "replicate";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../config/env";
-import { TrainIdentification, TrainSpecs, BlueprintTask } from "../types";
+import { TrainIdentification, TrainSpecs, BlueprintTask, BlueprintStyle } from "../types";
 
 // In-memory task store (upgrade to Redis for production)
 const taskStore = new Map<string, BlueprintTask>();
@@ -20,12 +20,66 @@ if (config.hasReplicate) {
   });
 }
 
+// ── Blueprint Style Definitions ─────────────────────────────
+// Each style provides a distinct visual aesthetic for the blueprint
+
+const STYLE_PROMPTS: Record<BlueprintStyle, { design: string; vibe: string }> = {
+  technical: {
+    design: `Design style:
+- Clean, structured, engineering-oriented layout
+- Color palette: steel grey, dark navy (#1a2332), orange/yellow safety accents (#ff6b00), white technical lines
+- Background: technical drafting sheet with subtle grid lines and drawing border
+- Sharp sans-serif typeface in engineering annotation style (like a railway works drawing)
+- Minimal shadows, prioritising clarity and precision
+- Multiple viewing angles: side elevation (main), front/rear end views, and detail callouts
+- Include a small track/rail cross-section detail`,
+    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: serious, precise, locomotive works drawing — like a Swindon, Crewe, or Doncaster works technical poster.`,
+  },
+  vintage: {
+    design: `Design style:
+- Hand-drawn Victorian engineering illustration aesthetic
+- Sepia-toned color palette: warm browns, aged cream parchment, burnt sienna, dark umber ink lines
+- Background: aged yellowed drafting paper with subtle foxing, worn edges, coffee-ring stains
+- Hand-lettered copperplate serif typography for labels and annotations
+- Fine cross-hatching and stipple shading for depth (pen-and-ink technique)
+- Ornamental cartouche title block with decorative border, railway company crest
+- Single side-elevation view with generous annotation callouts, hand-drawn dimension arrows
+- Visible construction lines and pencil guidelines as if drawn by a Victorian draughtsman`,
+    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a priceless original engineering drawing from the 1890s, discovered in the archives of a Great Western Railway works — hand-inked by a master draughtsman.`,
+  },
+  schematic: {
+    design: `Design style:
+- Ultra-clean minimalist circuit-diagram / technical schematic aesthetic
+- Monochrome palette: crisp white background, thin precise black lines (#1a1a1a), single accent colour (#0066ff) for key dimensions
+- Background: pure white with faint 5mm grid dots
+- Modern geometric sans-serif typeface (Helvetica/DIN style), small precise labels
+- No shading, no gradients — pure line art with uniform stroke weights
+- Exploded isometric view showing major subassemblies separated with connection indicators
+- Numbered part callouts with a clean legend/parts list panel
+- Wiring-diagram style power flow arrows showing energy path from source to wheels`,
+    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a modern technical manual illustration — clean, minimal, information-dense, like an IKEA assembly guide meets Japanese train technical manual.`,
+  },
+  cinematic: {
+    design: `Design style:
+- Dramatic cinematic hero-shot rendering of the locomotive in motion
+- Moody atmospheric lighting: golden hour / blue hour, volumetric fog, rain-slicked tracks
+- Depth of field: sharp focus on the locomotive, beautifully blurred background (railway station, countryside, or depot)
+- Hyperrealistic rendering with metallic reflections, steam/exhaust effects, motion blur on wheels
+- Low-angle three-quarter perspective showing the locomotive's imposing scale and power
+- Subtle lens flare from headlight, dynamic cloud formations in sky
+- Cinematic color grading: deep shadows, lifted blacks, warm highlights
+- Tech data overlaid as subtle HUD-style transparent panels (like a movie title card)`,
+    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a hero shot from a prestige BBC railway documentary — dramatic, beautiful, awe-inspiring — the locomotive as protagonist.`,
+  },
+};
+
 /**
  * Build the detailed blueprint prompt for a train
  */
 function buildBlueprintPrompt(
   train: TrainIdentification,
-  specs: TrainSpecs
+  specs: TrainSpecs,
+  style: BlueprintStyle = "technical"
 ): string {
   const powerText = specs.power ?? "N/A";
   const weightText = specs.weight ?? "N/A";
@@ -36,29 +90,27 @@ function buildBlueprintPrompt(
   const fuelText = specs.fuelType ?? "N/A";
   const designationText = train.designation || "N/A";
 
-  return `Industrial engineering-style blueprint of a ${train.class}${train.name ? ` "${train.name}"` : ""} ${train.type} locomotive/train (${train.operator}, ${train.color} livery). Ultra-precise technical rendering of the railway vehicle placed at centre, with accurate proportions, wheel arrangement (${designationText}), boiler/body details, and surface textures.
+  const styleConfig = STYLE_PROMPTS[style] || STYLE_PROMPTS.technical;
 
-Surround the train with industrial-grade technical elements:
+  const baseDescription = `${style === "cinematic" ? "Cinematic hero-shot rendering" : style === "vintage" ? "Hand-drawn Victorian engineering illustration" : style === "schematic" ? "Clean minimalist technical schematic" : "Industrial engineering-style blueprint"} of a ${train.class}${train.name ? ` "${train.name}"` : ""} ${train.type} locomotive/train (${train.operator}, ${train.color} livery). Ultra-precise ${style === "cinematic" ? "photorealistic rendering" : "technical rendering"} of the railway vehicle placed at centre, with accurate proportions, wheel arrangement (${designationText}), boiler/body details, and surface textures.`;
 
-• Blueprint-inspired dimension lines showing overall length (${lengthText}), height, width, wheelbase, bogie centres, and buffer height with tolerance annotations (±0.01mm).
-• Cross-section cutaway view revealing ${train.type === "Steam" ? "boiler, firebox, cylinders, valve gear, smokebox, tender" : train.type === "Electric" ? "traction motors, pantograph mechanism, transformer, power electronics" : "engine block, turbocharger, transmission, final drive, fuel tanks"} with engineering hatching patterns.
-• Exploded-view assembly diagram showing bogies, coupling rods, ${train.type === "Steam" ? "driving wheels, connecting rods, piston assemblies, safety valves" : "suspension units, brake discs, wheel sets, traction motor mounts"}.
-• Material specification blocks: ${train.type === "Steam" ? "Boiler plate steel, Cast iron cylinders, Copper firebox, Brass fittings" : "Aluminium alloy body, High-strength steel underframe, Glass fibre nose cone, Composite brake pads"}.
-• Wheel arrangement diagram: ${designationText} with numbered axles and power transmission paths.
-• Tech data panels showing: Power: ${powerText}, Max Speed: ${speedText}, Weight: ${weightText}, Length: ${lengthText}, Gauge: ${gaugeText}, Builder: ${builderText}, Fuel: ${fuelText}.
-• Railway-specific elements: loading gauge outline, coupling height markers, signal sighting line.
-• Works plate style data block in corner: ${train.class}, ${train.operator}, built by ${builderText}.
+  const technicalElements = `
+Technical elements:
 
-Design style:
-- Clean, structured, engineering-oriented layout
-- Color palette: steel grey, dark navy (#1a2332), orange/yellow safety accents (#ff6b00), white technical lines
-- Background: technical drafting sheet with subtle grid lines and drawing border
-- Sharp sans-serif typeface in engineering annotation style (like a railway works drawing)
-- Minimal shadows, prioritising clarity and precision
-- Multiple viewing angles: side elevation (main), front/rear end views, and detail callouts
-- Include a small track/rail cross-section detail
+• Dimension lines showing overall length (${lengthText}), height, width, wheelbase, and buffer height.
+• ${train.type === "Steam" ? "Boiler, firebox, cylinders, valve gear, smokebox, tender" : train.type === "Electric" ? "Traction motors, pantograph mechanism, transformer, power electronics" : "Engine block, turbocharger, transmission, final drive, fuel tanks"} visible.
+• Material specs: ${train.type === "Steam" ? "Boiler plate steel, Cast iron cylinders, Copper firebox, Brass fittings" : "Aluminium alloy body, High-strength steel underframe, Glass fibre nose cone"}.
+• Wheel arrangement: ${designationText} with numbered axles.
+• Tech data: Power: ${powerText}, Max Speed: ${speedText}, Weight: ${weightText}, Length: ${lengthText}, Gauge: ${gaugeText}, Builder: ${builderText}, Fuel: ${fuelText}.
+• Works plate: ${train.class}, ${train.operator}, built by ${builderText}.`;
 
-Aspect Ratio: 9:16 (portrait). Overall vibe: serious, precise, locomotive works drawing — like a Swindon, Crewe, or Doncaster works technical poster.`;
+  return `${baseDescription}
+
+${technicalElements}
+
+${styleConfig.design}
+
+${styleConfig.vibe}`;
 }
 
 /**
@@ -67,7 +119,8 @@ Aspect Ratio: 9:16 (portrait). Overall vibe: serious, precise, locomotive works 
  */
 export async function startBlueprintGeneration(
   train: TrainIdentification,
-  specs: TrainSpecs
+  specs: TrainSpecs,
+  style: BlueprintStyle = "technical"
 ): Promise<string> {
   const taskId = uuidv4();
 
@@ -82,7 +135,7 @@ export async function startBlueprintGeneration(
 
   taskStore.set(taskId, task);
 
-  const prompt = buildBlueprintPrompt(train, specs);
+  const prompt = buildBlueprintPrompt(train, specs, style);
 
   // Run generation in background (don't await)
   generateImage(taskId, prompt).catch((error) => {

@@ -15,8 +15,9 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
-import { RarityTier } from "../types";
+import { RarityTier, BlueprintStyle, BLUEPRINT_STYLES } from "../types";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
+import { track } from "../services/analytics";
 
 // ── Rarity colours ──────────────────────────────────────
 const rarityColors: Record<RarityTier, string> = {
@@ -69,6 +70,8 @@ export default function ResultsScreen() {
     currentRarity,
     blueprintStatus,
     currentLocation,
+    selectedBlueprintStyle,
+    setBlueprintStyle,
   } = useTrainStore();
 
   const { profile, isGuest } = useAuthStore();
@@ -186,6 +189,66 @@ export default function ResultsScreen() {
           <Text style={styles.trainDescription}>{currentTrain.description}</Text>
         )}
       </View>
+
+      {/* ── Blueprint Style Picker ────────────────────── */}
+      {(isPro || isGuest) && (
+        <View style={styles.styleSection}>
+          <Text style={styles.styleSectionTitle}>Blueprint Style</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.styleRow}
+          >
+            {BLUEPRINT_STYLES.map((s) => {
+              const isSelected = selectedBlueprintStyle === s.id;
+              const isLocked = s.proOnly && !isPro;
+
+              return (
+                <TouchableOpacity
+                  key={s.id}
+                  style={[
+                    styles.styleCard,
+                    isSelected && styles.styleCardSelected,
+                    isLocked && styles.styleCardLocked,
+                  ]}
+                  onPress={() => {
+                    if (isLocked) {
+                      router.push("/paywall?source=blueprint_style");
+                    } else {
+                      setBlueprintStyle(s.id);
+                      track("blueprint_style_selected", { style: s.id });
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  {isLocked && (
+                    <View style={styles.styleProBadge}>
+                      <Ionicons name="lock-closed" size={8} color="#f59e0b" />
+                    </View>
+                  )}
+                  <Ionicons
+                    name={s.icon as any}
+                    size={20}
+                    color={isSelected ? colors.accent : isLocked ? colors.textMuted : colors.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.styleLabel,
+                      isSelected && styles.styleLabelSelected,
+                      isLocked && styles.styleLabelLocked,
+                    ]}
+                  >
+                    {s.label}
+                  </Text>
+                  <Text style={styles.styleDesc} numberOfLines={1}>
+                    {s.description}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
 
       {/* ── Blueprint Button ─────────────────────────── */}
       {isPro || isGuest ? (
@@ -507,6 +570,63 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.md,
     lineHeight: 20,
+  },
+
+  // Blueprint style picker
+  styleSection: {
+    marginBottom: spacing.md,
+  },
+  styleSectionTitle: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+    textTransform: "uppercase" as const,
+    letterSpacing: 1,
+  },
+  styleRow: {
+    gap: spacing.sm,
+    paddingRight: spacing.lg,
+  },
+  styleCard: {
+    width: 90,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: "center" as const,
+    gap: 4,
+  },
+  styleCardSelected: {
+    borderColor: colors.accent,
+    backgroundColor: "rgba(255, 107, 0, 0.08)",
+  },
+  styleCardLocked: {
+    opacity: 0.6,
+  },
+  styleProBadge: {
+    position: "absolute" as const,
+    top: 4,
+    right: 4,
+  },
+  styleLabel: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.semibold,
+    color: colors.textPrimary,
+    textAlign: "center" as const,
+  },
+  styleLabelSelected: {
+    color: colors.accent,
+  },
+  styleLabelLocked: {
+    color: colors.textMuted,
+  },
+  styleDesc: {
+    fontSize: 9,
+    color: colors.textMuted,
+    textAlign: "center" as const,
   },
 
   // Blueprint button

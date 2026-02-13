@@ -129,6 +129,14 @@ function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="compare"
+            options={{
+              title: "Compare",
+              presentation: "modal",
+              headerBackTitle: "Back",
+            }}
+          />
+          <Stack.Screen
             name="paywall"
             options={{
               presentation: "modal",

@@ -11,6 +11,7 @@ import {
   TrainFacts,
   RarityInfo,
   BlueprintStatus,
+  BlueprintStyle,
   HistoryItem,
 } from "../types";
 import {
@@ -62,6 +63,12 @@ interface TrainState {
   // Location
   currentLocation: { latitude: number; longitude: number } | null;
 
+  // Blueprint style (Pro feature)
+  selectedBlueprintStyle: BlueprintStyle;
+
+  // Compare mode
+  compareItems: [HistoryItem, HistoryItem] | null;
+
   // Actions
   startScan: () => void;
   setScanResults: (
@@ -79,6 +86,8 @@ interface TrainState {
   saveToHistory: () => Promise<void>;
   removeFromHistory: (id: string) => Promise<void>;
   viewHistoryItem: (item: HistoryItem) => void;
+  setBlueprintStyle: (style: BlueprintStyle) => void;
+  setCompareItems: (items: [HistoryItem, HistoryItem] | null) => void;
 }
 
 export const useTrainStore = create<TrainState>((set, get) => ({
@@ -96,6 +105,8 @@ export const useTrainStore = create<TrainState>((set, get) => ({
   isSyncing: false,
   currentPhotoUri: null,
   currentLocation: null,
+  selectedBlueprintStyle: "technical",
+  compareItems: null,
 
   startScan: () => {
     set({
@@ -414,5 +425,13 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       currentSpotId: null,
       currentPhotoUri: null,
     });
+  },
+
+  setBlueprintStyle: (style) => {
+    set({ selectedBlueprintStyle: style });
+  },
+
+  setCompareItems: (items) => {
+    set({ compareItems: items });
   },
 }));

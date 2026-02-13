@@ -13,12 +13,15 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  TextInput,
+  Switch,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../../store/trainStore";
 import { HistoryItem, RarityTier } from "../../types";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
+import { track } from "../../services/analytics";
 
 // ── Rarity colour map ─────────────────────────────────────────
 
@@ -270,7 +273,7 @@ function HistoryCard({
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const { history, removeFromHistory, viewHistoryItem } = useTrainStore();
+  const { history, removeFromHistory, viewHistoryItem, setCompareItems } = useTrainStore();
 
   // Filter state
   const [activeRarityFilter, setActiveRarityFilter] =
@@ -279,20 +282,32 @@ export default function HistoryScreen() {
     string | null
   >(null);
   const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
+  const [activeBuilderFilter, setActiveBuilderFilter] = useState<string | null>(null);
+  const [blueprintOnlyFilter, setBlueprintOnlyFilter] = useState(false);
   const [activeSort, setActiveSort] = useState<SortOption>("date");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Compute unique operators and types from history
-  const { operators, trainTypes } = useMemo(() => {
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Compare mode
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareSelected, setCompareSelected] = useState<HistoryItem[]>([]);
+
+  // Compute unique operators, types, and builders from history
+  const { operators, trainTypes, builders } = useMemo(() => {
     const opSet = new Set<string>();
     const typeSet = new Set<string>();
+    const builderSet = new Set<string>();
     for (const item of history) {
       opSet.add(item.train.operator);
       typeSet.add(item.train.type);
+      if (item.specs.builder) builderSet.add(item.specs.builder);
     }
     return {
       operators: Array.from(opSet).sort(),
       trainTypes: Array.from(typeSet).sort(),
+      builders: Array.from(builderSet).sort(),
     };
   }, [history]);
 
@@ -309,6 +324,18 @@ export default function HistoryScreen() {
   // Filter + sort the history
   const filteredHistory = useMemo(() => {
     let filtered = [...history];
+
+    // Apply text search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(
+        (item) =>
+          item.train.class.toLowerCase().includes(q) ||
+          item.train.operator.toLowerCase().includes(q) ||
+          (item.train.name && item.train.name.toLowerCase().includes(q)) ||
+          item.train.type.toLowerCase().includes(q)
+      );
+    }
 
     // Apply rarity filter
     if (activeRarityFilter) {
@@ -329,6 +356,18 @@ export default function HistoryScreen() {
       filtered = filtered.filter(
         (item) => item.train.type === activeTypeFilter
       );
+    }
+
+    // Apply builder filter
+    if (activeBuilderFilter) {
+      filtered = filtered.filter(
+        (item) => item.specs.builder === activeBuilderFilter
+      );
+    }
+
+    // Apply blueprint-only filter
+    if (blueprintOnlyFilter) {
+      filtered = filtered.filter((item) => item.blueprintUrl !== null);
     }
 
     // Sort
@@ -353,9 +392,12 @@ export default function HistoryScreen() {
     return filtered;
   }, [
     history,
+    searchQuery,
     activeRarityFilter,
     activeOperatorFilter,
     activeTypeFilter,
+    activeBuilderFilter,
+    blueprintOnlyFilter,
     activeSort,
   ]);
 
@@ -363,6 +405,8 @@ export default function HistoryScreen() {
     activeRarityFilter,
     activeOperatorFilter,
     activeTypeFilter,
+    activeBuilderFilter,
+    blueprintOnlyFilter || null,
   ].filter(Boolean).length;
 
   const handlePress = (item: HistoryItem) => {
@@ -389,6 +433,41 @@ export default function HistoryScreen() {
     setActiveRarityFilter(null);
     setActiveOperatorFilter(null);
     setActiveTypeFilter(null);
+    setActiveBuilderFilter(null);
+    setBlueprintOnlyFilter(false);
+    setSearchQuery("");
+  };
+
+  const handleCompareToggle = () => {
+    if (compareMode) {
+      // Exiting compare mode
+      setCompareMode(false);
+      setCompareSelected([]);
+    } else {
+      setCompareMode(true);
+      setCompareSelected([]);
+    }
+  };
+
+  const handleCompareSelect = (item: HistoryItem) => {
+    setCompareSelected((prev) => {
+      const isSelected = prev.some((i) => i.id === item.id);
+      if (isSelected) {
+        return prev.filter((i) => i.id !== item.id);
+      }
+      if (prev.length >= 2) return prev; // Max 2
+      return [...prev, item];
+    });
+  };
+
+  const launchCompare = () => {
+    if (compareSelected.length === 2) {
+      setCompareItems([compareSelected[0], compareSelected[1]]);
+      track("compare_started");
+      router.push("/compare");
+      setCompareMode(false);
+      setCompareSelected([]);
+    }
   };
 
   // Empty state
@@ -408,6 +487,30 @@ export default function HistoryScreen() {
     <View style={styles.container}>
       {/* ── Stats Header ─────────────────────────────────── */}
       <StatsHeader history={history} spotCounts={spotCounts} />
+
+      {/* ── Search Bar ───────────────────────────────────── */}
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={16} color={colors.textMuted} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search class, operator, name..."
+          placeholderTextColor={colors.textMuted}
+          value={searchQuery}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+            if (text.length > 0) {
+              track("search_used", { query_length: text.length });
+            }
+          }}
+          returnKeyType="search"
+          autoCorrect={false}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <Ionicons name="close-circle" size={16} color={colors.textMuted} />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* ── Sort + Filter toolbar ────────────────────────── */}
       <View style={styles.toolbar}>
@@ -441,6 +544,22 @@ export default function HistoryScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Compare toggle */}
+        <TouchableOpacity
+          style={[
+            styles.filterToggle,
+            compareMode && styles.filterToggleActive,
+          ]}
+          onPress={handleCompareToggle}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name="swap-horizontal"
+            size={14}
+            color={compareMode ? colors.accent : colors.textMuted}
+          />
+        </TouchableOpacity>
 
         {/* Filter toggle */}
         <TouchableOpacity
@@ -546,6 +665,42 @@ export default function HistoryScreen() {
             </View>
           )}
 
+          {/* Builder filters */}
+          {builders.length > 1 && (
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionLabel}>Builder</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterChipsRow}
+              >
+                {builders.map((builder) => (
+                  <FilterChip
+                    key={builder}
+                    label={builder}
+                    active={activeBuilderFilter === builder}
+                    onPress={() =>
+                      setActiveBuilderFilter(
+                        activeBuilderFilter === builder ? null : builder
+                      )
+                    }
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Has Blueprint toggle */}
+          <View style={styles.toggleRow}>
+            <Text style={styles.filterSectionLabel}>Has Blueprint</Text>
+            <Switch
+              value={blueprintOnlyFilter}
+              onValueChange={setBlueprintOnlyFilter}
+              trackColor={{ false: colors.border, true: colors.accent + "60" }}
+              thumbColor={blueprintOnlyFilter ? colors.accent : colors.textMuted}
+            />
+          </View>
+
           {/* Clear all */}
           {activeFilterCount > 0 && (
             <TouchableOpacity
@@ -559,8 +714,23 @@ export default function HistoryScreen() {
         </View>
       )}
 
+      {/* ── Compare mode banner ─────────────────────────── */}
+      {compareMode && (
+        <View style={styles.compareBanner}>
+          <Text style={styles.compareBannerText}>
+            Select 2 trains to compare ({compareSelected.length}/2)
+          </Text>
+          {compareSelected.length === 2 && (
+            <TouchableOpacity style={styles.compareGoBtn} onPress={launchCompare}>
+              <Text style={styles.compareGoBtnText}>Compare</Text>
+              <Ionicons name="arrow-forward" size={14} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {/* ── Results count ────────────────────────────────── */}
-      {activeFilterCount > 0 && (
+      {(activeFilterCount > 0 || searchQuery.trim().length > 0) && (
         <View style={styles.resultsBar}>
           <Text style={styles.resultsText}>
             {filteredHistory.length} of {history.length} spots
@@ -589,13 +759,36 @@ export default function HistoryScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const key = `${item.train.class}::${item.train.operator}`;
+            const isCompareSelected = compareSelected.some((i) => i.id === item.id);
+
             return (
-              <HistoryCard
-                item={item}
-                onPress={() => handlePress(item)}
-                onDelete={() => handleDelete(item)}
-                spotCount={spotCounts.get(key) || 1}
-              />
+              <View>
+                {compareMode && (
+                  <TouchableOpacity
+                    style={[
+                      styles.compareCheckbox,
+                      isCompareSelected && styles.compareCheckboxActive,
+                    ]}
+                    onPress={() => handleCompareSelect(item)}
+                  >
+                    <Ionicons
+                      name={isCompareSelected ? "checkbox" : "square-outline"}
+                      size={20}
+                      color={isCompareSelected ? colors.accent : colors.textMuted}
+                    />
+                  </TouchableOpacity>
+                )}
+                <HistoryCard
+                  item={item}
+                  onPress={() =>
+                    compareMode
+                      ? handleCompareSelect(item)
+                      : handlePress(item)
+                  }
+                  onDelete={() => handleDelete(item)}
+                  spotCount={spotCounts.get(key) || 1}
+                />
+              </View>
             );
           }}
           contentContainerStyle={styles.listContent}
@@ -696,6 +889,75 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.medium,
   },
+
+  // Search bar
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: fonts.sizes.sm,
+    color: colors.textPrimary,
+    paddingVertical: 0,
+  },
+
+  // Toggle row (for switch filters)
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  // Compare mode
+  compareBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.accent + "15",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.accent + "30",
+  },
+  compareBannerText: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.medium,
+    color: colors.accent,
+  },
+  compareGoBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+  },
+  compareGoBtnText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: "#fff",
+  },
+  compareCheckbox: {
+    position: "absolute",
+    left: -4,
+    top: "50%",
+    transform: [{ translateY: -10 }],
+    zIndex: 10,
+    padding: 4,
+  },
+  compareCheckboxActive: {},
 
   // Toolbar (sort + filter toggle)
   toolbar: {

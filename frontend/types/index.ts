@@ -5,6 +5,15 @@
 
 export type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
+export type BlueprintStyle = "technical" | "vintage" | "schematic" | "cinematic";
+
+export const BLUEPRINT_STYLES: { id: BlueprintStyle; label: string; description: string; icon: string; proOnly: boolean }[] = [
+  { id: "technical", label: "Technical", description: "Engineering works drawing", icon: "construct", proOnly: false },
+  { id: "vintage", label: "Vintage", description: "Victorian hand-drawn illustration", icon: "book", proOnly: true },
+  { id: "schematic", label: "Schematic", description: "Clean minimalist line art", icon: "grid", proOnly: true },
+  { id: "cinematic", label: "Cinematic", description: "Dramatic hero-shot render", icon: "film", proOnly: true },
+];
+
 export interface TrainIdentification {
   class: string;
   name: string | null;
@@ -75,6 +84,7 @@ export interface HistoryItem {
   facts: TrainFacts;
   rarity: RarityInfo;
   blueprintUrl: string | null;
+  blueprintStyle?: BlueprintStyle;
   spottedAt: string; // ISO date string
   latitude: number | null;
   longitude: number | null;

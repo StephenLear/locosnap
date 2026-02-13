@@ -9,7 +9,7 @@ import {
   BLUEPRINT_POLL_INTERVAL,
   BLUEPRINT_TIMEOUT,
 } from "../constants/api";
-import { IdentifyResponse, BlueprintStatus } from "../types";
+import { IdentifyResponse, BlueprintStatus, BlueprintStyle } from "../types";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -20,7 +20,8 @@ const api = axios.create({
  * Upload a train photo and get identification results
  */
 export async function identifyTrain(
-  imageUri: string
+  imageUri: string,
+  blueprintStyle: BlueprintStyle = "technical"
 ): Promise<IdentifyResponse> {
   const formData = new FormData();
 
@@ -34,6 +35,9 @@ export async function identifyTrain(
     name: filename,
     type: type,
   } as any);
+
+  // Include blueprint style preference
+  formData.append("blueprintStyle", blueprintStyle);
 
   try {
     const response = await api.post<IdentifyResponse>(

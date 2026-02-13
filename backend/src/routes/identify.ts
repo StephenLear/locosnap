@@ -24,7 +24,7 @@ import {
 } from "../services/trainCache";
 import { AppError } from "../middleware/errorHandler";
 import { trackServerEvent } from "../services/analytics";
-import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo } from "../types";
+import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo, BlueprintStyle } from "../types";
 
 const router = Router();
 
@@ -93,6 +93,14 @@ router.post(
         `[IDENTIFY] Found: ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.confidence}% confidence)`
       );
 
+      // ── Extract blueprint style (Pro feature) ────────
+      const VALID_STYLES: BlueprintStyle[] = ["technical", "vintage", "schematic", "cinematic"];
+      const requestedStyle = req.body?.blueprintStyle as string;
+      const blueprintStyle: BlueprintStyle =
+        requestedStyle && VALID_STYLES.includes(requestedStyle as BlueprintStyle)
+          ? (requestedStyle as BlueprintStyle)
+          : "technical";
+
       // ── Step 2: Check cache ────────────────────────────
       let specs: TrainSpecs;
       let facts: TrainFacts;
@@ -100,7 +108,7 @@ router.post(
       let blueprintTaskId: string;
       let cacheHit = false;
 
-      const cached = getCachedTrainData(train);
+      const cached = getCachedTrainData(train, blueprintStyle);
 
       if (cached) {
         // ── CACHE HIT ────────────────────────────────────
@@ -121,10 +129,10 @@ router.post(
           console.log(
             `[IDENTIFY] Partial cache HIT — generating blueprint only`
           );
-          blueprintTaskId = await startBlueprintGeneration(train, specs);
+          blueprintTaskId = await startBlueprintGeneration(train, specs, blueprintStyle);
 
           // Store blueprint URL when it completes (fire and forget)
-          monitorBlueprintForCache(blueprintTaskId, train);
+          monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle);
         }
       } else {
         // ── CACHE MISS — full AI pipeline ────────────────
@@ -145,10 +153,10 @@ router.post(
         setCachedTrainData(train, specs, facts, rarity);
 
         // Start blueprint generation
-        blueprintTaskId = await startBlueprintGeneration(train, specs);
+        blueprintTaskId = await startBlueprintGeneration(train, specs, blueprintStyle);
 
         // Monitor blueprint completion to cache the URL
-        monitorBlueprintForCache(blueprintTaskId, train);
+        monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle);
       }
 
       // ── Build response ─────────────────────────────────
@@ -211,7 +219,8 @@ import { getTaskStatus } from "../services/imageGen";
 
 function monitorBlueprintForCache(
   taskId: string,
-  train: any
+  train: any,
+  style: BlueprintStyle = "technical"
 ): void {
   const checkInterval = setInterval(async () => {
     try {
@@ -222,7 +231,7 @@ function monitorBlueprintForCache(
       }
 
       if (task.status === "completed" && task.imageUrl) {
-        setCachedBlueprint(train, task.imageUrl);
+        setCachedBlueprint(train, task.imageUrl, style);
         clearInterval(checkInterval);
       } else if (task.status === "failed") {
         clearInterval(checkInterval);
