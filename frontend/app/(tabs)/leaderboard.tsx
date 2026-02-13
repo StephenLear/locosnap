@@ -1,6 +1,6 @@
 // ============================================================
 // LocoSnap — Leaderboard Screen
-// Global rankings: top spotters by unique classes collected
+// Three tabs: Global (all-time), Weekly (last 7 days), Rarity (Epic+)
 // ============================================================
 
 import React, { useEffect, useState, useCallback } from "react";
@@ -11,10 +11,17 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../store/authStore";
-import { fetchLeaderboard, LeaderboardEntry } from "../../services/supabase";
+import {
+  fetchLeaderboard,
+  fetchWeeklyLeaderboard,
+  fetchRarityLeaderboard,
+  LeaderboardEntry,
+  LeaderboardTab,
+} from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 
 // ── Level names (same as profile) ────────────────────────────
@@ -32,46 +39,65 @@ const LEVEL_NAMES = [
 
 const MEDAL_COLORS = ["#f59e0b", "#94a3b8", "#cd7f32"]; // Gold, Silver, Bronze
 
+// ── Tab config ───────────────────────────────────────────────
+
+const TABS: { key: LeaderboardTab; label: string; icon: string }[] = [
+  { key: "global", label: "All-Time", icon: "globe" },
+  { key: "weekly", label: "This Week", icon: "calendar" },
+  { key: "rarity", label: "Rarity", icon: "star" },
+];
+
 export default function LeaderboardScreen() {
   const { user, isGuest } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<LeaderboardTab>("global");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadLeaderboard = useCallback(async () => {
-    try {
-      const data = await fetchLeaderboard(50);
-      setEntries(data);
-    } catch {
-      console.warn("Failed to load leaderboard");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const loadLeaderboard = useCallback(
+    async (tab: LeaderboardTab) => {
+      try {
+        let data: LeaderboardEntry[];
+        switch (tab) {
+          case "weekly":
+            data = await fetchWeeklyLeaderboard(50);
+            break;
+          case "rarity":
+            data = await fetchRarityLeaderboard(50);
+            break;
+          default:
+            data = await fetchLeaderboard(50);
+        }
+        setEntries(data);
+      } catch {
+        console.warn("Failed to load leaderboard");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    loadLeaderboard();
-  }, [loadLeaderboard]);
+    setLoading(true);
+    loadLeaderboard(activeTab);
+  }, [activeTab, loadLeaderboard]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadLeaderboard();
+    loadLeaderboard(activeTab);
+  };
+
+  const handleTabChange = (tab: LeaderboardTab) => {
+    if (tab === activeTab) return;
+    setActiveTab(tab);
   };
 
   // Find current user's position
   const userRank = user
     ? entries.findIndex((e) => e.id === user.id) + 1
     : 0;
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.accent} />
-        <Text style={styles.loadingText}>Loading leaderboard...</Text>
-      </View>
-    );
-  }
 
   if (isGuest) {
     return (
@@ -85,22 +111,41 @@ export default function LeaderboardScreen() {
     );
   }
 
-  if (entries.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="podium-outline" size={64} color={colors.textMuted} />
-        <Text style={styles.emptyTitle}>No spotters yet</Text>
-        <Text style={styles.emptySubtitle}>
-          Be the first to spot a train and claim the top spot!
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
+      {/* ── Tab switcher ──────────────────────────────── */}
+      <View style={styles.tabBar}>
+        {TABS.map((tab) => (
+          <TouchableOpacity
+            key={tab.key}
+            style={[
+              styles.tab,
+              activeTab === tab.key && styles.tabActive,
+            ]}
+            onPress={() => handleTabChange(tab.key)}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={tab.icon as any}
+              size={16}
+              color={
+                activeTab === tab.key ? colors.accent : colors.textMuted
+              }
+            />
+            <Text
+              style={[
+                styles.tabLabel,
+                activeTab === tab.key && styles.tabLabelActive,
+              ]}
+            >
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* ── Your rank banner ────────────────────────────── */}
-      {userRank > 0 && (
+      {userRank > 0 && !loading && (
         <View style={styles.yourRankBanner}>
           <Ionicons name="person" size={18} color={colors.accent} />
           <Text style={styles.yourRankText}>
@@ -109,27 +154,54 @@ export default function LeaderboardScreen() {
         </View>
       )}
 
-      {/* ── Leaderboard list ────────────────────────────── */}
-      <FlatList
-        data={entries}
-        keyExtractor={(item, index) => item.id || index.toString()}
-        renderItem={({ item, index }) => (
-          <LeaderboardRow
-            entry={item}
-            rank={index + 1}
-            isCurrentUser={user?.id === item.id}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.accent}
-          />
-        }
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      {/* ── Loading ─────────────────────────────────────── */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={styles.loadingText}>Loading rankings...</Text>
+        </View>
+      ) : entries.length === 0 ? (
+        <View style={styles.emptyInlineContainer}>
+          <Ionicons name="podium-outline" size={48} color={colors.textMuted} />
+          <Text style={styles.emptyInlineTitle}>
+            {activeTab === "weekly"
+              ? "No spots this week yet"
+              : activeTab === "rarity"
+              ? "No rare finds yet"
+              : "No spotters yet"}
+          </Text>
+          <Text style={styles.emptyInlineSubtitle}>
+            {activeTab === "weekly"
+              ? "Spot a train to appear on the weekly board!"
+              : activeTab === "rarity"
+              ? "Spot an Epic or Legendary train to compete here."
+              : "Be the first to spot a train and claim the top spot!"}
+          </Text>
+        </View>
+      ) : (
+        /* ── Leaderboard list ────────────────────────────── */
+        <FlatList
+          data={entries}
+          keyExtractor={(item, index) => `${activeTab}-${item.id || index}`}
+          renderItem={({ item, index }) => (
+            <LeaderboardRow
+              entry={item}
+              rank={index + 1}
+              isCurrentUser={user?.id === item.id}
+              tab={activeTab}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.accent}
+            />
+          }
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      )}
     </View>
   );
 }
@@ -140,13 +212,23 @@ function LeaderboardRow({
   entry,
   rank,
   isCurrentUser,
+  tab,
 }: {
   entry: LeaderboardEntry;
   rank: number;
   isCurrentUser: boolean;
+  tab: LeaderboardTab;
 }) {
   const isTop3 = rank <= 3;
   const medalColor = isTop3 ? MEDAL_COLORS[rank - 1] : undefined;
+
+  // Pick the primary stat based on tab
+  const primaryStat =
+    tab === "weekly"
+      ? { icon: "camera", value: entry.weeklySpots ?? 0, color: colors.primary, label: "spots" }
+      : tab === "rarity"
+      ? { icon: "star", value: entry.rareCount, color: "#f59e0b", label: "rare" }
+      : { icon: "layers", value: entry.uniqueTrains, color: colors.primary, label: "classes" };
 
   return (
     <View
@@ -192,17 +274,52 @@ function LeaderboardRow({
         </View>
       </View>
 
-      {/* Stats */}
+      {/* Stats — varies by tab */}
       <View style={styles.statsSection}>
-        <View style={styles.statPill}>
-          <Ionicons name="layers" size={12} color={colors.primary} />
-          <Text style={styles.statPillText}>{entry.uniqueTrains}</Text>
+        {/* Primary stat (always shown) */}
+        <View style={[styles.statPill, { backgroundColor: primaryStat.color + "18" }]}>
+          <Ionicons name={primaryStat.icon as any} size={12} color={primaryStat.color} />
+          <Text style={[styles.statPillText, { color: primaryStat.color }]}>
+            {primaryStat.value}
+          </Text>
         </View>
-        <View style={styles.statPill}>
-          <Ionicons name="camera" size={12} color={colors.textMuted} />
-          <Text style={styles.statPillMuted}>{entry.totalSpots}</Text>
-        </View>
-        {entry.rareCount > 0 && (
+
+        {/* Secondary stats */}
+        {tab === "global" && (
+          <View style={styles.statPill}>
+            <Ionicons name="camera" size={12} color={colors.textMuted} />
+            <Text style={styles.statPillMuted}>{entry.totalSpots}</Text>
+          </View>
+        )}
+
+        {tab === "weekly" && (entry.weeklyUnique ?? 0) > 0 && (
+          <View style={styles.statPill}>
+            <Ionicons name="layers" size={12} color={colors.textMuted} />
+            <Text style={styles.statPillMuted}>{entry.weeklyUnique}</Text>
+          </View>
+        )}
+
+        {tab === "rarity" && (
+          <>
+            {(entry.legendaryCount ?? 0) > 0 && (
+              <View style={[styles.statPill, styles.statPillLegendary]}>
+                <Ionicons name="diamond" size={11} color="#f59e0b" />
+                <Text style={styles.statPillLegendaryText}>
+                  {entry.legendaryCount}
+                </Text>
+              </View>
+            )}
+            {(entry.epicCount ?? 0) > 0 && (
+              <View style={[styles.statPill, styles.statPillEpic]}>
+                <Ionicons name="sparkles" size={11} color="#a855f7" />
+                <Text style={styles.statPillEpicText}>{entry.epicCount}</Text>
+              </View>
+            )}
+          </>
+        )}
+
+        {/* Rare badge on global/weekly if they have rare finds */}
+        {tab !== "rarity" && entry.rareCount > 0 && (
           <View style={[styles.statPill, styles.statPillRare]}>
             <Ionicons name="star" size={12} color="#f59e0b" />
             <Text style={styles.statPillRareText}>{entry.rareCount}</Text>
@@ -223,12 +340,44 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
+  // Tab bar
+  tabBar: {
+    flexDirection: "row",
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    backgroundColor: "transparent",
+  },
+  tabActive: {
+    backgroundColor: colors.surfaceLight,
+  },
+  tabLabel: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.medium,
+    color: colors.textMuted,
+  },
+  tabLabelActive: {
+    color: colors.accent,
+    fontWeight: fonts.weights.bold,
+  },
+
   // Loading
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.background,
     gap: spacing.md,
   },
   loadingText: {
@@ -257,6 +406,25 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 22,
   },
+  emptyInlineContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing.xxl,
+    gap: spacing.md,
+  },
+  emptyInlineTitle: {
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.bold,
+    color: colors.textPrimary,
+    textAlign: "center",
+  },
+  emptyInlineSubtitle: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 20,
+  },
 
   // Your rank banner
   yourRankBanner: {
@@ -264,8 +432,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.sm,
-    backgroundColor: colors.surface,
-    paddingVertical: spacing.md,
+    backgroundColor: colors.surfaceLight,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -368,7 +536,6 @@ const styles = StyleSheet.create({
   statPillText: {
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.bold,
-    color: colors.primary,
   },
   statPillMuted: {
     fontSize: fonts.sizes.xs,
@@ -382,5 +549,21 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.bold,
     color: "#f59e0b",
+  },
+  statPillLegendary: {
+    backgroundColor: "rgba(245, 158, 11, 0.15)",
+  },
+  statPillLegendaryText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: "#f59e0b",
+  },
+  statPillEpic: {
+    backgroundColor: "rgba(168, 85, 247, 0.15)",
+  },
+  statPillEpicText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: "#a855f7",
   },
 });

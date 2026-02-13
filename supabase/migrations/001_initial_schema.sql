@@ -177,10 +177,10 @@ create policy "Service role can upload blueprints"
 
 -- ── Useful Views ────────────────────────────────────────────
 
--- Leaderboard: top spotters by unique classes
+-- Leaderboard: top spotters by unique classes (all-time)
 create or replace view public.leaderboard as
 select
-  p.id as user_id,
+  p.id,
   p.username,
   p.avatar_url,
   p.level,
@@ -194,3 +194,40 @@ left join public.trains t on t.id = s.train_id
 where p.username is not null
 group by p.id, p.username, p.avatar_url, p.level
 order by unique_classes desc, total_spots desc;
+
+-- Weekly leaderboard: most spots in the last 7 days
+create or replace view public.leaderboard_weekly as
+select
+  p.id,
+  p.username,
+  p.avatar_url,
+  p.level,
+  count(s.id) as weekly_spots,
+  count(distinct s.train_id) as weekly_unique,
+  count(distinct case when t.rarity_tier in ('epic', 'legendary') then t.id end) as rare_count
+from public.profiles p
+inner join public.spots s on s.user_id = p.id
+  and s.spotted_at >= now() - interval '7 days'
+left join public.trains t on t.id = s.train_id
+where p.username is not null
+group by p.id, p.username, p.avatar_url, p.level
+order by weekly_spots desc, weekly_unique desc;
+
+-- Rarity leaderboard: most Epic + Legendary cards
+create or replace view public.leaderboard_rarity as
+select
+  p.id,
+  p.username,
+  p.avatar_url,
+  p.level,
+  count(distinct case when t.rarity_tier = 'legendary' then t.id end) as legendary_count,
+  count(distinct case when t.rarity_tier = 'epic' then t.id end) as epic_count,
+  count(distinct case when t.rarity_tier in ('epic', 'legendary') then t.id end) as rare_count,
+  count(s.id) as total_spots
+from public.profiles p
+inner join public.spots s on s.user_id = p.id
+inner join public.trains t on t.id = s.train_id
+  and t.rarity_tier in ('epic', 'legendary')
+where p.username is not null
+group by p.id, p.username, p.avatar_url, p.level
+order by legendary_count desc, epic_count desc, total_spots desc;

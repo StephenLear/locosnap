@@ -338,6 +338,8 @@ export async function uploadBlueprint(
 
 // ── Leaderboard ─────────────────────────────────────────────
 
+export type LeaderboardTab = "global" | "weekly" | "rarity";
+
 export interface LeaderboardEntry {
   id: string;
   username: string;
@@ -347,13 +349,19 @@ export interface LeaderboardEntry {
   uniqueTrains: number;
   rareCount: number;
   lastActive: string | null;
+  // Weekly-specific
+  weeklySpots?: number;
+  weeklyUnique?: number;
+  // Rarity-specific
+  legendaryCount?: number;
+  epicCount?: number;
 }
 
 /**
- * Fetch the top spotters leaderboard.
+ * Fetch the global leaderboard (all-time, by unique classes).
  */
 export async function fetchLeaderboard(
-  limit: number = 20
+  limit: number = 50
 ): Promise<LeaderboardEntry[]> {
   const { data, error } = await supabase
     .from("leaderboard")
@@ -374,6 +382,66 @@ export async function fetchLeaderboard(
     uniqueTrains: entry.unique_classes || 0,
     rareCount: entry.rare_count || 0,
     lastActive: entry.last_active || null,
+  }));
+}
+
+/**
+ * Fetch the weekly leaderboard (most spots in last 7 days).
+ */
+export async function fetchWeeklyLeaderboard(
+  limit: number = 50
+): Promise<LeaderboardEntry[]> {
+  const { data, error } = await supabase
+    .from("leaderboard_weekly")
+    .select("*")
+    .limit(limit);
+
+  if (error) {
+    console.warn("Failed to fetch weekly leaderboard:", error.message);
+    return [];
+  }
+
+  return (data || []).map((entry: any) => ({
+    id: entry.id || "",
+    username: entry.username || "Anonymous Spotter",
+    avatarUrl: entry.avatar_url || null,
+    level: entry.level || 1,
+    totalSpots: 0,
+    uniqueTrains: entry.weekly_unique || 0,
+    rareCount: entry.rare_count || 0,
+    lastActive: null,
+    weeklySpots: entry.weekly_spots || 0,
+    weeklyUnique: entry.weekly_unique || 0,
+  }));
+}
+
+/**
+ * Fetch the rarity leaderboard (most Epic + Legendary cards).
+ */
+export async function fetchRarityLeaderboard(
+  limit: number = 50
+): Promise<LeaderboardEntry[]> {
+  const { data, error } = await supabase
+    .from("leaderboard_rarity")
+    .select("*")
+    .limit(limit);
+
+  if (error) {
+    console.warn("Failed to fetch rarity leaderboard:", error.message);
+    return [];
+  }
+
+  return (data || []).map((entry: any) => ({
+    id: entry.id || "",
+    username: entry.username || "Anonymous Spotter",
+    avatarUrl: entry.avatar_url || null,
+    level: entry.level || 1,
+    totalSpots: entry.total_spots || 0,
+    uniqueTrains: 0,
+    rareCount: entry.rare_count || 0,
+    lastActive: null,
+    legendaryCount: entry.legendary_count || 0,
+    epicCount: entry.epic_count || 0,
   }));
 }
 

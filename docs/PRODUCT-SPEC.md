@@ -131,8 +131,8 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 
 **Acceptance criteria:**
 - [x] Global leaderboard: top spotters by unique classes collected
-- [ ] Weekly leaderboard: most spots this week
-- [ ] Rarity leaderboard: most Epic/Legendary cards
+- [x] Weekly leaderboard: most spots this week
+- [x] Rarity leaderboard: most Epic/Legendary cards
 - [x] Your rank highlighted
 - [ ] Regional leaderboards (UK regions initially)
 
