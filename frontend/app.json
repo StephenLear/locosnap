@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "CarSnap",
+    "slug": "carsnap",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "carsnap",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0f1a"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.carsnap.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "CarSnap needs camera access to take photos of cars for identification.",
+        "NSPhotoLibraryUsageDescription": "CarSnap needs photo library access to select car photos for identification."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a0f1a"
+      },
+      "package": "com.carsnap.app",
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow CarSnap to access your camera to identify cars."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow CarSnap to access your photos to identify cars."
+        }
+      ]
+    ]
+  }
+}
