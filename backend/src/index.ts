@@ -11,6 +11,7 @@ import blueprintStatusRouter from "./routes/imageStatus";
 import { cleanupOldTasks } from "./services/imageGen";
 import { getVisionProvider } from "./services/vision";
 import { getSupabase } from "./config/supabase";
+import { loadCache, getCacheStats } from "./services/trainCache";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.get("/api/health", (_req, res) => {
     visionProvider: getVisionProvider(),
     supabase: config.hasSupabase ? "connected" : "not configured",
     blueprintGenAvailable: config.hasImageGen,
+    cache: getCacheStats(),
     timestamp: new Date().toISOString(),
   });
 });
@@ -54,8 +56,12 @@ setInterval(
   30 * 60 * 1000
 );
 
+// ── Load train cache from disk ──────────────────────────────
+loadCache();
+
 // ── Start Server ────────────────────────────────────────────
 app.listen(config.port, () => {
+  const stats = getCacheStats();
   console.log(`
 ╔══════════════════════════════════════════════╗
 ║          LocoSnap API Server                 ║
@@ -68,6 +74,7 @@ app.listen(config.port, () => {
 ║  OpenAI:      ${(config.hasOpenAI ? "Yes" : "No").padEnd(30)}║
 ║  Replicate:   ${(config.hasReplicate ? "Yes" : "No").padEnd(30)}║
 ║  Supabase:    ${(config.hasSupabase ? "Connected" : "Not configured").padEnd(30)}║
+║  Cache:       ${`${stats.totalEntries} trains cached`.padEnd(30)}║
 ╚══════════════════════════════════════════════╝
 
 Endpoints:

@@ -28,6 +28,9 @@ Thumbs.db
 *.mobileprovision
 *.orig.*
 
+# Train data cache (generated at runtime)
+.cache/
+
 # Debug
 npm-debug.*
 yarn-debug.*

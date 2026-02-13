@@ -1,6 +1,13 @@
 // ============================================================
 // LocoSnap — Train Identification Route
 // POST /api/identify — The main endpoint
+//
+// Cache-first: if we've seen this class+operator before,
+// serve cached specs/facts/rarity/blueprint and skip 3-4 API calls.
+// Only the Vision call always runs (to ID what's in the photo).
+//
+// First scan:  Vision + Specs + Facts + Rarity + Blueprint  (~£0.028)
+// Cached scan: Vision only                                  (~£0.005)
 // ============================================================
 
 import { Router, Request, Response, NextFunction } from "express";
@@ -10,8 +17,13 @@ import { getTrainSpecs } from "../services/trainSpecs";
 import { getTrainFacts } from "../services/trainFacts";
 import { classifyRarity } from "../services/rarity";
 import { startBlueprintGeneration } from "../services/imageGen";
+import {
+  getCachedTrainData,
+  setCachedTrainData,
+  setCachedBlueprint,
+} from "../services/trainCache";
 import { AppError } from "../middleware/errorHandler";
-import { IdentifyResponse } from "../types";
+import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo } from "../types";
 
 const router = Router();
 
@@ -57,8 +69,8 @@ router.post(
         `[IDENTIFY] Processing image: ${req.file.originalname} (${(req.file.size / 1024).toFixed(1)}KB)`
       );
 
-      // Step 1: Identify the train using Vision API (Claude or OpenAI)
-      console.log("[IDENTIFY] Step 1: Identifying train...");
+      // ── Step 1: Vision AI (always runs) ────────────────
+      console.log("[IDENTIFY] Step 1: Identifying train via Vision AI...");
       const train = await identifyTrainFromImage(
         req.file.buffer,
         req.file.mimetype
@@ -80,24 +92,71 @@ router.post(
         `[IDENTIFY] Found: ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.confidence}% confidence)`
       );
 
-      // Step 2: Fetch specs and facts in parallel
-      console.log(
-        "[IDENTIFY] Step 2: Fetching specs and facts in parallel..."
-      );
-      const [specs, facts] = await Promise.all([
-        getTrainSpecs(train),
-        getTrainFacts(train),
-      ]);
+      // ── Step 2: Check cache ────────────────────────────
+      let specs: TrainSpecs;
+      let facts: TrainFacts;
+      let rarity: RarityInfo;
+      let blueprintTaskId: string;
+      let cacheHit = false;
 
-      // Step 2b: Classify rarity (needs specs)
-      console.log("[IDENTIFY] Step 2b: Classifying rarity...");
-      const rarity = await classifyRarity(train, specs);
+      const cached = getCachedTrainData(train);
 
-      // Step 3: Start blueprint generation (async — returns immediately)
-      console.log("[IDENTIFY] Step 3: Starting blueprint generation...");
-      const taskId = await startBlueprintGeneration(train, specs);
+      if (cached) {
+        // ── CACHE HIT ────────────────────────────────────
+        cacheHit = true;
+        specs = cached.specs;
+        facts = cached.facts;
+        rarity = cached.rarity;
 
-      // Return full results (blueprint still generating in background)
+        if (cached.blueprintUrl) {
+          // Blueprint also cached — return a fake "completed" task
+          // with the cached URL. No generation needed at all.
+          blueprintTaskId = `cached-${Date.now()}`;
+          console.log(
+            `[IDENTIFY] Full cache HIT — all data + blueprint from cache`
+          );
+        } else {
+          // Specs/facts/rarity cached but blueprint not yet — generate it
+          console.log(
+            `[IDENTIFY] Partial cache HIT — generating blueprint only`
+          );
+          blueprintTaskId = await startBlueprintGeneration(train, specs);
+
+          // Store blueprint URL when it completes (fire and forget)
+          monitorBlueprintForCache(blueprintTaskId, train);
+        }
+      } else {
+        // ── CACHE MISS — full AI pipeline ────────────────
+        console.log(
+          "[IDENTIFY] Cache MISS — running full AI pipeline..."
+        );
+
+        // Fetch specs and facts in parallel
+        [specs, facts] = await Promise.all([
+          getTrainSpecs(train),
+          getTrainFacts(train),
+        ]);
+
+        // Classify rarity (needs specs)
+        rarity = await classifyRarity(train, specs);
+
+        // Store in cache for next time
+        setCachedTrainData(train, specs, facts, rarity);
+
+        // Start blueprint generation
+        blueprintTaskId = await startBlueprintGeneration(train, specs);
+
+        // Monitor blueprint completion to cache the URL
+        monitorBlueprintForCache(blueprintTaskId, train);
+      }
+
+      // ── Build response ─────────────────────────────────
+      const processingTimeMs = Date.now() - startTime;
+
+      // For fully cached responses (including blueprint), return
+      // a special status so the frontend knows it's instantly ready
+      const blueprintStatus = cached?.blueprintUrl ? "completed" : "queued";
+
       const response: IdentifyResponse = {
         success: true,
         data: {
@@ -106,16 +165,25 @@ router.post(
           facts,
           rarity,
           blueprint: {
-            taskId,
-            status: "queued",
-          },
+            taskId: blueprintTaskId,
+            status: blueprintStatus,
+            ...(cached?.blueprintUrl
+              ? { imageUrl: cached.blueprintUrl }
+              : {}),
+          } as any,
         },
         error: null,
-        processingTimeMs: Date.now() - startTime,
+        processingTimeMs,
       };
 
+      const savedCalls = cacheHit
+        ? cached?.blueprintUrl
+          ? "4 API calls saved"
+          : "3 API calls saved"
+        : "fresh — all API calls made";
+
       console.log(
-        `[IDENTIFY] Complete in ${response.processingTimeMs}ms. Blueprint task: ${taskId}`
+        `[IDENTIFY] Complete in ${processingTimeMs}ms (${savedCalls}). Blueprint: ${blueprintTaskId}`
       );
 
       res.json(response);
@@ -124,5 +192,38 @@ router.post(
     }
   }
 );
+
+// ── Blueprint cache monitor ─────────────────────────────────
+// Polls for blueprint completion and stores the URL in cache.
+// Runs in background — doesn't block the response.
+
+import { getTaskStatus } from "../services/imageGen";
+
+function monitorBlueprintForCache(
+  taskId: string,
+  train: any
+): void {
+  const checkInterval = setInterval(async () => {
+    try {
+      const task = getTaskStatus(taskId);
+      if (!task) {
+        clearInterval(checkInterval);
+        return;
+      }
+
+      if (task.status === "completed" && task.imageUrl) {
+        setCachedBlueprint(train, task.imageUrl);
+        clearInterval(checkInterval);
+      } else if (task.status === "failed") {
+        clearInterval(checkInterval);
+      }
+    } catch {
+      clearInterval(checkInterval);
+    }
+  }, 5000); // Check every 5 seconds
+
+  // Safety: stop checking after 5 minutes
+  setTimeout(() => clearInterval(checkInterval), 5 * 60 * 1000);
+}
 
 export default router;

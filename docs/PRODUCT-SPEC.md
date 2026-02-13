@@ -334,12 +334,32 @@ unlocked_at: timestamp
 - Collection + leaderboard access
 - Share cards to social
 
-### Pro ($2.99/month or $24.99/year)
+### Pro (£4.99/month or £45/year)
 - Unlimited spots
 - Premium technical blueprints for every train
 - Exclusive card frames/styles (heritage livery, British Rail blue, etc.)
 - Detailed spec comparisons between trains in your collection
 - No ads (if ads are added to free tier later)
+
+### Unit Economics (with caching)
+
+**Train data cache** reduces repeat scan costs by ~82%. Once a Class 390 has been identified, all subsequent Class 390 scans serve cached specs/facts/rarity/blueprint — only the Vision call runs.
+
+| Scan Type | API Calls | Cost |
+|-----------|----------|------|
+| First scan (new class) | Vision + Specs + Facts + Rarity + Blueprint | ~£0.028 |
+| Repeat scan (cached) | Vision only | ~£0.005 |
+| **Blended average** (est. 70% cache hit rate) | | **~£0.012** |
+
+| User Type | Scans/month | Cost/month | Revenue | Margin |
+|-----------|-------------|-----------|---------|--------|
+| Free (casual) | 60 | £0.72 | £0 | -£0.72 |
+| Free (daily) | 150 | £1.80 | £0 | -£1.80 |
+| Pro (moderate) | 200 | £2.40 | £4.99 | +£2.59 |
+| Pro (heavy) | 500 | £6.00 | £4.99 | -£1.01 |
+| Pro (annual) | 300/avg | £3.60 | £3.75/avg | +£0.15 |
+
+**Break-even**: ~5% Pro conversion rate covers free tier costs. Heritage railway visitors (high rarity, more shareable) are the most likely converters.
 
 ### Key Principle
 **Never paywall the core identification.** The 5 free daily spots are generous for casual use. Pro is for power users who spot 10+ trains a day and want the premium content. This is the same mistake every competitor makes — and their 1-star reviews prove users hate it.
