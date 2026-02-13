@@ -26,6 +26,7 @@ import {
   UK_REGIONS,
 } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
+import { track } from "../../services/analytics";
 
 // ── Level names (same as profile) ────────────────────────────
 
@@ -105,6 +106,7 @@ export default function LeaderboardScreen() {
 
   const handleTabChange = (tab: LeaderboardTab) => {
     if (tab === activeTab) return;
+    track("leaderboard_viewed", { tab });
     setActiveTab(tab);
   };
 

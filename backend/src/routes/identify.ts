@@ -23,6 +23,7 @@ import {
   setCachedBlueprint,
 } from "../services/trainCache";
 import { AppError } from "../middleware/errorHandler";
+import { trackServerEvent } from "../services/analytics";
 import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo } from "../types";
 
 const router = Router();
@@ -185,6 +186,15 @@ router.post(
       console.log(
         `[IDENTIFY] Complete in ${processingTimeMs}ms (${savedCalls}). Blueprint: ${blueprintTaskId}`
       );
+
+      // Track server-side identify event
+      trackServerEvent("identify_request", "server", {
+        train_class: train.class,
+        operator: train.operator,
+        confidence: train.confidence,
+        cache_hit: cacheHit,
+        processing_time_ms: processingTimeMs,
+      });
 
       res.json(response);
     } catch (error) {

@@ -12,10 +12,17 @@ import { cleanupOldTasks } from "./services/imageGen";
 import { getVisionProvider } from "./services/vision";
 import { getSupabase } from "./config/supabase";
 import { loadCache, getCacheStats } from "./services/trainCache";
+import { initAnalytics, Sentry, flushAnalytics } from "./services/analytics";
+
+// ── Analytics + Error Tracking ───────────────────────────────
+initAnalytics();
 
 const app = express();
 
 // ── Middleware ───────────────────────────────────────────────
+// Sentry request handler must be the first middleware
+Sentry.setupExpressErrorHandler(app);
+
 app.use(
   cors({
     origin: [config.frontendUrl, "exp://", "http://localhost:19006"],

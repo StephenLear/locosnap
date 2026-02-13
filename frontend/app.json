@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#0a0f1a"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.locosnap.app",
@@ -27,7 +29,10 @@
         "backgroundColor": "#0a0f1a"
       },
       "package": "com.locosnap.app",
-      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -45,7 +50,8 @@
         {
           "photosPermission": "Allow LocoSnap to access your photos to identify trains."
         }
-      ]
+      ],
+      "@sentry/react-native"
     ]
   }
 }

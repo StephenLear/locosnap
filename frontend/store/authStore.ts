@@ -5,6 +5,7 @@
 import { create } from "zustand";
 import { supabase } from "../config/supabase";
 import { Session, User } from "@supabase/supabase-js";
+import { track, identifyUser, resetIdentity, addBreadcrumb } from "../services/analytics";
 
 export interface Profile {
   id: string;
@@ -88,6 +89,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       },
     });
     if (error) throw error;
+    track("sign_in", { method: "apple" });
+    addBreadcrumb("auth", "Signed in with Apple");
   },
 
   signInWithGoogle: async () => {
@@ -98,6 +101,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       },
     });
     if (error) throw error;
+    track("sign_in", { method: "google" });
+    addBreadcrumb("auth", "Signed in with Google");
   },
 
   signInWithMagicLink: async (email: string) => {
@@ -108,15 +113,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       },
     });
     if (error) throw error;
+    track("sign_in", { method: "magic_link" });
+    addBreadcrumb("auth", "Magic link sent");
   },
 
   continueAsGuest: () => {
     set({ isGuest: true, isLoading: false });
+    track("guest_mode");
+    addBreadcrumb("auth", "Continued as guest");
   },
 
   signOut: async () => {
+    track("sign_out");
     await supabase.auth.signOut();
     set({ session: null, user: null, profile: null, isGuest: false });
+    resetIdentity();
   },
 
   setSession: (session) => {
@@ -138,6 +149,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .single();
 
     if (!error && data) {
+      // Identify user for analytics
+      identifyUser(user.id, {
+        is_pro: data.is_pro,
+        level: data.level,
+        region: data.region,
+      });
+
       // Check if daily scans need reset (past midnight)
       const resetAt = new Date(data.daily_scans_reset_at);
       const now = new Date();

@@ -33,6 +33,7 @@ import {
   notifyBlueprintReady,
   notifyAchievementUnlocked,
 } from "../services/notifications";
+import { track, addBreadcrumb, captureError } from "../services/analytics";
 
 const HISTORY_KEY = "locosnap_history";
 const MAX_HISTORY = 50;
@@ -368,6 +369,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
             for (const type of newAchievements) {
               const def = ACHIEVEMENT_DEFINITIONS.find((d) => d.type === type);
               if (def) {
+                track("achievement_unlocked", { achievement: def.name, type });
                 notifyAchievementUnlocked(def.name, def.description).catch(() => {});
               }
             }

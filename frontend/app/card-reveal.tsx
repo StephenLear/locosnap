@@ -25,6 +25,7 @@ import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import ParticleEffect from "../components/ParticleEffect";
 import * as FileSystem from "expo-file-system";
+import { track } from "../services/analytics";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - 64;
@@ -96,6 +97,17 @@ export default function CardRevealScreen() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [revealComplete, setRevealComplete] = useState(false);
 
+  // Track card reveal on mount
+  useEffect(() => {
+    if (currentTrain && currentRarity) {
+      track("card_revealed", {
+        train_class: currentTrain.class,
+        rarity: currentRarity.tier,
+        is_new_class: isNewClass,
+      });
+    }
+  }, []);
+
   // Entrance animation
   useEffect(() => {
     // Stage 1: Slide up + scale in
@@ -150,6 +162,7 @@ export default function CardRevealScreen() {
   // Flip animation
   const handleFlip = () => {
     const toValue = isFlipped ? 0 : 1;
+    track("card_flipped");
     Animated.spring(flipAnim, {
       toValue,
       tension: 50,

@@ -4,8 +4,8 @@
 // ============================================================
 
 import { useEffect } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { Stack, useRouter, useSegments, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
@@ -14,6 +14,12 @@ import {
   registerForPushNotifications,
   scheduleStreakReminder,
 } from "../services/notifications";
+import {
+  initAnalytics,
+  trackScreen,
+  ErrorBoundary,
+  wrap,
+} from "../services/analytics";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -46,11 +52,22 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export default function RootLayout() {
+function CrashFallback() {
+  return (
+    <View style={styles.loadingContainer}>
+      <Text style={styles.crashText}>Something went wrong</Text>
+      <Text style={styles.crashSubtext}>Please restart the app</Text>
+    </View>
+  );
+}
+
+function RootLayout() {
   const loadHistory = useTrainStore((state) => state.loadHistory);
   const initialize = useAuthStore((state) => state.initialize);
+  const pathname = usePathname();
 
   useEffect(() => {
+    initAnalytics();
     initialize();
     loadHistory();
 
@@ -59,8 +76,13 @@ export default function RootLayout() {
     scheduleStreakReminder().catch(() => {});
   }, []);
 
+  // Auto-track screen views
+  useEffect(() => {
+    if (pathname) trackScreen(pathname);
+  }, [pathname]);
+
   return (
-    <>
+    <ErrorBoundary fallback={<CrashFallback />}>
       <StatusBar style="light" />
       <AuthGate>
         <Stack
@@ -106,9 +128,11 @@ export default function RootLayout() {
           />
         </Stack>
       </AuthGate>
-    </>
+    </ErrorBoundary>
   );
 }
+
+export default wrap(RootLayout);
 
 const styles = StyleSheet.create({
   loadingContainer: {
@@ -116,5 +140,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: colors.background,
+  },
+  crashText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    marginBottom: 8,
+  },
+  crashSubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
 });

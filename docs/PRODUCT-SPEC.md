@@ -388,8 +388,8 @@ Build only what's needed to test: Spot → Card → Collect → Share
 
 ### V1.2 — Polish & Growth (+2 weeks)
 - ~~Push notifications (blueprint ready, streak reminders, achievement alerts)~~ **DONE**
-- Analytics (PostHog)
-- Error tracking (Sentry)
+- ~~Analytics (PostHog)~~ **DONE**
+- ~~Error tracking (Sentry)~~ **DONE**
 - ~~Card animations and particle effects for rare+~~ **DONE**
 - ~~Location tagging (optional GPS)~~ **DONE**
 

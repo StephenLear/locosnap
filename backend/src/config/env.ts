@@ -53,4 +53,16 @@ export const config = {
   get hasSupabase(): boolean {
     return this.supabaseUrl.length > 0 && this.supabaseServiceKey.length > 0;
   },
+
+  // Analytics & Error Tracking
+  posthogApiKey: optionalEnv("POSTHOG_API_KEY", ""),
+  posthogHost: optionalEnv("POSTHOG_HOST", "https://us.i.posthog.com"),
+  sentryDsn: optionalEnv("SENTRY_DSN", ""),
+
+  get hasPostHog(): boolean {
+    return this.posthogApiKey.length > 0;
+  },
+  get hasSentry(): boolean {
+    return this.sentryDsn.length > 0;
+  },
 };

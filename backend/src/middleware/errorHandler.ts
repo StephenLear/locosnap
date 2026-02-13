@@ -3,6 +3,7 @@
 // ============================================================
 
 import { Request, Response, NextFunction } from "express";
+import { captureServerError } from "../services/analytics";
 
 export class AppError extends Error {
   statusCode: number;
@@ -28,6 +29,7 @@ export function errorHandler(
   console.error(`[ERROR] ${statusCode}: ${message}`);
   if (statusCode === 500) {
     console.error(err.stack);
+    captureServerError(err, { statusCode, message });
   }
 
   res.status(statusCode).json({

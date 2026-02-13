@@ -3,7 +3,7 @@
 // Full-screen view of the generated engineering blueprint
 // ============================================================
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import { useRouter } from "expo-router";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
+import { track } from "../services/analytics";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -34,6 +35,13 @@ export default function BlueprintScreen() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const imageUrl = blueprintStatus?.imageUrl;
+
+  // Track blueprint view on mount
+  useEffect(() => {
+    if (imageUrl && currentTrain) {
+      track("blueprint_viewed", { train_class: currentTrain.class });
+    }
+  }, []);
 
   // Pro gate: free authenticated users shouldn't access blueprints
   if (!isPro && !isGuest) {
@@ -90,6 +98,7 @@ export default function BlueprintScreen() {
 
       // Save to gallery
       await MediaLibrary.saveToLibraryAsync(download.uri);
+      track("blueprint_saved", { train_class: currentTrain.class });
 
       Alert.alert("Saved!", "Blueprint saved to your photo library.");
     } catch (error) {
@@ -114,6 +123,7 @@ export default function BlueprintScreen() {
           mimeType: "image/png",
           dialogTitle: `${currentTrain.class} — LocoSnap Blueprint`,
         });
+        track("blueprint_shared", { train_class: currentTrain.class });
       }
     } catch (error) {
       Alert.alert("Error", "Could not share the image.");

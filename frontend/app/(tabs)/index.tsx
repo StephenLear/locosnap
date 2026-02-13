@@ -25,6 +25,7 @@ import { useTrainStore } from "../../store/trainStore";
 import { useAuthStore } from "../../store/authStore";
 import { identifyTrain, pollBlueprintStatus } from "../../services/api";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
+import { track, captureError, addBreadcrumb } from "../../services/analytics";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const MAX_DAILY_SCANS = 5;
@@ -90,6 +91,7 @@ export default function HomeScreen() {
   const handleScan = async (imageUri: string) => {
     // Check daily scan limit
     if (!canScan()) {
+      track("daily_limit_hit");
       Alert.alert(
         "Daily Limit Reached",
         "You've used all 5 free scans today. Upgrade to Pro for unlimited scans, or come back tomorrow!",
@@ -99,6 +101,8 @@ export default function HomeScreen() {
     }
 
     startScan();
+    track("scan_started");
+    addBreadcrumb("scan", "Scan started");
     setPhotoUri(imageUri);
 
     // Capture GPS location (non-blocking — don't fail scan if location unavailable)
@@ -122,6 +126,7 @@ export default function HomeScreen() {
       const result = await identifyTrain(imageUri);
 
       if (!result.success || !result.data) {
+        track("scan_failed", { error: result.error || "unknown" });
         setScanError(
           result.error || "Could not identify the train. Try a different photo."
         );
@@ -158,6 +163,12 @@ export default function HomeScreen() {
       }
 
       setScanResults(train, specs, facts, rarity);
+      track("scan_completed", {
+        train_class: train.class,
+        operator: train.operator,
+        rarity: rarity.tier,
+        confidence: train.confidence,
+      });
       saveToHistory();
 
       // Navigate to card reveal (animated collectible card)
@@ -166,6 +177,8 @@ export default function HomeScreen() {
       // Start polling for blueprint in background
       startBlueprintPoll(blueprint?.taskId);
     } catch (error) {
+      track("scan_failed", { error: (error as Error).message });
+      captureError(error as Error, { context: "handleScan" });
       setScanError(
         (error as Error).message || "Something went wrong. Please try again."
       );
