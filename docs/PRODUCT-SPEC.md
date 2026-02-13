@@ -59,9 +59,9 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 - [x] Option to pick from photo library
 - [x] Loading state while AI processes (2-8 seconds)
 - [x] Shows identified class + operator + confidence score
-- [ ] If confidence < 70%, show "Not sure — is this a [guess]?" with confirm/retry
-- [ ] Rate limit: 5 free spots/day (no paywall, just daily reset)
-- [ ] Counter showing remaining daily spots
+- [x] If confidence < 70%, show "Not sure — is this a [guess]?" with confirm/retry
+- [x] Rate limit: 5 free spots/day (no paywall, just daily reset)
+- [x] Counter showing remaining daily spots
 
 ### 4.2 Card Reveal
 
@@ -70,14 +70,14 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 **so that** I feel a sense of reward and excitement.
 
 **Acceptance criteria:**
-- [ ] Animated card reveal (flip/slide animation)
-- [ ] Card shows: user's photo, class name, named loco if applicable, rarity tier badge
-- [ ] Card back shows: key specs (power, max speed, builder), one-line AI summary, fun fact
-- [ ] Rarity tier visually distinct (colour border, badge, particle effects for Epic+)
+- [x] Animated card reveal (flip/slide animation)
+- [x] Card shows: user's photo, class name, named loco if applicable, rarity tier badge
+- [x] Card back shows: key specs (power, max speed, builder), one-line AI summary, fun fact
+- [x] Rarity tier visually distinct (colour border, badge, glow effects for Rare+)
 - [ ] "New!" badge if this is a class you haven't collected before
 - [ ] "Duplicate" handling: still shows the card, adds to your spot count for that class
-- [ ] "Add to Shed" button
-- [ ] "Share" button (generates shareable image)
+- [x] "Add to Shed" button (auto-saves on scan)
+- [x] "Share" button (generates shareable image)
 
 ### 4.3 The Shed (Collection Screen)
 
@@ -156,11 +156,11 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 **so that** my collection syncs across devices and appears on leaderboards.
 
 **Acceptance criteria:**
-- [ ] Sign up with Apple / Google (social auth)
+- [x] Sign up with Apple / Google (social auth)
 - [ ] Magic link email as fallback
-- [ ] No username/password flow (friction killer)
-- [ ] Guest mode: can scan and collect locally, prompted to sign up to save to cloud
-- [ ] Account required for: leaderboards, sharing public shed, cloud sync
+- [x] No username/password flow (friction killer)
+- [x] Guest mode: can scan and collect locally, prompted to sign up to save to cloud
+- [x] Account required for: leaderboards, sharing public shed, cloud sync
 
 ## 5. Rarity System
 
@@ -304,12 +304,14 @@ unlocked_at: timestamp
 | State management | Zustand + AsyncStorage | Done |
 | API client | Axios with polling | Done |
 
+| Database | Supabase (Postgres) | Done |
+| Auth | Supabase Auth (Apple/Google) | Done |
+| Cloud storage | Supabase Storage | Done |
+| Card capture | react-native-view-shot + expo-sharing | Done |
+
 ### To Add (Required for Full MVP)
 | Layer | Technology | Reason |
 |-------|-----------|--------|
-| Database | Supabase (Postgres) | User accounts, collection storage, leaderboards |
-| Auth | Supabase Auth | Apple/Google sign-in, magic links, free tier |
-| Cloud storage | Supabase Storage | User photos, blueprint images |
 | Push notifications | Expo Notifications | Blueprint ready, streak reminders |
 | Analytics | PostHog | Track scan rates, retention, collection progress |
 | Error tracking | Sentry | Crash reports, API failure monitoring |
@@ -351,11 +353,11 @@ Build only what's needed to test: Spot → Card → Collect → Share
 2. ~~Results screen (specs, facts, rarity)~~ **DONE**
 3. ~~Collection screen (list of past spots)~~ **DONE**
 4. ~~Blueprint generation + viewer~~ **DONE**
-5. Card reveal animation (flip/slide)
-6. User auth (Supabase — Apple/Google sign-in)
-7. Cloud storage for collection (Supabase)
-8. Share card as image
-9. Daily scan limit (5/day)
+5. ~~Card reveal animation (flip/slide)~~ **DONE**
+6. ~~User auth (Supabase — Apple/Google sign-in)~~ **DONE**
+7. ~~Cloud storage for collection (Supabase)~~ **DONE**
+8. ~~Share card as image~~ **DONE**
+9. ~~Daily scan limit (5/day)~~ **DONE**
 
 ### V1.1 — Social & Gamification (+2 weeks)
 - Leaderboards (global, weekly, rarity)

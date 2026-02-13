@@ -25,6 +25,10 @@ export const config = {
   replicateApiToken: optionalEnv("REPLICATE_API_TOKEN", ""),
   openaiApiKey: optionalEnv("OPENAI_API_KEY", ""),
 
+  // Supabase
+  supabaseUrl: optionalEnv("SUPABASE_URL", ""),
+  supabaseServiceKey: optionalEnv("SUPABASE_SERVICE_ROLE_KEY", ""),
+
   // Server
   port: parseInt(optionalEnv("PORT", "3000"), 10),
   nodeEnv: optionalEnv("NODE_ENV", "development"),
@@ -45,5 +49,8 @@ export const config = {
   },
   get hasVision(): boolean {
     return this.hasAnthropic || this.hasOpenAI;
+  },
+  get hasSupabase(): boolean {
+    return this.supabaseUrl.length > 0 && this.supabaseServiceKey.length > 0;
   },
 };

@@ -1,6 +1,7 @@
 // ============================================================
 // LocoSnap — Home / Camera Screen
 // The main spot screen where users take or select train photos
+// Includes daily scan limit check + photo URI tracking
 // ============================================================
 
 import React, { useState, useRef } from "react";
@@ -20,10 +21,12 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../../store/trainStore";
+import { useAuthStore } from "../../store/authStore";
 import { identifyTrain, pollBlueprintStatus } from "../../services/api";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const MAX_DAILY_SCANS = 5;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -40,8 +43,15 @@ export default function HomeScreen() {
     setScanResults,
     setScanError,
     setBlueprintStatus,
+    setPhotoUri,
     saveToHistory,
   } = useTrainStore();
+
+  const { canScan, profile, isGuest, user } = useAuthStore();
+
+  const scansRemaining = isGuest || profile?.is_pro
+    ? null
+    : MAX_DAILY_SCANS - (profile?.daily_scans_used ?? 0);
 
   // Pulse animation for the scan button
   React.useEffect(() => {
@@ -64,8 +74,30 @@ export default function HomeScreen() {
     return () => pulse.stop();
   }, [isScanning]);
 
+  const startBlueprintPoll = (taskId?: string) => {
+    if (taskId) {
+      const { promise } = pollBlueprintStatus(taskId, (status) => {
+        setBlueprintStatus(status);
+      });
+      promise.then(() => {
+        // Blueprint complete or failed — status already updated via callback
+      });
+    }
+  };
+
   const handleScan = async (imageUri: string) => {
+    // Check daily scan limit
+    if (!canScan()) {
+      Alert.alert(
+        "Daily Limit Reached",
+        "You've used all 5 free scans today. Upgrade to Pro for unlimited scans, or come back tomorrow!",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     startScan();
+    setPhotoUri(imageUri);
 
     try {
       const result = await identifyTrain(imageUri);
@@ -78,24 +110,42 @@ export default function HomeScreen() {
       }
 
       const { train, specs, facts, rarity, blueprint } = result.data;
+
+      // Low confidence: ask user to confirm before saving
+      if (train.confidence < 70) {
+        Alert.alert(
+          "Not 100% Sure",
+          `Is this a ${train.class} (${train.operator})?\n\nConfidence: ${train.confidence}%`,
+          [
+            {
+              text: "No, retry",
+              style: "cancel",
+              onPress: () => {
+                setScanError("Try a clearer photo or different angle");
+              },
+            },
+            {
+              text: "Yes, that's right",
+              onPress: () => {
+                setScanResults(train, specs, facts, rarity);
+                saveToHistory();
+                router.push("/card-reveal");
+                startBlueprintPoll(blueprint?.taskId);
+              },
+            },
+          ]
+        );
+        return;
+      }
+
       setScanResults(train, specs, facts, rarity);
       saveToHistory();
 
-      // Navigate to results
-      router.push("/results");
+      // Navigate to card reveal (animated collectible card)
+      router.push("/card-reveal");
 
       // Start polling for blueprint in background
-      if (blueprint?.taskId) {
-        const { promise } = pollBlueprintStatus(
-          blueprint.taskId,
-          (status) => {
-            setBlueprintStatus(status);
-          }
-        );
-        promise.then(() => {
-          // Blueprint complete or failed — status already updated via callback
-        });
-      }
+      startBlueprintPoll(blueprint?.taskId);
     } catch (error) {
       setScanError(
         (error as Error).message || "Something went wrong. Please try again."
@@ -185,6 +235,41 @@ export default function HomeScreen() {
   // ── Main Home Screen ────────────────────────────────────
   return (
     <View style={styles.container}>
+      {/* Daily scan counter */}
+      {scansRemaining !== null && (
+        <View style={styles.scanCounter}>
+          <Ionicons
+            name="flash"
+            size={14}
+            color={scansRemaining > 0 ? colors.accent : colors.danger}
+          />
+          <Text
+            style={[
+              styles.scanCounterText,
+              scansRemaining === 0 && styles.scanCounterExhausted,
+            ]}
+          >
+            {scansRemaining > 0
+              ? `${scansRemaining} scan${scansRemaining !== 1 ? "s" : ""} remaining today`
+              : "No scans remaining today"}
+          </Text>
+        </View>
+      )}
+
+      {/* Guest mode badge */}
+      {isGuest && (
+        <TouchableOpacity
+          style={styles.guestBadge}
+          onPress={() => router.push("/sign-in")}
+        >
+          <Ionicons name="cloud-offline-outline" size={14} color={colors.warning} />
+          <Text style={styles.guestBadgeText}>
+            Guest mode — sign in to save to cloud
+          </Text>
+          <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
+        </TouchableOpacity>
+      )}
+
       {/* Hero area */}
       <View style={styles.hero}>
         {previewUri && isScanning ? (
@@ -268,6 +353,41 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.xl,
+  },
+  scanCounter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  scanCounterText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    fontWeight: fonts.weights.medium,
+  },
+  scanCounterExhausted: {
+    color: colors.danger,
+  },
+  guestBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    backgroundColor: "rgba(234, 179, 8, 0.1)",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.sm,
+    borderWidth: 1,
+    borderColor: "rgba(234, 179, 8, 0.2)",
+  },
+  guestBadgeText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.warning,
+    fontWeight: fonts.weights.medium,
+    flex: 1,
   },
   hero: {
     flex: 1,

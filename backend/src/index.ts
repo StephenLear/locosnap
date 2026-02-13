@@ -10,6 +10,7 @@ import identifyRouter from "./routes/identify";
 import blueprintStatusRouter from "./routes/imageStatus";
 import { cleanupOldTasks } from "./services/imageGen";
 import { getVisionProvider } from "./services/vision";
+import { getSupabase } from "./config/supabase";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.get("/api/health", (_req, res) => {
     service: "LocoSnap API",
     version: "1.0.0",
     visionProvider: getVisionProvider(),
+    supabase: config.hasSupabase ? "connected" : "not configured",
     blueprintGenAvailable: config.hasImageGen,
     timestamp: new Date().toISOString(),
   });
@@ -65,6 +67,7 @@ app.listen(config.port, () => {
 ║  Anthropic:   ${(config.hasAnthropic ? "Yes" : "No").padEnd(30)}║
 ║  OpenAI:      ${(config.hasOpenAI ? "Yes" : "No").padEnd(30)}║
 ║  Replicate:   ${(config.hasReplicate ? "Yes" : "No").padEnd(30)}║
+║  Supabase:    ${(config.hasSupabase ? "Connected" : "Not configured").padEnd(30)}║
 ╚══════════════════════════════════════════════╝
 
 Endpoints:
