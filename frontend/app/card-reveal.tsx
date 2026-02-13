@@ -2,9 +2,11 @@
 // LocoSnap — Card Reveal Screen
 // Animated collectible card with flip animation
 // Front: photo + class + rarity. Back: specs + fun fact.
+// Shows "NEW!" badge for first-of-class or "Spotted again!"
+// for duplicates with existing spot count.
 // ============================================================
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -60,9 +62,28 @@ export default function CardRevealScreen() {
     currentFacts,
     currentRarity,
     currentPhotoUri,
+    history,
   } = useTrainStore();
 
   const cardRef = useRef<View>(null);
+
+  // Check if this is a new class or a duplicate
+  const { isNewClass, existingSpotCount } = useMemo(() => {
+    if (!currentTrain) return { isNewClass: true, existingSpotCount: 0 };
+
+    const matchingSpots = history.filter(
+      (h) =>
+        h.train.class === currentTrain.class &&
+        h.train.operator === currentTrain.operator
+    );
+    // If the train was just saved (spot count includes current), subtract 1
+    // to get the "previous" count — but if 0, this is genuinely new
+    const count = matchingSpots.length;
+    return {
+      isNewClass: count <= 1, // 0 or 1 (just the current spot)
+      existingSpotCount: count,
+    };
+  }, [currentTrain, history]);
 
   // Animations
   const flipAnim = useRef(new Animated.Value(0)).current;
@@ -217,6 +238,13 @@ export default function CardRevealScreen() {
           <Text style={[styles.tierText, { color: rarityColor }]}>
             {rarityEmoji[currentRarity.tier]} {rarityLabels[currentRarity.tier]} {rarityEmoji[currentRarity.tier]}
           </Text>
+          {isNewClass ? (
+            <Text style={styles.tierSubtext}>New class added to your shed!</Text>
+          ) : existingSpotCount > 1 ? (
+            <Text style={styles.tierSubtextDuplicate}>
+              Spotted again! ×{existingSpotCount} total
+            </Text>
+          ) : null}
         </Animated.View>
       )}
 
@@ -280,6 +308,24 @@ export default function CardRevealScreen() {
                   {rarityLabels[currentRarity.tier]}
                 </Text>
               </View>
+
+              {/* NEW! badge for first-of-class */}
+              {isNewClass && (
+                <View style={styles.newBadge}>
+                  <Ionicons name="sparkles" size={12} color="#fff" />
+                  <Text style={styles.newBadgeText}>NEW!</Text>
+                </View>
+              )}
+
+              {/* Duplicate badge */}
+              {!isNewClass && existingSpotCount > 1 && (
+                <View style={styles.duplicateBadge}>
+                  <Ionicons name="camera" size={12} color="#fff" />
+                  <Text style={styles.duplicateBadgeText}>
+                    Spotted ×{existingSpotCount}
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Card info area */}
@@ -474,6 +520,18 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold,
     letterSpacing: 4,
   },
+  tierSubtext: {
+    fontSize: fonts.sizes.sm,
+    color: colors.success,
+    fontWeight: fonts.weights.semibold,
+    marginTop: spacing.xs,
+  },
+  tierSubtextDuplicate: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    fontWeight: fonts.weights.medium,
+    marginTop: spacing.xs,
+  },
 
   // Card wrapper
   cardWrapper: {
@@ -536,6 +594,41 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold,
     color: "#fff",
     letterSpacing: 1,
+  },
+  newBadge: {
+    position: "absolute",
+    top: spacing.md,
+    left: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.success,
+  },
+  newBadgeText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: "#fff",
+    letterSpacing: 1,
+  },
+  duplicateBadge: {
+    position: "absolute",
+    top: spacing.md,
+    left: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary,
+  },
+  duplicateBadgeText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: "#fff",
   },
 
   // Front — Info area

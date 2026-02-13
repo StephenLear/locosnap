@@ -74,8 +74,8 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 - [x] Card shows: user's photo, class name, named loco if applicable, rarity tier badge
 - [x] Card back shows: key specs (power, max speed, builder), one-line AI summary, fun fact
 - [x] Rarity tier visually distinct (colour border, badge, glow effects for Rare+)
-- [ ] "New!" badge if this is a class you haven't collected before
-- [ ] "Duplicate" handling: still shows the card, adds to your spot count for that class
+- [x] "New!" badge if this is a class you haven't collected before
+- [x] "Duplicate" handling: still shows the card, adds to your spot count for that class
 - [x] "Add to Shed" button (auto-saves on scan)
 - [x] "Share" button (generates shareable image)
 
@@ -87,11 +87,11 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 
 **Acceptance criteria:**
 - [x] List/grid of collected cards (sorted by most recent)
-- [ ] Filter by: rarity tier, operator, train type (Steam/Diesel/Electric/DMU/EMU/HST)
-- [ ] Sort by: date spotted, rarity, class name
-- [ ] Collection stats at top: total unique classes, total spots, rarity breakdown
+- [x] Filter by: rarity tier, operator, train type (Steam/Diesel/Electric/DMU/EMU/HST)
+- [x] Sort by: date spotted, rarity, class name
+- [x] Collection stats at top: total unique classes, total spots, rarity breakdown
 - [x] Tap card to see full details (specs, facts, blueprint, date spotted)
-- [ ] "Spotted X times" counter on duplicates
+- [x] "Spotted X times" counter on duplicates
 - [x] Empty state: "Your shed is empty — go spot your first train!"
 
 ### 4.4 Technical Blueprint
