@@ -20,8 +20,15 @@ import {
   uploadPhoto,
   uploadBlueprint,
   updateSpotBlueprint,
+  awardXp,
+  calculateXp,
+  updateStreak,
+  checkAndUnlockAchievements,
+  fetchAchievements,
+  AchievementType,
 } from "../services/supabase";
 import { useAuthStore } from "./authStore";
+import { RarityTier } from "../types";
 
 const HISTORY_KEY = "locosnap_history";
 const MAX_HISTORY = 50;
@@ -280,6 +287,62 @@ export const useTrainStore = create<TrainState>((set, get) => ({
 
           // Increment daily scans
           auth.incrementDailyScans();
+
+          // ── Gamification: XP + streak + achievements ──
+          const rarityTier = (state.currentRarity?.tier || "common") as RarityTier;
+          const isFirstOfClass = newHistory.filter(
+            (h) =>
+              h.train.class === state.currentTrain!.class &&
+              h.train.operator === state.currentTrain!.operator
+          ).length === 1;
+
+          // Award XP
+          const xpAmount = calculateXp(rarityTier, isFirstOfClass);
+          const xpResult = await awardXp(auth.user.id, xpAmount);
+          if (xpResult) {
+            // Update profile in auth store with new XP/level
+            auth.fetchProfile();
+          }
+
+          // Update streak
+          const streakResult = await updateStreak(auth.user.id);
+          if (streakResult) {
+            auth.fetchProfile();
+          }
+
+          // Check achievements
+          const allHistory = get().history;
+          const uniqueClassSet = new Set(
+            allHistory.map((h) => `${h.train.class}::${h.train.operator}`)
+          );
+          const rarityTiers: Record<string, number> = {};
+          let steamCount = 0;
+          let hasLegendary = false;
+          for (const h of allHistory) {
+            const t = h.rarity?.tier || "common";
+            rarityTiers[t] = (rarityTiers[t] || 0) + 1;
+            if (t === "legendary") hasLegendary = true;
+            if (h.train.type?.toLowerCase() === "steam") steamCount++;
+          }
+
+          // Load existing achievements to avoid duplicate checks
+          const existing = await fetchAchievements(auth.user.id);
+          const existingSet = new Set(existing.map((a) => a.type)) as Set<AchievementType>;
+
+          const newAchievements = await checkAndUnlockAchievements({
+            userId: auth.user.id,
+            totalSpots: allHistory.length,
+            uniqueClasses: uniqueClassSet.size,
+            streakCurrent: streakResult?.current ?? 0,
+            hasLegendary,
+            steamCount,
+            rarityTiers,
+            existingAchievements: existingSet,
+          });
+
+          if (newAchievements.length > 0) {
+            console.log("[GAMIFICATION] New achievements unlocked:", newAchievements);
+          }
         }
       } catch (err) {
         console.warn("Cloud sync failed:", (err as Error).message);

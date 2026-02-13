@@ -14,6 +14,7 @@ interface Profile {
   xp: number;
   streak_current: number;
   streak_best: number;
+  last_spot_date: string | null;
   daily_scans_used: number;
   daily_scans_reset_at: string;
   is_pro: boolean;

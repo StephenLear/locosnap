@@ -130,10 +130,10 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 **so that** I feel motivated to spot more trains.
 
 **Acceptance criteria:**
-- [ ] Global leaderboard: top spotters by unique classes collected
+- [x] Global leaderboard: top spotters by unique classes collected
 - [ ] Weekly leaderboard: most spots this week
 - [ ] Rarity leaderboard: most Epic/Legendary cards
-- [ ] Your rank highlighted
+- [x] Your rank highlighted
 - [ ] Regional leaderboards (UK regions initially)
 
 ### 4.7 Profile & Stats (V1.1)
@@ -143,11 +143,11 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 **so that** I can track my progress.
 
 **Acceptance criteria:**
-- [ ] Username + avatar
-- [ ] Stats: total spots, unique classes, rarest find, longest streak, favourite operator
-- [ ] Level system: Platform Newbie → Casual Spotter → Basher → Grinder → Copping Legend
-- [ ] Badges/achievements: "First Cop" (first spot), "10 Unique Classes", "Copped a Legendary", "7-Day Streak", "Shed Full" (50+ unique), "Heritage Hunter" (10+ steam locos)
-- [ ] Daily streak tracker
+- [x] Username + avatar
+- [x] Stats: total spots, unique classes, rarest find, longest streak, favourite operator
+- [x] Level system: Platform Newbie → Casual Spotter → Basher → Grinder → Copping Legend
+- [x] Badges/achievements: "First Cop" (first spot), "10 Unique Classes", "Copped a Legendary", "7-Day Streak", "Shed Full" (50+ unique), "Heritage Hunter" (10+ steam locos)
+- [x] Daily streak tracker
 
 ### 4.8 Authentication (V1)
 
@@ -380,11 +380,11 @@ Build only what's needed to test: Spot → Card → Collect → Share
 9. ~~Daily scan limit (5/day)~~ **DONE**
 
 ### V1.1 — Social & Gamification (+2 weeks)
-- Leaderboards (global, weekly, rarity)
-- Profile + stats page
-- Achievement badges
-- Level system
-- Streak tracking
+1. ~~Global leaderboard (ranked by unique classes)~~ **DONE**
+2. ~~Profile + stats page (level, XP, streak, rarity breakdown)~~ **DONE**
+3. ~~Achievement badges (8 badges: First Cop → Full Spectrum)~~ **DONE**
+4. ~~Level system (rarity-based XP: 10-250 per spot, 2x for first-of-class)~~ **DONE**
+5. ~~Streak tracking (daily check, auto-increment, auto-reset)~~ **DONE**
 
 ### V1.2 — Polish & Growth (+2 weeks)
 - Push notifications (blueprint ready, streak reminders)

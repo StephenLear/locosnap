@@ -77,3 +77,82 @@ export interface HistoryItem {
   blueprintUrl: string | null;
   spottedAt: string; // ISO date string
 }
+
+// ── Achievement definitions ──────────────────────────────────
+
+export type AchievementType =
+  | "first_cop"
+  | "ten_unique"
+  | "copped_legendary"
+  | "seven_day_streak"
+  | "shed_full"
+  | "heritage_hunter"
+  | "fifty_spots"
+  | "rarity_collector";
+
+export interface AchievementDefinition {
+  type: AchievementType;
+  name: string;
+  description: string;
+  icon: string; // Ionicons name
+  color: string;
+}
+
+export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
+  {
+    type: "first_cop",
+    name: "First Cop",
+    description: "Spot your first train",
+    icon: "flag",
+    color: "#22c55e",
+  },
+  {
+    type: "ten_unique",
+    name: "10 Unique Classes",
+    description: "Collect 10 different train classes",
+    icon: "layers",
+    color: "#3b82f6",
+  },
+  {
+    type: "fifty_spots",
+    name: "Half Century",
+    description: "Log 50 total spots",
+    icon: "camera",
+    color: "#60a5fa",
+  },
+  {
+    type: "copped_legendary",
+    name: "Copped a Legendary",
+    description: "Spot a Legendary-tier train",
+    icon: "star",
+    color: "#f59e0b",
+  },
+  {
+    type: "seven_day_streak",
+    name: "7-Day Streak",
+    description: "Spot a train every day for a week",
+    icon: "flame",
+    color: "#ff6b00",
+  },
+  {
+    type: "shed_full",
+    name: "Shed Full",
+    description: "Collect 50+ unique classes",
+    icon: "home",
+    color: "#a855f7",
+  },
+  {
+    type: "heritage_hunter",
+    name: "Heritage Hunter",
+    description: "Spot 10+ steam locomotives",
+    icon: "leaf",
+    color: "#14b8a6",
+  },
+  {
+    type: "rarity_collector",
+    name: "Full Spectrum",
+    description: "Spot at least one train of every rarity tier",
+    icon: "prism",
+    color: "#e879f9",
+  },
+];

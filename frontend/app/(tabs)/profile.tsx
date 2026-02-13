@@ -1,9 +1,9 @@
 // ============================================================
 // LocoSnap — Profile & Stats Screen
-// Shows user stats, level, streak, collection breakdown, settings
+// Shows user stats, level, streak, achievements, collection breakdown
 // ============================================================
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,15 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../store/authStore";
 import { useTrainStore } from "../../store/trainStore";
-import { RarityTier } from "../../types";
+import {
+  RarityTier,
+  AchievementType,
+  ACHIEVEMENT_DEFINITIONS,
+} from "../../types";
+import {
+  fetchAchievements,
+  Achievement,
+} from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 
 // ── Level system ────────────────────────────────────────────
@@ -64,6 +72,19 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { profile, user, isGuest, signOut } = useAuthStore();
   const { history } = useTrainStore();
+
+  // ── Achievements state ────────────────────────────────────
+  const [unlockedAchievements, setUnlockedAchievements] = useState<
+    Set<AchievementType>
+  >(new Set());
+
+  useEffect(() => {
+    if (user) {
+      fetchAchievements(user.id).then((achievements) => {
+        setUnlockedAchievements(new Set(achievements.map((a) => a.type)));
+      });
+    }
+  }, [user, history.length]); // Refresh when history changes (new spot may unlock)
 
   // ── Collection stats ────────────────────────────────────
   const stats = useMemo(() => {
@@ -233,6 +254,75 @@ export default function ProfileScreen() {
         </Text>
       </View>
 
+      {/* ── Achievements ────────────────────────────────── */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Achievements</Text>
+          <Text style={styles.sectionCount}>
+            {unlockedAchievements.size}/{ACHIEVEMENT_DEFINITIONS.length}
+          </Text>
+        </View>
+        <View style={styles.achievementsGrid}>
+          {ACHIEVEMENT_DEFINITIONS.map((achievement) => {
+            const isUnlocked = unlockedAchievements.has(achievement.type);
+            return (
+              <View
+                key={achievement.type}
+                style={[
+                  styles.achievementCard,
+                  !isUnlocked && styles.achievementLocked,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.achievementIcon,
+                    {
+                      backgroundColor: isUnlocked
+                        ? achievement.color + "20"
+                        : colors.surfaceLight,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={achievement.icon as any}
+                    size={22}
+                    color={isUnlocked ? achievement.color : colors.textMuted}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.achievementName,
+                    !isUnlocked && styles.achievementNameLocked,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {achievement.name}
+                </Text>
+                <Text
+                  style={[
+                    styles.achievementDesc,
+                    !isUnlocked && styles.achievementDescLocked,
+                  ]}
+                  numberOfLines={2}
+                >
+                  {achievement.description}
+                </Text>
+                {isUnlocked && (
+                  <View
+                    style={[
+                      styles.achievementBadge,
+                      { backgroundColor: achievement.color },
+                    ]}
+                  >
+                    <Ionicons name="checkmark" size={10} color="#fff" />
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
       {/* ── Rarity breakdown ─────────────────────────────── */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Rarity Breakdown</Text>
@@ -312,7 +402,7 @@ export default function ProfileScreen() {
 
       {/* ── App info ─────────────────────────────────────── */}
       <View style={styles.appInfo}>
-        <Text style={styles.appInfoText}>LocoSnap v1.0.0</Text>
+        <Text style={styles.appInfoText}>LocoSnap v1.1.0</Text>
         <Text style={styles.appInfoText}>Powered by Claude Vision AI</Text>
       </View>
     </ScrollView>
@@ -498,11 +588,78 @@ const styles = StyleSheet.create({
   section: {
     marginTop: spacing.xl,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
   sectionTitle: {
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold,
     color: colors.textPrimary,
     marginBottom: spacing.md,
+  },
+  sectionCount: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textMuted,
+    fontWeight: fonts.weights.medium,
+    marginBottom: spacing.md,
+  },
+
+  // Achievements
+  achievementsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  achievementCard: {
+    width: "48%",
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    position: "relative",
+    overflow: "hidden",
+  },
+  achievementLocked: {
+    opacity: 0.5,
+  },
+  achievementIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: spacing.sm,
+  },
+  achievementName: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold,
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  achievementNameLocked: {
+    color: colors.textMuted,
+  },
+  achievementDesc: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+    lineHeight: 14,
+  },
+  achievementDescLocked: {
+    color: colors.textMuted,
+  },
+  achievementBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   // Rarity breakdown
