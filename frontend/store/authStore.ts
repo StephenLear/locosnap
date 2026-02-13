@@ -6,7 +6,7 @@ import { create } from "zustand";
 import { supabase } from "../config/supabase";
 import { Session, User } from "@supabase/supabase-js";
 
-interface Profile {
+export interface Profile {
   id: string;
   username: string | null;
   avatar_url: string | null;
@@ -18,6 +18,7 @@ interface Profile {
   daily_scans_used: number;
   daily_scans_reset_at: string;
   is_pro: boolean;
+  region: string | null;
 }
 
 interface AuthState {
@@ -31,11 +32,13 @@ interface AuthState {
   initialize: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithMagicLink: (email: string) => Promise<void>;
   continueAsGuest: () => void;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setSession: (session: Session | null) => void;
   incrementDailyScans: () => Promise<void>;
+  updateRegion: (region: string | null) => Promise<void>;
   canScan: () => boolean;
 }
 
@@ -92,6 +95,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       provider: "google",
       options: {
         skipBrowserRedirect: true,
+      },
+    });
+    if (error) throw error;
+  },
+
+  signInWithMagicLink: async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
       },
     });
     if (error) throw error;
@@ -156,6 +169,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { data } = await supabase
       .from("profiles")
       .update({ daily_scans_used: newCount })
+      .eq("id", user.id)
+      .select()
+      .single();
+
+    if (data) set({ profile: data });
+  },
+
+  updateRegion: async (region: string | null) => {
+    const { user, profile } = get();
+    if (!user || !profile) return;
+
+    const { data } = await supabase
+      .from("profiles")
+      .update({ region })
       .eq("id", user.id)
       .select()
       .single();

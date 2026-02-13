@@ -338,7 +338,7 @@ export async function uploadBlueprint(
 
 // ── Leaderboard ─────────────────────────────────────────────
 
-export type LeaderboardTab = "global" | "weekly" | "rarity";
+export type LeaderboardTab = "global" | "weekly" | "rarity" | "regional";
 
 export interface LeaderboardEntry {
   id: string;
@@ -442,6 +442,53 @@ export async function fetchRarityLeaderboard(
     lastActive: null,
     legendaryCount: entry.legendary_count || 0,
     epicCount: entry.epic_count || 0,
+  }));
+}
+
+// ── UK Regions ──────────────────────────────────────────────
+
+export const UK_REGIONS: { key: string; label: string }[] = [
+  { key: "london", label: "London" },
+  { key: "south-east", label: "South East" },
+  { key: "south-west", label: "South West" },
+  { key: "east-anglia", label: "East Anglia" },
+  { key: "east-midlands", label: "East Midlands" },
+  { key: "west-midlands", label: "West Midlands" },
+  { key: "yorkshire", label: "Yorkshire" },
+  { key: "north-west", label: "North West" },
+  { key: "north-east", label: "North East" },
+  { key: "scotland", label: "Scotland" },
+  { key: "wales", label: "Wales" },
+  { key: "northern-ireland", label: "Northern Ireland" },
+];
+
+/**
+ * Fetch the regional leaderboard (by unique classes, filtered to a region).
+ */
+export async function fetchRegionalLeaderboard(
+  region: string,
+  limit: number = 50
+): Promise<LeaderboardEntry[]> {
+  const { data, error } = await supabase
+    .from("leaderboard_regional")
+    .select("*")
+    .eq("region", region)
+    .limit(limit);
+
+  if (error) {
+    console.warn("Failed to fetch regional leaderboard:", error.message);
+    return [];
+  }
+
+  return (data || []).map((entry: any) => ({
+    id: entry.id || "",
+    username: entry.username || "Anonymous Spotter",
+    avatarUrl: entry.avatar_url || null,
+    level: entry.level || 1,
+    totalSpots: entry.total_spots || 0,
+    uniqueTrains: entry.unique_classes || 0,
+    rareCount: entry.rare_count || 0,
+    lastActive: entry.last_active || null,
   }));
 }
 

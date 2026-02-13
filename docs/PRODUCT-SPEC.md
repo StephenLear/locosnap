@@ -107,7 +107,7 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 - [x] Full-screen viewer with save + share
 - [x] Save to camera roll
 - [x] Share to social media
-- [ ] Blueprint is the "premium" version — free users get basic card, blueprint is Pro
+- [x] Blueprint is the "premium" version — free users get basic card, blueprint is Pro
 
 ### 4.5 Results Detail
 
@@ -134,7 +134,7 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 - [x] Weekly leaderboard: most spots this week
 - [x] Rarity leaderboard: most Epic/Legendary cards
 - [x] Your rank highlighted
-- [ ] Regional leaderboards (UK regions initially)
+- [x] Regional leaderboards (UK regions initially)
 
 ### 4.7 Profile & Stats (V1.1)
 
@@ -157,7 +157,7 @@ SPOT → SNAP → IDENTIFY → COLLECT → SHARE → REPEAT
 
 **Acceptance criteria:**
 - [x] Sign up with Apple / Google (social auth)
-- [ ] Magic link email as fallback
+- [x] Magic link email as fallback
 - [x] No username/password flow (friction killer)
 - [x] Guest mode: can scan and collect locally, prompted to sign up to save to cloud
 - [x] Account required for: leaderboards, sharing public shed, cloud sync

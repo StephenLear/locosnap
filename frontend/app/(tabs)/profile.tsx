@@ -24,6 +24,7 @@ import {
 import {
   fetchAchievements,
   Achievement,
+  UK_REGIONS,
 } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 
@@ -70,7 +71,7 @@ const rarityLabels: Record<RarityTier, string> = {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { profile, user, isGuest, signOut } = useAuthStore();
+  const { profile, user, isGuest, signOut, updateRegion } = useAuthStore();
   const { history } = useTrainStore();
 
   // ── Achievements state ────────────────────────────────────
@@ -253,6 +254,45 @@ export default function ProfileScreen() {
           {profile?.streak_best ?? 0} days
         </Text>
       </View>
+
+      {/* ── Region selector ─────────────────────────────── */}
+      {!isGuest && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Your Region</Text>
+          <Text style={styles.regionHelpText}>
+            Set your UK region to appear on regional leaderboards
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.regionChipRow}
+          >
+            {UK_REGIONS.map((region) => (
+              <TouchableOpacity
+                key={region.key}
+                style={[
+                  styles.regionChip,
+                  profile?.region === region.key && styles.regionChipActive,
+                ]}
+                onPress={() => {
+                  const newRegion =
+                    profile?.region === region.key ? null : region.key;
+                  updateRegion(newRegion);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.regionChipText,
+                    profile?.region === region.key && styles.regionChipTextActive,
+                  ]}
+                >
+                  {region.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {/* ── Achievements ────────────────────────────────── */}
       <View style={styles.section}>
@@ -605,6 +645,39 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontWeight: fonts.weights.medium,
     marginBottom: spacing.md,
+  },
+
+  // Region selector
+  regionHelpText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textMuted,
+    marginBottom: spacing.md,
+    marginTop: -spacing.sm,
+  },
+  regionChipRow: {
+    gap: spacing.xs,
+    paddingBottom: spacing.xs,
+  },
+  regionChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surfaceLight,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  regionChipActive: {
+    backgroundColor: "rgba(255, 107, 0, 0.15)",
+    borderColor: colors.accent,
+  },
+  regionChipText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.medium,
+    color: colors.textMuted,
+  },
+  regionChipTextActive: {
+    color: colors.accent,
+    fontWeight: fonts.weights.bold,
   },
 
   // Achievements

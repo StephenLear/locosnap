@@ -9,9 +9,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  TextInput,
   ActivityIndicator,
   Alert,
   Platform,
+  Keyboard,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,8 +22,10 @@ import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const [loading, setLoading] = useState<"apple" | "google" | null>(null);
-  const { signInWithApple, signInWithGoogle, continueAsGuest } = useAuthStore();
+  const [loading, setLoading] = useState<"apple" | "google" | "email" | null>(null);
+  const [email, setEmail] = useState("");
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const { signInWithApple, signInWithGoogle, signInWithMagicLink, continueAsGuest } = useAuthStore();
 
   const handleAppleSignIn = async () => {
     setLoading("apple");
@@ -46,6 +50,28 @@ export default function SignInScreen() {
       Alert.alert(
         "Sign In Failed",
         (error as Error).message || "Could not sign in with Google. Please try again."
+      );
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleMagicLink = async () => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes("@")) {
+      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      return;
+    }
+
+    Keyboard.dismiss();
+    setLoading("email");
+    try {
+      await signInWithMagicLink(trimmed);
+      setMagicLinkSent(true);
+    } catch (error) {
+      Alert.alert(
+        "Send Failed",
+        (error as Error).message || "Could not send magic link. Please try again."
       );
     } finally {
       setLoading(null);
@@ -110,6 +136,56 @@ export default function SignInScreen() {
             </>
           )}
         </TouchableOpacity>
+
+        {/* Magic link email */}
+        {magicLinkSent ? (
+          <View style={styles.magicLinkSent}>
+            <Ionicons name="mail-open" size={24} color={colors.success} />
+            <Text style={styles.magicLinkSentTitle}>Check your email!</Text>
+            <Text style={styles.magicLinkSentText}>
+              We sent a sign-in link to {email.trim().toLowerCase()}.{"\n"}
+              Tap the link to sign in — no password needed.
+            </Text>
+            <TouchableOpacity onPress={() => setMagicLinkSent(false)}>
+              <Text style={styles.magicLinkResend}>Try a different email</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.magicLinkContainer}>
+            <View style={styles.magicLinkInputRow}>
+              <Ionicons name="mail-outline" size={18} color={colors.textMuted} />
+              <TextInput
+                style={styles.magicLinkInput}
+                placeholder="Email address"
+                placeholderTextColor={colors.textMuted}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={loading === null}
+              />
+            </View>
+            <TouchableOpacity
+              style={[
+                styles.authBtn,
+                styles.emailBtn,
+                (!email.trim() || loading !== null) && styles.emailBtnDisabled,
+              ]}
+              onPress={handleMagicLink}
+              disabled={!email.trim() || loading !== null}
+            >
+              {loading === "email" ? (
+                <ActivityIndicator size="small" color={colors.textPrimary} />
+              ) : (
+                <>
+                  <Ionicons name="send" size={18} color={colors.textPrimary} />
+                  <Text style={styles.authBtnText}>Send Magic Link</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Divider */}
         <View style={styles.divider}>
@@ -229,6 +305,59 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     color: colors.textMuted,
     paddingHorizontal: spacing.lg,
+  },
+  magicLinkContainer: {
+    marginBottom: spacing.sm,
+  },
+  magicLinkInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surfaceLight,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  magicLinkInput: {
+    flex: 1,
+    fontSize: fonts.sizes.md,
+    color: colors.textPrimary,
+    paddingVertical: 14,
+    marginLeft: spacing.sm,
+  },
+  emailBtn: {
+    backgroundColor: colors.primary,
+  },
+  emailBtnDisabled: {
+    opacity: 0.5,
+  },
+  magicLinkSent: {
+    alignItems: "center",
+    backgroundColor: "rgba(34, 197, 94, 0.08)",
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: "rgba(34, 197, 94, 0.25)",
+    gap: spacing.sm,
+  },
+  magicLinkSentTitle: {
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.bold,
+    color: colors.success,
+  },
+  magicLinkSentText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  magicLinkResend: {
+    fontSize: fonts.sizes.sm,
+    color: colors.primary,
+    fontWeight: fonts.weights.medium,
+    marginTop: spacing.xs,
   },
   guestBtn: {
     backgroundColor: "transparent",

@@ -18,17 +18,44 @@ import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useTrainStore } from "../store/trainStore";
-import { colors, fonts, spacing } from "../constants/theme";
+import { useAuthStore } from "../store/authStore";
+import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function BlueprintScreen() {
+  const router = useRouter();
   const { blueprintStatus, currentTrain } = useTrainStore();
+  const { profile, isGuest } = useAuthStore();
+  const isPro = profile?.is_pro ?? false;
   const [saving, setSaving] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const imageUrl = blueprintStatus?.imageUrl;
+
+  // Pro gate: free authenticated users shouldn't access blueprints
+  if (!isPro && !isGuest) {
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={styles.proGateBadge}>
+          <Ionicons name="lock-closed" size={28} color="#f59e0b" />
+          <Text style={styles.proGateTitle}>Pro Feature</Text>
+        </View>
+        <Text style={styles.proGateText}>
+          Technical blueprints are available with LocoSnap Pro.
+          Upgrade for unlimited scans and engineering-style drawings.
+        </Text>
+        <TouchableOpacity
+          style={styles.proGateBtn}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.proGateBtnText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (!imageUrl || !currentTrain) {
     return (
@@ -166,6 +193,36 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.lg,
     color: colors.textMuted,
     marginTop: spacing.lg,
+  },
+  proGateBadge: {
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  proGateTitle: {
+    fontSize: fonts.sizes.xl,
+    fontWeight: "700",
+    color: "#f59e0b",
+    letterSpacing: 1,
+  },
+  proGateText: {
+    fontSize: fonts.sizes.md,
+    color: colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
+    paddingHorizontal: spacing.xxl,
+    marginBottom: spacing.xl,
+  },
+  proGateBtn: {
+    backgroundColor: colors.surfaceLight,
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  proGateBtnText: {
+    fontSize: fonts.sizes.md,
+    fontWeight: "600",
+    color: colors.textPrimary,
   },
   imageContainer: {
     flex: 1,

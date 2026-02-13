@@ -14,6 +14,7 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../store/trainStore";
+import { useAuthStore } from "../store/authStore";
 import { RarityTier } from "../types";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
@@ -69,6 +70,9 @@ export default function ResultsScreen() {
     blueprintStatus,
     currentLocation,
   } = useTrainStore();
+
+  const { profile, isGuest } = useAuthStore();
+  const isPro = profile?.is_pro ?? false;
 
   if (!currentTrain) {
     return (
@@ -184,59 +188,79 @@ export default function ResultsScreen() {
       </View>
 
       {/* ── Blueprint Button ─────────────────────────── */}
-      <TouchableOpacity
-        style={[
-          styles.blueprintBtn,
-          blueprintStatus?.status === "completed"
-            ? styles.blueprintBtnReady
-            : styles.blueprintBtnLoading,
-        ]}
-        onPress={() => {
-          if (blueprintStatus?.status === "completed") {
-            router.push("/blueprint");
-          }
-        }}
-        disabled={blueprintStatus?.status !== "completed"}
-      >
-        <Ionicons
-          name={
+      {isPro || isGuest ? (
+        /* Pro users and guests: full blueprint access */
+        <TouchableOpacity
+          style={[
+            styles.blueprintBtn,
             blueprintStatus?.status === "completed"
-              ? "image"
-              : blueprintStatus?.status === "failed"
-                ? "alert-circle"
-                : "hourglass"
-          }
-          size={24}
-          color={
-            blueprintStatus?.status === "completed"
-              ? colors.accent
-              : colors.textSecondary
-          }
-        />
-        <View style={styles.blueprintBtnContent}>
-          <Text style={styles.blueprintBtnTitle}>
-            {blueprintStatus?.status === "completed"
-              ? "View Technical Blueprint"
-              : blueprintStatus?.status === "failed"
-                ? "Blueprint Generation Failed"
-                : "Generating Blueprint..."}
-          </Text>
-          <Text style={styles.blueprintBtnSubtitle}>
-            {blueprintStatus?.status === "completed"
-              ? "Locomotive works drawing style"
-              : blueprintStatus?.status === "failed"
-                ? blueprintStatus.error || "Try again later"
-                : "This may take up to 60 seconds"}
-          </Text>
-        </View>
-        {blueprintStatus?.status === "completed" && (
+              ? styles.blueprintBtnReady
+              : styles.blueprintBtnLoading,
+          ]}
+          onPress={() => {
+            if (blueprintStatus?.status === "completed") {
+              router.push("/blueprint");
+            }
+          }}
+          disabled={blueprintStatus?.status !== "completed"}
+        >
           <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={colors.textSecondary}
+            name={
+              blueprintStatus?.status === "completed"
+                ? "image"
+                : blueprintStatus?.status === "failed"
+                  ? "alert-circle"
+                  : "hourglass"
+            }
+            size={24}
+            color={
+              blueprintStatus?.status === "completed"
+                ? colors.accent
+                : colors.textSecondary
+            }
           />
-        )}
-      </TouchableOpacity>
+          <View style={styles.blueprintBtnContent}>
+            <Text style={styles.blueprintBtnTitle}>
+              {blueprintStatus?.status === "completed"
+                ? "View Technical Blueprint"
+                : blueprintStatus?.status === "failed"
+                  ? "Blueprint Generation Failed"
+                  : "Generating Blueprint..."}
+            </Text>
+            <Text style={styles.blueprintBtnSubtitle}>
+              {blueprintStatus?.status === "completed"
+                ? "Locomotive works drawing style"
+                : blueprintStatus?.status === "failed"
+                  ? blueprintStatus.error || "Try again later"
+                  : "This may take up to 60 seconds"}
+            </Text>
+          </View>
+          {blueprintStatus?.status === "completed" && (
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textSecondary}
+            />
+          )}
+        </TouchableOpacity>
+      ) : (
+        /* Free users: locked Pro upsell */
+        <View style={[styles.blueprintBtn, styles.blueprintBtnLocked]}>
+          <View style={styles.proBadge}>
+            <Ionicons name="lock-closed" size={14} color="#f59e0b" />
+            <Text style={styles.proBadgeText}>PRO</Text>
+          </View>
+          <View style={styles.blueprintBtnContent}>
+            <Text style={styles.blueprintBtnTitle}>
+              Technical Blueprint
+            </Text>
+            <Text style={styles.blueprintBtnSubtitle}>
+              Unlock engineering-style drawings with Pro
+            </Text>
+          </View>
+          <Ionicons name="star" size={20} color="#f59e0b" />
+        </View>
+      )}
 
       {/* ── Specs Section ────────────────────────────── */}
       {currentSpecs && (
@@ -497,6 +521,25 @@ const styles = StyleSheet.create({
   blueprintBtnLoading: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
+  },
+  blueprintBtnLocked: {
+    backgroundColor: "rgba(245, 158, 11, 0.06)",
+    borderColor: "rgba(245, 158, 11, 0.25)",
+  },
+  proBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(245, 158, 11, 0.15)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: borderRadius.sm,
+  },
+  proBadgeText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: "#f59e0b",
+    letterSpacing: 1,
   },
   blueprintBtnContent: {
     flex: 1,

@@ -9,6 +9,7 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  ScrollView,
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
@@ -19,8 +20,10 @@ import {
   fetchLeaderboard,
   fetchWeeklyLeaderboard,
   fetchRarityLeaderboard,
+  fetchRegionalLeaderboard,
   LeaderboardEntry,
   LeaderboardTab,
+  UK_REGIONS,
 } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 
@@ -45,17 +48,21 @@ const TABS: { key: LeaderboardTab; label: string; icon: string }[] = [
   { key: "global", label: "All-Time", icon: "globe" },
   { key: "weekly", label: "This Week", icon: "calendar" },
   { key: "rarity", label: "Rarity", icon: "star" },
+  { key: "regional", label: "Region", icon: "map" },
 ];
 
 export default function LeaderboardScreen() {
-  const { user, isGuest } = useAuthStore();
+  const { user, isGuest, profile } = useAuthStore();
   const [activeTab, setActiveTab] = useState<LeaderboardTab>("global");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(
+    profile?.region ?? null
+  );
 
   const loadLeaderboard = useCallback(
-    async (tab: LeaderboardTab) => {
+    async (tab: LeaderboardTab, region?: string | null) => {
       try {
         let data: LeaderboardEntry[];
         switch (tab) {
@@ -64,6 +71,13 @@ export default function LeaderboardScreen() {
             break;
           case "rarity":
             data = await fetchRarityLeaderboard(50);
+            break;
+          case "regional":
+            if (region) {
+              data = await fetchRegionalLeaderboard(region, 50);
+            } else {
+              data = [];
+            }
             break;
           default:
             data = await fetchLeaderboard(50);
@@ -81,12 +95,12 @@ export default function LeaderboardScreen() {
 
   useEffect(() => {
     setLoading(true);
-    loadLeaderboard(activeTab);
-  }, [activeTab, loadLeaderboard]);
+    loadLeaderboard(activeTab, selectedRegion);
+  }, [activeTab, loadLeaderboard, selectedRegion]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadLeaderboard(activeTab);
+    loadLeaderboard(activeTab, selectedRegion);
   };
 
   const handleTabChange = (tab: LeaderboardTab) => {
@@ -144,6 +158,35 @@ export default function LeaderboardScreen() {
         ))}
       </View>
 
+      {/* ── Region picker (regional tab only) ─────────── */}
+      {activeTab === "regional" && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.regionPicker}
+        >
+          {UK_REGIONS.map((region) => (
+            <TouchableOpacity
+              key={region.key}
+              style={[
+                styles.regionChip,
+                selectedRegion === region.key && styles.regionChipActive,
+              ]}
+              onPress={() => setSelectedRegion(region.key)}
+            >
+              <Text
+                style={[
+                  styles.regionChipText,
+                  selectedRegion === region.key && styles.regionChipTextActive,
+                ]}
+              >
+                {region.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
       {/* ── Your rank banner ────────────────────────────── */}
       {userRank > 0 && !loading && (
         <View style={styles.yourRankBanner}>
@@ -168,6 +211,10 @@ export default function LeaderboardScreen() {
               ? "No spots this week yet"
               : activeTab === "rarity"
               ? "No rare finds yet"
+              : activeTab === "regional" && !selectedRegion
+              ? "Select your region"
+              : activeTab === "regional"
+              ? "No spotters in this region yet"
               : "No spotters yet"}
           </Text>
           <Text style={styles.emptyInlineSubtitle}>
@@ -175,6 +222,10 @@ export default function LeaderboardScreen() {
               ? "Spot a train to appear on the weekly board!"
               : activeTab === "rarity"
               ? "Spot an Epic or Legendary train to compete here."
+              : activeTab === "regional" && !selectedRegion
+              ? "Pick a UK region above to see local rankings."
+              : activeTab === "regional"
+              ? "Be the first spotter in your region!"
               : "Be the first to spot a train and claim the top spot!"}
           </Text>
         </View>
@@ -369,6 +420,34 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   tabLabelActive: {
+    color: colors.accent,
+    fontWeight: fonts.weights.bold,
+  },
+
+  // Region picker
+  regionPicker: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+  },
+  regionChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surfaceLight,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  regionChipActive: {
+    backgroundColor: "rgba(255, 107, 0, 0.15)",
+    borderColor: colors.accent,
+  },
+  regionChipText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.medium,
+    color: colors.textMuted,
+  },
+  regionChipTextActive: {
     color: colors.accent,
     fontWeight: fonts.weights.bold,
   },
