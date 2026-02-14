@@ -224,7 +224,7 @@ function monitorBlueprintForCache(
 ): void {
   const checkInterval = setInterval(async () => {
     try {
-      const task = getTaskStatus(taskId);
+      const task = await getTaskStatus(taskId);
       if (!task) {
         clearInterval(checkInterval);
         return;

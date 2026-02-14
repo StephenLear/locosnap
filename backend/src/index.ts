@@ -9,14 +9,17 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import identifyRouter from "./routes/identify";
 import blueprintStatusRouter from "./routes/imageStatus";
 import webhooksRouter from "./routes/webhooks";
-import { cleanupOldTasks } from "./services/imageGen";
 import { getVisionProvider } from "./services/vision";
 import { getSupabase } from "./config/supabase";
 import { loadCache, getCacheStats } from "./services/trainCache";
 import { initAnalytics, Sentry, flushAnalytics } from "./services/analytics";
+import { initRedis, getRedisStatus } from "./services/redis";
 
 // ── Analytics + Error Tracking ───────────────────────────────
 initAnalytics();
+
+// ── Redis (blueprint task store) ─────────────────────────────
+initRedis();
 
 const app = express();
 
@@ -43,6 +46,7 @@ app.get("/api/health", (_req, res) => {
     visionProvider: getVisionProvider(),
     supabase: config.hasSupabase ? "connected" : "not configured",
     blueprintGenAvailable: config.hasImageGen,
+    redis: getRedisStatus(),
     cache: getCacheStats(),
     timestamp: new Date().toISOString(),
   });
@@ -55,15 +59,6 @@ app.use("/api/webhooks", webhooksRouter);
 // ── Error Handling ──────────────────────────────────────────
 app.use(notFoundHandler);
 app.use(errorHandler);
-
-// ── Periodic Cleanup ────────────────────────────────────────
-// Clean up old blueprint generation tasks every 30 minutes
-setInterval(
-  () => {
-    cleanupOldTasks();
-  },
-  30 * 60 * 1000
-);
 
 // ── Load train cache from disk ──────────────────────────────
 loadCache();
@@ -84,6 +79,7 @@ app.listen(config.port, () => {
 ║  Replicate:   ${(config.hasReplicate ? "Yes" : "No").padEnd(30)}║
 ║  Supabase:    ${(config.hasSupabase ? "Connected" : "Not configured").padEnd(30)}║
 ║  RevenueCat:  ${(config.hasRevenueCat ? "Webhook ready" : "Not configured").padEnd(30)}║
+║  Redis:       ${getRedisStatus().padEnd(30)}║
 ║  Cache:       ${`${stats.totalEntries} trains cached`.padEnd(30)}║
 ╚══════════════════════════════════════════════╝
 

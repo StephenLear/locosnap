@@ -7,6 +7,8 @@ jest.mock("../../config/env", () => ({
     hasOpenAI: true,
     hasReplicate: false,
     hasImageGen: true,
+    redisUrl: "",
+    hasRedis: false,
   },
 }));
 
@@ -20,10 +22,38 @@ jest.mock("replicate", () => {
   return jest.fn().mockImplementation(() => ({}));
 });
 
+// Mock Redis — use in-memory fallback (no actual Redis needed)
+jest.mock("../../services/redis", () => {
+  const store = new Map<string, string>();
+  return {
+    initRedis: jest.fn(),
+    setBlueprintTask: jest.fn(async (taskId: string, task: any) => {
+      store.set(taskId, JSON.stringify({
+        ...task,
+        createdAt: task.createdAt instanceof Date ? task.createdAt.toISOString() : task.createdAt,
+        completedAt: task.completedAt instanceof Date ? task.completedAt.toISOString() : task.completedAt,
+      }));
+    }),
+    getBlueprintTask: jest.fn(async (taskId: string) => {
+      const raw = store.get(taskId);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return {
+        ...parsed,
+        createdAt: new Date(parsed.createdAt),
+        completedAt: parsed.completedAt ? new Date(parsed.completedAt) : null,
+      };
+    }),
+    deleteBlueprintTask: jest.fn(async (taskId: string) => {
+      store.delete(taskId);
+    }),
+    getRedisStatus: jest.fn(() => "in-memory fallback"),
+  };
+});
+
 import {
   startBlueprintGeneration,
   getTaskStatus,
-  cleanupOldTasks,
 } from "../../services/imageGen";
 import axios from "axios";
 
@@ -45,33 +75,18 @@ describe("imageGen", () => {
     expect(taskId.length).toBeGreaterThan(0);
   });
 
-  it("task starts in queued status", async () => {
+  it("task starts in queued or processing status", async () => {
     mockAxiosPost.mockImplementation(() => new Promise(() => {})); // never resolves
 
     const taskId = await startBlueprintGeneration(makeTrain(), makeSpecs());
-    const task = getTaskStatus(taskId);
+    const task = await getTaskStatus(taskId);
     expect(task).not.toBeNull();
     expect(["queued", "processing"]).toContain(task!.status);
   });
 
-  it("getTaskStatus returns null for unknown task", () => {
-    const result = getTaskStatus("nonexistent-task-id");
+  it("getTaskStatus returns null for unknown task", async () => {
+    const result = await getTaskStatus("nonexistent-task-id");
     expect(result).toBeNull();
-  });
-
-  it("cleanupOldTasks removes expired tasks", async () => {
-    mockAxiosPost.mockImplementation(() => new Promise(() => {}));
-
-    const taskId = await startBlueprintGeneration(makeTrain(), makeSpecs());
-
-    // Manually age the task
-    const task = getTaskStatus(taskId);
-    if (task) {
-      task.createdAt = new Date(Date.now() - 7200000); // 2 hours ago
-    }
-
-    cleanupOldTasks(3600000); // 1 hour TTL
-    expect(getTaskStatus(taskId)).toBeNull();
   });
 
   it("accepts different blueprint styles", async () => {

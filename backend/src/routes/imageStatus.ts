@@ -9,10 +9,10 @@ import { BlueprintStatusResponse } from "../types";
 
 const router = Router();
 
-router.get("/:taskId", (req: Request, res: Response): void => {
+router.get("/:taskId", async (req: Request, res: Response): Promise<void> => {
   const taskId = req.params.taskId as string;
 
-  const task = getTaskStatus(taskId);
+  const task = await getTaskStatus(taskId);
 
   if (!task) {
     res.status(404).json({

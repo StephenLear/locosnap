@@ -8,9 +8,7 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../config/env";
 import { TrainIdentification, TrainSpecs, BlueprintTask, BlueprintStyle } from "../types";
-
-// In-memory task store (upgrade to Redis for production)
-const taskStore = new Map<string, BlueprintTask>();
+import { setBlueprintTask, getBlueprintTask } from "./redis";
 
 // Initialize Replicate client (if available)
 let replicate: Replicate | null = null;
@@ -133,17 +131,18 @@ export async function startBlueprintGeneration(
     completedAt: null,
   };
 
-  taskStore.set(taskId, task);
+  await setBlueprintTask(taskId, task);
 
   const prompt = buildBlueprintPrompt(train, specs, style);
 
   // Run generation in background (don't await)
-  generateImage(taskId, prompt).catch((error) => {
+  generateImage(taskId, prompt).catch(async (error) => {
     console.error(`Blueprint generation failed for task ${taskId}:`, error);
-    const t = taskStore.get(taskId);
+    const t = await getBlueprintTask(taskId);
     if (t) {
       t.status = "failed";
       t.error = (error as Error).message || "Blueprint generation failed";
+      await setBlueprintTask(taskId, t);
     }
   });
 
@@ -154,10 +153,11 @@ export async function startBlueprintGeneration(
  * Actually generate the image (runs in background)
  */
 async function generateImage(taskId: string, prompt: string): Promise<void> {
-  const task = taskStore.get(taskId);
+  const task = await getBlueprintTask(taskId);
   if (!task) return;
 
   task.status = "processing";
+  await setBlueprintTask(taskId, task);
 
   if (config.hasReplicate && replicate) {
     // Use Replicate (Stable Diffusion XL or similar)
@@ -186,6 +186,7 @@ async function generateImage(taskId: string, prompt: string): Promise<void> {
       task.status = "completed";
       task.imageUrl = imageUrl;
       task.completedAt = new Date();
+      await setBlueprintTask(taskId, task);
     } catch (error) {
       throw error;
     }
@@ -220,6 +221,7 @@ async function generateImage(taskId: string, prompt: string): Promise<void> {
       task.status = "completed";
       task.imageUrl = imageUrl;
       task.completedAt = new Date();
+      await setBlueprintTask(taskId, task);
     } catch (error) {
       throw error;
     }
@@ -227,24 +229,13 @@ async function generateImage(taskId: string, prompt: string): Promise<void> {
     task.status = "failed";
     task.error =
       "No image generation API configured. Set REPLICATE_API_TOKEN or OPENAI_API_KEY in your .env file.";
+    await setBlueprintTask(taskId, task);
   }
 }
 
 /**
  * Check the status of a blueprint generation task
  */
-export function getTaskStatus(taskId: string): BlueprintTask | null {
-  return taskStore.get(taskId) || null;
-}
-
-/**
- * Clean up old tasks (call periodically)
- */
-export function cleanupOldTasks(maxAgeMs: number = 3600000): void {
-  const now = Date.now();
-  for (const [taskId, task] of taskStore.entries()) {
-    if (now - task.createdAt.getTime() > maxAgeMs) {
-      taskStore.delete(taskId);
-    }
-  }
+export async function getTaskStatus(taskId: string): Promise<BlueprintTask | null> {
+  return getBlueprintTask(taskId);
 }

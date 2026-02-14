@@ -20,7 +20,7 @@ describe("GET /api/blueprint/:taskId", () => {
   beforeEach(() => jest.clearAllMocks());
 
   it("returns 404 for unknown task", async () => {
-    mockGetTaskStatus.mockReturnValue(null);
+    mockGetTaskStatus.mockResolvedValue(null);
 
     const res = await request(app).get("/api/blueprint/nonexistent");
     expect(res.status).toBe(404);
@@ -28,7 +28,7 @@ describe("GET /api/blueprint/:taskId", () => {
   });
 
   it("returns queued status", async () => {
-    mockGetTaskStatus.mockReturnValue({
+    mockGetTaskStatus.mockResolvedValue({
       taskId: "task-1",
       status: "queued",
       imageUrl: null,
@@ -42,7 +42,7 @@ describe("GET /api/blueprint/:taskId", () => {
   });
 
   it("returns completed status with image URL", async () => {
-    mockGetTaskStatus.mockReturnValue({
+    mockGetTaskStatus.mockResolvedValue({
       taskId: "task-2",
       status: "completed",
       imageUrl: "https://example.com/blueprint.png",
@@ -56,7 +56,7 @@ describe("GET /api/blueprint/:taskId", () => {
   });
 
   it("returns failed status with error", async () => {
-    mockGetTaskStatus.mockReturnValue({
+    mockGetTaskStatus.mockResolvedValue({
       taskId: "task-3",
       status: "failed",
       imageUrl: null,

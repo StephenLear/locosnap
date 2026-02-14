@@ -72,4 +72,11 @@ export const config = {
   get hasRevenueCat(): boolean {
     return this.revenuecatWebhookSecret.length > 0;
   },
+
+  // Redis
+  redisUrl: optionalEnv("REDIS_URL", ""),
+
+  get hasRedis(): boolean {
+    return this.redisUrl.length > 0;
+  },
 };
