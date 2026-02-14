@@ -181,7 +181,7 @@ async function generateImage(taskId: string, prompt: string): Promise<void> {
       // Replicate returns an array of URLs
       const imageUrl = Array.isArray(output)
         ? (output[0] as string)
-        : (output as string);
+        : (output as unknown as string);
 
       task.status = "completed";
       task.imageUrl = imageUrl;

@@ -10,7 +10,7 @@ import { BlueprintStatusResponse } from "../types";
 const router = Router();
 
 router.get("/:taskId", (req: Request, res: Response): void => {
-  const { taskId } = req.params;
+  const taskId = req.params.taskId as string;
 
   const task = getTaskStatus(taskId);
 
@@ -20,7 +20,7 @@ router.get("/:taskId", (req: Request, res: Response): void => {
       status: "not_found",
       imageUrl: null,
       error: "Task not found. It may have expired.",
-    } as BlueprintStatusResponse & { status: string });
+    });
     return;
   }
 
