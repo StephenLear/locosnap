@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../store/trainStore";
 import { RarityTier } from "../types";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
+import { compareValues, type Winner } from "../utils/compare";
 
 // ── Rarity colours ──────────────────────────────────────────
 const rarityColors: Record<RarityTier, string> = {
@@ -25,32 +26,6 @@ const rarityColors: Record<RarityTier, string> = {
   epic: "#a855f7",
   legendary: "#f59e0b",
 };
-
-// ── Helpers ─────────────────────────────────────────────────
-
-function parseNumeric(value: string | null): number | null {
-  if (!value) return null;
-  const match = value.match(/[\d,.]+/);
-  if (!match) return null;
-  return parseFloat(match[0].replace(/,/g, ""));
-}
-
-type Winner = "left" | "right" | "tie" | "none";
-
-function compareValues(
-  leftVal: string | null,
-  rightVal: string | null,
-  higherIsBetter: boolean = true
-): Winner {
-  const leftNum = parseNumeric(leftVal);
-  const rightNum = parseNumeric(rightVal);
-  if (leftNum === null || rightNum === null) return "none";
-  if (leftNum === rightNum) return "tie";
-  if (higherIsBetter) {
-    return leftNum > rightNum ? "left" : "right";
-  }
-  return leftNum < rightNum ? "left" : "right";
-}
 
 // ── Comparison Row ──────────────────────────────────────────
 
