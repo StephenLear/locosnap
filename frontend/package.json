@@ -7,7 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest --ci"
+    "test": "jest --ci --forceExit"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
