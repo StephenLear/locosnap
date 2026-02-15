@@ -13,4 +13,12 @@ module.exports = {
     "store/**/*.ts",
     "!**/__tests__/**",
   ],
+  coverageThreshold: {
+    global: {
+      branches: 5,
+      functions: 15,
+      lines: 10,
+      statements: 10,
+    },
+  },
 };

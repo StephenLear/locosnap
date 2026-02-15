@@ -12,6 +12,9 @@ dist/
 build/
 *.tsbuildinfo
 
+# Test coverage
+coverage/
+
 # OS files
 .DS_Store
 Thumbs.db

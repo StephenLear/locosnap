@@ -13,6 +13,14 @@ const config: Config = {
     "!src/**/__mocks__/**",
     "!src/index.ts",
   ],
+  coverageThreshold: {
+    global: {
+      branches: 40,
+      functions: 50,
+      lines: 50,
+      statements: 50,
+    },
+  },
 };
 
 export default config;
