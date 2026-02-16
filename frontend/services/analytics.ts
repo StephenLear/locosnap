@@ -167,6 +167,6 @@ export const wrap = Sentry.wrap;
 export async function flush() {
   try {
     await posthog?.flush();
-    await Sentry.flush(2000);
+    await Sentry.flush();
   } catch {}
 }

@@ -25,7 +25,7 @@ import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import ParticleEffect from "../components/ParticleEffect";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { track } from "../services/analytics";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
