@@ -30,14 +30,14 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
 
-    const isAuthenticated = session !== null || isGuest;
+    const isFullyAuthenticated = session !== null;
     const isOnSignIn = segments[0] === "sign-in";
 
-    if (!isAuthenticated && !isOnSignIn) {
-      // Not signed in — redirect to sign-in
+    if (!isFullyAuthenticated && !isGuest && !isOnSignIn) {
+      // Not signed in and not a guest — redirect to sign-in
       router.replace("/sign-in");
-    } else if (isAuthenticated && isOnSignIn) {
-      // Signed in — redirect to home
+    } else if (isFullyAuthenticated && isOnSignIn) {
+      // Fully signed in (not just guest) — redirect to home
       router.replace("/");
     }
   }, [session, isGuest, isLoading, segments]);
