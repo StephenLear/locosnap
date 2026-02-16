@@ -48,21 +48,21 @@ async function identifyTrainWeb(
       const ext = mime.split("/")[1] || "jpg";
       const blobResponse = await fetch(imageUri);
       const blob = await blobResponse.blob();
-      file = new File([blob], `train.${ext}`, { type: mime });
+      file = new File([blob], `train.${ext}`, { type: mime, lastModified: Date.now() });
     } else if (imageUri.startsWith("blob:")) {
       // blob: URI
       const blobResponse = await fetch(imageUri);
       const blob = await blobResponse.blob();
       const mime = blob.type || "image/jpeg";
       const ext = mime.split("/")[1] || "jpg";
-      file = new File([blob], `train.${ext}`, { type: mime });
+      file = new File([blob], `train.${ext}`, { type: mime, lastModified: Date.now() });
     } else {
       // Regular URL or file path — try fetching it
       const blobResponse = await fetch(imageUri);
       const blob = await blobResponse.blob();
       const mime = blob.type || "image/jpeg";
       const ext = mime.split("/")[1] || "jpg";
-      file = new File([blob], `train.${ext}`, { type: mime });
+      file = new File([blob], `train.${ext}`, { type: mime, lastModified: Date.now() });
     }
 
     console.log("[API] Web upload:", file.name, file.type, file.size, "bytes");
