@@ -4,7 +4,7 @@
 // Includes daily scan limit check + photo URI tracking
 // ============================================================
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   Animated,
   Dimensions,
   Alert,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
@@ -190,6 +191,24 @@ export default function HomeScreen() {
   };
 
   const pickImage = async () => {
+    if (Platform.OS === "web") {
+      // On web, use a raw <input type="file"> to avoid expo-image-picker's
+      // re-encoding which compresses images to ~13KB
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = (e: any) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        console.log("[PICKER] Raw file:", file.name, file.size, "bytes");
+        const objectUrl = URL.createObjectURL(file);
+        setPreviewUri(objectUrl);
+        handleScan(objectUrl);
+      };
+      input.click();
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,

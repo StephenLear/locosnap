@@ -15,6 +15,7 @@ import {
   Animated,
   Dimensions,
   Image,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -179,12 +180,25 @@ export default function CardRevealScreen() {
     if (!cardRef.current) return;
 
     try {
+      const trainName = currentTrain?.class || "train";
+
+      if (Platform.OS === "web") {
+        // Web: use the Web Share API or fall back to clipboard
+        const shareText = `Check out this ${currentRarity?.tier || ""} ${trainName} I spotted on LocoSnap!`;
+        if (navigator.share) {
+          await navigator.share({ text: shareText });
+        } else {
+          await navigator.clipboard.writeText(shareText);
+          alert("Copied to clipboard!");
+        }
+        return;
+      }
+
       const uri = await captureRef(cardRef, {
         format: "png",
         quality: 1,
       });
 
-      const trainName = currentTrain?.class || "train";
       const filename = `locosnap-${trainName.replace(/\s+/g, "-").toLowerCase()}.png`;
       const newPath = `${FileSystem.cacheDirectory}${filename}`;
       await FileSystem.moveAsync({ from: uri, to: newPath });
