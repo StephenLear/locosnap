@@ -11,13 +11,17 @@ jobs:
   deploy:
     name: Deploy to Render
     runs-on: ubuntu-latest
-    # Only deploy after CI passes
-    needs: []
+    # Only run if the deploy hook secret is configured
+    if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
     steps:
       - name: Trigger Render Deploy
         run: |
-          curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$RENDER_DEPLOY_HOOK_URL")
+          echo "Render responded with HTTP $STATUS"
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
+            echo "::error::Render deploy hook returned HTTP $STATUS"
+            exit 1
+          fi
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         # Render deploy hooks are simple GET/POST URLs that trigger a deploy
