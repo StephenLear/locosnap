@@ -1,29 +1,32 @@
 name: Deploy Backend
 
+# Manual trigger only — switch to push trigger after setting up Render:
+#   on:
+#     push:
+#       branches: [main]
+#       paths:
+#         - "backend/**"
+#         - "render.yaml"
 on:
-  push:
-    branches: [main]
-    paths:
-      - "backend/**"
-      - "render.yaml"
+  workflow_dispatch:
 
 jobs:
   deploy:
     name: Deploy to Render
     runs-on: ubuntu-latest
-    # Only run if the deploy hook secret is configured
-    if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
     steps:
       - name: Trigger Render Deploy
         run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::error::RENDER_DEPLOY_HOOK_URL secret is not set. Add it in GitHub repo Settings → Secrets."
+            exit 1
+          fi
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$RENDER_DEPLOY_HOOK_URL")
           echo "Render responded with HTTP $STATUS"
           if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
             echo "::error::Render deploy hook returned HTTP $STATUS"
             exit 1
           fi
+          echo "Deploy triggered successfully"
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        # Render deploy hooks are simple GET/POST URLs that trigger a deploy
-        # Set RENDER_DEPLOY_HOOK_URL in GitHub repo settings → Secrets
-        # Get the URL from Render dashboard → Your service → Settings → Deploy Hook
