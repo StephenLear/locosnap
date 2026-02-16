@@ -45,9 +45,11 @@ Rules:
 function parseTrainResponse(text: string): TrainIdentification | null {
   try {
     const cleaned = text.replace(/\`\`\`json\n?/g, "").replace(/\`\`\`\n?/g, "").trim();
+    console.log("[VISION] AI response:", cleaned.substring(0, 200));
     const parsed = JSON.parse(cleaned);
 
     if (parsed.error === "not_a_train") {
+      console.log("[VISION] AI says: not a train");
       return null;
     }
 
