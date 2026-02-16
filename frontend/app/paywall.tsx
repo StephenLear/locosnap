@@ -16,6 +16,7 @@ import {
   Platform,
   Animated,
   Dimensions,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -32,6 +33,8 @@ import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { useLocalSearchParams } from "expo-router";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_WIDTH = SCREEN_WIDTH * 0.58;
+const CARD_GAP = 12;
 
 // ── Scanner palette (consistent with home screen) ────────────
 const SCANNER = {
@@ -41,6 +44,30 @@ const SCANNER = {
   blue: "#0066FF",
   blueGlow: "rgba(0, 102, 255, 0.12)",
 };
+
+// ── Blueprint demo images ────────────────────────────────────
+const BLUEPRINT_PREVIEWS = [
+  {
+    key: "technical",
+    label: "Technical",
+    image: require("../assets/blueprints/demo-technical.jpg"),
+  },
+  {
+    key: "vintage",
+    label: "Vintage",
+    image: require("../assets/blueprints/demo-vintage.jpg"),
+  },
+  {
+    key: "schematic",
+    label: "Schematic",
+    image: require("../assets/blueprints/demo-schematic.jpg"),
+  },
+  {
+    key: "cinematic",
+    label: "Cinematic",
+    image: require("../assets/blueprints/demo-cinematic.jpg"),
+  },
+];
 
 // ── Feature list ─────────────────────────────────────────────
 
@@ -229,73 +256,108 @@ export default function PaywallScreen() {
           <Ionicons name="close" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
 
-        <Animated.View
-          style={[
-            styles.guestContainer,
-            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-          ]}
+        <ScrollView
+          contentContainerStyle={styles.guestScrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          {/* Pulsing icon */}
-          <View style={styles.heroIconOuter}>
-            <Animated.View
-              style={[styles.heroGlow, { opacity: glowAnim }]}
-            />
-            <Animated.View
-              style={[
-                styles.heroIcon,
-                { transform: [{ scale: pulseAnim }] },
-              ]}
-            >
-              <Ionicons name="diamond" size={40} color={SCANNER.teal} />
-            </Animated.View>
-          </View>
-
-          {/* PRO badge */}
-          <View style={styles.guestProBadge}>
-            <Ionicons name="flash" size={12} color="#fff" />
-            <Text style={styles.guestProBadgeText}>PRO</Text>
-          </View>
-
-          <Text style={styles.heroTitle}>Unlock LocoSnap Pro</Text>
-          <Text style={styles.guestDesc}>
-            Sign in with your email to access Pro features
-          </Text>
-
-          {/* Feature preview */}
-          <View style={styles.guestFeatures}>
-            {[
-              { icon: "infinite", label: "Unlimited daily scans" },
-              { icon: "color-palette", label: "Premium blueprint styles" },
-              { icon: "flame", label: "Streak tracking & XP" },
-              { icon: "trophy", label: "Global leaderboards" },
-            ].map((f) => (
-              <View key={f.label} style={styles.guestFeatureRow}>
-                <View style={styles.guestFeatureIcon}>
-                  <Ionicons name={f.icon as any} size={16} color={SCANNER.teal} />
-                </View>
-                <Text style={styles.guestFeatureText}>{f.label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* CTA */}
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => {
-              useAuthStore.getState().clearGuest();
-              router.back();
-              setTimeout(() => router.push("/sign-in"), 300);
-            }}
-            activeOpacity={0.8}
+          <Animated.View
+            style={[
+              styles.guestContainer,
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+            ]}
           >
-            <Ionicons name="mail-outline" size={20} color="#fff" />
-            <Text style={styles.primaryBtnText}>Sign In with Email</Text>
-          </TouchableOpacity>
+            {/* Pulsing icon */}
+            <View style={styles.heroIconOuter}>
+              <Animated.View
+                style={[styles.heroGlow, { opacity: glowAnim }]}
+              />
+              <Animated.View
+                style={[
+                  styles.heroIcon,
+                  { transform: [{ scale: pulseAnim }] },
+                ]}
+              >
+                <Ionicons name="diamond" size={40} color={SCANNER.teal} />
+              </Animated.View>
+            </View>
 
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.guestLaterText}>Maybe later</Text>
-          </TouchableOpacity>
-        </Animated.View>
+            {/* PRO badge */}
+            <View style={styles.guestProBadge}>
+              <Ionicons name="flash" size={12} color="#fff" />
+              <Text style={styles.guestProBadgeText}>PRO</Text>
+            </View>
+
+            <Text style={styles.heroTitle}>Unlock LocoSnap Pro</Text>
+            <Text style={styles.guestDesc}>
+              Sign in with your email to access premium features
+            </Text>
+          </Animated.View>
+
+          {/* Blueprint preview carousel (outside Animated.View for full-width scroll) */}
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <View style={styles.blueprintSectionGuest}>
+              <Text style={styles.blueprintSectionLabel}>BLUEPRINT STYLES</Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.blueprintScrollGuest}
+              snapToInterval={CARD_WIDTH + CARD_GAP}
+              decelerationRate="fast"
+            >
+              {BLUEPRINT_PREVIEWS.map((item) => (
+                <View key={item.key} style={styles.blueprintCard}>
+                  <Image source={item.image} style={styles.blueprintImage} />
+                  <View style={styles.blueprintLabelRow}>
+                    <View style={styles.blueprintLabelDot} />
+                    <Text style={styles.blueprintLabel}>{item.label}</Text>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </Animated.View>
+
+          {/* Feature preview + CTA */}
+          <Animated.View
+            style={[
+              styles.guestBottomSection,
+              { opacity: fadeAnim },
+            ]}
+          >
+            <View style={styles.guestFeatures}>
+              {[
+                { icon: "infinite", label: "Unlimited daily scans" },
+                { icon: "flame", label: "Streak tracking & XP" },
+                { icon: "trophy", label: "Global leaderboards" },
+              ].map((f) => (
+                <View key={f.label} style={styles.guestFeatureRow}>
+                  <View style={styles.guestFeatureIcon}>
+                    <Ionicons name={f.icon as any} size={16} color={SCANNER.teal} />
+                  </View>
+                  <Text style={styles.guestFeatureText}>{f.label}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* CTA */}
+            <TouchableOpacity
+              style={styles.primaryBtn}
+              onPress={() => {
+                useAuthStore.getState().clearGuest();
+                router.back();
+                setTimeout(() => router.push("/sign-in"), 300);
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="mail-outline" size={20} color="#fff" />
+              <Text style={styles.primaryBtnText}>Sign In with Email</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={styles.guestLaterText}>Maybe later</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </ScrollView>
       </View>
     );
   }
@@ -346,6 +408,32 @@ export default function PaywallScreen() {
             Take your trainspotting to the next level
           </Text>
         </Animated.View>
+
+        {/* ── Blueprint preview ────────────────────────────── */}
+        <View style={styles.blueprintSection}>
+          <Text style={styles.blueprintSectionLabel}>PREMIUM BLUEPRINT STYLES</Text>
+          <Text style={styles.blueprintSectionDesc}>
+            Generate stunning engineering blueprints for every train
+          </Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.blueprintScrollMain}
+          snapToInterval={CARD_WIDTH + CARD_GAP}
+          decelerationRate="fast"
+          style={styles.blueprintList}
+        >
+          {BLUEPRINT_PREVIEWS.map((item) => (
+            <View key={item.key} style={styles.blueprintCard}>
+              <Image source={item.image} style={styles.blueprintImage} />
+              <View style={styles.blueprintLabelRow}>
+                <View style={styles.blueprintLabelDot} />
+                <Text style={styles.blueprintLabel}>{item.label}</Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
 
         {/* ── Feature list ──────────────────────────────────── */}
         <View style={styles.featuresSection}>
@@ -525,11 +613,26 @@ const styles = StyleSheet.create({
   },
 
   // Guest guard
+  guestScrollContent: {
+    paddingBottom: 60,
+  },
   guestContainer: {
-    flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: spacing.xl,
+    paddingTop: 80,
+    paddingBottom: spacing.lg,
+  },
+  guestBottomSection: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+  },
+  blueprintSectionGuest: {
+    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.sm,
+  },
+  blueprintScrollGuest: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.md,
   },
   guestProBadge: {
     flexDirection: "row",
@@ -586,6 +689,68 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     color: colors.textMuted,
     marginTop: spacing.sm,
+  },
+
+  // Blueprint preview carousel
+  blueprintSection: {
+    marginBottom: spacing.md,
+  },
+  blueprintSectionLabel: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: colors.textMuted,
+    letterSpacing: 1.5,
+    marginBottom: spacing.xs,
+  },
+  blueprintSectionDesc: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+    lineHeight: 20,
+  },
+  blueprintScroll: {
+    paddingRight: spacing.xl,
+  },
+  blueprintScrollMain: {
+    paddingLeft: spacing.xl,
+    paddingRight: spacing.xl,
+  },
+  blueprintList: {
+    marginHorizontal: -spacing.xl,
+    marginBottom: spacing.xl,
+  },
+  blueprintCard: {
+    width: CARD_WIDTH,
+    marginRight: CARD_GAP,
+    borderRadius: borderRadius.lg,
+    overflow: "hidden",
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  blueprintImage: {
+    width: "100%",
+    height: CARD_WIDTH * 1.35,
+    resizeMode: "cover",
+  },
+  blueprintLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  blueprintLabelDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: SCANNER.teal,
+  },
+  blueprintLabel: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
+    color: colors.textPrimary,
+    letterSpacing: 0.3,
   },
 
   // Hero
