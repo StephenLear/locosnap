@@ -400,7 +400,10 @@ export default function HomeScreen() {
       {isGuest && (
         <TouchableOpacity
           style={styles.guestBadge}
-          onPress={() => router.push("/sign-in")}
+          onPress={() => {
+            useAuthStore.getState().clearGuest();
+            router.push("/sign-in");
+          }}
         >
           <Ionicons name="cloud-offline-outline" size={13} color={colors.warning} />
           <Text style={styles.guestBadgeText}>

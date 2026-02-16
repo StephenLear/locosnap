@@ -391,7 +391,7 @@ export default function ProfileScreen() {
       {/* ── Actions ──────────────────────────────────────── */}
       <View style={styles.section}>
         {/* Upgrade to Pro (if not Pro) */}
-        {!profile?.is_pro && !isGuest && (
+        {!profile?.is_pro && (
           <TouchableOpacity style={styles.upgradeBtn} onPress={() => router.push("/paywall?source=profile")}>
             <Ionicons name="rocket" size={20} color="#fff" />
             <View style={styles.upgradeBtnContent}>
@@ -412,7 +412,10 @@ export default function ProfileScreen() {
         {isGuest && (
           <TouchableOpacity
             style={styles.signInPrompt}
-            onPress={() => router.push("/sign-in")}
+            onPress={() => {
+              useAuthStore.getState().clearGuest();
+              router.push("/sign-in");
+            }}
           >
             <Ionicons name="cloud-upload-outline" size={20} color={colors.accent} />
             <View style={styles.upgradeBtnContent}>

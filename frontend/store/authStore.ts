@@ -36,6 +36,7 @@ interface AuthState {
   signInWithGoogle: () => Promise<void>;
   signInWithMagicLink: (email: string) => Promise<void>;
   continueAsGuest: () => void;
+  clearGuest: () => void;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setSession: (session: Session | null) => void;
@@ -127,6 +128,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isGuest: true, isLoading: false });
     track("guest_mode");
     addBreadcrumb("auth", "Continued as guest");
+  },
+
+  clearGuest: () => {
+    set({ isGuest: false });
   },
 
   signOut: async () => {

@@ -36,8 +36,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     if (!isFullyAuthenticated && !isGuest && !isOnSignIn) {
       // Not signed in and not a guest — redirect to sign-in
       router.replace("/sign-in");
-    } else if (isFullyAuthenticated && isOnSignIn) {
-      // Fully signed in (not just guest) — redirect to home
+    } else if ((isFullyAuthenticated || isGuest) && isOnSignIn) {
+      // Signed in or guest — no reason to stay on sign-in, go home
       router.replace("/");
     }
   }, [session, isGuest, isLoading, segments]);

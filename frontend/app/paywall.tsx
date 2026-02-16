@@ -235,6 +235,7 @@ export default function PaywallScreen() {
             { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
           ]}
         >
+          {/* Pulsing icon */}
           <View style={styles.heroIconOuter}>
             <Animated.View
               style={[styles.heroGlow, { opacity: glowAnim }]}
@@ -245,27 +246,54 @@ export default function PaywallScreen() {
                 { transform: [{ scale: pulseAnim }] },
               ]}
             >
-              <Ionicons
-                name="person-circle-outline"
-                size={48}
-                color={SCANNER.teal}
-              />
+              <Ionicons name="diamond" size={40} color={SCANNER.teal} />
             </Animated.View>
           </View>
-          <Text style={styles.heroTitle}>Sign In to Unlock Pro</Text>
-          <Text style={styles.heroSubtitle}>
-            Create an account first, then upgrade to Pro for unlimited scans and
-            premium blueprints.
+
+          {/* PRO badge */}
+          <View style={styles.guestProBadge}>
+            <Ionicons name="flash" size={12} color="#fff" />
+            <Text style={styles.guestProBadgeText}>PRO</Text>
+          </View>
+
+          <Text style={styles.heroTitle}>Unlock LocoSnap Pro</Text>
+          <Text style={styles.guestDesc}>
+            Sign in with your email to access Pro features
           </Text>
+
+          {/* Feature preview */}
+          <View style={styles.guestFeatures}>
+            {[
+              { icon: "infinite", label: "Unlimited daily scans" },
+              { icon: "color-palette", label: "Premium blueprint styles" },
+              { icon: "flame", label: "Streak tracking & XP" },
+              { icon: "trophy", label: "Global leaderboards" },
+            ].map((f) => (
+              <View key={f.label} style={styles.guestFeatureRow}>
+                <View style={styles.guestFeatureIcon}>
+                  <Ionicons name={f.icon as any} size={16} color={SCANNER.teal} />
+                </View>
+                <Text style={styles.guestFeatureText}>{f.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* CTA */}
           <TouchableOpacity
             style={styles.primaryBtn}
             onPress={() => {
+              useAuthStore.getState().clearGuest();
               router.back();
               setTimeout(() => router.push("/sign-in"), 300);
             }}
+            activeOpacity={0.8}
           >
-            <Ionicons name="log-in-outline" size={20} color="#fff" />
-            <Text style={styles.primaryBtnText}>Sign In</Text>
+            <Ionicons name="mail-outline" size={20} color="#fff" />
+            <Text style={styles.primaryBtnText}>Sign In with Email</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.guestLaterText}>Maybe later</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>
@@ -501,7 +529,63 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.xl,
+  },
+  guestProBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: SCANNER.teal,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginBottom: spacing.md,
+  },
+  guestProBadgeText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: "#fff",
+    letterSpacing: 1.5,
+  },
+  guestDesc: {
+    fontSize: fonts.sizes.md,
+    color: colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: spacing.xl,
+  },
+  guestFeatures: {
+    width: "100%",
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    gap: spacing.md,
+  },
+  guestFeatureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  guestFeatureIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(0, 212, 170, 0.12)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  guestFeatureText: {
+    fontSize: fonts.sizes.md,
+    color: colors.textPrimary,
+    fontWeight: fonts.weights.medium,
+  },
+  guestLaterText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
   },
 
   // Hero

@@ -1,6 +1,6 @@
 // ============================================================
 // LocoSnap — Sign-In Screen
-// Apple/Google OAuth + Continue as Guest
+// Premium teal/blue design with email OTP, OAuth, and Guest
 // ============================================================
 
 import React, { useState, useRef, useEffect } from "react";
@@ -16,54 +16,61 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   ScrollView,
+  Animated,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../store/authStore";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
+// ── Local palette (matches home screen scanner) ──────────────
+const TEAL = "#00D4AA";
+const BLUE = "#0066FF";
+const TEAL_GLOW = "rgba(0, 212, 170, 0.15)";
+const TEAL_BORDER = "rgba(0, 212, 170, 0.25)";
+const BLUE_GLOW = "rgba(0, 102, 255, 0.12)";
+
 export default function SignInScreen() {
-  const router = useRouter();
-  const [loading, setLoading] = useState<"apple" | "google" | "email" | "otp" | null>(null);
+  const [loading, setLoading] = useState<"email" | "otp" | null>(null);
   const [email, setEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
-  const { signInWithApple, signInWithGoogle, signInWithMagicLink, continueAsGuest } = useAuthStore();
+  const { continueAsGuest } = useAuthStore();
   const { supabase } = require("../config/supabase");
   const pendingAutoVerify = useRef(false);
 
   // Supabase OTP codes can be 6-8 digits depending on project config
   const OTP_LENGTH = 7;
 
-  const handleAppleSignIn = async () => {
-    setLoading("apple");
-    try {
-      await signInWithApple();
-      // Auth state listener in root layout will handle navigation
-    } catch (error) {
-      Alert.alert(
-        "Sign In Failed",
-        (error as Error).message || "Could not sign in with Apple. Please try again."
-      );
-    } finally {
-      setLoading(null);
-    }
-  };
+  // ── Animations ──────────────────────────────────────────────
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const handleGoogleSignIn = async () => {
-    setLoading("google");
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      Alert.alert(
-        "Sign In Failed",
-        (error as Error).message || "Could not sign in with Google. Please try again."
-      );
-    } finally {
-      setLoading(null);
-    }
-  };
+  useEffect(() => {
+    // Entrance fade
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
 
+    // Subtle pulse on logo glow
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.15,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  // ── Handlers ────────────────────────────────────────────────
   const handleSendOtp = async () => {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !trimmed.includes("@")) {
@@ -120,7 +127,6 @@ export default function SignInScreen() {
         type: "email",
       });
       if (error) throw error;
-      // Auth state listener in root layout will handle navigation
     } catch (error) {
       Alert.alert(
         "Verification Failed",
@@ -133,9 +139,9 @@ export default function SignInScreen() {
 
   const handleGuest = () => {
     continueAsGuest();
-    // Auth state change will handle navigation
   };
 
+  // ── Render ──────────────────────────────────────────────────
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -147,174 +153,151 @@ export default function SignInScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo / Brand */}
-        <View style={styles.brandContainer}>
-          <View style={styles.logoCircle}>
-            <Ionicons name="train" size={48} color={colors.accent} />
-          </View>
-          <Text style={styles.appName}>LocoSnap</Text>
-          <Text style={styles.tagline}>
-            Snap. Identify. Collect.
-          </Text>
-          <Text style={styles.subtitle}>
-            The trainspotter's Pokedex — identify any locomotive instantly with AI
-          </Text>
-        </View>
-
-        {/* Auth buttons */}
-        <View style={styles.authContainer}>
-        {/* Apple Sign-In (iOS only) */}
-        {Platform.OS === "ios" && (
-          <TouchableOpacity
-            style={[styles.authBtn, styles.appleBtn]}
-            onPress={handleAppleSignIn}
-            disabled={loading !== null}
-          >
-            {loading === "apple" ? (
-              <ActivityIndicator size="small" color="#000" />
-            ) : (
-              <>
-                <Ionicons name="logo-apple" size={22} color="#000" />
-                <Text style={[styles.authBtnText, styles.appleBtnText]}>
-                  Continue with Apple
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-        )}
-
-        {/* Google Sign-In */}
-        <TouchableOpacity
-          style={[styles.authBtn, styles.googleBtn]}
-          onPress={handleGoogleSignIn}
-          disabled={loading !== null}
-        >
-          {loading === "google" ? (
-            <ActivityIndicator size="small" color={colors.textPrimary} />
-          ) : (
-            <>
-              <Ionicons name="logo-google" size={20} color={colors.textPrimary} />
-              <Text style={styles.authBtnText}>Continue with Google</Text>
-            </>
-          )}
-        </TouchableOpacity>
-
-        {/* Email OTP sign-in */}
-        {otpSent ? (
-          <View style={styles.magicLinkSent}>
-            <Ionicons name="mail-open" size={24} color={colors.success} />
-            <Text style={styles.magicLinkSentTitle}>Enter your code</Text>
-            <Text style={styles.magicLinkSentText}>
-              We sent a code to {email.trim().toLowerCase()}
-            </Text>
-            <TextInput
-              style={styles.otpInput}
-              placeholder="000000"
-              placeholderTextColor={colors.textMuted}
-              value={otpCode}
-              onChangeText={(text) => setOtpCode(text.replace(/[^0-9]/g, "").slice(0, OTP_LENGTH))}
-              keyboardType="number-pad"
-              maxLength={OTP_LENGTH}
-              autoFocus
-              editable={loading === null}
-              returnKeyType="done"
-              onSubmitEditing={handleVerifyOtp}
-            />
-            <TouchableOpacity
-              style={[
-                styles.authBtn,
-                styles.emailBtn,
-                { width: "100%" },
-                (otpCode.trim().length < 6 || loading !== null) && styles.emailBtnDisabled,
-              ]}
-              onPress={handleVerifyOtp}
-              disabled={otpCode.trim().length < 6 || loading !== null}
-            >
-              {loading === "otp" ? (
-                <ActivityIndicator size="small" color={colors.textPrimary} />
-              ) : (
-                <>
-                  <Ionicons name="checkmark-circle" size={18} color={colors.textPrimary} />
-                  <Text style={styles.authBtnText}>Verify & Sign In</Text>
-                </>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setOtpSent(false); setOtpCode(""); }}>
-              <Text style={styles.magicLinkResend}>Try a different email</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.magicLinkContainer}>
-            <View style={styles.magicLinkInputRow}>
-              <Ionicons name="mail-outline" size={18} color={colors.textMuted} />
-              <TextInput
-                style={styles.magicLinkInput}
-                placeholder="Email address"
-                placeholderTextColor={colors.textMuted}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={loading === null}
+        <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
+          {/* ── Brand hero ─────────────────────────────────── */}
+          <View style={styles.brandContainer}>
+            <View style={styles.logoWrapper}>
+              <Animated.View
+                style={[
+                  styles.logoGlow,
+                  { transform: [{ scale: pulseAnim }] },
+                ]}
               />
+              <View style={styles.logoCircle}>
+                <Ionicons name="train" size={44} color={TEAL} />
+              </View>
             </View>
-            <TouchableOpacity
-              style={[
-                styles.authBtn,
-                styles.emailBtn,
-                (!email.trim() || loading !== null) && styles.emailBtnDisabled,
-              ]}
-              onPress={handleSendOtp}
-              disabled={!email.trim() || loading !== null}
-            >
-              {loading === "email" ? (
-                <ActivityIndicator size="small" color={colors.textPrimary} />
-              ) : (
-                <>
-                  <Ionicons name="send" size={18} color={colors.textPrimary} />
-                  <Text style={styles.authBtnText}>Send Sign-In Code</Text>
-                </>
-              )}
-            </TouchableOpacity>
+
+            <Text style={styles.appName}>LocoSnap</Text>
+            <Text style={styles.tagline}>Snap. Identify. Collect.</Text>
+            <Text style={styles.subtitle}>
+              The trainspotter's Pokedex — identify any{"\n"}locomotive instantly with AI
+            </Text>
           </View>
-        )}
 
-        {/* Divider */}
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
-          <View style={styles.dividerLine} />
-        </View>
+          {/* ── Auth section ───────────────────────────────── */}
+          <View style={styles.authContainer}>
+            {/* ── Email OTP ───────────────────────────────── */}
+            {otpSent ? (
+              <View style={styles.otpContainer}>
+                <View style={styles.otpIconRow}>
+                  <View style={styles.otpIconCircle}>
+                    <Ionicons name="mail-open" size={22} color={TEAL} />
+                  </View>
+                </View>
+                <Text style={styles.otpTitle}>Enter your code</Text>
+                <Text style={styles.otpSubtitle}>
+                  We sent a code to{" "}
+                  <Text style={{ color: TEAL }}>{email.trim().toLowerCase()}</Text>
+                </Text>
+                <TextInput
+                  style={styles.otpInput}
+                  placeholder="0000000"
+                  placeholderTextColor={colors.textMuted}
+                  value={otpCode}
+                  onChangeText={(text) =>
+                    setOtpCode(text.replace(/[^0-9]/g, "").slice(0, OTP_LENGTH))
+                  }
+                  keyboardType="number-pad"
+                  maxLength={OTP_LENGTH}
+                  autoFocus
+                  editable={loading === null}
+                  returnKeyType="done"
+                  onSubmitEditing={handleVerifyOtp}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.ctaBtn,
+                    (otpCode.trim().length < 6 || loading !== null) && styles.ctaBtnDisabled,
+                  ]}
+                  onPress={handleVerifyOtp}
+                  disabled={otpCode.trim().length < 6 || loading !== null}
+                  activeOpacity={0.8}
+                >
+                  {loading === "otp" ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                      <Text style={styles.ctaBtnText}>Verify & Sign In</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setOtpSent(false);
+                    setOtpCode("");
+                  }}
+                >
+                  <Text style={styles.linkText}>Try a different email</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.emailContainer}>
+                <View style={styles.emailInputRow}>
+                  <Ionicons name="mail-outline" size={18} color={colors.textMuted} />
+                  <TextInput
+                    style={styles.emailInput}
+                    placeholder="Email address"
+                    placeholderTextColor={colors.textMuted}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={loading === null}
+                    onSubmitEditing={handleSendOtp}
+                    returnKeyType="send"
+                  />
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.ctaBtn,
+                    (!email.trim() || loading !== null) && styles.ctaBtnDisabled,
+                  ]}
+                  onPress={handleSendOtp}
+                  disabled={!email.trim() || loading !== null}
+                  activeOpacity={0.8}
+                >
+                  {loading === "email" ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Ionicons name="send" size={16} color="#fff" />
+                      <Text style={styles.ctaBtnText}>Send Sign-In Code</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
 
-        {/* Guest mode */}
-        <TouchableOpacity
-          style={[styles.authBtn, styles.guestBtn]}
-          onPress={handleGuest}
-          disabled={loading !== null}
-        >
-          <Ionicons name="eye-outline" size={20} color={colors.textSecondary} />
-          <Text style={[styles.authBtnText, styles.guestBtnText]}>
-            Continue as Guest
-          </Text>
-        </TouchableOpacity>
+            {/* ── Guest ───────────────────────────────────── */}
+            <TouchableOpacity
+              style={styles.guestBtn}
+              onPress={handleGuest}
+              disabled={loading !== null}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="eye-outline" size={18} color={colors.textSecondary} />
+              <Text style={styles.guestBtnText}>Continue as Guest</Text>
+            </TouchableOpacity>
 
-        <Text style={styles.guestNote}>
-          5 free scans per day. Sign in to save your collection to the cloud.
-        </Text>
-      </View>
+            <Text style={styles.guestNote}>
+              5 free scans per day • Sign in to save your collection
+            </Text>
+          </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Powered by Claude Vision AI
-          </Text>
-        </View>
+          {/* ── Footer ─────────────────────────────────────── */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>AI-powered train identification</Text>
+          </View>
+        </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
+// ── Styles ────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -322,176 +305,209 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  inner: {
+    flex: 1,
     paddingHorizontal: spacing.xl,
     justifyContent: "space-between",
   },
+
+  // ── Brand ──────────────────────────────────────────────────
   brandContainer: {
     alignItems: "center",
-    paddingTop: 80,
+    paddingTop: 72,
+    paddingBottom: spacing.xl,
   },
-  logoCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.surfaceLight,
+  logoWrapper: {
+    width: 96,
+    height: 96,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: spacing.lg,
-    borderWidth: 2,
-    borderColor: colors.accent,
+  },
+  logoGlow: {
+    position: "absolute",
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: TEAL_GLOW,
+  },
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: TEAL_BORDER,
   },
   appName: {
-    fontSize: 36,
+    fontSize: 34,
     fontWeight: fonts.weights.bold,
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
-    letterSpacing: 1,
+    letterSpacing: 1.5,
+    marginBottom: 2,
   },
   tagline: {
-    fontSize: fonts.sizes.lg,
+    fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.semibold,
-    color: colors.accent,
+    color: TEAL,
+    letterSpacing: 2,
+    textTransform: "uppercase",
     marginBottom: spacing.md,
   },
   subtitle: {
-    fontSize: fonts.sizes.md,
+    fontSize: fonts.sizes.sm,
     color: colors.textSecondary,
     textAlign: "center",
-    lineHeight: 22,
-    paddingHorizontal: spacing.lg,
+    lineHeight: 20,
   },
+
+  // ── Auth ───────────────────────────────────────────────────
   authContainer: {
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.lg,
   },
-  authBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    borderRadius: borderRadius.md,
-    gap: spacing.md,
+  // ── Email input ────────────────────────────────────────────
+  emailContainer: {
     marginBottom: spacing.md,
   },
-  appleBtn: {
-    backgroundColor: "#fff",
-  },
-  appleBtnText: {
-    color: "#000",
-  },
-  googleBtn: {
-    backgroundColor: colors.surfaceLight,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-  },
-  authBtnText: {
-    fontSize: fonts.sizes.md,
-    fontWeight: fonts.weights.semibold,
-    color: colors.textPrimary,
-  },
-  divider: {
+  emailInputRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: spacing.lg,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    fontSize: fonts.sizes.sm,
-    color: colors.textMuted,
-    paddingHorizontal: spacing.lg,
-  },
-  magicLinkContainer: {
-    marginBottom: spacing.sm,
-  },
-  magicLinkInputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.sm,
     borderWidth: 1,
     borderColor: colors.borderLight,
   },
-  magicLinkInput: {
+  emailInput: {
     flex: 1,
     fontSize: fonts.sizes.md,
     color: colors.textPrimary,
     paddingVertical: 14,
     marginLeft: spacing.sm,
   },
-  emailBtn: {
-    backgroundColor: colors.primary,
-  },
-  emailBtnDisabled: {
-    opacity: 0.5,
-  },
-  magicLinkSent: {
+
+  // ── CTA button (teal gradient feel) ────────────────────────
+  ctaBtn: {
+    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(34, 197, 94, 0.08)",
+    justifyContent: "center",
+    paddingVertical: 16,
+    borderRadius: borderRadius.md,
+    gap: spacing.sm,
+    backgroundColor: TEAL,
+    shadowColor: TEAL,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+    marginBottom: spacing.sm,
+  },
+  ctaBtnDisabled: {
+    opacity: 0.45,
+    shadowOpacity: 0,
+  },
+  ctaBtnText: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.bold,
+    color: "#fff",
+  },
+
+  // ── OTP entry ──────────────────────────────────────────────
+  otpContainer: {
+    alignItems: "center",
+    backgroundColor: BLUE_GLOW,
     borderRadius: borderRadius.lg,
     padding: spacing.xl,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: "rgba(34, 197, 94, 0.25)",
-    gap: spacing.sm,
+    borderColor: "rgba(0, 102, 255, 0.2)",
   },
-  magicLinkSentTitle: {
+  otpIconRow: {
+    marginBottom: spacing.sm,
+  },
+  otpIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: TEAL_GLOW,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: TEAL_BORDER,
+  },
+  otpTitle: {
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold,
-    color: colors.success,
+    color: colors.textPrimary,
+    marginBottom: 4,
   },
-  magicLinkSentText: {
+  otpSubtitle: {
     fontSize: fonts.sizes.sm,
     color: colors.textSecondary,
     textAlign: "center",
     lineHeight: 20,
-  },
-  magicLinkResend: {
-    fontSize: fonts.sizes.sm,
-    color: colors.primary,
-    fontWeight: fonts.weights.medium,
-    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
   },
   otpInput: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: fonts.weights.bold,
     color: colors.textPrimary,
     textAlign: "center",
-    letterSpacing: 12,
-    paddingVertical: 12,
-    paddingHorizontal: spacing.xl,
-    backgroundColor: colors.surfaceLight,
+    letterSpacing: 10,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: TEAL_BORDER,
     width: "100%",
-    marginVertical: spacing.sm,
+    marginBottom: spacing.md,
   },
+  linkText: {
+    fontSize: fonts.sizes.sm,
+    color: TEAL,
+    fontWeight: fonts.weights.medium,
+    marginTop: spacing.xs,
+  },
+
+  // ── Guest ──────────────────────────────────────────────────
   guestBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: borderRadius.md,
+    gap: spacing.sm,
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: colors.border,
+    marginBottom: spacing.sm,
   },
   guestBtnText: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.medium,
     color: colors.textSecondary,
   },
   guestNote: {
     fontSize: fonts.sizes.xs,
     color: colors.textMuted,
     textAlign: "center",
-    marginTop: spacing.sm,
     lineHeight: 16,
   },
+
+  // ── Footer ─────────────────────────────────────────────────
   footer: {
     alignItems: "center",
-    paddingBottom: 40,
+    paddingBottom: 36,
+    paddingTop: spacing.sm,
   },
   footerText: {
     fontSize: fonts.sizes.xs,
     color: colors.textMuted,
+    letterSpacing: 0.5,
   },
 });
