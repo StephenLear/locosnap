@@ -3,7 +3,7 @@
 // Apple/Google OAuth + Continue as Guest
 // ============================================================
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import {
   Alert,
   Platform,
   Keyboard,
+  KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,10 +24,16 @@ import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const [loading, setLoading] = useState<"apple" | "google" | "email" | null>(null);
+  const [loading, setLoading] = useState<"apple" | "google" | "email" | "otp" | null>(null);
   const [email, setEmail] = useState("");
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
   const { signInWithApple, signInWithGoogle, signInWithMagicLink, continueAsGuest } = useAuthStore();
+  const { supabase } = require("../config/supabase");
+  const pendingAutoVerify = useRef(false);
+
+  // Supabase OTP codes can be 6-8 digits depending on project config
+  const OTP_LENGTH = 7;
 
   const handleAppleSignIn = async () => {
     setLoading("apple");
@@ -56,7 +64,7 @@ export default function SignInScreen() {
     }
   };
 
-  const handleMagicLink = async () => {
+  const handleSendOtp = async () => {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !trimmed.includes("@")) {
       Alert.alert("Invalid Email", "Please enter a valid email address.");
@@ -66,12 +74,57 @@ export default function SignInScreen() {
     Keyboard.dismiss();
     setLoading("email");
     try {
-      await signInWithMagicLink(trimmed);
-      setMagicLinkSent(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        email: trimmed,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+      if (error) throw error;
+      setOtpSent(true);
     } catch (error) {
       Alert.alert(
         "Send Failed",
-        (error as Error).message || "Could not send magic link. Please try again."
+        (error as Error).message || "Could not send code. Please try again."
+      );
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  // Auto-verify when all digits entered
+  useEffect(() => {
+    if (otpCode.length === OTP_LENGTH && otpSent && !loading && !pendingAutoVerify.current) {
+      pendingAutoVerify.current = true;
+      setTimeout(() => {
+        handleVerifyOtp();
+        pendingAutoVerify.current = false;
+      }, 300);
+    }
+  }, [otpCode]);
+
+  const handleVerifyOtp = async () => {
+    const trimmed = email.trim().toLowerCase();
+    const code = otpCode.trim();
+    if (code.length < 6) {
+      Alert.alert("Invalid Code", "Please enter the code from your email.");
+      return;
+    }
+
+    Keyboard.dismiss();
+    setLoading("otp");
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: trimmed,
+        token: code,
+        type: "email",
+      });
+      if (error) throw error;
+      // Auth state listener in root layout will handle navigation
+    } catch (error) {
+      Alert.alert(
+        "Verification Failed",
+        (error as Error).message || "Invalid or expired code. Please try again."
       );
     } finally {
       setLoading(null);
@@ -84,23 +137,32 @@ export default function SignInScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Logo / Brand */}
-      <View style={styles.brandContainer}>
-        <View style={styles.logoCircle}>
-          <Ionicons name="train" size={48} color={colors.accent} />
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Logo / Brand */}
+        <View style={styles.brandContainer}>
+          <View style={styles.logoCircle}>
+            <Ionicons name="train" size={48} color={colors.accent} />
+          </View>
+          <Text style={styles.appName}>LocoSnap</Text>
+          <Text style={styles.tagline}>
+            Snap. Identify. Collect.
+          </Text>
+          <Text style={styles.subtitle}>
+            The trainspotter's Pokedex — identify any locomotive instantly with AI
+          </Text>
         </View>
-        <Text style={styles.appName}>LocoSnap</Text>
-        <Text style={styles.tagline}>
-          Snap. Identify. Collect.
-        </Text>
-        <Text style={styles.subtitle}>
-          The trainspotter's Pokedex — identify any locomotive instantly with AI
-        </Text>
-      </View>
 
-      {/* Auth buttons */}
-      <View style={styles.authContainer}>
+        {/* Auth buttons */}
+        <View style={styles.authContainer}>
         {/* Apple Sign-In (iOS only) */}
         {Platform.OS === "ios" && (
           <TouchableOpacity
@@ -137,16 +199,47 @@ export default function SignInScreen() {
           )}
         </TouchableOpacity>
 
-        {/* Magic link email */}
-        {magicLinkSent ? (
+        {/* Email OTP sign-in */}
+        {otpSent ? (
           <View style={styles.magicLinkSent}>
             <Ionicons name="mail-open" size={24} color={colors.success} />
-            <Text style={styles.magicLinkSentTitle}>Check your email!</Text>
+            <Text style={styles.magicLinkSentTitle}>Enter your code</Text>
             <Text style={styles.magicLinkSentText}>
-              We sent a sign-in link to {email.trim().toLowerCase()}.{"\n"}
-              Tap the link to sign in — no password needed.
+              We sent a code to {email.trim().toLowerCase()}
             </Text>
-            <TouchableOpacity onPress={() => setMagicLinkSent(false)}>
+            <TextInput
+              style={styles.otpInput}
+              placeholder="000000"
+              placeholderTextColor={colors.textMuted}
+              value={otpCode}
+              onChangeText={(text) => setOtpCode(text.replace(/[^0-9]/g, "").slice(0, OTP_LENGTH))}
+              keyboardType="number-pad"
+              maxLength={OTP_LENGTH}
+              autoFocus
+              editable={loading === null}
+              returnKeyType="done"
+              onSubmitEditing={handleVerifyOtp}
+            />
+            <TouchableOpacity
+              style={[
+                styles.authBtn,
+                styles.emailBtn,
+                { width: "100%" },
+                (otpCode.trim().length < 6 || loading !== null) && styles.emailBtnDisabled,
+              ]}
+              onPress={handleVerifyOtp}
+              disabled={otpCode.trim().length < 6 || loading !== null}
+            >
+              {loading === "otp" ? (
+                <ActivityIndicator size="small" color={colors.textPrimary} />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle" size={18} color={colors.textPrimary} />
+                  <Text style={styles.authBtnText}>Verify & Sign In</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setOtpSent(false); setOtpCode(""); }}>
               <Text style={styles.magicLinkResend}>Try a different email</Text>
             </TouchableOpacity>
           </View>
@@ -172,7 +265,7 @@ export default function SignInScreen() {
                 styles.emailBtn,
                 (!email.trim() || loading !== null) && styles.emailBtnDisabled,
               ]}
-              onPress={handleMagicLink}
+              onPress={handleSendOtp}
               disabled={!email.trim() || loading !== null}
             >
               {loading === "email" ? (
@@ -180,7 +273,7 @@ export default function SignInScreen() {
               ) : (
                 <>
                   <Ionicons name="send" size={18} color={colors.textPrimary} />
-                  <Text style={styles.authBtnText}>Send Magic Link</Text>
+                  <Text style={styles.authBtnText}>Send Sign-In Code</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -211,13 +304,14 @@ export default function SignInScreen() {
         </Text>
       </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Powered by Claude Vision AI
-        </Text>
-      </View>
-    </View>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Powered by Claude Vision AI
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -225,6 +319,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: spacing.xl,
     justifyContent: "space-between",
   },
@@ -358,6 +455,21 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: fonts.weights.medium,
     marginTop: spacing.xs,
+  },
+  otpInput: {
+    fontSize: 32,
+    fontWeight: fonts.weights.bold,
+    color: colors.textPrimary,
+    textAlign: "center",
+    letterSpacing: 12,
+    paddingVertical: 12,
+    paddingHorizontal: spacing.xl,
+    backgroundColor: colors.surfaceLight,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    width: "100%",
+    marginVertical: spacing.sm,
   },
   guestBtn: {
     backgroundColor: "transparent",
