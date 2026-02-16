@@ -148,11 +148,18 @@ router.post(
 
         specs = specsResult.status === "fulfilled"
           ? specsResult.value
-          : { maxSpeed: "Unknown", power: "Unknown", weight: "Unknown", length: "Unknown", gauge: "Standard", builder: "Unknown", yearBuilt: "Unknown", fuelType: "Unknown", currentRoute: "Unknown" } as TrainSpecs;
+          : {
+              maxSpeed: null, power: null, weight: null, length: null,
+              gauge: null, builder: null, numberBuilt: null,
+              numberSurviving: null, status: null, route: null, fuelType: null,
+            };
 
         facts = factsResult.status === "fulfilled"
           ? factsResult.value
-          : { summary: `A ${train.class} operated by ${train.operator}.`, historicalSignificance: "Information unavailable.", funFacts: [], notableEvents: [] } as TrainFacts;
+          : {
+              summary: `A ${train.class} operated by ${train.operator}.`,
+              historicalSignificance: null, funFacts: [], notableEvents: [],
+            };
 
         if (specsResult.status === "rejected") {
           console.error("[IDENTIFY] Specs fetch failed:", specsResult.reason);
@@ -166,7 +173,12 @@ router.post(
           rarity = await classifyRarity(train, specs);
         } catch (rarityErr) {
           console.error("[IDENTIFY] Rarity classification failed:", rarityErr);
-          rarity = { tier: "common", score: 50, reasoning: "Could not determine rarity." } as RarityInfo;
+          rarity = {
+            tier: "common",
+            reason: "Could not determine rarity.",
+            productionCount: null,
+            survivingCount: null,
+          };
         }
 
         // Store in cache for next time
