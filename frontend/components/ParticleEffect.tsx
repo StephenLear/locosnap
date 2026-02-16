@@ -50,7 +50,7 @@ const PARTICLE_CONFIGS: Partial<Record<RarityTier, ParticleConfig>> = {
   },
   legendary: {
     count: 50,
-    colors: ["#f59e0b", "#fbbf24", "#fcd34d", "#fde68a", "#fff", "#ff6b00"],
+    colors: ["#f59e0b", "#fbbf24", "#fcd34d", "#fde68a", "#fff", "#00D4AA"],
     size: [5, 12],
     duration: [1600, 3000],
     spread: 1.6,

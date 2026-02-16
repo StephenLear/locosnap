@@ -443,7 +443,7 @@ export default function ProfileScreen() {
       {/* ── App info ─────────────────────────────────────── */}
       <View style={styles.appInfo}>
         <Text style={styles.appInfoText}>LocoSnap v1.1.0</Text>
-        <Text style={styles.appInfoText}>Powered by Claude Vision AI</Text>
+        <Text style={styles.appInfoText}>AI-powered train identification</Text>
       </View>
     </ScrollView>
   );
@@ -667,7 +667,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   regionChipActive: {
-    backgroundColor: "rgba(255, 107, 0, 0.15)",
+    backgroundColor: "rgba(0, 212, 170, 0.12)",
     borderColor: colors.accent,
   },
   regionChipText: {
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
   upgradeBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     padding: spacing.lg,
     borderRadius: borderRadius.lg,
     marginBottom: spacing.md,

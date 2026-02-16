@@ -23,14 +23,18 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",
+          letterSpacing: 0.3,
         },
         headerStyle: {
           backgroundColor: colors.background,
+          shadowColor: "transparent",
+          elevation: 0,
         },
         headerTintColor: colors.textPrimary,
         headerTitleStyle: {
           fontWeight: "700",
           fontSize: 18,
+          letterSpacing: 0.5,
         },
       }}
     >

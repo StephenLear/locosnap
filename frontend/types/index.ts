@@ -144,7 +144,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     name: "7-Day Streak",
     description: "Spot a train every day for a week",
     icon: "flame",
-    color: "#ff6b00",
+    color: "#00D4AA",
   },
   {
     type: "shed_full",

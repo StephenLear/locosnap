@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   regionChipActive: {
-    backgroundColor: "rgba(255, 107, 0, 0.15)",
+    backgroundColor: "rgba(0, 212, 170, 0.12)",
     borderColor: colors.accent,
   },
   regionChipText: {

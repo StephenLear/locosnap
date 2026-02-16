@@ -762,11 +762,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.sm,
-    backgroundColor: "rgba(255, 107, 0, 0.08)",
+    backgroundColor: "rgba(0, 212, 170, 0.08)",
     borderRadius: borderRadius.sm,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: "rgba(255, 107, 0, 0.2)",
+    borderColor: "rgba(0, 212, 170, 0.15)",
   },
   backFunFactText: {
     fontSize: fonts.sizes.sm,

@@ -9,11 +9,12 @@ export const colors = {
   surfaceLight: "#1a2540",
   surfaceHighlight: "#223052",
 
-  // Accent colors
-  primary: "#3b82f6", // Blue
-  primaryLight: "#60a5fa",
-  accent: "#ff6b00", // Orange (industrial safety accent)
-  accentLight: "#ff8533",
+  // Accent colors — teal/blue scanner palette (matches app icon)
+  primary: "#0066FF", // Blue
+  primaryLight: "#338AFF",
+  accent: "#00D4AA", // Teal (scanner accent)
+  accentLight: "#33DDBB",
+  accentDim: "#00D4AA", // Alias for backward compat
   success: "#22c55e",
   warning: "#eab308",
   danger: "#ef4444",

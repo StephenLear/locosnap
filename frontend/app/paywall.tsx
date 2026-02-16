@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: "rgba(255, 107, 0, 0.12)",
+    backgroundColor: "rgba(0, 212, 170, 0.10)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: spacing.lg,
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(255, 107, 0, 0.1)",
+    backgroundColor: "rgba(0, 212, 170, 0.08)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   },
   packageCardSelected: {
     borderColor: colors.accent,
-    backgroundColor: "rgba(255, 107, 0, 0.06)",
+    backgroundColor: "rgba(0, 212, 170, 0.05)",
   },
   packageRadio: {
     width: 22,

@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
   },
   styleCardSelected: {
     borderColor: colors.accent,
-    backgroundColor: "rgba(255, 107, 0, 0.08)",
+    backgroundColor: "rgba(0, 212, 170, 0.08)",
   },
   styleCardLocked: {
     opacity: 0.6,
@@ -639,8 +639,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   blueprintBtnReady: {
-    backgroundColor: "rgba(255, 107, 0, 0.08)",
-    borderColor: "rgba(255, 107, 0, 0.3)",
+    backgroundColor: "rgba(0, 212, 170, 0.08)",
+    borderColor: "rgba(0, 212, 170, 0.2)",
   },
   blueprintBtnLoading: {
     backgroundColor: colors.surface,
