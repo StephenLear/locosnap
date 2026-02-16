@@ -27,9 +27,21 @@ const app = express();
 // Sentry request handler must be the first middleware
 Sentry.setupExpressErrorHandler(app);
 
+// Build allowed origins — always include Expo dev URLs
+const allowedOrigins: string[] = [
+  config.frontendUrl,
+  "exp://",
+  "http://localhost:19006",
+  "http://localhost:8081",
+];
+// In production, also allow the Render URL and any custom domain
+if (config.nodeEnv === "production") {
+  allowedOrigins.push("https://locosnap.app");
+}
+
 app.use(
   cors({
-    origin: [config.frontendUrl, "exp://", "http://localhost:19006"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })

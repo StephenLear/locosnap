@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: locosnap-api
+    runtime: node
+    region: eu-west  # UK-centric app
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: FRONTEND_URL
+        sync: false  # Set in dashboard after deploying frontend
+      - key: ANTHROPIC_API_KEY
+        sync: false  # Set in dashboard
+      - key: OPENAI_API_KEY
+        sync: false  # Set in dashboard
+      - key: REPLICATE_API_TOKEN
+        sync: false  # Set in dashboard (optional)
+      - key: REDIS_URL
+        sync: false  # Upstash Redis URL — set in dashboard
+      - key: SUPABASE_URL
+        sync: false  # Set in dashboard
+      - key: SUPABASE_SERVICE_KEY
+        sync: false  # Set in dashboard
+      - key: POSTHOG_API_KEY
+        sync: false  # Set in dashboard (optional)
+      - key: POSTHOG_HOST
+        value: https://us.i.posthog.com
+      - key: SENTRY_DSN
+        sync: false  # Set in dashboard (optional)
+      - key: REVENUECAT_WEBHOOK_SECRET
+        sync: false  # Set in dashboard (optional)
+    healthCheckPath: /api/health
+    autoDeploy: true  # Deploy on push to main
