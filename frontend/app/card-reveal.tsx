@@ -28,7 +28,9 @@ import * as FileSystem from "expo-file-system";
 import { track } from "../services/analytics";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-const CARD_WIDTH = SCREEN_WIDTH - 64;
+// Cap card width on web/desktop to avoid a massive pixelated card
+const MAX_CARD_WIDTH = 380;
+const CARD_WIDTH = Math.min(SCREEN_WIDTH - 64, MAX_CARD_WIDTH);
 const CARD_HEIGHT = CARD_WIDTH * 1.45;
 
 // ── Rarity config ───────────────────────────────────────

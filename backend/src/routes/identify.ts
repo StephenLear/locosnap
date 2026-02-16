@@ -140,23 +140,46 @@ router.post(
           "[IDENTIFY] Cache MISS — running full AI pipeline..."
         );
 
-        // Fetch specs and facts in parallel
-        [specs, facts] = await Promise.all([
+        // Fetch specs and facts in parallel (with graceful fallbacks)
+        const [specsResult, factsResult] = await Promise.allSettled([
           getTrainSpecs(train),
           getTrainFacts(train),
         ]);
 
-        // Classify rarity (needs specs)
-        rarity = await classifyRarity(train, specs);
+        specs = specsResult.status === "fulfilled"
+          ? specsResult.value
+          : { maxSpeed: "Unknown", power: "Unknown", weight: "Unknown", length: "Unknown", gauge: "Standard", builder: "Unknown", yearBuilt: "Unknown", fuelType: "Unknown", currentRoute: "Unknown" } as TrainSpecs;
+
+        facts = factsResult.status === "fulfilled"
+          ? factsResult.value
+          : { summary: `A ${train.class} operated by ${train.operator}.`, historicalSignificance: "Information unavailable.", funFacts: [], notableEvents: [] } as TrainFacts;
+
+        if (specsResult.status === "rejected") {
+          console.error("[IDENTIFY] Specs fetch failed:", specsResult.reason);
+        }
+        if (factsResult.status === "rejected") {
+          console.error("[IDENTIFY] Facts fetch failed:", factsResult.reason);
+        }
+
+        // Classify rarity (needs specs — use fallback if it fails)
+        try {
+          rarity = await classifyRarity(train, specs);
+        } catch (rarityErr) {
+          console.error("[IDENTIFY] Rarity classification failed:", rarityErr);
+          rarity = { tier: "common", score: 50, reasoning: "Could not determine rarity." } as RarityInfo;
+        }
 
         // Store in cache for next time
         setCachedTrainData(train, specs, facts, rarity);
 
-        // Start blueprint generation
-        blueprintTaskId = await startBlueprintGeneration(train, specs, blueprintStyle);
-
-        // Monitor blueprint completion to cache the URL
-        monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle);
+        // Start blueprint generation (non-critical — don't crash if it fails)
+        try {
+          blueprintTaskId = await startBlueprintGeneration(train, specs, blueprintStyle);
+          monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle);
+        } catch (bpErr) {
+          console.error("[IDENTIFY] Blueprint generation failed:", bpErr);
+          blueprintTaskId = `failed-${Date.now()}`;
+        }
       }
 
       // ── Build response ─────────────────────────────────

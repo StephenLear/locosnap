@@ -4,6 +4,7 @@
 // ============================================================
 
 import axios, { AxiosError } from "axios";
+import { Platform } from "react-native";
 import {
   API_BASE_URL,
   BLUEPRINT_POLL_INTERVAL,
@@ -18,14 +19,90 @@ const api = axios.create({
 
 /**
  * Upload a train photo and get identification results
+ * Uses native fetch on web (axios mangles FormData file uploads)
+ * Uses axios on native (React Native FormData needs its special handling)
  */
 export async function identifyTrain(
   imageUri: string,
   blueprintStyle: BlueprintStyle = "technical"
 ): Promise<IdentifyResponse> {
+  if (Platform.OS === "web") {
+    return identifyTrainWeb(imageUri, blueprintStyle);
+  }
+  return identifyTrainNative(imageUri, blueprintStyle);
+}
+
+/** Web: use native fetch — reliable FormData + File handling */
+async function identifyTrainWeb(
+  imageUri: string,
+  blueprintStyle: BlueprintStyle
+): Promise<IdentifyResponse> {
+  try {
+    let file: File;
+
+    if (imageUri.startsWith("data:")) {
+      // data: URI (common from expo-image-picker with allowsEditing on web)
+      // e.g. "data:image/jpeg;base64,/9j/4AAQ..."
+      const mimeMatch = imageUri.match(/^data:([^;]+);/);
+      const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+      const ext = mime.split("/")[1] || "jpg";
+      const blobResponse = await fetch(imageUri);
+      const blob = await blobResponse.blob();
+      file = new File([blob], `train.${ext}`, { type: mime });
+    } else if (imageUri.startsWith("blob:")) {
+      // blob: URI
+      const blobResponse = await fetch(imageUri);
+      const blob = await blobResponse.blob();
+      const mime = blob.type || "image/jpeg";
+      const ext = mime.split("/")[1] || "jpg";
+      file = new File([blob], `train.${ext}`, { type: mime });
+    } else {
+      // Regular URL or file path — try fetching it
+      const blobResponse = await fetch(imageUri);
+      const blob = await blobResponse.blob();
+      const mime = blob.type || "image/jpeg";
+      const ext = mime.split("/")[1] || "jpg";
+      file = new File([blob], `train.${ext}`, { type: mime });
+    }
+
+    console.log("[API] Web upload:", file.name, file.type, file.size, "bytes");
+
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("blueprintStyle", blueprintStyle);
+
+    // Use native fetch — do NOT set Content-Type (browser adds boundary)
+    const response = await fetch(`${API_BASE_URL}/api/identify`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data: IdentifyResponse = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        (data as any).error || `Request failed with status ${response.status}`
+      );
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(
+      "Could not connect to LocoSnap servers. Please try again later."
+    );
+  }
+}
+
+/** Native (iOS/Android): use axios with RN-style FormData */
+async function identifyTrainNative(
+  imageUri: string,
+  blueprintStyle: BlueprintStyle
+): Promise<IdentifyResponse> {
   const formData = new FormData();
 
-  // React Native FormData for image upload
   const filename = imageUri.split("/").pop() || "train.jpg";
   const match = /\.(\w+)$/.exec(filename);
   const type = match ? `image/${match[1]}` : "image/jpeg";
@@ -36,7 +113,6 @@ export async function identifyTrain(
     type: type,
   } as any);
 
-  // Include blueprint style preference
   formData.append("blueprintStyle", blueprintStyle);
 
   try {
@@ -44,9 +120,7 @@ export async function identifyTrain(
       "/api/identify",
       formData,
       {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       }
     );
     return response.data;
