@@ -66,10 +66,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Listen for auth changes
       supabase.auth.onAuthStateChange((_event, session) => {
+        const wasGuest = get().isGuest;
         set({
           session,
           user: session?.user ?? null,
-          isGuest: !session,
+          // Only clear guest if they actually signed in (got a session)
+          // Don't reset isGuest to true just because session is null
+          isGuest: session ? false : wasGuest,
         });
         if (session) {
           loginRevenueCat(session.user.id);
@@ -135,10 +138,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   setSession: (session) => {
+    const wasGuest = get().isGuest;
     set({
       session,
       user: session?.user ?? null,
-      isGuest: !session,
+      isGuest: session ? false : wasGuest,
     });
   },
 
