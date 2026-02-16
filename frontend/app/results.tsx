@@ -3,13 +3,14 @@
 // Shows identified train info, specs, facts, rarity, and blueprint
 // ============================================================
 
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +19,7 @@ import { useAuthStore } from "../store/authStore";
 import { RarityTier, BlueprintStyle, BLUEPRINT_STYLES } from "../types";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { track } from "../services/analytics";
+import { generateBlueprintWithCredit, pollBlueprintStatus } from "../services/api";
 
 // ── Rarity colours ──────────────────────────────────────
 const rarityColors: Record<RarityTier, string> = {
@@ -72,10 +74,48 @@ export default function ResultsScreen() {
     currentLocation,
     selectedBlueprintStyle,
     setBlueprintStyle,
+    setBlueprintStatus,
   } = useTrainStore();
 
-  const { profile, isGuest } = useAuthStore();
+  const { profile, isGuest, user, deductBlueprintCredit, fetchProfile } = useAuthStore();
   const isPro = profile?.is_pro ?? false;
+  const credits = profile?.blueprint_credits ?? 0;
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleCreditBlueprint = async () => {
+    if (!user || credits <= 0 || !currentTrain) return;
+
+    setIsGenerating(true);
+    try {
+      const result = await generateBlueprintWithCredit(
+        user.id,
+        currentTrain,
+        currentSpecs,
+        selectedBlueprintStyle
+      );
+
+      // Update local credit count
+      await fetchProfile();
+
+      // Start polling for blueprint completion
+      const { promise } = pollBlueprintStatus(result.taskId, (status) => {
+        setBlueprintStatus(status);
+      });
+      promise.then(() => {});
+
+      track("blueprint_credit_generated", {
+        style: selectedBlueprintStyle,
+        remaining: result.creditsRemaining,
+      });
+    } catch (error) {
+      Alert.alert(
+        "Blueprint Error",
+        (error as Error).message || "Could not generate blueprint."
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   if (!currentTrain) {
     return (
@@ -294,27 +334,82 @@ export default function ResultsScreen() {
             />
           )}
         </TouchableOpacity>
-      ) : (
-        /* Free / guest users: locked Pro upsell */
+      ) : blueprintStatus?.status === "completed" ? (
+        /* Credit user: blueprint ready to view */
         <TouchableOpacity
-          style={[styles.blueprintBtn, styles.blueprintBtnLocked]}
-          onPress={() => router.push("/paywall?source=blueprint")}
+          style={[styles.blueprintBtn, styles.blueprintBtnReady]}
+          onPress={() => router.push("/blueprint")}
+        >
+          <Ionicons name="image" size={24} color={colors.accent} />
+          <View style={styles.blueprintBtnContent}>
+            <Text style={styles.blueprintBtnTitle}>View Technical Blueprint</Text>
+            <Text style={styles.blueprintBtnSubtitle}>Locomotive works drawing style</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+      ) : blueprintStatus?.status === "processing" || blueprintStatus?.status === "queued" || isGenerating ? (
+        /* Credit user: blueprint generating */
+        <View style={[styles.blueprintBtn, styles.blueprintBtnLoading]}>
+          <Ionicons name="hourglass" size={24} color={colors.textSecondary} />
+          <View style={styles.blueprintBtnContent}>
+            <Text style={styles.blueprintBtnTitle}>Generating Blueprint...</Text>
+            <Text style={styles.blueprintBtnSubtitle}>This may take up to 60 seconds</Text>
+          </View>
+        </View>
+      ) : !isGuest && credits > 0 ? (
+        /* Authenticated user with credits: generate with credit */
+        <TouchableOpacity
+          style={[styles.blueprintBtn, styles.blueprintBtnCredit]}
+          onPress={handleCreditBlueprint}
           activeOpacity={0.7}
         >
-          <View style={styles.proBadge}>
-            <Ionicons name="lock-closed" size={14} color="#f59e0b" />
-            <Text style={styles.proBadgeText}>PRO</Text>
+          <View style={styles.creditBadge}>
+            <Ionicons name="sparkles" size={14} color={colors.accent} />
+            <Text style={styles.creditBadgeText}>{credits}</Text>
           </View>
           <View style={styles.blueprintBtnContent}>
-            <Text style={styles.blueprintBtnTitle}>
-              Technical Blueprint
-            </Text>
+            <Text style={styles.blueprintBtnTitle}>Generate Blueprint</Text>
             <Text style={styles.blueprintBtnSubtitle}>
-              Unlock engineering-style drawings with Pro
+              Use 1 credit ({credits} remaining)
             </Text>
           </View>
-          <Ionicons name="star" size={20} color="#f59e0b" />
+          <Ionicons name="arrow-forward" size={20} color={colors.accent} />
         </TouchableOpacity>
+      ) : (
+        /* No credits / guest: upsell */
+        <View>
+          <TouchableOpacity
+            style={[styles.blueprintBtn, styles.blueprintBtnCredit]}
+            onPress={() => router.push("/paywall?source=blueprint_credit")}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="sparkles" size={24} color={colors.accent} />
+            <View style={styles.blueprintBtnContent}>
+              <Text style={styles.blueprintBtnTitle}>Buy Blueprint</Text>
+              <Text style={styles.blueprintBtnSubtitle}>
+                50p for a single blueprint
+              </Text>
+            </View>
+            <Ionicons name="add-circle" size={20} color={colors.accent} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.blueprintBtn, styles.blueprintBtnLocked]}
+            onPress={() => router.push("/paywall?source=blueprint")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.proBadge}>
+              <Ionicons name="lock-closed" size={14} color="#f59e0b" />
+              <Text style={styles.proBadgeText}>PRO</Text>
+            </View>
+            <View style={styles.blueprintBtnContent}>
+              <Text style={styles.blueprintBtnTitle}>Unlimited Blueprints</Text>
+              <Text style={styles.blueprintBtnSubtitle}>
+                All styles included with Pro
+              </Text>
+            </View>
+            <Ionicons name="star" size={20} color="#f59e0b" />
+          </TouchableOpacity>
+        </View>
       )}
 
       {/* ── Specs Section ────────────────────────────── */}
@@ -637,6 +732,24 @@ const styles = StyleSheet.create({
   blueprintBtnLocked: {
     backgroundColor: "rgba(245, 158, 11, 0.06)",
     borderColor: "rgba(245, 158, 11, 0.25)",
+  },
+  blueprintBtnCredit: {
+    backgroundColor: "rgba(0, 212, 170, 0.06)",
+    borderColor: "rgba(0, 212, 170, 0.25)",
+  },
+  creditBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(0, 212, 170, 0.15)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: borderRadius.sm,
+  },
+  creditBadgeText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: colors.accent,
   },
   proBadge: {
     flexDirection: "row",

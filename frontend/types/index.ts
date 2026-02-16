@@ -71,7 +71,8 @@ export interface IdentifyResponse {
     blueprint: {
       taskId: string;
       status: string;
-    };
+      imageUrl?: string | null;
+    } | null;
   } | null;
   error: string | null;
   processingTimeMs: number;

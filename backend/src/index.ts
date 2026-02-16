@@ -9,6 +9,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import identifyRouter from "./routes/identify";
 import blueprintStatusRouter from "./routes/imageStatus";
 import webhooksRouter from "./routes/webhooks";
+import creditsRouter from "./routes/credits";
 import { getVisionProvider } from "./services/vision";
 import { getSupabase } from "./config/supabase";
 import { loadCache, getCacheStats } from "./services/trainCache";
@@ -67,6 +68,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/identify", identifyRouter);
 app.use("/api/blueprint", blueprintStatusRouter);
 app.use("/api/webhooks", webhooksRouter);
+app.use("/api/credits", creditsRouter);
 
 // ── Error Handling ──────────────────────────────────────────
 app.use(notFoundHandler);
@@ -99,7 +101,9 @@ Endpoints:
   POST /api/identify        — Upload train photo for identification
   GET  /api/blueprint/:id   — Check blueprint generation status
   POST /api/webhooks/revenuecat — RevenueCat subscription webhook
-  GET  /api/health          — Health check
+  POST /api/credits/deduct      — Deduct 1 blueprint credit
+  GET  /api/credits/balance     — Check credit balance
+  GET  /api/health              — Health check
   `);
 });
 

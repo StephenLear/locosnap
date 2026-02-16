@@ -105,6 +105,7 @@ export function identifyUser(
   userId: string,
   traits: {
     is_pro?: boolean;
+    blueprint_credits?: number;
     level?: number;
     region?: string | null;
   }

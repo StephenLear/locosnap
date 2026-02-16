@@ -229,6 +229,33 @@ export function pollBlueprintStatus(
 }
 
 /**
+ * Generate a blueprint using 1 credit (non-Pro users)
+ * Deducts the credit server-side and starts generation
+ */
+export async function generateBlueprintWithCredit(
+  userId: string,
+  train: any,
+  specs: any,
+  style: string = "technical"
+): Promise<{ success: boolean; taskId: string; creditsRemaining: number }> {
+  try {
+    const response = await api.post("/api/blueprint/generate", {
+      userId,
+      train,
+      specs,
+      style,
+    });
+    return response.data;
+  } catch (error) {
+    const axiosError = error as any;
+    if (axiosError.response?.data?.error) {
+      throw new Error(axiosError.response.data.error);
+    }
+    throw new Error("Could not generate blueprint.");
+  }
+}
+
+/**
  * Health check — verify the backend is running
  */
 export async function healthCheck(): Promise<boolean> {

@@ -24,6 +24,7 @@ import { useAuthStore } from "../store/authStore";
 import {
   getOfferings,
   purchasePro,
+  purchaseBlueprintCredits,
   restorePurchases,
   syncProStatus,
   PurchasesPackage,
@@ -104,7 +105,9 @@ export default function PaywallScreen() {
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [purchasingCredits, setPurchasingCredits] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isBlueprintSource = source === "blueprint_credit";
 
   // ── Animations ────────────────────────────────────────────
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -245,6 +248,40 @@ export default function PaywallScreen() {
       setError("Restore failed. Please try again.");
     } finally {
       setRestoring(false);
+    }
+  };
+
+  const handleCreditPurchase = async () => {
+    // Find the blueprint credit package from offerings
+    const offerings = await getOfferings();
+    const creditPackage = offerings?.all?.["blueprint_credits"]?.availablePackages?.[0];
+
+    if (!creditPackage) {
+      Alert.alert(
+        "Not Available",
+        "Blueprint credits are not available yet. Check back soon!"
+      );
+      return;
+    }
+
+    setPurchasingCredits(true);
+    setError(null);
+
+    try {
+      const success = await purchaseBlueprintCredits(creditPackage);
+
+      if (success && user) {
+        await fetchProfile();
+        Alert.alert(
+          "Credits Added!",
+          "You can now generate a blueprint for this train.",
+          [{ text: "Let's Go!", onPress: () => router.back() }]
+        );
+      }
+    } catch (err) {
+      setError("Credit purchase failed. Please try again.");
+    } finally {
+      setPurchasingCredits(false);
     }
   };
 
@@ -529,6 +566,33 @@ export default function PaywallScreen() {
             })}
           </View>
         ) : null}
+
+        {/* ── Blueprint Credit Purchase (when source=blueprint_credit) */}
+        {isBlueprintSource && (
+          <View style={styles.creditSection}>
+            <Text style={styles.sectionLabel}>OR BUY A SINGLE BLUEPRINT</Text>
+            <TouchableOpacity
+              style={[
+                styles.creditCard,
+                purchasingCredits && { opacity: 0.6 },
+              ]}
+              onPress={handleCreditPurchase}
+              disabled={purchasingCredits}
+              activeOpacity={0.7}
+            >
+              <View style={styles.creditIconCircle}>
+                <Ionicons name="sparkles" size={20} color={SCANNER.teal} />
+              </View>
+              <View style={styles.creditInfo}>
+                <Text style={styles.creditTitle}>1 Blueprint Credit</Text>
+                <Text style={styles.creditDesc}>
+                  Generate one blueprint for any train
+                </Text>
+              </View>
+              <Text style={styles.creditPrice}>50p</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ── Error message ─────────────────────────────────── */}
         {error && (
@@ -961,6 +1025,47 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.bold,
     color: "#fff",
+  },
+
+  // Credit purchase
+  creditSection: {
+    marginBottom: spacing.xl,
+  },
+  creditCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: SCANNER.tealSubtle,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    borderWidth: 2,
+    borderColor: "rgba(0, 212, 170, 0.2)",
+  },
+  creditIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0, 212, 170, 0.12)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: spacing.md,
+  },
+  creditInfo: {
+    flex: 1,
+  },
+  creditTitle: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  creditDesc: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+  },
+  creditPrice: {
+    fontSize: fonts.sizes.xl,
+    fontWeight: fonts.weights.bold,
+    color: SCANNER.teal,
   },
 
   // Error

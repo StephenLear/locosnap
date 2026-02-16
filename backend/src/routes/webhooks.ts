@@ -30,6 +30,20 @@ const PRO_REVOKE_EVENTS = [
 // CANCELLATION is intentionally excluded — user keeps access
 // until the current period ends (EXPIRATION handles revocation).
 
+// ── Consumable credit products ───────────────────────────────
+// Product IDs that add blueprint credits instead of granting Pro.
+// NON_RENEWING_PURCHASE events with these product IDs add credits.
+
+const CREDIT_PRODUCTS: Record<string, number> = {
+  "blueprint_1_credit": 1,
+  "blueprint_5_credits": 5,
+  "blueprint_10_credits": 10,
+};
+
+function isCreditProduct(productId: string): boolean {
+  return productId in CREDIT_PRODUCTS;
+}
+
 // ── Webhook endpoint ─────────────────────────────────────────
 
 router.post(
@@ -79,7 +93,60 @@ router.post(
         raw_payload: req.body,
       });
 
-      // 3. Update is_pro based on event type
+      // 3. Handle consumable credit purchases
+      if (isCreditProduct(productId) && eventType === "NON_RENEWING_PURCHASE") {
+        const creditAmount = CREDIT_PRODUCTS[productId];
+
+        // Fetch current balance
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("blueprint_credits")
+          .eq("id", appUserId)
+          .single();
+
+        const currentCredits = profile?.blueprint_credits ?? 0;
+        const newTotal = currentCredits + creditAmount;
+
+        const { error } = await supabase
+          .from("profiles")
+          .update({ blueprint_credits: newTotal })
+          .eq("id", appUserId);
+
+        if (error) {
+          console.error(
+            `[WEBHOOK] Failed to add credits for ${appUserId}:`,
+            error.message
+          );
+          captureServerError(new Error(error.message), {
+            context: "webhook_add_credits",
+            userId: appUserId,
+          });
+        } else {
+          console.log(
+            `[WEBHOOK] Added ${creditAmount} credits for ${appUserId} (total: ${newTotal})`
+          );
+        }
+
+        // Log the credit transaction
+        await supabase.from("credit_transactions").insert({
+          user_id: appUserId,
+          amount: creditAmount,
+          reason: "purchase",
+          product_id: productId,
+        });
+
+        trackServerEvent("credit_purchase", appUserId, {
+          event_type: eventType,
+          product_id: productId,
+          credit_amount: creditAmount,
+          new_total: newTotal,
+        });
+
+        res.status(200).json({ status: "ok" });
+        return;
+      }
+
+      // 4. Update is_pro based on event type (subscription events)
       let newProStatus: boolean | null = null;
 
       if (PRO_GRANT_EVENTS.includes(eventType)) {
@@ -111,7 +178,7 @@ router.post(
         }
       }
 
-      // 4. Track for analytics
+      // 5. Track for analytics
       trackServerEvent("subscription_event", appUserId, {
         event_type: eventType,
         product_id: productId,

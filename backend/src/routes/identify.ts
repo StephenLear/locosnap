@@ -228,7 +228,7 @@ router.post(
           specs,
           facts,
           rarity,
-          blueprint: blueprintData as any,
+          blueprint: blueprintData,
         },
         error: null,
         processingTimeMs,

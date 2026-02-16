@@ -159,6 +159,37 @@ export async function purchasePro(
   }
 }
 
+// ── Purchase Blueprint Credits (Consumable) ─────────────────
+
+export async function purchaseBlueprintCredits(
+  packageToPurchase: PurchasesPackage
+): Promise<boolean> {
+  if (!initialized) return false;
+
+  try {
+    track("blueprint_credit_purchase_started", {
+      package_id: packageToPurchase.identifier,
+    });
+
+    await Purchases.purchasePackage(packageToPurchase);
+
+    track("blueprint_credit_purchase_completed", {
+      product_id: packageToPurchase.product.identifier,
+      price: packageToPurchase.product.priceString,
+    });
+
+    return true;
+  } catch (error: any) {
+    if (error.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+      return false;
+    }
+
+    track("blueprint_credit_purchase_failed", { error: error.message });
+    captureError(error, { context: "purchaseBlueprintCredits" });
+    throw error;
+  }
+}
+
 // ── Restore Purchases ────────────────────────────────────────
 
 export async function restorePurchases(): Promise<boolean> {

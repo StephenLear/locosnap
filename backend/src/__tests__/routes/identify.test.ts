@@ -128,7 +128,22 @@ describe("POST /api/identify", () => {
     expect(res.body.data.train.class).toBe("Class 390");
     expect(res.body.data.specs.maxSpeed).toBe("125 mph");
     expect(res.body.data.rarity.tier).toBe("common");
+    // No generateBlueprint flag → blueprint should be null (free user)
+    expect(res.body.data.blueprint).toBeNull();
+  });
+
+  it("returns blueprint task when generateBlueprint is true (Pro user)", async () => {
+    const res = await request(app)
+      .post("/api/identify")
+      .attach("image", Buffer.from("fake-image"), {
+        filename: "train.jpg",
+        contentType: "image/jpeg",
+      })
+      .field("generateBlueprint", "true");
+
+    expect(res.status).toBe(200);
     expect(res.body.data.blueprint.taskId).toBe("task-abc-123");
+    expect(res.body.data.blueprint.status).toBe("queued");
   });
 
   it("returns 422 when vision can't identify a train", async () => {
@@ -153,7 +168,8 @@ describe("POST /api/identify", () => {
         filename: "train.jpg",
         contentType: "image/jpeg",
       })
-      .field("blueprintStyle", "vintage");
+      .field("blueprintStyle", "vintage")
+      .field("generateBlueprint", "true");
 
     expect(res.status).toBe(200);
     expect(mockStartBlueprint).toHaveBeenCalledWith(
@@ -170,7 +186,8 @@ describe("POST /api/identify", () => {
         filename: "train.jpg",
         contentType: "image/jpeg",
       })
-      .field("blueprintStyle", "invalid_style");
+      .field("blueprintStyle", "invalid_style")
+      .field("generateBlueprint", "true");
 
     expect(res.status).toBe(200);
     expect(mockStartBlueprint).toHaveBeenCalledWith(

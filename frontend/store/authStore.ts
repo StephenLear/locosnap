@@ -20,6 +20,7 @@ export interface Profile {
   daily_scans_used: number;
   daily_scans_reset_at: string;
   is_pro: boolean;
+  blueprint_credits: number;
   region: string | null;
 }
 
@@ -43,6 +44,8 @@ interface AuthState {
   incrementDailyScans: () => Promise<void>;
   updateRegion: (region: string | null) => Promise<void>;
   canScan: () => boolean;
+  deductBlueprintCredit: () => Promise<boolean>;
+  addBlueprintCredits: (amount: number) => Promise<void>;
 }
 
 const MAX_DAILY_SCANS = 5;
@@ -165,6 +168,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Identify user for analytics
       identifyUser(user.id, {
         is_pro: data.is_pro,
+        blueprint_credits: data.blueprint_credits ?? 0,
         level: data.level,
         region: data.region,
       });
@@ -239,5 +243,43 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (profile?.is_pro) return true;
     // Free users: check daily limit
     return (profile?.daily_scans_used ?? 0) < MAX_DAILY_SCANS;
+  },
+
+  deductBlueprintCredit: async () => {
+    const { user, profile } = get();
+    if (!user || !profile || profile.blueprint_credits <= 0) return false;
+
+    const newCredits = profile.blueprint_credits - 1;
+    const { data } = await supabase
+      .from("profiles")
+      .update({ blueprint_credits: newCredits })
+      .eq("id", user.id)
+      .select()
+      .single();
+
+    if (data) {
+      set({ profile: data });
+      track("blueprint_credit_used", { remaining: newCredits });
+      return true;
+    }
+    return false;
+  },
+
+  addBlueprintCredits: async (amount: number) => {
+    const { user, profile } = get();
+    if (!user || !profile) return;
+
+    const newCredits = profile.blueprint_credits + amount;
+    const { data } = await supabase
+      .from("profiles")
+      .update({ blueprint_credits: newCredits })
+      .eq("id", user.id)
+      .select()
+      .single();
+
+    if (data) {
+      set({ profile: data });
+      track("blueprint_credits_added", { amount, total: newCredits });
+    }
   },
 }));
