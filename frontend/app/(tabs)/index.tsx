@@ -219,7 +219,9 @@ export default function HomeScreen() {
 
     try {
       const { selectedBlueprintStyle } = useTrainStore.getState();
-      const result = await identifyTrain(imageUri, selectedBlueprintStyle);
+      const { profile } = useAuthStore.getState();
+      const isPro = profile?.is_pro ?? false;
+      const result = await identifyTrain(imageUri, selectedBlueprintStyle, isPro);
 
       if (!result.success || !result.data) {
         track("scan_failed", { error: result.error || "unknown" });

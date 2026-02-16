@@ -190,8 +190,8 @@ export default function ResultsScreen() {
         )}
       </View>
 
-      {/* ── Blueprint Style Picker ────────────────────── */}
-      {(isPro || isGuest) && (
+      {/* ── Blueprint Style Picker (Pro only) ─────────── */}
+      {isPro && (
         <View style={styles.styleSection}>
           <Text style={styles.styleSectionTitle}>Blueprint Style</Text>
           <ScrollView
@@ -201,7 +201,6 @@ export default function ResultsScreen() {
           >
             {BLUEPRINT_STYLES.map((s) => {
               const isSelected = selectedBlueprintStyle === s.id;
-              const isLocked = s.proOnly && !isPro;
 
               return (
                 <TouchableOpacity
@@ -209,33 +208,22 @@ export default function ResultsScreen() {
                   style={[
                     styles.styleCard,
                     isSelected && styles.styleCardSelected,
-                    isLocked && styles.styleCardLocked,
                   ]}
                   onPress={() => {
-                    if (isLocked) {
-                      router.push("/paywall?source=blueprint_style");
-                    } else {
-                      setBlueprintStyle(s.id);
-                      track("blueprint_style_selected", { style: s.id });
-                    }
+                    setBlueprintStyle(s.id);
+                    track("blueprint_style_selected", { style: s.id });
                   }}
                   activeOpacity={0.7}
                 >
-                  {isLocked && (
-                    <View style={styles.styleProBadge}>
-                      <Ionicons name="lock-closed" size={8} color="#f59e0b" />
-                    </View>
-                  )}
                   <Ionicons
                     name={s.icon as any}
                     size={20}
-                    color={isSelected ? colors.accent : isLocked ? colors.textMuted : colors.textSecondary}
+                    color={isSelected ? colors.accent : colors.textSecondary}
                   />
                   <Text
                     style={[
                       styles.styleLabel,
                       isSelected && styles.styleLabelSelected,
-                      isLocked && styles.styleLabelLocked,
                     ]}
                   >
                     {s.label}
@@ -251,8 +239,8 @@ export default function ResultsScreen() {
       )}
 
       {/* ── Blueprint Button ─────────────────────────── */}
-      {isPro || isGuest ? (
-        /* Pro users and guests: full blueprint access */
+      {isPro ? (
+        /* Pro users: full blueprint access */
         <TouchableOpacity
           style={[
             styles.blueprintBtn,
@@ -307,7 +295,7 @@ export default function ResultsScreen() {
           )}
         </TouchableOpacity>
       ) : (
-        /* Free users: locked Pro upsell */
+        /* Free / guest users: locked Pro upsell */
         <TouchableOpacity
           style={[styles.blueprintBtn, styles.blueprintBtnLocked]}
           onPress={() => router.push("/paywall?source=blueprint")}

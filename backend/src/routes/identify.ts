@@ -6,8 +6,9 @@
 // serve cached specs/facts/rarity/blueprint and skip 3-4 API calls.
 // Only the Vision call always runs (to ID what's in the photo).
 //
-// First scan:  Vision + Specs + Facts + Rarity + Blueprint  (~£0.028)
-// Cached scan: Vision only                                  (~£0.005)
+// Free scan:   Vision + Specs + Facts + Rarity (no blueprint) (~£0.018)
+// Pro scan:    Vision + Specs + Facts + Rarity + Blueprint    (~£0.022)
+// Cached scan: Vision only                                    (~£0.005)
 // ============================================================
 
 import { Router, Request, Response, NextFunction } from "express";
@@ -93,7 +94,11 @@ router.post(
         `[IDENTIFY] Found: ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.confidence}% confidence)`
       );
 
-      // ── Extract blueprint style (Pro feature) ────────
+      // ── Blueprint gating (Pro-only feature) ────────
+      // The frontend sends generateBlueprint=true only for Pro users.
+      // Free / guest users skip blueprint generation entirely to save cost.
+      const shouldGenerateBlueprint = req.body?.generateBlueprint === "true" || req.body?.generateBlueprint === true;
+
       const VALID_STYLES: BlueprintStyle[] = ["technical", "vintage", "schematic", "cinematic"];
       const requestedStyle = req.body?.blueprintStyle as string;
       const blueprintStyle: BlueprintStyle =
@@ -117,7 +122,13 @@ router.post(
         facts = cached.facts;
         rarity = cached.rarity;
 
-        if (cached.blueprintUrl) {
+        if (!shouldGenerateBlueprint) {
+          // Free user — skip blueprint entirely
+          blueprintTaskId = "";
+          console.log(
+            `[IDENTIFY] Cache HIT — blueprint skipped (free user)`
+          );
+        } else if (cached.blueprintUrl) {
           // Blueprint also cached — return a fake "completed" task
           // with the cached URL. No generation needed at all.
           blueprintTaskId = `cached-${Date.now()}`;
@@ -184,13 +195,18 @@ router.post(
         // Store in cache for next time
         setCachedTrainData(train, specs, facts, rarity);
 
-        // Start blueprint generation (non-critical — don't crash if it fails)
-        try {
-          blueprintTaskId = await startBlueprintGeneration(train, specs, blueprintStyle);
-          monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle);
-        } catch (bpErr) {
-          console.error("[IDENTIFY] Blueprint generation failed:", bpErr);
-          blueprintTaskId = `failed-${Date.now()}`;
+        // Start blueprint generation (Pro only — non-critical)
+        if (shouldGenerateBlueprint) {
+          try {
+            blueprintTaskId = await startBlueprintGeneration(train, specs, blueprintStyle);
+            monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle);
+          } catch (bpErr) {
+            console.error("[IDENTIFY] Blueprint generation failed:", bpErr);
+            blueprintTaskId = `failed-${Date.now()}`;
+          }
+        } else {
+          blueprintTaskId = "";
+          console.log("[IDENTIFY] Blueprint skipped (free user)");
         }
       }
 
@@ -199,7 +215,11 @@ router.post(
 
       // For fully cached responses (including blueprint), return
       // a special status so the frontend knows it's instantly ready
-      const blueprintStatus = cached?.blueprintUrl ? "completed" : "queued";
+      const blueprintData = !shouldGenerateBlueprint
+        ? null // Free user — no blueprint at all
+        : cached?.blueprintUrl
+          ? { taskId: blueprintTaskId, status: "completed" as const, imageUrl: cached.blueprintUrl }
+          : { taskId: blueprintTaskId, status: "queued" as const };
 
       const response: IdentifyResponse = {
         success: true,
@@ -208,13 +228,7 @@ router.post(
           specs,
           facts,
           rarity,
-          blueprint: {
-            taskId: blueprintTaskId,
-            status: blueprintStatus,
-            ...(cached?.blueprintUrl
-              ? { imageUrl: cached.blueprintUrl }
-              : {}),
-          } as any,
+          blueprint: blueprintData as any,
         },
         error: null,
         processingTimeMs,

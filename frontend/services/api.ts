@@ -24,18 +24,20 @@ const api = axios.create({
  */
 export async function identifyTrain(
   imageUri: string,
-  blueprintStyle: BlueprintStyle = "technical"
+  blueprintStyle: BlueprintStyle = "technical",
+  generateBlueprint: boolean = false
 ): Promise<IdentifyResponse> {
   if (Platform.OS === "web") {
-    return identifyTrainWeb(imageUri, blueprintStyle);
+    return identifyTrainWeb(imageUri, blueprintStyle, generateBlueprint);
   }
-  return identifyTrainNative(imageUri, blueprintStyle);
+  return identifyTrainNative(imageUri, blueprintStyle, generateBlueprint);
 }
 
 /** Web: use native fetch — reliable FormData + File handling */
 async function identifyTrainWeb(
   imageUri: string,
-  blueprintStyle: BlueprintStyle
+  blueprintStyle: BlueprintStyle,
+  generateBlueprint: boolean
 ): Promise<IdentifyResponse> {
   try {
     let file: File;
@@ -70,6 +72,7 @@ async function identifyTrainWeb(
     const formData = new FormData();
     formData.append("image", file);
     formData.append("blueprintStyle", blueprintStyle);
+    formData.append("generateBlueprint", String(generateBlueprint));
 
     // Use native fetch — do NOT set Content-Type (browser adds boundary)
     const response = await fetch(`${API_BASE_URL}/api/identify`, {
@@ -99,7 +102,8 @@ async function identifyTrainWeb(
 /** Native (iOS/Android): use axios with RN-style FormData */
 async function identifyTrainNative(
   imageUri: string,
-  blueprintStyle: BlueprintStyle
+  blueprintStyle: BlueprintStyle,
+  generateBlueprint: boolean
 ): Promise<IdentifyResponse> {
   const formData = new FormData();
 
@@ -114,6 +118,7 @@ async function identifyTrainNative(
   } as any);
 
   formData.append("blueprintStyle", blueprintStyle);
+  formData.append("generateBlueprint", String(generateBlueprint));
 
   try {
     const response = await api.post<IdentifyResponse>(
