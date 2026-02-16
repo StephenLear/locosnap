@@ -1,3 +1,8 @@
+// Mock react-native Platform (api.ts imports it for web/native branching)
+jest.mock("react-native", () => ({
+  Platform: { OS: "ios" },
+}));
+
 // Mock the api constants before importing
 jest.mock("../../constants/api", () => ({
   API_BASE_URL: "http://localhost:3000",
