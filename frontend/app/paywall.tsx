@@ -1,10 +1,10 @@
 // ============================================================
 // LocoSnap — Paywall Screen
-// Full-screen modal for Pro subscription purchase.
+// Premium full-screen modal for Pro subscription purchase.
 // Fetches packages from RevenueCat and handles purchase flow.
 // ============================================================
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import {
   Alert,
   ScrollView,
   Platform,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,13 +31,40 @@ import { track } from "../services/analytics";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { useLocalSearchParams } from "expo-router";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// ── Scanner palette (consistent with home screen) ────────────
+const SCANNER = {
+  teal: "#00D4AA",
+  tealGlow: "rgba(0, 212, 170, 0.15)",
+  tealSubtle: "rgba(0, 212, 170, 0.06)",
+  blue: "#0066FF",
+  blueGlow: "rgba(0, 102, 255, 0.12)",
+};
+
 // ── Feature list ─────────────────────────────────────────────
 
 const PRO_FEATURES = [
-  { icon: "infinite", label: "Unlimited daily scans" },
-  { icon: "construct", label: "Premium technical blueprints" },
-  { icon: "color-palette", label: "Exclusive card frames (coming soon)" },
-  { icon: "heart", label: "Support indie development" },
+  {
+    icon: "infinite",
+    label: "Unlimited daily scans",
+    desc: "No more waiting — scan every train you see",
+  },
+  {
+    icon: "construct",
+    label: "Premium technical blueprints",
+    desc: "Detailed engineering diagrams for your collection",
+  },
+  {
+    icon: "color-palette",
+    label: "Exclusive card frames",
+    desc: "Stand out with rare collector card designs",
+  },
+  {
+    icon: "heart",
+    label: "Support indie development",
+    desc: "Help keep LocoSnap running and improving",
+  },
 ];
 
 export default function PaywallScreen() {
@@ -49,6 +78,60 @@ export default function PaywallScreen() {
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ── Animations ────────────────────────────────────────────
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0.4)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    // Entrance animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Pulse on the hero icon
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.08,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Ambient glow
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 0.8,
+          duration: 2500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0.4,
+          duration: 2500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   // Track paywall view + fetch offerings on mount
   useEffect(() => {
@@ -146,9 +229,28 @@ export default function PaywallScreen() {
           <Ionicons name="close" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
 
-        <View style={styles.guestContainer}>
-          <View style={styles.heroIcon}>
-            <Ionicons name="person-circle-outline" size={64} color={colors.accent} />
+        <Animated.View
+          style={[
+            styles.guestContainer,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <View style={styles.heroIconOuter}>
+            <Animated.View
+              style={[styles.heroGlow, { opacity: glowAnim }]}
+            />
+            <Animated.View
+              style={[
+                styles.heroIcon,
+                { transform: [{ scale: pulseAnim }] },
+              ]}
+            >
+              <Ionicons
+                name="person-circle-outline"
+                size={48}
+                color={SCANNER.teal}
+              />
+            </Animated.View>
           </View>
           <Text style={styles.heroTitle}>Sign In to Unlock Pro</Text>
           <Text style={styles.heroSubtitle}>
@@ -162,9 +264,10 @@ export default function PaywallScreen() {
               setTimeout(() => router.push("/sign-in"), 300);
             }}
           >
+            <Ionicons name="log-in-outline" size={20} color="#fff" />
             <Text style={styles.primaryBtnText}>Sign In</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       </View>
     );
   }
@@ -180,18 +283,43 @@ export default function PaywallScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
-        <View style={styles.heroSection}>
-          <View style={styles.heroIcon}>
-            <Ionicons name="rocket" size={48} color={colors.accent} />
+        {/* ── Hero ──────────────────────────────────────────── */}
+        <Animated.View
+          style={[
+            styles.heroSection,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          {/* PRO badge */}
+          <View style={styles.proBadgeRow}>
+            <View style={styles.proBadge}>
+              <Ionicons name="diamond" size={10} color={SCANNER.teal} />
+              <Text style={styles.proBadgeText}>PRO</Text>
+            </View>
           </View>
+
+          {/* Animated icon */}
+          <View style={styles.heroIconOuter}>
+            <Animated.View
+              style={[styles.heroGlow, { opacity: glowAnim }]}
+            />
+            <Animated.View
+              style={[
+                styles.heroIcon,
+                { transform: [{ scale: pulseAnim }] },
+              ]}
+            >
+              <Ionicons name="rocket" size={36} color={SCANNER.teal} />
+            </Animated.View>
+          </View>
+
           <Text style={styles.heroTitle}>Unlock LocoSnap Pro</Text>
           <Text style={styles.heroSubtitle}>
             Take your trainspotting to the next level
           </Text>
-        </View>
+        </Animated.View>
 
-        {/* Feature list */}
+        {/* ── Feature list ──────────────────────────────────── */}
         <View style={styles.featuresSection}>
           {PRO_FEATURES.map((feature, i) => (
             <View key={i} style={styles.featureRow}>
@@ -199,22 +327,31 @@ export default function PaywallScreen() {
                 <Ionicons
                   name={feature.icon as any}
                   size={18}
-                  color={colors.accent}
+                  color={SCANNER.teal}
                 />
               </View>
-              <Text style={styles.featureText}>{feature.label}</Text>
+              <View style={styles.featureInfo}>
+                <Text style={styles.featureLabel}>{feature.label}</Text>
+                <Text style={styles.featureDesc}>{feature.desc}</Text>
+              </View>
+              <Ionicons
+                name="checkmark-circle"
+                size={18}
+                color={SCANNER.teal}
+              />
             </View>
           ))}
         </View>
 
-        {/* Packages */}
+        {/* ── Packages ──────────────────────────────────────── */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.accent} />
+            <ActivityIndicator size="large" color={SCANNER.teal} />
             <Text style={styles.loadingText}>Loading plans...</Text>
           </View>
         ) : packages.length > 0 ? (
           <View style={styles.packagesSection}>
+            <Text style={styles.sectionLabel}>CHOOSE YOUR PLAN</Text>
             {packages.map((pkg, index) => {
               const isSelected = index === selectedIndex;
               const isAnnual =
@@ -231,6 +368,13 @@ export default function PaywallScreen() {
                   onPress={() => setSelectedIndex(index)}
                   activeOpacity={0.7}
                 >
+                  {/* Best value badge */}
+                  {isAnnual && (
+                    <View style={styles.bestValueBadge}>
+                      <Text style={styles.bestValueText}>BEST VALUE</Text>
+                    </View>
+                  )}
+
                   {/* Selection indicator */}
                   <View
                     style={[
@@ -270,7 +414,7 @@ export default function PaywallScreen() {
           </View>
         ) : null}
 
-        {/* Error message */}
+        {/* ── Error message ─────────────────────────────────── */}
         {error && (
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle" size={16} color={colors.danger} />
@@ -278,7 +422,7 @@ export default function PaywallScreen() {
           </View>
         )}
 
-        {/* CTA */}
+        {/* ── CTA ───────────────────────────────────────────── */}
         <TouchableOpacity
           style={[
             styles.primaryBtn,
@@ -290,11 +434,16 @@ export default function PaywallScreen() {
           {purchasing ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={styles.primaryBtnText}>Continue</Text>
+            <>
+              <Ionicons name="flash" size={20} color="#fff" />
+              <Text style={styles.primaryBtnText}>
+                Upgrade to Pro
+              </Text>
+            </>
           )}
         </TouchableOpacity>
 
-        {/* Restore */}
+        {/* ── Restore ───────────────────────────────────────── */}
         <TouchableOpacity
           style={styles.restoreBtn}
           onPress={handleRestore}
@@ -307,12 +456,15 @@ export default function PaywallScreen() {
           )}
         </TouchableOpacity>
 
-        {/* Legal */}
+        {/* ── Legal ─────────────────────────────────────────── */}
         <Text style={styles.legalText}>
-          Payment will be charged to your {Platform.OS === "ios" ? "Apple" : "Google"}{" "}
-          account. Subscription auto-renews unless cancelled at least 24 hours
-          before the end of the current period.{"\n"}
-          Terms of Service · Privacy Policy
+          Payment will be charged to your{" "}
+          {Platform.OS === "ios" ? "Apple" : "Google"} account. Subscription
+          auto-renews unless cancelled at least 24 hours before the end of the
+          current period.{"\n\n"}
+          <Text style={styles.legalLink}>Terms of Service</Text>
+          {"  ·  "}
+          <Text style={styles.legalLink}>Privacy Policy</Text>
         </Text>
       </ScrollView>
     </View>
@@ -334,12 +486,14 @@ const styles = StyleSheet.create({
     top: 56,
     left: spacing.lg,
     zIndex: 10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: colors.surfaceLight,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 
   // Guest guard
@@ -353,38 +507,81 @@ const styles = StyleSheet.create({
   // Hero
   heroSection: {
     alignItems: "center",
-    marginTop: spacing.xxl,
+    marginTop: spacing.xl,
     marginBottom: spacing.xl,
   },
-  heroIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: "rgba(0, 212, 170, 0.10)",
+  proBadgeRow: {
+    marginBottom: spacing.lg,
+  },
+  proBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: SCANNER.tealSubtle,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: "rgba(0, 212, 170, 0.15)",
+  },
+  proBadgeText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: SCANNER.teal,
+    letterSpacing: 2,
+  },
+  heroIconOuter: {
+    width: 100,
+    height: 100,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: spacing.lg,
   },
+  heroGlow: {
+    position: "absolute",
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: SCANNER.teal,
+    shadowColor: SCANNER.teal,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 30,
+  },
+  heroIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: SCANNER.tealSubtle,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "rgba(0, 212, 170, 0.25)",
+  },
   heroTitle: {
-    fontSize: fonts.sizes.hero,
+    fontSize: 28,
     fontWeight: fonts.weights.bold,
     color: colors.textPrimary,
     textAlign: "center",
     marginBottom: spacing.sm,
+    letterSpacing: 0.3,
   },
   heroSubtitle: {
     fontSize: fonts.sizes.md,
     color: colors.textSecondary,
     textAlign: "center",
+    lineHeight: 22,
   },
 
   // Features
   featuresSection: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    gap: spacing.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
     marginBottom: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   featureRow: {
     flexDirection: "row",
@@ -392,18 +589,27 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   featureIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(0, 212, 170, 0.08)",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: SCANNER.tealSubtle,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(0, 212, 170, 0.12)",
   },
-  featureText: {
-    fontSize: fonts.sizes.md,
-    fontWeight: fonts.weights.medium,
-    color: colors.textPrimary,
+  featureInfo: {
     flex: 1,
+  },
+  featureLabel: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
+    color: colors.textPrimary,
+  },
+  featureDesc: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textMuted,
+    marginTop: 1,
   },
 
   // Loading
@@ -417,9 +623,17 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
+  // Section label
+  sectionLabel: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: colors.textMuted,
+    letterSpacing: 1.5,
+    marginBottom: spacing.sm,
+  },
+
   // Packages
   packagesSection: {
-    gap: spacing.md,
     marginBottom: spacing.xl,
   },
   packageCard: {
@@ -430,10 +644,28 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 2,
     borderColor: colors.border,
+    marginBottom: spacing.sm,
+    position: "relative",
+    overflow: "hidden",
   },
   packageCardSelected: {
-    borderColor: colors.accent,
-    backgroundColor: "rgba(0, 212, 170, 0.05)",
+    borderColor: SCANNER.teal,
+    backgroundColor: SCANNER.tealSubtle,
+  },
+  bestValueBadge: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: SCANNER.teal,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderBottomLeftRadius: borderRadius.sm,
+  },
+  bestValueText: {
+    fontSize: 9,
+    fontWeight: fonts.weights.bold,
+    color: colors.background,
+    letterSpacing: 1,
   },
   packageRadio: {
     width: 22,
@@ -446,13 +678,13 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   packageRadioSelected: {
-    borderColor: colors.accent,
+    borderColor: SCANNER.teal,
   },
   packageRadioInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.accent,
+    backgroundColor: SCANNER.teal,
   },
   packageInfo: {
     flex: 1,
@@ -464,7 +696,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   packageTitleSelected: {
-    color: colors.accent,
+    color: SCANNER.teal,
   },
   packagePrice: {
     fontSize: fonts.sizes.sm,
@@ -487,10 +719,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
+    backgroundColor: "rgba(239, 68, 68, 0.08)",
     padding: spacing.md,
     borderRadius: borderRadius.md,
     marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.2)",
   },
   errorText: {
     fontSize: fonts.sizes.sm,
@@ -500,20 +734,29 @@ const styles = StyleSheet.create({
 
   // Primary CTA
   primaryBtn: {
-    backgroundColor: colors.accent,
-    paddingVertical: spacing.lg,
-    borderRadius: borderRadius.lg,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: spacing.sm,
+    backgroundColor: SCANNER.teal,
+    paddingVertical: 16,
+    borderRadius: borderRadius.lg,
     marginBottom: spacing.md,
+    shadowColor: SCANNER.teal,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 4,
   },
   primaryBtnDisabled: {
     opacity: 0.5,
+    shadowOpacity: 0,
   },
   primaryBtnText: {
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold,
     color: "#fff",
+    letterSpacing: 0.3,
   },
 
   // Restore
@@ -533,6 +776,10 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     color: colors.textMuted,
     textAlign: "center",
-    lineHeight: 16,
+    lineHeight: 17,
+  },
+  legalLink: {
+    color: colors.textSecondary,
+    textDecorationLine: "underline",
   },
 });
