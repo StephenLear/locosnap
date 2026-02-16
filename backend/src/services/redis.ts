@@ -30,6 +30,7 @@ export function initRedis(): void {
 
   try {
     redis = new Redis(config.redisUrl, {
+      tls: config.redisUrl.startsWith("rediss://") ? {} : undefined,
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
         if (times > 3) {
