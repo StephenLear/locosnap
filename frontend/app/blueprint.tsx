@@ -16,6 +16,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as ScreenOrientation from "expo-screen-orientation";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -38,6 +39,14 @@ export default function BlueprintScreen() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const imageUrl = blueprintStatus?.imageUrl;
+
+  // Unlock rotation when this screen mounts, lock back to portrait on unmount
+  useEffect(() => {
+    ScreenOrientation.unlockAsync();
+    return () => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    };
+  }, []);
 
   // Track blueprint view on mount
   useEffect(() => {

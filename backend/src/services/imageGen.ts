@@ -21,7 +21,15 @@ if (config.hasReplicate) {
 // ── Blueprint Style Definitions ─────────────────────────────
 // Each style provides a distinct visual aesthetic for the blueprint
 
-const STYLE_PROMPTS: Record<BlueprintStyle, { design: string; vibe: string }> = {
+interface StyleConfig {
+  design: string;
+  vibe: string;
+  negativePrompt: string;
+  guidanceScale: number;
+  dalleStyle: "natural" | "vivid";
+}
+
+const STYLE_PROMPTS: Record<BlueprintStyle, StyleConfig> = {
   technical: {
     design: `Design style:
 - Clean, structured, engineering-oriented layout
@@ -32,42 +40,56 @@ const STYLE_PROMPTS: Record<BlueprintStyle, { design: string; vibe: string }> = 
 - Multiple viewing angles: side elevation (main), front/rear end views, and detail callouts
 - Include a small track/rail cross-section detail`,
     vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: serious, precise, locomotive works drawing — like a Swindon, Crewe, or Doncaster works technical poster.`,
+    negativePrompt: "blurry, low quality, cartoon, anime, watermark, text errors, distorted, unrealistic proportions, cars, automobiles, photograph, photo, sepia, old paper, vintage",
+    guidanceScale: 12,
+    dalleStyle: "natural",
   },
   vintage: {
     design: `Design style:
-- Hand-drawn Victorian engineering illustration aesthetic
+- Hand-drawn Victorian engineering illustration aesthetic, pen and ink on aged parchment
 - Sepia-toned color palette: warm browns, aged cream parchment, burnt sienna, dark umber ink lines
 - Background: aged yellowed drafting paper with subtle foxing, worn edges, coffee-ring stains
 - Hand-lettered copperplate serif typography for labels and annotations
 - Fine cross-hatching and stipple shading for depth (pen-and-ink technique)
 - Ornamental cartouche title block with decorative border, railway company crest
 - Single side-elevation view with generous annotation callouts, hand-drawn dimension arrows
-- Visible construction lines and pencil guidelines as if drawn by a Victorian draughtsman`,
-    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a priceless original engineering drawing from the 1890s, discovered in the archives of a Great Western Railway works — hand-inked by a master draughtsman.`,
+- Visible construction lines and pencil guidelines as if drawn by a Victorian draughtsman
+- IMPORTANT: Must look hand-drawn with visible pen strokes, NOT digital or computer-generated`,
+    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a priceless original engineering drawing from the 1890s, discovered in the archives of a Great Western Railway works — hand-inked by a master draughtsman. Sepia and brown tones throughout, aged paper texture.`,
+    negativePrompt: "blurry, low quality, anime, watermark, modern, digital art, 3D render, photograph, photo, neon colours, bright colours, blue background, navy background, computer generated, clean lines",
+    guidanceScale: 10,
+    dalleStyle: "natural",
   },
   schematic: {
     design: `Design style:
 - Ultra-clean minimalist circuit-diagram / technical schematic aesthetic
-- Monochrome palette: crisp white background, thin precise black lines (#1a1a1a), single accent colour (#0066ff) for key dimensions
-- Background: pure white with faint 5mm grid dots
+- Monochrome palette: crisp WHITE background, thin precise black lines (#1a1a1a), single accent colour (#0066ff electric blue) for key dimensions
+- Background: pure bright white with faint 5mm grid dots
 - Modern geometric sans-serif typeface (Helvetica/DIN style), small precise labels
 - No shading, no gradients — pure line art with uniform stroke weights
 - Exploded isometric view showing major subassemblies separated with connection indicators
 - Numbered part callouts with a clean legend/parts list panel
-- Wiring-diagram style power flow arrows showing energy path from source to wheels`,
-    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a modern technical manual illustration — clean, minimal, information-dense, like an IKEA assembly guide meets Japanese train technical manual.`,
+- Wiring-diagram style power flow arrows showing energy path from source to wheels
+- IMPORTANT: WHITE background, NOT dark/navy. Black line art on white paper like a technical manual.`,
+    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a modern technical manual illustration — clean, minimal, information-dense, like an IKEA assembly guide meets Japanese train technical manual. Pure white background with black line art.`,
+    negativePrompt: "blurry, low quality, anime, watermark, dark background, navy background, colourful, photograph, photo, shading, gradients, shadows, 3D render, realistic, sepia, vintage, aged paper",
+    guidanceScale: 14,
+    dalleStyle: "natural",
   },
   cinematic: {
     design: `Design style:
-- Dramatic cinematic hero-shot rendering of the locomotive in motion
+- Dramatic cinematic hero-shot photorealistic rendering of the locomotive in motion
 - Moody atmospheric lighting: golden hour / blue hour, volumetric fog, rain-slicked tracks
 - Depth of field: sharp focus on the locomotive, beautifully blurred background (railway station, countryside, or depot)
 - Hyperrealistic rendering with metallic reflections, steam/exhaust effects, motion blur on wheels
 - Low-angle three-quarter perspective showing the locomotive's imposing scale and power
 - Subtle lens flare from headlight, dynamic cloud formations in sky
 - Cinematic color grading: deep shadows, lifted blacks, warm highlights
-- Tech data overlaid as subtle HUD-style transparent panels (like a movie title card)`,
-    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a hero shot from a prestige BBC railway documentary — dramatic, beautiful, awe-inspiring — the locomotive as protagonist.`,
+- IMPORTANT: This is a PHOTOREALISTIC cinematic shot, NOT a technical drawing or blueprint`,
+    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a hero shot from a prestige BBC railway documentary — dramatic, beautiful, awe-inspiring — the locomotive as protagonist. Photorealistic, cinematic, dramatic lighting.`,
+    negativePrompt: "blurry, low quality, anime, watermark, text, labels, annotations, diagram, blueprint, technical drawing, schematic, line art, flat, 2D, cartoon, dimension lines",
+    guidanceScale: 8,
+    dalleStyle: "vivid",
   },
 };
 
@@ -136,7 +158,7 @@ export async function startBlueprintGeneration(
   const prompt = buildBlueprintPrompt(train, specs, style);
 
   // Run generation in background (don't await)
-  generateImage(taskId, prompt).catch(async (error) => {
+  generateImage(taskId, prompt, style).catch(async (error) => {
     console.error(`Blueprint generation failed for task ${taskId}:`, error);
     const t = await getBlueprintTask(taskId);
     if (t) {
@@ -151,13 +173,20 @@ export async function startBlueprintGeneration(
 
 /**
  * Actually generate the image (runs in background)
+ * Uses per-style negative prompts, guidance scale, and DALL-E style parameter
  */
-async function generateImage(taskId: string, prompt: string): Promise<void> {
+async function generateImage(
+  taskId: string,
+  prompt: string,
+  style: BlueprintStyle = "technical"
+): Promise<void> {
   const task = await getBlueprintTask(taskId);
   if (!task) return;
 
   task.status = "processing";
   await setBlueprintTask(taskId, task);
+
+  const styleConfig = STYLE_PROMPTS[style] || STYLE_PROMPTS.technical;
 
   if (config.hasReplicate && replicate) {
     // Use Replicate (Stable Diffusion XL or similar)
@@ -167,12 +196,11 @@ async function generateImage(taskId: string, prompt: string): Promise<void> {
         {
           input: {
             prompt: prompt,
-            negative_prompt:
-              "blurry, low quality, cartoon, anime, watermark, text errors, distorted, unrealistic proportions, cars, automobiles",
+            negative_prompt: styleConfig.negativePrompt,
             width: 768,
             height: 1344, // 9:16 ratio
             num_inference_steps: 50,
-            guidance_scale: 12,
+            guidance_scale: styleConfig.guidanceScale,
             scheduler: "K_EULER",
           },
         }
@@ -201,7 +229,7 @@ async function generateImage(taskId: string, prompt: string): Promise<void> {
           n: 1,
           size: "1024x1792", // Closest to 9:16
           quality: "hd",
-          style: "natural",
+          style: styleConfig.dalleStyle,
         },
         {
           headers: {

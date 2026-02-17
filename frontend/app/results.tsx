@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     paddingRight: spacing.lg,
   },
   styleCard: {
-    width: 90,
+    width: 100,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.md,
