@@ -81,6 +81,10 @@ export default function ResultsScreen() {
   const isPro = profile?.is_pro ?? false;
   const credits = profile?.blueprint_credits ?? 0;
   const [isGenerating, setIsGenerating] = useState(false);
+  // Track which style was used for the current completed blueprint
+  const [generatedStyle, setGeneratedStyle] = useState<BlueprintStyle | null>(null);
+  // Pro user picked a new style after generating — show generate button again
+  const styleChanged = isPro && generatedStyle !== null && selectedBlueprintStyle !== generatedStyle;
 
   // Shared handler for generating a blueprint (Pro or credit)
   const handleGenerateBlueprint = async () => {
@@ -90,6 +94,8 @@ export default function ResultsScreen() {
     if (!isPro && credits <= 0) return;
 
     setIsGenerating(true);
+    // Clear the old blueprint so UI shows "Generating..." immediately
+    setBlueprintStatus({ taskId: "", status: "queued", imageUrl: null, error: null });
     try {
       const result = await generateBlueprintWithCredit(
         user.id,
@@ -97,6 +103,9 @@ export default function ResultsScreen() {
         currentSpecs,
         selectedBlueprintStyle
       );
+
+      // Remember which style we generated so we can detect style changes
+      setGeneratedStyle(selectedBlueprintStyle);
 
       // Update local credit count (for credit users)
       if (!isPro) {
@@ -286,18 +295,38 @@ export default function ResultsScreen() {
       )}
 
       {/* ── Blueprint Button ─────────────────────────── */}
-      {isPro && blueprintStatus?.status === "completed" ? (
-        /* Pro users: blueprint ready to view */
+      {isPro && blueprintStatus?.status === "completed" && !styleChanged ? (
+        /* Pro users: blueprint ready to view — also show regenerate option */
+        <View>
+          <TouchableOpacity
+            style={[styles.blueprintBtn, styles.blueprintBtnReady]}
+            onPress={() => router.push("/blueprint")}
+          >
+            <Ionicons name="image" size={24} color={colors.accent} />
+            <View style={styles.blueprintBtnContent}>
+              <Text style={styles.blueprintBtnTitle}>View Blueprint</Text>
+              <Text style={styles.blueprintBtnSubtitle}>Tap to view your blueprint</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+          <Text style={styles.styleHint}>Select a different style above to generate a new blueprint</Text>
+        </View>
+      ) : isPro && blueprintStatus?.status === "completed" && styleChanged ? (
+        /* Pro users: style changed — show generate button for new style */
         <TouchableOpacity
-          style={[styles.blueprintBtn, styles.blueprintBtnReady]}
-          onPress={() => router.push("/blueprint")}
+          style={[styles.blueprintBtn, styles.blueprintBtnCredit]}
+          onPress={handleGenerateBlueprint}
+          activeOpacity={0.7}
+          disabled={isGenerating}
         >
-          <Ionicons name="image" size={24} color={colors.accent} />
+          <Ionicons name="color-palette" size={24} color={colors.accent} />
           <View style={styles.blueprintBtnContent}>
-            <Text style={styles.blueprintBtnTitle}>View Blueprint</Text>
-            <Text style={styles.blueprintBtnSubtitle}>Tap to view your blueprint</Text>
+            <Text style={styles.blueprintBtnTitle}>Generate {selectedBlueprintStyle.charAt(0).toUpperCase() + selectedBlueprintStyle.slice(1)} Blueprint</Text>
+            <Text style={styles.blueprintBtnSubtitle}>
+              Tap to generate with the new style
+            </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          <Ionicons name="arrow-forward" size={20} color={colors.accent} />
         </TouchableOpacity>
       ) : isPro && (blueprintStatus?.status === "processing" || blueprintStatus?.status === "queued" || isGenerating) ? (
         /* Pro users: blueprint generating */
@@ -786,6 +815,13 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     color: colors.textSecondary,
     marginTop: 2,
+  },
+  styleHint: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textMuted,
+    textAlign: "center",
+    marginTop: -spacing.sm,
+    marginBottom: spacing.md,
   },
 
   // Sections

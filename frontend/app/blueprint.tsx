@@ -10,6 +10,7 @@ import {
   Text,
   StyleSheet,
   Image,
+  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
@@ -175,21 +176,44 @@ export default function BlueprintScreen() {
         <Ionicons name="close" size={24} color="#000" />
       </TouchableOpacity>
 
-      {/* Image container — flexes to fill available space in any orientation */}
-      <View style={[styles.imageContainer, { paddingTop: insets.top }]}>
-        {!imageLoaded && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={colors.accent} />
-            <Text style={styles.loadingText}>Loading blueprint...</Text>
-          </View>
-        )}
-        <Image
-          source={{ uri: imageUrl }}
-          style={styles.blueprintImage}
-          resizeMode="contain"
-          onLoad={() => setImageLoaded(true)}
-        />
-      </View>
+      {/* Image container — scrollable in landscape so the full portrait image is accessible */}
+      {isLandscape ? (
+        <ScrollView
+          style={[styles.imageScrollContainer, { paddingTop: insets.top }]}
+          contentContainerStyle={styles.imageScrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces
+        >
+          {!imageLoaded && (
+            <View style={styles.loadingOverlayInline}>
+              <ActivityIndicator size="large" color={colors.accent} />
+              <Text style={styles.loadingText}>Loading blueprint...</Text>
+            </View>
+          )}
+          {/* In landscape, show full-width image at its native 9:16 aspect ratio — user scrolls vertically */}
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: width, height: width * (16 / 9) }}
+            resizeMode="contain"
+            onLoad={() => setImageLoaded(true)}
+          />
+        </ScrollView>
+      ) : (
+        <View style={[styles.imageContainer, { paddingTop: insets.top }]}>
+          {!imageLoaded && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color={colors.accent} />
+              <Text style={styles.loadingText}>Loading blueprint...</Text>
+            </View>
+          )}
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.blueprintImage}
+            resizeMode="contain"
+            onLoad={() => setImageLoaded(true)}
+          />
+        </View>
+      )}
 
       {/* Train label — compact in landscape */}
       <View style={[styles.labelBar, isLandscape && styles.labelBarLandscape]}>
@@ -309,11 +333,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  imageScrollContainer: {
+    flex: 1,
+  },
+  imageScrollContent: {
+    alignItems: "center",
+  },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1,
+  },
+  loadingOverlayInline: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
   },
   loadingText: {
     fontSize: fonts.sizes.sm,
