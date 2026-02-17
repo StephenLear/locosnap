@@ -15,7 +15,9 @@ const router = Router();
 
 /**
  * POST /api/blueprint/generate
- * Generate a blueprint using 1 credit (for non-Pro users).
+ * Generate a blueprint on demand.
+ * Pro users: unlimited, no credit deduction.
+ * Credit users: deducts 1 credit.
  * Body: { userId, train, specs, style }
  */
 router.post(
@@ -33,7 +35,7 @@ router.post(
         throw new AppError("Database not configured", 503);
       }
 
-      // Check credit balance
+      // Fetch user profile
       const { data: profile, error: fetchErr } = await supabase
         .from("profiles")
         .select("blueprint_credits, is_pro")
@@ -44,12 +46,8 @@ router.post(
         throw new AppError("User not found", 404);
       }
 
-      // Pro users should use the regular identify flow
-      if (profile.is_pro) {
-        throw new AppError("Pro users get blueprints via the identify endpoint", 400);
-      }
-
-      if (profile.blueprint_credits <= 0) {
+      // Non-Pro users need credits
+      if (!profile.is_pro && profile.blueprint_credits <= 0) {
         throw new AppError("No blueprint credits remaining", 402);
       }
 
@@ -58,15 +56,19 @@ router.post(
       const blueprintStyle: BlueprintStyle =
         style && VALID_STYLES.includes(style) ? style : "technical";
 
-      // Deduct 1 credit atomically
-      const newCredits = profile.blueprint_credits - 1;
-      const { error: updateErr } = await supabase
-        .from("profiles")
-        .update({ blueprint_credits: newCredits })
-        .eq("id", userId);
+      let creditsRemaining = profile.blueprint_credits;
 
-      if (updateErr) {
-        throw new AppError("Failed to deduct credit", 500);
+      // Deduct 1 credit for non-Pro users
+      if (!profile.is_pro) {
+        creditsRemaining = profile.blueprint_credits - 1;
+        const { error: updateErr } = await supabase
+          .from("profiles")
+          .update({ blueprint_credits: creditsRemaining })
+          .eq("id", userId);
+
+        if (updateErr) {
+          throw new AppError("Failed to deduct credit", 500);
+        }
       }
 
       // Start blueprint generation
@@ -76,24 +78,27 @@ router.post(
         blueprintStyle
       );
 
-      // Log the transaction
-      await supabase.from("credit_transactions").insert({
-        user_id: userId,
-        amount: -1,
-        reason: "blueprint_generation",
-        blueprint_task_id: taskId,
-      });
+      // Log the transaction (credits only for non-Pro)
+      if (!profile.is_pro) {
+        await supabase.from("credit_transactions").insert({
+          user_id: userId,
+          amount: -1,
+          reason: "blueprint_generation",
+          blueprint_task_id: taskId,
+        });
+      }
 
-      trackServerEvent("blueprint_credit_generation", "server", {
+      trackServerEvent("blueprint_generation", "server", {
         user_id: userId,
         style: blueprintStyle,
-        remaining: newCredits,
+        is_pro: profile.is_pro,
+        remaining: creditsRemaining,
       });
 
       res.json({
         success: true,
         taskId,
-        creditsRemaining: newCredits,
+        creditsRemaining,
       });
     } catch (error) {
       next(error);

@@ -82,8 +82,12 @@ export default function ResultsScreen() {
   const credits = profile?.blueprint_credits ?? 0;
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleCreditBlueprint = async () => {
-    if (!user || credits <= 0 || !currentTrain) return;
+  // Shared handler for generating a blueprint (Pro or credit)
+  const handleGenerateBlueprint = async () => {
+    if (!user || !currentTrain) return;
+
+    // Credit users need credits
+    if (!isPro && credits <= 0) return;
 
     setIsGenerating(true);
     try {
@@ -94,8 +98,10 @@ export default function ResultsScreen() {
         selectedBlueprintStyle
       );
 
-      // Update local credit count
-      await fetchProfile();
+      // Update local credit count (for credit users)
+      if (!isPro) {
+        await fetchProfile();
+      }
 
       // Start polling for blueprint completion
       const { promise } = pollBlueprintStatus(result.taskId, (status) => {
@@ -103,8 +109,9 @@ export default function ResultsScreen() {
       });
       promise.then(() => {});
 
-      track("blueprint_credit_generated", {
+      track("blueprint_generated", {
         style: selectedBlueprintStyle,
+        is_pro: isPro,
         remaining: result.creditsRemaining,
       });
     } catch (error) {
@@ -279,60 +286,60 @@ export default function ResultsScreen() {
       )}
 
       {/* ── Blueprint Button ─────────────────────────── */}
-      {isPro ? (
-        /* Pro users: full blueprint access */
+      {isPro && blueprintStatus?.status === "completed" ? (
+        /* Pro users: blueprint ready to view */
         <TouchableOpacity
-          style={[
-            styles.blueprintBtn,
-            blueprintStatus?.status === "completed"
-              ? styles.blueprintBtnReady
-              : styles.blueprintBtnLoading,
-          ]}
-          onPress={() => {
-            if (blueprintStatus?.status === "completed") {
-              router.push("/blueprint");
-            }
-          }}
-          disabled={blueprintStatus?.status !== "completed"}
+          style={[styles.blueprintBtn, styles.blueprintBtnReady]}
+          onPress={() => router.push("/blueprint")}
         >
-          <Ionicons
-            name={
-              blueprintStatus?.status === "completed"
-                ? "image"
-                : blueprintStatus?.status === "failed"
-                  ? "alert-circle"
-                  : "hourglass"
-            }
-            size={24}
-            color={
-              blueprintStatus?.status === "completed"
-                ? colors.accent
-                : colors.textSecondary
-            }
-          />
+          <Ionicons name="image" size={24} color={colors.accent} />
           <View style={styles.blueprintBtnContent}>
-            <Text style={styles.blueprintBtnTitle}>
-              {blueprintStatus?.status === "completed"
-                ? "View Technical Blueprint"
-                : blueprintStatus?.status === "failed"
-                  ? "Blueprint Generation Failed"
-                  : "Generating Blueprint..."}
-            </Text>
+            <Text style={styles.blueprintBtnTitle}>View Blueprint</Text>
+            <Text style={styles.blueprintBtnSubtitle}>Tap to view your blueprint</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+      ) : isPro && (blueprintStatus?.status === "processing" || blueprintStatus?.status === "queued" || isGenerating) ? (
+        /* Pro users: blueprint generating */
+        <View style={[styles.blueprintBtn, styles.blueprintBtnLoading]}>
+          <Ionicons name="hourglass" size={24} color={colors.textSecondary} />
+          <View style={styles.blueprintBtnContent}>
+            <Text style={styles.blueprintBtnTitle}>Generating Blueprint...</Text>
+            <Text style={styles.blueprintBtnSubtitle}>This may take up to 60 seconds</Text>
+          </View>
+        </View>
+      ) : isPro && blueprintStatus?.status === "failed" ? (
+        /* Pro users: blueprint failed — allow retry */
+        <TouchableOpacity
+          style={[styles.blueprintBtn, styles.blueprintBtnCredit]}
+          onPress={handleGenerateBlueprint}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="alert-circle" size={24} color={colors.danger} />
+          <View style={styles.blueprintBtnContent}>
+            <Text style={styles.blueprintBtnTitle}>Blueprint Failed — Retry</Text>
             <Text style={styles.blueprintBtnSubtitle}>
-              {blueprintStatus?.status === "completed"
-                ? "Locomotive works drawing style"
-                : blueprintStatus?.status === "failed"
-                  ? blueprintStatus.error || "Try again later"
-                  : "This may take up to 60 seconds"}
+              {blueprintStatus.error || "Tap to try again"}
             </Text>
           </View>
-          {blueprintStatus?.status === "completed" && (
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.textSecondary}
-            />
-          )}
+          <Ionicons name="refresh" size={20} color={colors.accent} />
+        </TouchableOpacity>
+      ) : isPro ? (
+        /* Pro users: no blueprint yet — generate button */
+        <TouchableOpacity
+          style={[styles.blueprintBtn, styles.blueprintBtnCredit]}
+          onPress={handleGenerateBlueprint}
+          activeOpacity={0.7}
+          disabled={isGenerating}
+        >
+          <Ionicons name="construct" size={24} color={colors.accent} />
+          <View style={styles.blueprintBtnContent}>
+            <Text style={styles.blueprintBtnTitle}>Generate Blueprint</Text>
+            <Text style={styles.blueprintBtnSubtitle}>
+              Choose a style above, then tap to generate
+            </Text>
+          </View>
+          <Ionicons name="arrow-forward" size={20} color={colors.accent} />
         </TouchableOpacity>
       ) : blueprintStatus?.status === "completed" ? (
         /* Credit user: blueprint ready to view */
@@ -360,7 +367,7 @@ export default function ResultsScreen() {
         /* Authenticated user with credits: generate with credit */
         <TouchableOpacity
           style={[styles.blueprintBtn, styles.blueprintBtnCredit]}
-          onPress={handleCreditBlueprint}
+          onPress={handleGenerateBlueprint}
           activeOpacity={0.7}
         >
           <View style={styles.creditBadge}>

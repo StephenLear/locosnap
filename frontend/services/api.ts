@@ -229,8 +229,9 @@ export function pollBlueprintStatus(
 }
 
 /**
- * Generate a blueprint using 1 credit (non-Pro users)
- * Deducts the credit server-side and starts generation
+ * Generate a blueprint on demand.
+ * Pro users: unlimited, no credit deduction.
+ * Credit users: deducts 1 credit server-side.
  */
 export async function generateBlueprintWithCredit(
   userId: string,

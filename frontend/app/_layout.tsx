@@ -125,7 +125,7 @@ function RootLayout() {
             options={{
               title: "Blueprint",
               presentation: "fullScreenModal",
-              headerBackTitle: "Close",
+              headerShown: false,
             }}
           />
           <Stack.Screen

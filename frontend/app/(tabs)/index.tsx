@@ -219,9 +219,9 @@ export default function HomeScreen() {
 
     try {
       const { selectedBlueprintStyle } = useTrainStore.getState();
-      const { profile } = useAuthStore.getState();
-      const isPro = profile?.is_pro ?? false;
-      const result = await identifyTrain(imageUri, selectedBlueprintStyle, isPro);
+      // Blueprint is never auto-generated during scan.
+      // Pro users pick their style on the results screen then tap "Generate Blueprint".
+      const result = await identifyTrain(imageUri, selectedBlueprintStyle, false);
 
       if (!result.success || !result.data) {
         track("scan_failed", { error: result.error || "unknown" });

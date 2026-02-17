@@ -1,6 +1,7 @@
 // ============================================================
 // LocoSnap — Blueprint Viewer Screen
 // Full-screen view of the generated engineering blueprint
+// Supports portrait and landscape orientation
 // ============================================================
 
 import React, { useState, useEffect } from "react";
@@ -12,8 +13,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Dimensions,
+  useWindowDimensions,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -24,10 +26,11 @@ import { useAuthStore } from "../store/authStore";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { track } from "../services/analytics";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-
 export default function BlueprintScreen() {
   const router = useRouter();
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const isLandscape = width > height;
   const { blueprintStatus, currentTrain } = useTrainStore();
   const { profile, isGuest } = useAuthStore();
   const isPro = profile?.is_pro ?? false;
@@ -48,6 +51,13 @@ export default function BlueprintScreen() {
   if (!isPro && !isGuest && !hasBlueprintReady) {
     return (
       <View style={styles.emptyContainer}>
+        <TouchableOpacity
+          style={[styles.closeBtn, { top: insets.top + 10 }]}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="close" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
         <View style={styles.proGateBadge}>
           <Ionicons name="lock-closed" size={28} color="#f59e0b" />
           <Text style={styles.proGateTitle}>Pro Feature</Text>
@@ -76,7 +86,7 @@ export default function BlueprintScreen() {
     return (
       <View style={styles.emptyContainer}>
         <TouchableOpacity
-          style={styles.closeBtnLight}
+          style={[styles.closeBtnLight, { top: insets.top + 10 }]}
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
@@ -147,17 +157,17 @@ export default function BlueprintScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Close button */}
+      {/* Close button — uses safe area insets so it's always visible */}
       <TouchableOpacity
-        style={styles.closeBtn}
+        style={[styles.closeBtn, { top: insets.top + 10 }]}
         onPress={() => router.back()}
         activeOpacity={0.7}
       >
         <Ionicons name="close" size={24} color={colors.textPrimary} />
       </TouchableOpacity>
 
-      {/* Image container with loading state */}
-      <View style={styles.imageContainer}>
+      {/* Image container — flexes to fill available space in any orientation */}
+      <View style={[styles.imageContainer, { paddingTop: insets.top }]}>
         {!imageLoaded && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={colors.accent} />
@@ -172,13 +182,17 @@ export default function BlueprintScreen() {
         />
       </View>
 
-      {/* Train label */}
-      <View style={styles.labelBar}>
-        <Text style={styles.labelText}>{trainLabel}</Text>
+      {/* Train label — compact in landscape */}
+      <View style={[styles.labelBar, isLandscape && styles.labelBarLandscape]}>
+        <Text style={styles.labelText} numberOfLines={1}>{trainLabel}</Text>
       </View>
 
-      {/* Action buttons */}
-      <View style={styles.actionsBar}>
+      {/* Action buttons — horizontal row, compact in landscape */}
+      <View style={[
+        styles.actionsBar,
+        { paddingBottom: Math.max(insets.bottom, 16) },
+        isLandscape && styles.actionsBarLandscape,
+      ]}>
         <TouchableOpacity
           style={styles.actionBtn}
           onPress={saveToGallery}
@@ -259,24 +273,22 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     position: "absolute",
-    top: 54,
     right: 20,
     zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     justifyContent: "center",
     alignItems: "center",
   },
   closeBtnLight: {
     position: "absolute",
-    top: 54,
     right: 20,
     zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.surfaceLight,
     justifyContent: "center",
     alignItems: "center",
@@ -300,13 +312,16 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   blueprintImage: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT * 0.75,
+    width: "100%",
+    height: "100%",
   },
   labelBar: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     backgroundColor: "rgba(26, 37, 64, 0.9)",
+  },
+  labelBarLandscape: {
+    paddingVertical: spacing.xs,
   },
   labelText: {
     fontSize: fonts.sizes.md,
@@ -318,9 +333,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     gap: spacing.xxl,
-    paddingVertical: spacing.lg,
-    paddingBottom: 40,
+    paddingVertical: spacing.md,
     backgroundColor: colors.surface,
+  },
+  actionsBarLandscape: {
+    paddingVertical: spacing.sm,
   },
   actionBtn: {
     alignItems: "center",
