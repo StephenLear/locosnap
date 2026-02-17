@@ -65,7 +65,7 @@ export default function BlueprintScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Ionicons name="close" size={24} color={colors.textPrimary} />
+          <Ionicons name="close" size={24} color="#000" />
         </TouchableOpacity>
         <View style={styles.proGateBadge}>
           <Ionicons name="lock-closed" size={28} color="#f59e0b" />
@@ -172,7 +172,7 @@ export default function BlueprintScreen() {
         onPress={() => router.back()}
         activeOpacity={0.7}
       >
-        <Ionicons name="close" size={24} color={colors.textPrimary} />
+        <Ionicons name="close" size={24} color="#000" />
       </TouchableOpacity>
 
       {/* Image container — flexes to fill available space in any orientation */}
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
     justifyContent: "center",
     alignItems: "center",
   },
