@@ -52,8 +52,7 @@
         }
       ],
       "@sentry/react-native",
-      "expo-asset",
-      "react-native-purchases"
+      "expo-asset"
     ]
   }
 }
