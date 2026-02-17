@@ -43,8 +43,9 @@ export default function BlueprintScreen() {
     }
   }, []);
 
-  // Pro gate: free authenticated users shouldn't access blueprints
-  if (!isPro && !isGuest) {
+  // Pro gate: block non-Pro users UNLESS they have a blueprint ready (credit purchase)
+  const hasBlueprintReady = blueprintStatus?.status === "completed" && blueprintStatus?.imageUrl;
+  if (!isPro && !isGuest && !hasBlueprintReady) {
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.proGateBadge}>

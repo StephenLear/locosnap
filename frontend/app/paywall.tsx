@@ -589,7 +589,7 @@ export default function PaywallScreen() {
                   Generate one blueprint for any train
                 </Text>
               </View>
-              <Text style={styles.creditPrice}>50p</Text>
+              <Text style={styles.creditPrice}>£0.99</Text>
             </TouchableOpacity>
           </View>
         )}

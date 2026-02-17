@@ -387,7 +387,7 @@ export default function ResultsScreen() {
             <View style={styles.blueprintBtnContent}>
               <Text style={styles.blueprintBtnTitle}>Buy Blueprint</Text>
               <Text style={styles.blueprintBtnSubtitle}>
-                50p for a single blueprint
+                £0.99 for a single blueprint
               </Text>
             </View>
             <Ionicons name="add-circle" size={20} color={colors.accent} />
