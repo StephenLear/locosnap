@@ -175,16 +175,13 @@ export default function CardRevealScreen() {
     setIsFlipped(!isFlipped);
   };
 
-  // Share card as image
+  // Share card as image (with text fallback for Expo Go)
   const handleShare = async () => {
-    if (!cardRef.current) return;
+    const trainName = currentTrain?.class || "train";
+    const shareText = `Check out this ${currentRarity?.tier || ""} ${trainName} I spotted on LocoSnap! 🚂`;
 
     try {
-      const trainName = currentTrain?.class || "train";
-
       if (Platform.OS === "web") {
-        // Web: use the Web Share API or fall back to clipboard
-        const shareText = `Check out this ${currentRarity?.tier || ""} ${trainName} I spotted on LocoSnap!`;
         if (navigator.share) {
           await navigator.share({ text: shareText });
         } else {
@@ -194,20 +191,35 @@ export default function CardRevealScreen() {
         return;
       }
 
-      const uri = await captureRef(cardRef, {
-        format: "png",
-        quality: 1,
-      });
+      // Try image capture first, fall back to text share
+      if (cardRef.current) {
+        try {
+          const uri = await captureRef(cardRef, {
+            format: "png",
+            quality: 1,
+          });
 
-      const filename = `locosnap-${trainName.replace(/\s+/g, "-").toLowerCase()}.png`;
-      const newPath = `${FileSystem.cacheDirectory}${filename}`;
-      await FileSystem.moveAsync({ from: uri, to: newPath });
+          const filename = `locosnap-${trainName.replace(/\s+/g, "-").toLowerCase()}.png`;
+          const newPath = `${FileSystem.cacheDirectory}${filename}`;
+          await FileSystem.moveAsync({ from: uri, to: newPath });
 
+          if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(newPath, {
+              mimeType: "image/png",
+              dialogTitle: shareText,
+            });
+            return;
+          }
+        } catch {
+          // Image capture failed (e.g. in Expo Go) — fall back to text
+        }
+      }
+
+      // Text-only fallback
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(newPath, {
-          mimeType: "image/png",
-          dialogTitle: `Check out this ${currentRarity?.tier || ""} ${trainName} I spotted on LocoSnap!`,
-        });
+        const tempFile = `${FileSystem.cacheDirectory}locosnap-share.txt`;
+        await FileSystem.writeAsStringAsync(tempFile, shareText);
+        await Sharing.shareAsync(tempFile);
       }
     } catch (error) {
       console.warn("Share failed:", (error as Error).message);
@@ -257,6 +269,15 @@ export default function CardRevealScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Close / back button */}
+      <TouchableOpacity
+        style={styles.closeBtn}
+        onPress={() => router.replace("/(tabs)")}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="close" size={28} color={colors.textSecondary} />
+      </TouchableOpacity>
+
       {/* Particle effects for Rare+ */}
       <ParticleEffect tier={currentRarity.tier} trigger={revealComplete} />
 
@@ -525,6 +546,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
+  },
+  closeBtn: {
+    position: "absolute",
+    top: 54,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
   },
   emptyContainer: {
     flex: 1,

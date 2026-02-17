@@ -38,8 +38,8 @@ export default function SignInScreen() {
   const { supabase } = require("../config/supabase");
   const pendingAutoVerify = useRef(false);
 
-  // Supabase OTP codes can be 6-8 digits depending on project config
-  const OTP_LENGTH = 7;
+  // Supabase OTP codes are 8 digits for this project
+  const OTP_LENGTH = 8;
 
   // ── Animations ──────────────────────────────────────────────
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -192,7 +192,7 @@ export default function SignInScreen() {
                 </Text>
                 <TextInput
                   style={styles.otpInput}
-                  placeholder="0000000"
+                  placeholder="00000000"
                   placeholderTextColor={colors.textMuted}
                   value={otpCode}
                   onChangeText={(text) =>
