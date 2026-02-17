@@ -20,7 +20,8 @@
       "bundleIdentifier": "com.locosnap.app",
       "infoPlist": {
         "NSCameraUsageDescription": "LocoSnap needs camera access to take photos of trains for identification.",
-        "NSPhotoLibraryUsageDescription": "LocoSnap needs photo library access to select train photos for identification."
+        "NSPhotoLibraryUsageDescription": "LocoSnap needs photo library access to select train photos for identification.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -30,8 +31,9 @@
       },
       "package": "com.locosnap.app",
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -53,6 +55,12 @@
       ],
       "@sentry/react-native",
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "84584853-524a-44eb-bdad-3d57e1e4ea28"
+      }
+    }
   }
 }
