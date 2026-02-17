@@ -176,11 +176,12 @@ export default function BlueprintScreen() {
         <Ionicons name="close" size={24} color="#000" />
       </TouchableOpacity>
 
-      {/* Image container — scrollable so the full 9:16 image is always accessible */}
+      {/* Image container — scrollable in both directions for 9:16 blueprint images */}
       <ScrollView
         style={[styles.imageScrollContainer, { paddingTop: insets.top }]}
-        contentContainerStyle={styles.imageScrollContent}
+        contentContainerStyle={isLandscape ? styles.imageScrollContentLandscape : styles.imageScrollContent}
         showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         bounces
       >
         {!imageLoaded && (
@@ -189,13 +190,33 @@ export default function BlueprintScreen() {
             <Text style={styles.loadingText}>Loading blueprint...</Text>
           </View>
         )}
-        {/* Full-width image at 9:16 aspect ratio — scrollable in both orientations */}
-        <Image
-          source={{ uri: imageUrl }}
-          style={{ width: width, height: width * (16 / 9) }}
-          resizeMode="contain"
-          onLoad={() => setImageLoaded(true)}
-        />
+        {isLandscape ? (
+          /* Landscape: fit full image to screen height, scroll horizontally if wider */
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.imageScrollContentLandscape}
+            bounces
+          >
+            <Image
+              source={{ uri: imageUrl }}
+              style={{
+                height: height - insets.top - 70,
+                width: (height - insets.top - 70) * (9 / 16),
+              }}
+              resizeMode="contain"
+              onLoad={() => setImageLoaded(true)}
+            />
+          </ScrollView>
+        ) : (
+          /* Portrait: full-width image, scroll vertically */
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: width, height: width * (16 / 9) }}
+            resizeMode="contain"
+            onLoad={() => setImageLoaded(true)}
+          />
+        )}
       </ScrollView>
 
       {/* Train label — compact in landscape */}
@@ -321,6 +342,11 @@ const styles = StyleSheet.create({
   },
   imageScrollContent: {
     alignItems: "center",
+  },
+  imageScrollContentLandscape: {
+    alignItems: "center",
+    justifyContent: "center",
+    flexGrow: 1,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
