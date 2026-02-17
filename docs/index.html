@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocoSnap — Identify Any Train from a Photo</title>
+  <meta name="description" content="AI-powered train identification app. Snap a photo, identify the train, collect specs, facts, and stunning blueprint illustrations.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0f1a;
+      color: #f1f5f9;
+      min-height: 100vh;
+    }
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 28px;
+      margin-bottom: 32px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #00D4AA, #0066FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .tagline {
+      font-size: 1.25rem;
+      color: #94a3b8;
+      margin-bottom: 40px;
+    }
+    .badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+    }
+    .badge-row a img {
+      height: 52px;
+    }
+    .features {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .feature {
+      background: #131b2e;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 28px 24px;
+    }
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+    .feature h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #00D4AA;
+    }
+    .feature p {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+    .section {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+      text-align: center;
+    }
+    .section h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .section p {
+      color: #94a3b8;
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid #1e293b;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+    footer a {
+      color: #00D4AA;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      .features { grid-template-columns: 1fr; }
+      .hero { padding: 60px 20px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <img src="icon.png" alt="LocoSnap icon" class="logo" onerror="this.style.display='none'">
+    <h1>LocoSnap</h1>
+    <p class="tagline">Spot a train. Snap a photo. Know everything about it.</p>
+    <div class="badge-row">
+      <a href="#"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store"></a>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">📸</div>
+      <h3>AI Identification</h3>
+      <p>Take a photo of any train and our AI identifies the class, operator, year built, and type in seconds.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <h3>Full Specs</h3>
+      <p>Get detailed technical specifications including max speed, power, weight, length, builder, and more.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📖</div>
+      <h3>Historical Facts</h3>
+      <p>Discover fascinating stories, notable events, and the historical significance of every train you spot.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🎨</div>
+      <h3>Blueprint Art</h3>
+      <p>Generate stunning AI-created blueprint illustrations in technical, vintage, watercolor, or cinematic styles.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⭐</div>
+      <h3>Rarity System</h3>
+      <p>Every train is rated from Common to Legendary. How many rare ones can you find?</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🏆</div>
+      <h3>Leaderboards</h3>
+      <p>Compete with other spotters on all-time, weekly, and rarity leaderboards. Earn XP and level up.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>For Every Rail Enthusiast</h2>
+    <p>Whether you're a lifelong train spotter or just curious about the locomotive passing by, LocoSnap turns every sighting into a discovery. Build your collection, unlock achievements, and become the ultimate spotter.</p>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Stephen Lear. All rights reserved.</p>
+    <p style="margin-top: 8px;">
+      <a href="support.html">Support</a> &middot;
+      <a href="privacy.html">Privacy Policy</a>
+    </p>
+  </footer>
+
+</body>
+</html>
