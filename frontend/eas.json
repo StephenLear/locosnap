@@ -14,7 +14,12 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_API_URL": "https://locosnap.onrender.com",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://vfzudbnmtwgirlrfoxpq.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmenVkYm5tdHdnaXJscmZveHBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTI0OTQsImV4cCI6MjA4NjgyODQ5NH0.7U8Ffz39xchBu3kKopOnCYp5Zxb5m-ugVaesEIJVuXk",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_lHzQMstHbaaiEvpUuNTjgREqSTj",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "goog_CtioDXmtAOkzfQqddCaOQhJebMb"
       }
     }
   },
