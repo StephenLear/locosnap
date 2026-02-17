@@ -162,6 +162,60 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account & Data",
+      "This will permanently delete your account, collection, achievements, and all associated data. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete Everything",
+          style: "destructive",
+          onPress: () => {
+            // Double-confirm for safety
+            Alert.alert(
+              "Are you sure?",
+              "All your data will be permanently deleted. You will not be able to recover it.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Yes, Delete My Account",
+                  style: "destructive",
+                  onPress: async () => {
+                    try {
+                      if (!user) return;
+                      const { supabase } = require("../../config/supabase");
+
+                      // Delete user data from all tables (cascading from profiles)
+                      await supabase.from("spots").delete().eq("user_id", user.id);
+                      await supabase.from("achievements").delete().eq("user_id", user.id);
+                      await supabase.from("credit_transactions").delete().eq("user_id", user.id);
+                      await supabase.from("subscription_events").delete().eq("user_id", user.id);
+                      await supabase.from("profiles").delete().eq("id", user.id);
+
+                      // Clear local storage
+                      const AsyncStorage = require("@react-native-async-storage/async-storage").default;
+                      await AsyncStorage.clear();
+
+                      // Sign out
+                      await signOut();
+                      router.replace("/sign-in");
+
+                      Alert.alert("Account Deleted", "Your account and all data have been permanently deleted.");
+                    } catch (error) {
+                      Alert.alert("Error", "Could not delete account. Please contact support.");
+                      console.error("Delete account error:", error);
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -441,11 +495,19 @@ export default function ProfileScreen() {
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
         )}
+
+        {/* Delete account (authenticated) */}
+        {!isGuest && user && (
+          <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
+            <Ionicons name="trash-outline" size={20} color={colors.danger} />
+            <Text style={styles.deleteText}>Delete Account & Data</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* ── App info ─────────────────────────────────────── */}
       <View style={styles.appInfo}>
-        <Text style={styles.appInfoText}>LocoSnap v1.1.0</Text>
+        <Text style={styles.appInfoText}>LocoSnap v1.0.0</Text>
         <Text style={styles.appInfoText}>AI-powered train identification</Text>
       </View>
     </ScrollView>
@@ -823,6 +885,19 @@ const styles = StyleSheet.create({
   },
   signOutText: {
     fontSize: fonts.sizes.md,
+    color: colors.danger,
+    fontWeight: fonts.weights.medium,
+  },
+  deleteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    marginTop: spacing.sm,
+  },
+  deleteText: {
+    fontSize: fonts.sizes.sm,
     color: colors.danger,
     fontWeight: fonts.weights.medium,
   },
