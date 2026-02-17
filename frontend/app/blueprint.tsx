@@ -176,44 +176,27 @@ export default function BlueprintScreen() {
         <Ionicons name="close" size={24} color="#000" />
       </TouchableOpacity>
 
-      {/* Image container — scrollable in landscape so the full portrait image is accessible */}
-      {isLandscape ? (
-        <ScrollView
-          style={[styles.imageScrollContainer, { paddingTop: insets.top }]}
-          contentContainerStyle={styles.imageScrollContent}
-          showsVerticalScrollIndicator={false}
-          bounces
-        >
-          {!imageLoaded && (
-            <View style={styles.loadingOverlayInline}>
-              <ActivityIndicator size="large" color={colors.accent} />
-              <Text style={styles.loadingText}>Loading blueprint...</Text>
-            </View>
-          )}
-          {/* In landscape, show full-width image at its native 9:16 aspect ratio — user scrolls vertically */}
-          <Image
-            source={{ uri: imageUrl }}
-            style={{ width: width, height: width * (16 / 9) }}
-            resizeMode="contain"
-            onLoad={() => setImageLoaded(true)}
-          />
-        </ScrollView>
-      ) : (
-        <View style={[styles.imageContainer, { paddingTop: insets.top }]}>
-          {!imageLoaded && (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color={colors.accent} />
-              <Text style={styles.loadingText}>Loading blueprint...</Text>
-            </View>
-          )}
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.blueprintImage}
-            resizeMode="contain"
-            onLoad={() => setImageLoaded(true)}
-          />
-        </View>
-      )}
+      {/* Image container — scrollable so the full 9:16 image is always accessible */}
+      <ScrollView
+        style={[styles.imageScrollContainer, { paddingTop: insets.top }]}
+        contentContainerStyle={styles.imageScrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces
+      >
+        {!imageLoaded && (
+          <View style={styles.loadingOverlayInline}>
+            <ActivityIndicator size="large" color={colors.accent} />
+            <Text style={styles.loadingText}>Loading blueprint...</Text>
+          </View>
+        )}
+        {/* Full-width image at 9:16 aspect ratio — scrollable in both orientations */}
+        <Image
+          source={{ uri: imageUrl }}
+          style={{ width: width, height: width * (16 / 9) }}
+          resizeMode="contain"
+          onLoad={() => setImageLoaded(true)}
+        />
+      </ScrollView>
 
       {/* Train label — compact in landscape */}
       <View style={[styles.labelBar, isLandscape && styles.labelBarLandscape]}>
