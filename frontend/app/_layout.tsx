@@ -5,6 +5,7 @@
 
 import { useEffect } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, useRouter, useSegments, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useTrainStore } from "../store/trainStore";
@@ -84,6 +85,7 @@ function RootLayout() {
   }, [pathname]);
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <ErrorBoundary fallback={<CrashFallback />}>
       <StatusBar style="light" />
       <AuthGate>
@@ -147,6 +149,7 @@ function RootLayout() {
         </Stack>
       </AuthGate>
     </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }
 

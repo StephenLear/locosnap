@@ -1,7 +1,7 @@
 // ============================================================
 // LocoSnap — Blueprint Viewer Screen
 // Full-screen view of the generated engineering blueprint
-// Supports portrait and landscape orientation
+// Supports portrait and landscape with pinch-to-zoom and pan
 // ============================================================
 
 import React, { useState, useEffect } from "react";
@@ -10,13 +10,18 @@ import {
   Text,
   StyleSheet,
   Image,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
   useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 import * as ScreenOrientation from "expo-screen-orientation";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system/legacy";
@@ -32,7 +37,6 @@ export default function BlueprintScreen() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const isLandscape = width > height;
   const { blueprintStatus, currentTrain } = useTrainStore();
   const { profile, isGuest } = useAuthStore();
   const isPro = profile?.is_pro ?? false;
@@ -40,6 +44,24 @@ export default function BlueprintScreen() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const imageUrl = blueprintStatus?.imageUrl;
+
+  // ── Pinch-to-zoom + pan shared values ──────────────────────
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedTranslateX = useSharedValue(0);
+  const savedTranslateY = useSharedValue(0);
+
+  // Reset zoom/pan when orientation changes
+  useEffect(() => {
+    scale.value = withTiming(1);
+    savedScale.value = 1;
+    translateX.value = withTiming(0);
+    translateY.value = withTiming(0);
+    savedTranslateX.value = 0;
+    savedTranslateY.value = 0;
+  }, [width, height]);
 
   // Unlock rotation when this screen mounts, lock back to portrait on unmount
   useEffect(() => {
@@ -55,6 +77,87 @@ export default function BlueprintScreen() {
       track("blueprint_viewed", { train_class: currentTrain.class });
     }
   }, []);
+
+  // ── Gesture handlers ───────────────────────────────────────
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate((e) => {
+      scale.value = Math.max(1, Math.min(savedScale.value * e.scale, 5));
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+      if (scale.value < 1.05) {
+        // Snap back to 1x if barely zoomed
+        scale.value = withTiming(1);
+        savedScale.value = 1;
+        translateX.value = withTiming(0);
+        translateY.value = withTiming(0);
+        savedTranslateX.value = 0;
+        savedTranslateY.value = 0;
+      }
+    });
+
+  const panGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      translateX.value = savedTranslateX.value + e.translationX;
+      translateY.value = savedTranslateY.value + e.translationY;
+    })
+    .onEnd(() => {
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    });
+
+  const doubleTapGesture = Gesture.Tap()
+    .numberOfTaps(2)
+    .onStart(() => {
+      if (scale.value > 1.05) {
+        // Zoom out to 1x
+        scale.value = withTiming(1);
+        savedScale.value = 1;
+        translateX.value = withTiming(0);
+        translateY.value = withTiming(0);
+        savedTranslateX.value = 0;
+        savedTranslateY.value = 0;
+      } else {
+        // Zoom in to 2.5x
+        scale.value = withTiming(2.5);
+        savedScale.value = 2.5;
+      }
+    });
+
+  const composedGesture = Gesture.Simultaneous(
+    pinchGesture,
+    panGesture,
+    doubleTapGesture
+  );
+
+  const animatedImageStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  // ── Calculate image dimensions to fit available space ──────
+  // Reserve space for label bar (~40px) and action bar (~70px)
+  const bottomBarsHeight = 110;
+  const availableWidth = width;
+  const availableHeight = height - insets.top - bottomBarsHeight;
+
+  // Image is 9:16 aspect ratio — fit it within the available space
+  const imageAspect = 9 / 16;
+  let imageWidth: number;
+  let imageHeight: number;
+
+  if (availableWidth / availableHeight < imageAspect) {
+    // Available space is narrower than image — fit to width
+    imageWidth = availableWidth;
+    imageHeight = availableWidth / imageAspect;
+  } else {
+    // Available space is wider than image — fit to height
+    imageHeight = availableHeight;
+    imageWidth = availableHeight * imageAspect;
+  }
 
   // Pro gate: block non-Pro users UNLESS they have a blueprint ready (credit purchase)
   const hasBlueprintReady = blueprintStatus?.status === "completed" && blueprintStatus?.imageUrl;
@@ -176,59 +279,38 @@ export default function BlueprintScreen() {
         <Ionicons name="close" size={24} color="#000" />
       </TouchableOpacity>
 
-      {/* Image container — scrollable in both directions for 9:16 blueprint images */}
-      <ScrollView
-        style={[styles.imageScrollContainer, { paddingTop: insets.top }]}
-        contentContainerStyle={isLandscape ? styles.imageScrollContentLandscape : styles.imageScrollContent}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        bounces
-      >
+      {/* Zoomable/pannable image — pinch to zoom, drag to pan, double-tap to toggle */}
+      <View style={[styles.imageArea, { paddingTop: insets.top }]}>
         {!imageLoaded && (
-          <View style={styles.loadingOverlayInline}>
+          <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={colors.accent} />
             <Text style={styles.loadingText}>Loading blueprint...</Text>
           </View>
         )}
-        {isLandscape ? (
-          /* Landscape: fit full image to screen height, scroll horizontally if wider */
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.imageScrollContentLandscape}
-            bounces
-          >
+        <GestureDetector gesture={composedGesture}>
+          <Animated.View style={[styles.imageWrapper, animatedImageStyle]}>
             <Image
               source={{ uri: imageUrl }}
               style={{
-                height: height - insets.top - 70,
-                width: (height - insets.top - 70) * (9 / 16),
+                width: imageWidth,
+                height: imageHeight,
               }}
               resizeMode="contain"
               onLoad={() => setImageLoaded(true)}
             />
-          </ScrollView>
-        ) : (
-          /* Portrait: full-width image, scroll vertically */
-          <Image
-            source={{ uri: imageUrl }}
-            style={{ width: width, height: width * (16 / 9) }}
-            resizeMode="contain"
-            onLoad={() => setImageLoaded(true)}
-          />
-        )}
-      </ScrollView>
+          </Animated.View>
+        </GestureDetector>
+      </View>
 
-      {/* Train label — compact in landscape */}
-      <View style={[styles.labelBar, isLandscape && styles.labelBarLandscape]}>
+      {/* Train label */}
+      <View style={styles.labelBar}>
         <Text style={styles.labelText} numberOfLines={1}>{trainLabel}</Text>
       </View>
 
-      {/* Action buttons — horizontal row, compact in landscape */}
+      {/* Action buttons */}
       <View style={[
         styles.actionsBar,
         { paddingBottom: Math.max(insets.bottom, 16) },
-        isLandscape && styles.actionsBarLandscape,
       ]}>
         <TouchableOpacity
           style={styles.actionBtn}
@@ -332,21 +414,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  imageContainer: {
+  imageArea: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
   },
-  imageScrollContainer: {
-    flex: 1,
-  },
-  imageScrollContent: {
-    alignItems: "center",
-  },
-  imageScrollContentLandscape: {
-    alignItems: "center",
+  imageWrapper: {
     justifyContent: "center",
-    flexGrow: 1,
+    alignItems: "center",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -354,27 +430,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 1,
   },
-  loadingOverlayInline: {
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 40,
-  },
   loadingText: {
     fontSize: fonts.sizes.sm,
     color: colors.textSecondary,
     marginTop: spacing.md,
   },
-  blueprintImage: {
-    width: "100%",
-    height: "100%",
-  },
   labelBar: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     backgroundColor: "rgba(26, 37, 64, 0.9)",
-  },
-  labelBarLandscape: {
-    paddingVertical: spacing.xs,
   },
   labelText: {
     fontSize: fonts.sizes.md,
@@ -388,9 +452,6 @@ const styles = StyleSheet.create({
     gap: spacing.xxl,
     paddingVertical: spacing.md,
     backgroundColor: colors.surface,
-  },
-  actionsBarLandscape: {
-    paddingVertical: spacing.sm,
   },
   actionBtn: {
     alignItems: "center",
