@@ -75,6 +75,13 @@ export default function BlueprintScreen() {
   if (!imageUrl || !currentTrain) {
     return (
       <View style={styles.emptyContainer}>
+        <TouchableOpacity
+          style={styles.closeBtnLight}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="close" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
         <Ionicons name="image-outline" size={64} color={colors.textMuted} />
         <Text style={styles.emptyText}>No blueprint available</Text>
       </View>
@@ -140,6 +147,15 @@ export default function BlueprintScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Close button */}
+      <TouchableOpacity
+        style={styles.closeBtn}
+        onPress={() => router.back()}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="close" size={24} color={colors.textPrimary} />
+      </TouchableOpacity>
+
       {/* Image container with loading state */}
       <View style={styles.imageContainer}>
         {!imageLoaded && (
@@ -240,6 +256,32 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.md,
     fontWeight: "600",
     color: colors.textPrimary,
+  },
+  closeBtn: {
+    position: "absolute",
+    top: 54,
+    right: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  closeBtnLight: {
+    position: "absolute",
+    top: 54,
+    right: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surfaceLight,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   imageContainer: {
     flex: 1,
