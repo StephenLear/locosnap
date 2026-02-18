@@ -1,11 +1,7 @@
 name: Preview Build
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/preview.yml"
+  workflow_dispatch: # manual trigger only — preview builds disabled (no internal dist credentials)
 
 jobs:
   preview-build:
