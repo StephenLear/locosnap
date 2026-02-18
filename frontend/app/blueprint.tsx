@@ -42,6 +42,7 @@ export default function BlueprintScreen() {
   const isPro = profile?.is_pro ?? false;
   const [saving, setSaving] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
   const imageUrl = blueprintStatus?.imageUrl;
 
@@ -70,6 +71,18 @@ export default function BlueprintScreen() {
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     };
   }, []);
+
+  // Fetch actual image dimensions so we fit correctly regardless of aspect ratio
+  useEffect(() => {
+    if (imageUrl) {
+      setImageDimensions(null); // reset on new image
+      Image.getSize(
+        imageUrl,
+        (w, h) => setImageDimensions({ width: w, height: h }),
+        () => setImageDimensions({ width: 768, height: 1344 }) // fallback 9:16
+      );
+    }
+  }, [imageUrl]);
 
   // Track blueprint view on mount
   useEffect(() => {
@@ -144,19 +157,21 @@ export default function BlueprintScreen() {
   const availableWidth = width;
   const availableHeight = height - insets.top - bottomBarsHeight;
 
-  // Image is 9:16 aspect ratio — fit it within the available space
-  const imageAspect = 9 / 16;
-  let imageWidth: number;
-  let imageHeight: number;
+  // Use real image dimensions — wait for getSize before rendering
+  let imageWidth: number | null = null;
+  let imageHeight: number | null = null;
 
-  if (availableWidth / availableHeight < imageAspect) {
-    // Available space is narrower than image — fit to width
-    imageWidth = availableWidth;
-    imageHeight = availableWidth / imageAspect;
-  } else {
-    // Available space is wider than image — fit to height
-    imageHeight = availableHeight;
-    imageWidth = availableHeight * imageAspect;
+  if (imageDimensions) {
+    const imageAspect = imageDimensions.width / imageDimensions.height;
+    if (availableWidth / availableHeight < imageAspect) {
+      // Fit to width
+      imageWidth = availableWidth;
+      imageHeight = availableWidth / imageAspect;
+    } else {
+      // Fit to height
+      imageHeight = availableHeight;
+      imageWidth = availableHeight * imageAspect;
+    }
   }
 
   // Pro gate: block non-Pro users UNLESS they have a blueprint ready (credit purchase)
@@ -281,25 +296,24 @@ export default function BlueprintScreen() {
 
       {/* Zoomable/pannable image — pinch to zoom, drag to pan, double-tap to toggle */}
       <View style={[styles.imageArea, { paddingTop: insets.top }]}>
-        {!imageLoaded && (
+        {(!imageLoaded || !imageWidth) && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={colors.accent} />
             <Text style={styles.loadingText}>Loading blueprint...</Text>
           </View>
         )}
-        <GestureDetector gesture={composedGesture}>
-          <Animated.View style={[styles.imageWrapper, animatedImageStyle]}>
-            <Image
-              source={{ uri: imageUrl }}
-              style={{
-                width: imageWidth,
-                height: imageHeight,
-              }}
-              resizeMode="contain"
-              onLoad={() => setImageLoaded(true)}
-            />
-          </Animated.View>
-        </GestureDetector>
+        {imageWidth && imageHeight && (
+          <GestureDetector gesture={composedGesture}>
+            <Animated.View style={[styles.imageWrapper, animatedImageStyle]}>
+              <Image
+                source={{ uri: imageUrl }}
+                style={{ width: imageWidth, height: imageHeight }}
+                resizeMode="contain"
+                onLoad={() => setImageLoaded(true)}
+              />
+            </Animated.View>
+          </GestureDetector>
+        )}
       </View>
 
       {/* Train label */}
