@@ -42,6 +42,7 @@ export default function BlueprintScreen() {
   const isPro = profile?.is_pro ?? false;
   const [saving, setSaving] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
   const imageUrl = blueprintStatus?.imageUrl;
 
@@ -70,6 +71,17 @@ export default function BlueprintScreen() {
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     };
   }, []);
+
+  // Fetch actual image dimensions so we can fit it correctly regardless of aspect ratio
+  useEffect(() => {
+    if (imageUrl) {
+      Image.getSize(
+        imageUrl,
+        (w, h) => setImageDimensions({ width: w, height: h }),
+        () => setImageDimensions({ width: 768, height: 1344 }) // fallback to 9:16
+      );
+    }
+  }, [imageUrl]);
 
   // Track blueprint view on mount
   useEffect(() => {
@@ -144,8 +156,10 @@ export default function BlueprintScreen() {
   const availableWidth = width;
   const availableHeight = height - insets.top - bottomBarsHeight;
 
-  // Image is 9:16 aspect ratio — fit it within the available space
-  const imageAspect = 9 / 16;
+  // Use the actual image dimensions (fetched via Image.getSize), fall back to 9:16
+  const naturalWidth = imageDimensions?.width ?? 768;
+  const naturalHeight = imageDimensions?.height ?? 1344;
+  const imageAspect = naturalWidth / naturalHeight;
   let imageWidth: number;
   let imageHeight: number;
 
@@ -296,7 +310,12 @@ export default function BlueprintScreen() {
                 height: imageHeight,
               }}
               resizeMode="contain"
-              onLoad={() => setImageLoaded(true)}
+              onLoad={(e) => {
+                setImageLoaded(true);
+                // Also capture dimensions from the load event in case getSize hasn't resolved yet
+                const { width: w, height: h } = e.nativeEvent.source;
+                if (w && h) setImageDimensions({ width: w, height: h });
+              }}
             />
           </Animated.View>
         </GestureDetector>
