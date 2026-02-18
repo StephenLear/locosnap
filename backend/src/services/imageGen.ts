@@ -32,15 +32,17 @@ interface StyleConfig {
 const STYLE_PROMPTS: Record<BlueprintStyle, StyleConfig> = {
   technical: {
     design: `Design style:
-- Clean, structured, engineering-oriented layout
-- Color palette: steel grey, dark navy (#1a2332), orange/yellow safety accents (#ff6b00), white technical lines
-- Background: technical drafting sheet with subtle grid lines and drawing border
+- PORTRAIT poster layout — content must fill the FULL canvas top to bottom, no white space or empty margins
+- Large main side-elevation drawing in the upper two-thirds of the poster, train running full width
+- Lower third: two stacked sub-panels — (1) detailed underframe/bogie cross-section, (2) spec data table
+- Color palette: dark navy background (#1a2332), white/light-grey technical lines, orange safety accents (#ff6b00)
+- Background: dark navy drafting sheet with subtle white grid lines and technical drawing border
 - Sharp sans-serif typeface in engineering annotation style (like a railway works drawing)
 - Minimal shadows, prioritising clarity and precision
-- Multiple viewing angles: side elevation (main), front/rear end views, and detail callouts
-- Include a small track/rail cross-section detail`,
-    vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: serious, precise, locomotive works drawing — like a Swindon, Crewe, or Doncaster works technical poster.`,
-    negativePrompt: "blurry, low quality, cartoon, anime, watermark, text errors, distorted, unrealistic proportions, cars, automobiles, photograph, photo, sepia, old paper, vintage",
+- Annotation leader lines and dimension arrows filling available space around the train
+- IMPORTANT: Fill every part of the canvas — no blank white areas, no empty space`,
+    vibe: `Aspect Ratio: 9:16 (portrait). This is a TALL PORTRAIT poster. The locomotive side elevation must be LARGE, spanning the full width of the canvas. Content fills top to bottom. Overall vibe: serious, precise, locomotive works drawing — like a Swindon, Crewe, or Doncaster works technical poster printed in A2 portrait format.`,
+    negativePrompt: "blurry, low quality, cartoon, anime, watermark, text errors, distorted, unrealistic proportions, cars, automobiles, photograph, photo, sepia, old paper, vintage, white background, blank space, empty canvas, landscape orientation, wide format",
     guidanceScale: 12,
     dalleStyle: "natural",
   },

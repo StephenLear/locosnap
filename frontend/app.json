@@ -16,7 +16,7 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.locosnap.app",
       "infoPlist": {
         "NSCameraUsageDescription": "LocoSnap needs camera access to take photos of trains for identification.",
