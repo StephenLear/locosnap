@@ -156,21 +156,23 @@ export default function BlueprintScreen() {
   const availableWidth = width;
   const availableHeight = height - insets.top - bottomBarsHeight;
 
-  // Use the actual image dimensions (fetched via Image.getSize), fall back to 9:16
-  const naturalWidth = imageDimensions?.width ?? 768;
-  const naturalHeight = imageDimensions?.height ?? 1344;
-  const imageAspect = naturalWidth / naturalHeight;
-  let imageWidth: number;
-  let imageHeight: number;
+  // Once we know the real image dimensions, fit it within available space
+  // maintaining its true aspect ratio. Until getSize resolves, imageWidth/Height
+  // stay null and we suppress rendering to avoid a flash of wrong sizing.
+  let imageWidth: number | null = null;
+  let imageHeight: number | null = null;
 
-  if (availableWidth / availableHeight < imageAspect) {
-    // Available space is narrower than image — fit to width
-    imageWidth = availableWidth;
-    imageHeight = availableWidth / imageAspect;
-  } else {
-    // Available space is wider than image — fit to height
-    imageHeight = availableHeight;
-    imageWidth = availableHeight * imageAspect;
+  if (imageDimensions) {
+    const imageAspect = imageDimensions.width / imageDimensions.height;
+    if (availableWidth / availableHeight < imageAspect) {
+      // Available space is narrower than image — fit to width
+      imageWidth = availableWidth;
+      imageHeight = availableWidth / imageAspect;
+    } else {
+      // Available space is wider than image — fit to height
+      imageHeight = availableHeight;
+      imageWidth = availableHeight * imageAspect;
+    }
   }
 
   // Pro gate: block non-Pro users UNLESS they have a blueprint ready (credit purchase)
@@ -295,30 +297,24 @@ export default function BlueprintScreen() {
 
       {/* Zoomable/pannable image — pinch to zoom, drag to pan, double-tap to toggle */}
       <View style={[styles.imageArea, { paddingTop: insets.top }]}>
-        {!imageLoaded && (
+        {(!imageLoaded || !imageWidth) && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={colors.accent} />
             <Text style={styles.loadingText}>Loading blueprint...</Text>
           </View>
         )}
-        <GestureDetector gesture={composedGesture}>
-          <Animated.View style={[styles.imageWrapper, animatedImageStyle]}>
-            <Image
-              source={{ uri: imageUrl }}
-              style={{
-                width: imageWidth,
-                height: imageHeight,
-              }}
-              resizeMode="contain"
-              onLoad={(e) => {
-                setImageLoaded(true);
-                // Also capture dimensions from the load event in case getSize hasn't resolved yet
-                const { width: w, height: h } = e.nativeEvent.source;
-                if (w && h) setImageDimensions({ width: w, height: h });
-              }}
-            />
-          </Animated.View>
-        </GestureDetector>
+        {imageWidth && imageHeight && (
+          <GestureDetector gesture={composedGesture}>
+            <Animated.View style={[styles.imageWrapper, animatedImageStyle]}>
+              <Image
+                source={{ uri: imageUrl }}
+                style={{ width: imageWidth, height: imageHeight }}
+                resizeMode="contain"
+                onLoad={() => setImageLoaded(true)}
+              />
+            </Animated.View>
+          </GestureDetector>
+        )}
       </View>
 
       {/* Train label */}
