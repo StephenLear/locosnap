@@ -21,6 +21,7 @@
       "infoPlist": {
         "NSCameraUsageDescription": "LocoSnap needs camera access to take photos of trains for identification.",
         "NSPhotoLibraryUsageDescription": "LocoSnap needs photo library access to select train photos for identification.",
+        "NSLocationWhenInUseUsageDescription": "LocoSnap uses your location to record where you spotted each train, so you can see your sightings on a map.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },

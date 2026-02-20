@@ -270,8 +270,10 @@ export default function PaywallScreen() {
     try {
       const success = await purchaseBlueprintCredits(creditPackage);
 
-      if (success && user) {
-        await fetchProfile();
+      if (success) {
+        if (user) {
+          await fetchProfile();
+        }
         Alert.alert(
           "Credits Added!",
           "You can now generate a blueprint for this train.",
@@ -284,120 +286,6 @@ export default function PaywallScreen() {
       setPurchasingCredits(false);
     }
   };
-
-  // ── Guest guard ────────────────────────────────────────────
-  if (isGuest) {
-    return (
-      <View style={styles.container}>
-        <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
-          <Ionicons name="close" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-
-        <ScrollView
-          contentContainerStyle={styles.guestScrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <Animated.View
-            style={[
-              styles.guestContainer,
-              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-            ]}
-          >
-            {/* Pulsing icon */}
-            <View style={styles.heroIconOuter}>
-              <Animated.View
-                style={[styles.heroGlow, { opacity: glowAnim }]}
-              />
-              <Animated.View
-                style={[
-                  styles.heroIcon,
-                  { transform: [{ scale: pulseAnim }] },
-                ]}
-              >
-                <Ionicons name="diamond" size={40} color={SCANNER.teal} />
-              </Animated.View>
-            </View>
-
-            {/* PRO badge */}
-            <View style={styles.guestProBadge}>
-              <Ionicons name="flash" size={12} color="#fff" />
-              <Text style={styles.guestProBadgeText}>PRO</Text>
-            </View>
-
-            <Text style={styles.heroTitle}>Unlock LocoSnap Pro</Text>
-            <Text style={styles.guestDesc}>
-              Sign in with your email to access premium features
-            </Text>
-          </Animated.View>
-
-          {/* Blueprint preview carousel (outside Animated.View for full-width scroll) */}
-          <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={styles.blueprintSectionGuest}>
-              <Text style={styles.blueprintSectionLabel}>BLUEPRINT STYLES</Text>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.blueprintScrollGuest}
-              snapToInterval={CARD_WIDTH + CARD_GAP}
-              decelerationRate="fast"
-            >
-              {BLUEPRINT_PREVIEWS.map((item) => (
-                <View key={item.key} style={styles.blueprintCard}>
-                  <Image source={item.image} style={styles.blueprintImage} />
-                  <View style={styles.blueprintLabelRow}>
-                    <View style={styles.blueprintLabelDot} />
-                    <Text style={styles.blueprintLabel}>{item.label}</Text>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-          </Animated.View>
-
-          {/* Feature preview + CTA */}
-          <Animated.View
-            style={[
-              styles.guestBottomSection,
-              { opacity: fadeAnim },
-            ]}
-          >
-            <View style={styles.guestFeatures}>
-              {[
-                { icon: "infinite", label: "Unlimited daily scans" },
-                { icon: "flame", label: "Streak tracking & XP" },
-                { icon: "trophy", label: "Global leaderboards" },
-              ].map((f) => (
-                <View key={f.label} style={styles.guestFeatureRow}>
-                  <View style={styles.guestFeatureIcon}>
-                    <Ionicons name={f.icon as any} size={16} color={SCANNER.teal} />
-                  </View>
-                  <Text style={styles.guestFeatureText}>{f.label}</Text>
-                </View>
-              ))}
-            </View>
-
-            {/* CTA */}
-            <TouchableOpacity
-              style={styles.primaryBtn}
-              onPress={() => {
-                useAuthStore.getState().clearGuest();
-                router.back();
-                setTimeout(() => router.push("/sign-in"), 300);
-              }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="mail-outline" size={20} color="#fff" />
-              <Text style={styles.primaryBtnText}>Sign In with Email</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.guestLaterText}>Maybe later</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </ScrollView>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
