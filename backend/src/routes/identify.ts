@@ -38,6 +38,7 @@ const upload = multer({
   fileFilter: (_req, file, cb) => {
     const allowedTypes = [
       "image/jpeg",
+      "image/jpg",   // Android sometimes sends this non-standard type
       "image/png",
       "image/webp",
       "image/gif",

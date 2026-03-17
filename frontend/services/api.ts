@@ -109,7 +109,10 @@ async function identifyTrainNative(
 
   const filename = imageUri.split("/").pop() || "train.jpg";
   const match = /\.(\w+)$/.exec(filename);
-  const type = match ? `image/${match[1]}` : "image/jpeg";
+  let type = match ? `image/${match[1]}` : "image/jpeg";
+  // Normalize non-standard MIME types Android sometimes sends
+  if (type === "image/jpg") type = "image/jpeg";
+  if (type === "image/heic" || type === "image/heif") type = "image/jpeg";
 
   formData.append("image", {
     uri: imageUri,
