@@ -2,7 +2,7 @@
   "expo": {
     "name": "LocoSnap",
     "slug": "locosnap",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -34,7 +34,7 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.READ_MEDIA_IMAGES"
       ]
     },
     "web": {
@@ -52,6 +52,13 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow LocoSnap to access your photos to identify trains."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#FF6B00"
         }
       ],
       "@sentry/react-native",

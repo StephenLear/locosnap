@@ -5,12 +5,40 @@
 
 import axios, { AxiosError } from "axios";
 import { Platform } from "react-native";
+import * as ImageManipulator from "expo-image-manipulator";
 import {
   API_BASE_URL,
   BLUEPRINT_POLL_INTERVAL,
   BLUEPRINT_TIMEOUT,
 } from "../constants/api";
 import { IdentifyResponse, BlueprintStatus, BlueprintStyle } from "../types";
+
+// Max longest-edge dimension before we resize (keeps detail, cuts file size)
+const MAX_IMAGE_DIMENSION = 1920;
+// JPEG quality for upload (0.0–1.0)
+const UPLOAD_QUALITY = 0.75;
+
+/**
+ * Compress and resize an image before uploading.
+ * Caps the longest edge at 1920px and re-encodes at 75% JPEG quality.
+ * Typically reduces a 20-30 MB gallery photo to ~1-2 MB.
+ */
+async function compressImageForUpload(uri: string): Promise<string> {
+  try {
+    const result = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: MAX_IMAGE_DIMENSION } }],
+      {
+        compress: UPLOAD_QUALITY,
+        format: ImageManipulator.SaveFormat.JPEG,
+      }
+    );
+    return result.uri;
+  } catch {
+    // If compression fails for any reason, fall back to the original
+    return uri;
+  }
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -105,17 +133,20 @@ async function identifyTrainNative(
   blueprintStyle: BlueprintStyle,
   generateBlueprint: boolean
 ): Promise<IdentifyResponse> {
+  // Compress before upload — reduces 20-30 MB gallery photos to ~1-2 MB
+  const compressedUri = await compressImageForUpload(imageUri);
+
   const formData = new FormData();
 
-  const filename = imageUri.split("/").pop() || "train.jpg";
+  const filename = compressedUri.split("/").pop() || "train.jpg";
   const match = /\.(\w+)$/.exec(filename);
   let type = match ? `image/${match[1]}` : "image/jpeg";
-  // Normalize non-standard MIME types Android sometimes sends
+  // Normalize non-standard MIME types — compressor outputs JPEG anyway
   if (type === "image/jpg") type = "image/jpeg";
   if (type === "image/heic" || type === "image/heif") type = "image/jpeg";
 
   formData.append("image", {
-    uri: imageUri,
+    uri: compressedUri,
     name: filename,
     type: type,
   } as any);

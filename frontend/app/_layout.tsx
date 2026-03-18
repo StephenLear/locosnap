@@ -74,9 +74,12 @@ function RootLayout() {
     initialize();
     loadHistory();
 
-    // Register for push notifications + schedule streak reminder
-    registerForPushNotifications().catch(() => {});
-    scheduleStreakReminder().catch(() => {});
+    // Register for push notifications, then schedule streak reminder only if granted
+    registerForPushNotifications()
+      .then((token) => {
+        if (token) scheduleStreakReminder().catch(() => {});
+      })
+      .catch(() => {});
   }, []);
 
   // Auto-track screen views

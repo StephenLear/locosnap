@@ -90,6 +90,12 @@ export async function checkEntitlements(): Promise<boolean> {
 // Called on app launch and after profile fetch to reconcile.
 
 export async function syncProStatus(userId: string): Promise<boolean> {
+  // Beta/preview builds: all users get Pro for free to test all features
+  if (process.env.EXPO_PUBLIC_BETA_PRO === "true") {
+    await supabase.from("profiles").update({ is_pro: true }).eq("id", userId);
+    return true;
+  }
+
   if (!initialized) return false;
 
   try {
