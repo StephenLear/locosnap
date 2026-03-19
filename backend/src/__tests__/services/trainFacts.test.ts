@@ -16,6 +16,12 @@ jest.mock("@anthropic-ai/sdk", () => {
   }));
 });
 
+// Mock Wikidata — returns null by default so existing tests are unaffected
+const mockGetWikidataSpecs = jest.fn().mockResolvedValue(null);
+jest.mock("../../services/wikidataSpecs", () => ({
+  getWikidataSpecs: (...args: any[]) => mockGetWikidataSpecs(...args),
+}));
+
 import { getTrainFacts } from "../../services/trainFacts";
 
 describe("getTrainFacts", () => {
@@ -75,5 +81,37 @@ describe("getTrainFacts", () => {
 
     const result = await getTrainFacts(makeTrain());
     expect(result.funFacts).toEqual([]);
+  });
+
+  it("injects verified entry year into prompt when Wikidata has it", async () => {
+    mockGetWikidataSpecs.mockResolvedValueOnce({ yearIntroduced: "2020" });
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({
+        summary: "Test summary.",
+        historicalSignificance: null,
+        funFacts: [],
+        notableEvents: [],
+      }) }],
+    });
+
+    await getTrainFacts(makeTrain({ class: "Desiro ML" }));
+
+    // Verify the prompt sent to the AI contains the verified year
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).toContain("entered service in 2020");
+  });
+
+  it("omits year injection when Wikidata has no entry year", async () => {
+    mockGetWikidataSpecs.mockResolvedValueOnce({ maxSpeed: "160 km/h" }); // no yearIntroduced
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({
+        summary: "Test.", historicalSignificance: null, funFacts: [], notableEvents: [],
+      }) }],
+    });
+
+    await getTrainFacts(makeTrain());
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).not.toContain("VERIFIED FACT");
   });
 });

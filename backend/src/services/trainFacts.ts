@@ -8,10 +8,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import axios from "axios";
 import { config } from "../config/env";
 import { TrainIdentification, TrainFacts } from "../types";
+import { getWikidataSpecs } from "./wikidataSpecs";
 
-const FACTS_PROMPT = (train: TrainIdentification) =>
+const FACTS_PROMPT = (train: TrainIdentification, verifiedYear?: string) =>
   `You are a railway historian and trainspotting enthusiast. Provide fascinating facts and history for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
-
+${verifiedYear ? `\nVERIFIED FACT — use this exactly, do not contradict it: This class entered service in ${verifiedYear}.\n` : ""}
 Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 {
   "summary": "A 2-3 sentence enthusiastic overview that a trainspotter would enjoy reading. Include what makes this class special.",
@@ -62,7 +63,10 @@ export async function getTrainFacts(
   train: TrainIdentification
 ): Promise<TrainFacts> {
   try {
-    const prompt = FACTS_PROMPT(train);
+    // Pull Wikidata year if available — hits cache instantly if specs already ran.
+    // Injects the verified entry year into the prompt to prevent hallucinated dates.
+    const wikidata = await getWikidataSpecs(train.class, train.operator).catch(() => null);
+    const prompt = FACTS_PROMPT(train, wikidata?.yearIntroduced);
 
     if (config.hasAnthropic) {
       console.log("[FACTS] Using Claude (Anthropic)");
