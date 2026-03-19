@@ -7,43 +7,68 @@
 //
 // Coverage: excellent for mainline European/UK/Japanese stock.
 // Falls back gracefully to null for anything not found.
+//
+// Known limitation: multi-voltage trains (e.g. Eurostar, Class 373)
+// have multiple P2660 voltage claims in Wikidata. We read only the
+// first claim, so the fuelType label may reflect a secondary voltage
+// rather than the primary one. The AI fallback has the same weakness.
 // ============================================================
 
 import axios from "axios";
 
 // ── Wikidata property IDs ────────────────────────────────────
 const P = {
-  MAX_SPEED: "P4979",   // maximum speed (quantity)
-  LENGTH: "P2043",      // length (quantity, metres)
-  MASS: "P2067",        // mass (quantity, kg or tonnes)
-  POWER: "P2818",       // power (quantity, watts or kW)
-  NUMBER_BUILT: "P1098",// number produced (quantity)
-  MANUFACTURER: "P176", // manufacturer (item → label)
-  SERVICE_ENTRY: "P729",// service entry date (time)
-  VOLTAGE: "P2660",     // voltage (quantity, volts)
+  MAX_SPEED:     "P4979", // maximum speed (quantity)
+  LENGTH:        "P2043", // length (quantity, metres)
+  MASS:          "P2067", // mass (quantity, kg or tonnes)
+  POWER:         "P2818", // power (quantity, watts or kW)
+  NUMBER_BUILT:  "P1098", // number produced (quantity)
+  MANUFACTURER:  "P176",  // manufacturer (item → label)
+  SERVICE_ENTRY: "P729",  // service entry date (time)
+  VOLTAGE:       "P2660", // voltage (quantity, volts)
 };
 
 // ── Wikidata unit QIDs ───────────────────────────────────────
 const UNIT = {
-  METRE: "Q11573",
+  METRE:    "Q11573",
   KM_PER_H: "Q180154",
-  MPH: "Q158081",
+  MPH:      "Q158081",
   KILOGRAM: "Q11570",
-  TONNE: "Q41803",
-  WATT: "Q25269",
+  TONNE:    "Q41803",
+  WATT:     "Q25269",
   KILOWATT: "Q483551",
 };
 
 const USER_AGENT = "LocoSnap/1.0 (train identification app; contact@locosnap.app)";
 
+// ── In-memory cache ──────────────────────────────────────────
+// Keyed on normalised train class. Prevents duplicate Wikidata
+// API calls for the same class within a server session.
+// The outer trainCache already caches the final merged specs,
+// but this saves the Wikidata round-trips on cache misses.
+const MAX_CACHE_SIZE = 500;
+const wikidataCache = new Map<string, WikidataTrainSpecs | null>();
+
+function cacheKey(trainClass: string): string {
+  return trainClass.toLowerCase().trim();
+}
+
+// Exported for test teardown only
+export function clearWikidataCache(): void {
+  wikidataCache.clear();
+}
+
+// ── Types ────────────────────────────────────────────────────
+
 export interface WikidataTrainSpecs {
-  maxSpeed?: string;
-  length?: string;
-  weight?: string;
-  power?: string;
-  numberBuilt?: number;
-  builder?: string;
-  fuelType?: string;
+  maxSpeed?:       string;
+  length?:         string;
+  weight?:         string;
+  power?:          string;
+  numberBuilt?:    number;
+  builder?:        string;
+  fuelType?:       string;
+  yearIntroduced?: string; // service entry year (P729) — available for facts enrichment
 }
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -80,6 +105,8 @@ function getYear(claims: any, property: string): string | null {
 
 function voltageToFuelType(volts: number): string {
   if (volts >= 14500 && volts <= 15500) return "Electric (15kV 16.7Hz AC)";
+  // Note: no standard railway voltage exists between 15.5kV and 24kV,
+  // so the gap between these two bands is intentional.
   if (volts >= 24000 && volts <= 26000) return "Electric (25kV 50Hz AC)";
   if (volts >= 2800  && volts <= 3200)  return "Electric (3kV DC)";
   if (volts >= 1400  && volts <= 1600)  return "Electric (1.5kV DC)";
@@ -149,40 +176,55 @@ export async function getWikidataSpecs(
   trainClass: string,
   operator: string
 ): Promise<WikidataTrainSpecs | null> {
+  // ── Cache check ──────────────────────────────────────────
+  const key = cacheKey(trainClass);
+  if (wikidataCache.has(key)) {
+    console.log(`[WIKIDATA] Cache HIT for: ${trainClass}`);
+    return wikidataCache.get(key) ?? null;
+  }
+
   try {
-    // Build search queries: try specific first, then broader
+    // Build search queries: specific first, then broader variants
     const queries = [
       trainClass,
       `${trainClass} ${operator}`.trim(),
       trainClass.replace(/^class\s+/i, ""), // "Class 387" → "387"
     ].filter((q, i, arr) => q.length > 1 && arr.indexOf(q) === i); // dedupe
 
-    let qid: string | null = null;
-    for (const q of queries) {
-      qid = await searchForTrain(q);
-      if (qid) break;
-    }
+    // Run all search queries in parallel — worst case latency is
+    // max(single query) ≈ 6s, not sum(queries) ≈ 18s
+    const searchResults = await Promise.allSettled(
+      queries.map((q) => searchForTrain(q))
+    );
+
+    // Take the first successful non-null result (preserving query preference order)
+    const qid = searchResults
+      .filter((r): r is PromiseFulfilledResult<string | null> => r.status === "fulfilled")
+      .map((r) => r.value)
+      .find((id) => id !== null) ?? null;
 
     if (!qid) {
       console.log(`[WIKIDATA] No match for: ${trainClass}`);
+      wikidataCache.set(key, null);
       return null;
     }
 
     console.log(`[WIKIDATA] Matched ${trainClass} → ${qid}`);
 
     const claims = await fetchEntityClaims(qid);
-    if (!claims) return null;
+    if (!claims) {
+      wikidataCache.set(key, null);
+      return null;
+    }
 
     const specs: WikidataTrainSpecs = {};
 
     // Max speed
     const speed = getQuantity(claims, P.MAX_SPEED);
     if (speed) {
-      if (speed.unit === UNIT.MPH) {
-        specs.maxSpeed = `${Math.round(speed.amount)} mph`;
-      } else {
-        specs.maxSpeed = `${Math.round(speed.amount)} km/h`;
-      }
+      specs.maxSpeed = speed.unit === UNIT.MPH
+        ? `${Math.round(speed.amount)} mph`
+        : `${Math.round(speed.amount)} km/h`;
     }
 
     // Length
@@ -194,18 +236,14 @@ export async function getWikidataSpecs(
     // Mass → tonnes
     const mass = getQuantity(claims, P.MASS);
     if (mass) {
-      const tonnes = mass.unit === UNIT.TONNE
-        ? mass.amount
-        : mass.amount / 1000; // kg → tonnes
+      const tonnes = mass.unit === UNIT.TONNE ? mass.amount : mass.amount / 1000;
       specs.weight = `${tonnes.toFixed(0)} tonnes`;
     }
 
     // Power → kW
     const power = getQuantity(claims, P.POWER);
     if (power) {
-      const kw = power.unit === UNIT.KILOWATT
-        ? power.amount
-        : power.amount / 1000; // W → kW
+      const kw = power.unit === UNIT.KILOWATT ? power.amount : power.amount / 1000;
       specs.power = `${Math.round(kw)} kW`;
     }
 
@@ -228,16 +266,30 @@ export async function getWikidataSpecs(
       specs.fuelType = voltageToFuelType(voltage.amount);
     }
 
+    // Service entry year (e.g. "2020") — surfaced for future facts enrichment
+    const entryYear = getYear(claims, P.SERVICE_ENTRY);
+    if (entryYear) {
+      specs.yearIntroduced = entryYear;
+    }
+
     const found = Object.keys(specs).filter(
       (k) => specs[k as keyof WikidataTrainSpecs] !== undefined
     );
 
     if (found.length === 0) {
       console.log(`[WIKIDATA] Found ${qid} but no usable spec fields`);
+      wikidataCache.set(key, null);
       return null;
     }
 
     console.log(`[WIKIDATA] ${found.length} fields from ${qid}: ${found.join(", ")}`);
+
+    // Evict oldest entry if cache is full
+    if (wikidataCache.size >= MAX_CACHE_SIZE) {
+      wikidataCache.delete(wikidataCache.keys().next().value!);
+    }
+    wikidataCache.set(key, specs);
+
     return specs;
   } catch (error) {
     console.error("[WIKIDATA] Error:", (error as Error).message);
