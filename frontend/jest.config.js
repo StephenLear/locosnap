@@ -5,6 +5,9 @@ module.exports = {
   roots: ["<rootDir>"],
   testMatch: ["**/__tests__/**/*.test.ts"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
+  moduleNameMapper: {
+    "^expo-image-manipulator$": "<rootDir>/__mocks__/expo-image-manipulator.ts",
+  },
   // Pure logic tests only (utils, services, store)
   // Component rendering tests (.tsx) require jest-expo + compatible Node
   collectCoverageFrom: [
