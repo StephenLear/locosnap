@@ -16,6 +16,13 @@ jest.mock("@anthropic-ai/sdk", () => {
   }));
 });
 
+// Mock Wikidata — returns null by default so existing tests are unaffected.
+// Override per-test to verify merge logic.
+const mockGetWikidataSpecs = jest.fn().mockResolvedValue(null);
+jest.mock("../../services/wikidataSpecs", () => ({
+  getWikidataSpecs: (...args: any[]) => mockGetWikidataSpecs(...args),
+}));
+
 import { getTrainSpecs } from "../../services/trainSpecs";
 
 describe("getTrainSpecs", () => {
@@ -80,5 +87,51 @@ describe("getTrainSpecs", () => {
 
     const result = await getTrainSpecs(makeTrain());
     expect(result.maxSpeed).toBeNull();
+  });
+
+  it("Wikidata fields override AI fields when both present", async () => {
+    // AI says 25kV and 75m — Wikidata says 15kV and 101m (correct)
+    mockCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            maxSpeed: "160 km/h",
+            length: "75 m",
+            fuelType: "Electric (25kV 50Hz AC)",
+            gauge: "Standard (1,435 mm)",
+            route: "Berlin–Rostock",
+          }),
+        },
+      ],
+    });
+    mockGetWikidataSpecs.mockResolvedValueOnce({
+      length: "101.0 m",
+      fuelType: "Electric (15kV 16.7Hz AC)",
+      numberBuilt: 26,
+    });
+
+    const result = await getTrainSpecs(makeTrain({ class: "Desiro ML" }));
+    expect(result.length).toBe("101.0 m");              // Wikidata wins
+    expect(result.fuelType).toBe("Electric (15kV 16.7Hz AC)"); // Wikidata wins
+    expect(result.numberBuilt).toBe(26);                // Wikidata wins
+    expect(result.gauge).toBe("Standard (1,435 mm)");   // AI kept (Wikidata had none)
+    expect(result.route).toBe("Berlin–Rostock");        // AI kept (Wikidata had none)
+  });
+
+  it("falls back to AI when Wikidata returns null", async () => {
+    mockCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ maxSpeed: "125 mph", builder: "BREL Crewe" }),
+        },
+      ],
+    });
+    mockGetWikidataSpecs.mockResolvedValueOnce(null);
+
+    const result = await getTrainSpecs(makeTrain({ class: "Class 43" }));
+    expect(result.maxSpeed).toBe("125 mph");
+    expect(result.builder).toBe("BREL Crewe");
   });
 });

@@ -1,13 +1,18 @@
 // ============================================================
 // LocoSnap — Train Specs Service
-// Generates detailed specs via AI
-// Train data APIs are fragmented — AI is the unified source
+// Hybrid: Wikidata (factual) + AI (fill gaps + context)
+//
+// Both run in parallel. Wikidata wins for any field it provides
+// (voltage, speed, length, etc.) — eliminating hallucinations on
+// the fields trainspotters are most likely to check.
+// AI covers fields Wikidata rarely has: gauge, route, status.
 // ============================================================
 
 import Anthropic from "@anthropic-ai/sdk";
 import axios from "axios";
 import { config } from "../config/env";
 import { TrainIdentification, TrainSpecs } from "../types";
+import { getWikidataSpecs } from "./wikidataSpecs";
 
 const SPECS_PROMPT = (train: TrainIdentification) =>
   `You are a railway engineering reference database with deep knowledge of UK, European, Scandinavian, Japanese, and North American rolling stock. Provide technical specifications for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
@@ -83,48 +88,86 @@ function parseSpecsResponse(text: string): TrainSpecs {
   }
 }
 
+async function getAISpecs(train: TrainIdentification): Promise<TrainSpecs> {
+  const prompt = SPECS_PROMPT(train);
+
+  if (config.hasAnthropic) {
+    console.log("[SPECS] Using Claude (Anthropic)");
+    const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      messages: [{ role: "user", content: prompt }],
+    });
+    const content = response.content[0];
+    if (content.type !== "text") return FALLBACK_SPECS;
+    return parseSpecsResponse(content.text);
+  }
+
+  if (config.hasOpenAI) {
+    console.log("[SPECS] Using GPT-4o (OpenAI)");
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-4o",
+        max_tokens: 1024,
+        messages: [{ role: "user", content: prompt }],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${config.openaiApiKey}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 30000,
+      }
+    );
+    const text = response.data.choices?.[0]?.message?.content;
+    if (!text) return FALLBACK_SPECS;
+    return parseSpecsResponse(text);
+  }
+
+  return FALLBACK_SPECS;
+}
+
 export async function getTrainSpecs(
   train: TrainIdentification
 ): Promise<TrainSpecs> {
   try {
-    const prompt = SPECS_PROMPT(train);
+    // Run AI and Wikidata in parallel — don't let either block the other
+    const [aiResult, wikiResult] = await Promise.allSettled([
+      getAISpecs(train),
+      getWikidataSpecs(train.class, train.operator),
+    ]);
 
-    if (config.hasAnthropic) {
-      console.log("[SPECS] Using Claude (Anthropic)");
-      const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
-      const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        messages: [{ role: "user", content: prompt }],
-      });
-      const content = response.content[0];
-      if (content.type !== "text") return FALLBACK_SPECS;
-      return parseSpecsResponse(content.text);
+    const ai = aiResult.status === "fulfilled" ? aiResult.value : FALLBACK_SPECS;
+    const wiki = wikiResult.status === "fulfilled" ? wikiResult.value : null;
+
+    if (!wiki) {
+      console.log("[SPECS] Wikidata: no data — using AI only");
+      return ai;
     }
 
-    if (config.hasOpenAI) {
-      console.log("[SPECS] Using GPT-4o (OpenAI)");
-      const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-4o",
-          max_tokens: 1024,
-          messages: [{ role: "user", content: prompt }],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${config.openaiApiKey}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 30000,
-        }
-      );
-      const text = response.data.choices?.[0]?.message?.content;
-      if (!text) return FALLBACK_SPECS;
-      return parseSpecsResponse(text);
-    }
+    // Wikidata wins for factual fields (speed, voltage, dimensions, builder)
+    // AI wins for contextual fields (gauge, route, status, numberSurviving)
+    const merged: TrainSpecs = {
+      maxSpeed:        wiki.maxSpeed        ?? ai.maxSpeed,
+      power:           wiki.power           ?? ai.power,
+      weight:          wiki.weight          ?? ai.weight,
+      length:          wiki.length          ?? ai.length,
+      gauge:           ai.gauge,                           // AI only
+      builder:         wiki.builder         ?? ai.builder,
+      numberBuilt:     wiki.numberBuilt     ?? ai.numberBuilt,
+      numberSurviving: ai.numberSurviving,                 // AI only
+      status:          ai.status,                          // AI only
+      route:           ai.route,                           // AI only
+      fuelType:        wiki.fuelType        ?? ai.fuelType,
+    };
 
-    return FALLBACK_SPECS;
+    const wikidataFields = (Object.keys(wiki) as (keyof typeof wiki)[])
+      .filter((k) => wiki[k] !== undefined);
+    console.log(`[SPECS] Merged — Wikidata provided: ${wikidataFields.join(", ")}`);
+
+    return merged;
   } catch (error) {
     console.error("[SPECS] Error:", (error as Error).message);
     return FALLBACK_SPECS;
