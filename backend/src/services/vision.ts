@@ -10,7 +10,7 @@ import { config } from "../config/env";
 import { TrainIdentification } from "../types";
 import { AppError } from "../middleware/errorHandler";
 
-const TRAIN_ID_PROMPT = `You are a railway and locomotive identification expert with deep knowledge of trains worldwide, especially UK, European, Japanese, and North American rolling stock.
+const TRAIN_ID_PROMPT = `You are a railway and locomotive identification expert with encyclopaedic knowledge of trains worldwide — UK, European, Scandinavian, Japanese, North American, and beyond. You know both common and rare classes, including prototypes and one-off locos.
 
 Analyze this image and identify the train, locomotive, or multiple unit.
 
@@ -30,17 +30,19 @@ If you can identify the railway vehicle, respond with ONLY valid JSON in this ex
 }
 
 Rules:
-- "class" should be the official class designation (e.g. "Class 43", "A4", "Class 800 Azuma", "Class 66", "BR Standard Class 7"). For non-UK trains use their local designation system.
-- "name" should be the individual locomotive name if it has one (e.g. "Flying Scotsman", "Mallard", "Tornado"). Use null if unnamed or unknown.
-- "operator" should be the current or most recent operator/railway company (e.g. "LNER", "GWR", "Avanti West Coast", "DB", "SNCF", "JR East").
+- "class" should be the official class designation. UK: use TOPS class numbers (e.g. "Class 56", "Class 89", "Class 37"). Pre-TOPS: use named classes (e.g. "A4 Pacific", "Britannia"). European: use local designation (e.g. "BR 101", "SNCF Class BB 22200", "DB Class 612"). Nordic: e.g. "NSB Di 4", "SJ Rc", "DSB IC3", "VR Sr2". Japanese: e.g. "N700 Series", "KiHa 40". North American: e.g. "EMD GP38-2", "GE ES44AC".
+- "name" should be the individual locomotive name if it has one (e.g. "Flying Scotsman", "Mallard", "Tornado"). Use null if unnamed.
+- "operator" should be the current or most recent operator. UK examples: "LNER", "GWR", "Avanti West Coast", "DB Cargo UK", "Colas Rail", "GB Railfreight", "DRS", "DCRail". European: "DB", "SNCF", "ÖBB", "Trenitalia". Nordic: "Vy" (Norway), "SJ" (Sweden), "VR" (Finland), "DSB" (Denmark). If preserved, use the heritage railway name.
 - "type" should be one of: Steam, Diesel, Electric, DMU, EMU, HST, Freight, Shunter, Railcar, Tram, Metro, Monorail, Maglev, Other
-- "designation" is the wheel arrangement (e.g. "4-6-2 Pacific", "0-6-0", "Bo-Bo", "Co-Co") or unit type (e.g. "3-car EMU", "5-car Pendolino").
+- "designation" is the wheel arrangement (e.g. "4-6-2 Pacific", "0-6-0T", "Bo-Bo", "Co-Co", "A1A-A1A") or unit type (e.g. "3-car EMU", "5-car Pendolino").
 - "yearBuilt" is your best estimate of when this class was first built. Use null if very uncertain.
-- "confidence" is 0-100 indicating how confident you are in the identification.
-- "color" describes the livery (e.g. "BR Blue", "LNER Apple Green", "Virgin Red", "Intercity Swallow").
-- "description" should be a brief, enthusiastic description a trainspotter would appreciate.
-- Be specific — trainspotters know their classes. Don't say "a diesel locomotive" when you can say "Class 37".
-- For preserved/heritage locos, identify the original class and note it's preserved.`;
+- "confidence" is 0-100. Be honest — a partially obscured or distant loco should score lower.
+- "color" describes the livery (e.g. "BR Blue", "LNER Apple Green", "Railfreight Grey", "Intercity Swallow", "EWS Maroon", "DCRail Blue", "DB Red").
+- "description" should be a brief, enthusiastic description a trainspotter would appreciate. Include key facts: builder, role, what makes it notable.
+- Be specific — trainspotters know their classes. Don't say "a diesel locomotive" when you can say "Class 56 Co-Co freight loco". Don't say "an electric train" when you can say "Class 89 prototype Bo-Bo".
+- For rare or prototype locos (e.g. Class 89, Class 210, DP2, GT3), name them explicitly even if confidence is lower.
+- For preserved/heritage locos, identify the original class and note it's preserved.
+- Visual cues to use: cab shape, bogie type, roof equipment (pantographs, exhausts), number/nameplates visible, bodyside grilles, livery details, coupling type, and any visible fleet numbers.`;
 
 function parseTrainResponse(text: string): TrainIdentification | null {
   try {

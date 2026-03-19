@@ -10,7 +10,7 @@ import { config } from "../config/env";
 import { TrainIdentification, TrainSpecs } from "../types";
 
 const SPECS_PROMPT = (train: TrainIdentification) =>
-  `You are a railway engineering reference database. Provide technical specifications for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
+  `You are a railway engineering reference database with deep knowledge of UK, European, Scandinavian, Japanese, and North American rolling stock. Provide technical specifications for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
 
 Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 {
@@ -28,17 +28,22 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 }
 
 Rules:
-- Use null for any field you are unsure about.
-- "maxSpeed" in mph for UK/US, km/h for European/Japanese trains.
-- "power" in HP or kW as commonly cited for this locomotive.
+- Use null for any field you are genuinely unsure about — do not guess.
+- "maxSpeed" in mph for UK/US trains, km/h for European/Japanese/Nordic trains.
+- "power" in HP for UK/US diesel/steam, kW for European electric and modern UK electric.
 - "weight" in tonnes.
-- "length" in metres.
-- "builder" should be the original manufacturer/works.
-- "numberBuilt" is total units/locomotives of this class built.
-- "numberSurviving" is approximate number still in existence (in service + preserved).
-- "status" should be one of: "In service", "Preserved", "Withdrawn", "Mixed" (if some in service, some preserved).
-- "route" should be a notable route this class operates/operated on.
-- "fuelType" should be: "Coal", "Diesel", "Electric (25kV AC)", "Electric (750V DC)", "Electric (3kV DC)", "Dual-fuel", "Battery", "Hydrogen", or other as appropriate.
+- "length" in metres (per vehicle/unit unless otherwise noted).
+- "gauge" — most UK/European trains are "Standard (1,435 mm)". Note exceptions: Irish broad gauge "1,600 mm", Spanish broad gauge "1,668 mm", Finnish broad gauge "1,524 mm", UK narrow gauge heritage.
+- "builder" should be the original manufacturer/works. UK examples: "BREL Crewe", "BREL Derby", "BREL Doncaster", "English Electric Vulcan Foundry", "Brush Traction Loughborough", "GEC Traction". European: "Siemens", "Bombardier", "Alstom", "Stadler", "CAF", "Škoda". Nordic: "Duewag", "Strømmens Værksted", "ABB Västerås".
+- "numberBuilt" is total units/locomotives of this class built. For prototypes/one-offs, use 1.
+- "numberSurviving" is approximate number still in existence (in service + preserved). Use null if uncertain.
+- "status" should be one of: "In service", "Preserved", "Withdrawn", "Mixed" (if some in service, some preserved), "Prototype" (if experimental/one-off).
+- "route" should be a notable route or network this class operates/operated on.
+- "fuelType" — use the precise system:
+  UK electric: "Electric (25kV AC OHL)" for ECML/WCML, "Electric (750V DC third rail)" for Southern/SW, "Electric (1.5kV DC OHL)" for Woodhead/older.
+  European electric: "Electric (15kV 16.7Hz AC)" for Germany/Austria/Switzerland/Sweden/Norway, "Electric (25kV 50Hz AC)" for France/Belgium/UK HS1/Finland, "Electric (3kV DC)" for Italy/Poland/Belgium/Czech/Slovak, "Electric (1.5kV DC)" for Netherlands/France some, "Electric (600/750V DC)" for metros/trams.
+  Nordic specific: Sweden/Norway use 15kV 16.7Hz; Finland uses 25kV 50Hz; Denmark uses 25kV 50Hz (IC3 is diesel).
+  Other: "Diesel", "Coal", "Dual-voltage Electric", "Tri-voltage Electric", "Dual-fuel", "Battery", "Hydrogen".
 - Be accurate — trainspotters will check these numbers.`;
 
 const FALLBACK_SPECS: TrainSpecs = {
