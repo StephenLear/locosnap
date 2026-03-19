@@ -327,7 +327,7 @@ export default function CardRevealScreen() {
               styles.cardFront,
               {
                 borderColor: rarityColor,
-                transform: [{ rotateY: frontInterpolate }],
+                transform: [{ perspective: 1000 }, { rotateY: frontInterpolate }],
                 opacity: frontOpacity,
                 shadowColor: rarityColor,
                 shadowRadius: glowRadius as any,
@@ -434,7 +434,7 @@ export default function CardRevealScreen() {
               styles.cardBack,
               {
                 borderColor: rarityColor,
-                transform: [{ rotateY: backInterpolate }],
+                transform: [{ perspective: 1000 }, { rotateY: backInterpolate }],
                 opacity: backOpacity,
                 shadowColor: rarityColor,
                 shadowRadius: glowRadius as any,

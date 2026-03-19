@@ -136,7 +136,7 @@ export async function getTrainSpecs(
     // Run AI and Wikidata in parallel — don't let either block the other
     const [aiResult, wikiResult] = await Promise.allSettled([
       getAISpecs(train),
-      getWikidataSpecs(train.class, train.operator),
+      getWikidataSpecs(train.class, train.operator, train.name),
     ]);
 
     const ai = aiResult.status === "fulfilled" ? aiResult.value : FALLBACK_SPECS;

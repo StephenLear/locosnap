@@ -174,7 +174,8 @@ async function fetchLabel(qid: string): Promise<string | null> {
 
 export async function getWikidataSpecs(
   trainClass: string,
-  operator: string
+  operator: string,
+  trainName?: string | null
 ): Promise<WikidataTrainSpecs | null> {
   // ── Cache check ──────────────────────────────────────────
   const key = cacheKey(trainClass);
@@ -184,12 +185,17 @@ export async function getWikidataSpecs(
   }
 
   try {
-    // Build search queries: specific first, then broader variants
+    // Build search queries: name-first for disambiguation, then class variants.
+    // Using trainName first (e.g. "ICE 3") avoids matching an older train that
+    // shares the same class designation (e.g. old DB ET 403 vs modern BR 403).
     const queries = [
-      trainClass,
-      `${trainClass} ${operator}`.trim(),
-      trainClass.replace(/^class\s+/i, ""), // "Class 387" → "387"
-    ].filter((q, i, arr) => q.length > 1 && arr.indexOf(q) === i); // dedupe
+      trainName ? `${trainName} ${operator}`.trim() : null, // "ICE 3 Deutsche Bahn"
+      trainName ?? null,                                      // "ICE 3"
+      `${trainClass} ${operator}`.trim(),                    // "DB Class 403 Deutsche Bahn"
+      trainClass,                                             // "DB Class 403"
+      trainClass.replace(/^class\s+/i, ""),                  // "Class 387" → "387"
+    ].filter((q): q is string => !!q && q.length > 1)
+     .filter((q, i, arr) => arr.indexOf(q) === i); // dedupe
 
     // Run all search queries in parallel — worst case latency is
     // max(single query) ≈ 6s, not sum(queries) ≈ 18s
