@@ -40,7 +40,9 @@ Rules:
 - Modern stock in regular daily service is almost always "common".
 - If numberSurviving is known and very low (1-5), bump up the tier.
 - "productionCount" and "survivingCount" should be your best estimates (use null if truly unknown).
-- Be generous but honest — spotters want excitement but not inflated rarity.`;
+- Be generous but honest — spotters want excitement but not inflated rarity.
+- German regional fleet awareness: DB Class 643/644 (Talent) have been largely retired from DB mainline service and are now rare. DB Class 628 is mostly withdrawn. DB Class 218 diesel locos are dwindling. DB Class 103 electric is essentially museum-only. Do not classify retired or near-retired German classes as "common".
+- If a class was once common but is now largely withdrawn or transferred to secondary operators, classify based on its CURRENT rarity, not its historical abundance.`;
 
 const FALLBACK_RARITY: RarityInfo = {
   tier: "common",

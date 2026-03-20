@@ -34,6 +34,7 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 
 Rules:
 - Use null for any field you are genuinely unsure about — do not guess.
+- "maxSpeed" MUST use km/h for any train operated by a European or non-UK/US operator — this includes DB, SNCF, ÖBB, Trenitalia, SBB, NS, Renfe, PKP, DSB, SJ, NSB, VR, and any German/French/Italian/Spanish/Swiss/Dutch/Nordic/Eastern European operator. Use mph ONLY for UK and North American operators.
 - "maxSpeed" in mph for UK/US trains, km/h for European/Japanese/Nordic trains.
 - "power" in HP for UK/US diesel/steam, kW for European electric and modern UK electric.
 - "weight" in tonnes.

@@ -42,7 +42,9 @@ Rules:
 - Be specific — trainspotters know their classes. Don't say "a diesel locomotive" when you can say "Class 56 Co-Co freight loco". Don't say "an electric train" when you can say "Class 89 prototype Bo-Bo".
 - For rare or prototype locos (e.g. Class 89, Class 210, DP2, GT3), name them explicitly even if confidence is lower.
 - For preserved/heritage locos, identify the original class and note it's preserved.
-- Visual cues to use: cab shape, bogie type, roof equipment (pantographs, exhausts), number/nameplates visible, bodyside grilles, livery details, coupling type, and any visible fleet numbers.`;
+- Visual cues to use: cab shape, bogie type, roof equipment (pantographs, exhausts), number/nameplates visible, bodyside grilles, livery details, coupling type, and any visible fleet numbers.
+- Siemens Desiro family: use exact names — "Desiro Classic" (BR 642/643/644 in Germany), "Desiro UK" (Class 185/360/444/450 in UK), "Desiro City" (S-Bahn variants). Never abbreviate or misspell these names.
+- DB/German operators: BR 642 = Siemens Desiro Classic, BR 643/644 = Talent (Bombardier), BR 612 = RegioSwinger (Bombardier), BR 628 = older DB DMU. Be precise with German class numbers.`;
 
 function parseTrainResponse(text: string): TrainIdentification | null {
   try {
