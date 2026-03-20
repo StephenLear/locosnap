@@ -149,3 +149,15 @@ export function getRedisStatus(): string {
   if (redis?.status === "ready") return "connected";
   return redis?.status ?? "disconnected";
 }
+
+export async function pingRedis(): Promise<boolean> {
+  if (!useInMemoryFallback && redis) {
+    try {
+      await redis.ping();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}

@@ -14,7 +14,7 @@ import { getVisionProvider } from "./services/vision";
 import { getSupabase } from "./config/supabase";
 import { loadCache, getCacheStats } from "./services/trainCache";
 import { initAnalytics, Sentry, flushAnalytics } from "./services/analytics";
-import { initRedis, getRedisStatus } from "./services/redis";
+import { initRedis, getRedisStatus, pingRedis } from "./services/redis";
 
 // ── Analytics + Error Tracking ───────────────────────────────
 initAnalytics();
@@ -51,7 +51,8 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 
 // ── Routes ──────────────────────────────────────────────────
-app.get("/api/health", (_req, res) => {
+app.get("/api/health", async (_req, res) => {
+  await pingRedis(); // keeps Upstash alive — must send real traffic
   res.json({
     status: "ok",
     service: "LocoSnap API",
