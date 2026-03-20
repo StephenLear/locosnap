@@ -38,7 +38,7 @@ export default function SignInScreen() {
   const { supabase } = require("../config/supabase");
   const pendingAutoVerify = useRef(false);
 
-  // Supabase OTP codes are 8 digits for this project
+  // Supabase OTP codes are 8 digits (configured in Supabase dashboard)
   const OTP_LENGTH = 8;
 
   // ── Animations ──────────────────────────────────────────────

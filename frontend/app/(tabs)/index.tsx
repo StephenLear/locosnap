@@ -17,6 +17,7 @@ import {
   Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as Location from "expo-location";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
@@ -295,14 +296,30 @@ export default function HomeScreen() {
       return;
     }
 
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Photo Library Access Required",
+        "LocoSnap needs access to your photos to identify trains. Please enable it in Settings.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       quality: 0.7,
     });
 
     if (!result.canceled && result.assets[0]) {
-      setPreviewUri(result.assets[0].uri);
-      handleScan(result.assets[0].uri);
+      // Convert to JPEG — iOS photos are HEIC by default and the backend rejects them
+      const converted = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      setPreviewUri(converted.uri);
+      handleScan(converted.uri);
     }
   };
 
