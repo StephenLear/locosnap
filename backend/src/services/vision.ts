@@ -44,7 +44,11 @@ Rules:
 - For preserved/heritage locos, identify the original class and note it's preserved.
 - Visual cues to use: cab shape, bogie type, roof equipment (pantographs, exhausts), number/nameplates visible, bodyside grilles, livery details, coupling type, and any visible fleet numbers.
 - Siemens Desiro family: use exact names — "Desiro Classic" (BR 642/643/644 in Germany), "Desiro UK" (Class 185/360/444/450 in UK), "Desiro City" (S-Bahn variants). Never abbreviate or misspell these names.
-- DB/German operators: BR 642 = Siemens Desiro Classic, BR 643/644 = Talent (Bombardier), BR 612 = RegioSwinger (Bombardier), BR 628 = older DB DMU. Be precise with German class numbers.`;
+- DB/German operators: BR 642 = Siemens Desiro Classic, BR 643/644 = Talent (Bombardier), BR 612 = RegioSwinger (Bombardier), BR 628 = older DB DMU. Be precise with German class numbers.
+- Viewing angle: Identify from ANY angle — front, rear, 3/4, side, or overhead. Do not require a front-facing view. Use roof profile, bogie type, pantograph position, bodyside grilles, exhaust placement, and livery to identify from rear or side views. A rear 3/4 view of a Class 66 is still identifiable by its roof, bogies, and livery.
+- Trains with carriages: If a locomotive is shown hauling or coupled to coaches/wagons, focus identification on the locomotive unit itself. Ignore the carriages for identification purposes — identify the loco at the front or rear of the formation.
+- Partially obscured trains: If the train is partially hidden by buildings, vegetation, platforms, or other trains, use whatever is visible. Identify from partial views using the visible features. Lower confidence accordingly but still attempt identification.
+- Prototype and test trains: Hydrogen trains, bi-mode test units, and prototype/trial livery trains should be identified using visible design cues, builder markings, and any visible fleet numbers. If it resembles a known base class with modifications (e.g. a converted Class 319 or 230), identify the base class and note the conversion.`;
 
 function parseTrainResponse(text: string): TrainIdentification | null {
   try {
