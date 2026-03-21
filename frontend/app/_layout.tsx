@@ -3,7 +3,7 @@
 // Handles auth state gating and app initialisation
 // ============================================================
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, useRouter, useSegments, usePathname } from "expo-router";
@@ -66,6 +66,7 @@ function CrashFallback() {
 function RootLayout() {
   const loadHistory = useTrainStore((state) => state.loadHistory);
   const initialize = useAuthStore((state) => state.initialize);
+  const user = useAuthStore((state) => state.user);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -81,6 +82,18 @@ function RootLayout() {
       })
       .catch(() => {});
   }, []);
+
+  // Re-load history from Supabase when user signs in
+  // This fixes the race condition where loadHistory() runs before initialize() completes
+  const prevUserIdRef = React.useRef<string | null>(null);
+  useEffect(() => {
+    const prevId = prevUserIdRef.current;
+    const currentId = user?.id ?? null;
+    if (currentId && currentId !== prevId) {
+      loadHistory();
+    }
+    prevUserIdRef.current = currentId;
+  }, [user?.id]);
 
   // Auto-track screen views
   useEffect(() => {
