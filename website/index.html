@@ -288,7 +288,7 @@
       font-weight: 500;
     }
 
-    /* ── Hero Visual (phone mockup) ── */
+    /* ── Hero Visual (real screenshot) ── */
     .hero-visual {
       position: absolute;
       right: 6vw;
@@ -297,211 +297,62 @@
       z-index: 2;
     }
 
-    .phone-mockup {
-      width: 280px;
-      background: #0a0f1a;
-      border-radius: 36px;
-      border: 1.5px solid rgba(255,255,255,0.1);
-      overflow: hidden;
+    .hero-screenshot {
+      width: 260px;
+      border-radius: 40px;
+      display: block;
       box-shadow:
-        0 0 0 6px rgba(255,255,255,0.04),
-        0 40px 80px rgba(0,0,0,0.6),
-        0 0 60px rgba(0,212,170,0.12);
-      position: relative;
+        0 0 0 1px rgba(255,255,255,0.08),
+        0 0 0 8px rgba(255,255,255,0.03),
+        0 40px 80px rgba(0,0,0,0.7),
+        0 0 80px rgba(0,212,170,0.15);
     }
 
-    .phone-notch {
-      width: 100px; height: 28px;
-      background: #0a0f1a;
-      border-radius: 0 0 16px 16px;
-      margin: 0 auto;
-      position: relative;
-      z-index: 2;
+    /* ── Screenshots showcase ── */
+    .screenshots-section {
+      background: var(--bg2);
+      overflow: hidden;
     }
 
-    .phone-screen {
-      padding: 8px 16px 24px;
+    .screenshots-row {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: nowrap;
+      padding-bottom: 8px;
     }
 
-    .phone-header {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      color: var(--teal);
-      letter-spacing: 2px;
+    .screenshot-item {
+      flex: 0 0 auto;
       text-align: center;
-      padding: 4px 0 12px;
-      border-bottom: 1px solid rgba(0,212,170,0.1);
-      margin-bottom: 12px;
     }
 
-    /* Train result card */
-    .train-card {
-      background: #0f1a2a;
-      border-radius: 16px;
-      border: 1.5px solid var(--legendary);
-      overflow: hidden;
-      position: relative;
+    .screenshot-item img {
+      width: 200px;
+      border-radius: 32px;
+      display: block;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.07),
+        0 24px 48px rgba(0,0,0,0.6),
+        0 0 40px rgba(0,212,170,0.08);
+      transition: transform 0.3s, box-shadow 0.3s;
     }
 
-    .train-card-badges {
-      position: absolute;
-      top: 10px; left: 10px; right: 10px;
-      display: flex;
-      justify-content: space-between;
-      z-index: 2;
+    .screenshot-item img:hover {
+      transform: translateY(-8px);
+      box-shadow:
+        0 0 0 1px rgba(0,212,170,0.2),
+        0 32px 64px rgba(0,0,0,0.7),
+        0 0 60px rgba(0,212,170,0.15);
     }
 
-    .badge-new {
-      background: var(--teal);
-      color: #0a0f1a;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 10px;
-      padding: 3px 10px;
-      border-radius: 100px;
-      letter-spacing: 1px;
-    }
-
-    .badge-legendary {
-      background: var(--legendary);
-      color: #0a0f1a;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 10px;
-      padding: 3px 10px;
-      border-radius: 100px;
-      letter-spacing: 1px;
-    }
-
-    .train-card-img {
-      width: 100%;
-      height: 140px;
-      background: linear-gradient(135deg, #1a2535 0%, #0f1520 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 60px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .train-card-img::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, transparent 60%, #0f1a2a 100%);
-    }
-
-    /* Animated scan line on the card */
-    .scan-line {
-      position: absolute;
-      left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--teal), transparent);
-      animation: scanline 2s ease-in-out infinite;
-      top: 0;
-    }
-
-    @keyframes scanline {
-      0% { top: 0; opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { top: 100%; opacity: 0; }
-    }
-
-    .confetti-dot {
-      position: absolute;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      animation: confetti-fall 3s ease-in-out infinite;
-    }
-
-    .confetti-dot:nth-child(1) { background: var(--yellow); top: 20%; left: 15%; animation-delay: 0s; }
-    .confetti-dot:nth-child(2) { background: var(--teal); top: 40%; right: 12%; animation-delay: 0.5s; }
-    .confetti-dot:nth-child(3) { background: var(--orange); top: 60%; left: 20%; animation-delay: 1s; }
-    .confetti-dot:nth-child(4) { background: var(--yellow); top: 30%; right: 25%; animation-delay: 1.5s; }
-    .confetti-dot:nth-child(5) { background: var(--teal); top: 70%; left: 40%; animation-delay: 0.8s; }
-
-    @keyframes confetti-fall {
-      0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
-      50% { transform: translateY(6px) rotate(180deg); opacity: 0.6; }
-    }
-
-    .train-card-info {
-      padding: 12px;
-    }
-
-    .train-name {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 800;
-      font-size: 22px;
-      letter-spacing: 0.5px;
-      margin-bottom: 2px;
-    }
-
-    .train-operator {
+    .screenshot-label {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
+      font-size: 10px;
       color: var(--muted);
-      letter-spacing: 0.5px;
-      margin-bottom: 10px;
-    }
-
-    .train-stats {
-      display: flex;
-      gap: 12px;
-    }
-
-    .train-stat {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      color: var(--teal);
-    }
-
-    .rarity-bar {
-      background: rgba(245,158,11,0.1);
-      border: 1px solid rgba(245,158,11,0.3);
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-top: 10px;
-    }
-
-    .rarity-label {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 12px;
-      color: var(--legendary);
-      letter-spacing: 2px;
-      margin-bottom: 2px;
-    }
-
-    .rarity-desc {
-      font-size: 9px;
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
-    .match-badge {
-      position: absolute;
-      top: 12px; right: 12px;
-      background: var(--teal);
-      color: #0a0f1a;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 800;
-      font-size: 18px;
-      width: 44px; height: 44px;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-    }
-
-    .match-badge span {
-      font-size: 8px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 16px;
     }
 
     /* Floating scan ring around phone */
@@ -968,8 +819,11 @@
     ───────────────────────────────────────── */
     @media (max-width: 900px) {
       nav { padding: 16px 24px; }
-      .hero { padding: 100px 24px 400px; }
+      .hero { padding: 100px 24px 80px; }
       .hero-visual { position: relative; right: auto; top: auto; transform: none; margin: 60px auto 0; width: fit-content; }
+      .hero-screenshot { width: 220px; }
+      .screenshots-row { gap: 12px; justify-content: flex-start; padding-left: 24px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .screenshot-item img { width: 160px; }
       section { padding: 70px 24px; }
       .stats-bar { gap: 40px; padding: 28px 24px; }
       .steps { grid-template-columns: 1fr; }
@@ -1060,7 +914,7 @@
       </div>
     </div>
 
-    <!-- Phone mockup -->
+    <!-- Real app screenshot -->
     <div class="hero-visual">
       <div style="position: relative; display: inline-block;">
         <div class="scan-ring"></div>
@@ -1069,41 +923,7 @@
         <div class="vf-corner vf-tr"></div>
         <div class="vf-corner vf-bl"></div>
         <div class="vf-corner vf-br"></div>
-        <div class="phone-mockup">
-          <div class="phone-notch"></div>
-          <div class="phone-screen">
-            <div class="phone-header">LOCOSNAP · SCANNING</div>
-            <div class="train-card">
-              <div class="train-card-badges">
-                <span class="badge-new">✦ NEW!</span>
-                <span class="badge-legendary">⬥ LEGENDARY</span>
-              </div>
-              <div class="train-card-img">
-                <div class="scan-line"></div>
-                <div class="confetti-dot"></div>
-                <div class="confetti-dot"></div>
-                <div class="confetti-dot"></div>
-                <div class="confetti-dot"></div>
-                <div class="confetti-dot"></div>
-                🚂
-              </div>
-              <div class="train-card-info" style="position:relative">
-                <div class="match-badge">95<span>%</span></div>
-                <div class="train-name">VL80S</div>
-                <div class="train-operator">RZD · Electric · Red and Yellow</div>
-                <div class="train-stats">
-                  <span class="train-stat">⚡ 110 km/h</span>
-                  <span class="train-stat">⚡ 6,540 kW</span>
-                  <span class="train-stat">❤ 1 left</span>
-                </div>
-                <div class="rarity-bar">
-                  <div class="rarity-label">⬥ LEGENDARY</div>
-                  <div class="rarity-desc">Unique prototype. Only 1 ever built. Still in service.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <img src="images/screenshot-rare-card.png" class="hero-screenshot" alt="LocoSnap — RARE train identification result">
       </div>
     </div>
   </section>
@@ -1127,6 +947,34 @@
       <div class="stat-label">Avg Scan Time</div>
     </div>
   </div>
+
+  <!-- ── SCREENSHOTS ── -->
+  <section class="screenshots-section">
+    <div class="section-tag">// App Screenshots</div>
+    <h2 class="section-title reveal">See it in action.</h2>
+    <div class="screenshots-row reveal">
+      <div class="screenshot-item">
+        <img src="images/screenshot-scanning.png" alt="LocoSnap scanning a train">
+        <div class="screenshot-label">Scanning</div>
+      </div>
+      <div class="screenshot-item">
+        <img src="images/screenshot-rare-card.png" alt="LocoSnap RARE train card reveal">
+        <div class="screenshot-label">Rarity Reveal</div>
+      </div>
+      <div class="screenshot-item">
+        <img src="images/screenshot-results.png" alt="LocoSnap train identification results">
+        <div class="screenshot-label">Results</div>
+      </div>
+      <div class="screenshot-item">
+        <img src="images/screenshot-specs.png" alt="LocoSnap technical specifications">
+        <div class="screenshot-label">Tech Specs</div>
+      </div>
+      <div class="screenshot-item">
+        <img src="images/screenshot-blueprint.png" alt="LocoSnap AI blueprint illustration">
+        <div class="screenshot-label">Blueprint</div>
+      </div>
+    </div>
+  </section>
 
   <!-- ── HOW IT WORKS ── -->
   <section id="how">
