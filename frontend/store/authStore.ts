@@ -69,13 +69,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // Listen for auth changes
-      supabase.auth.onAuthStateChange((_event, session) => {
+      supabase.auth.onAuthStateChange((event, session) => {
         const wasGuest = get().isGuest;
+
+        if (event === "TOKEN_REFRESHED" && session) {
+          // Silent token refresh — update session without disrupting state
+          set({ session, user: session.user });
+          return;
+        }
+
+        if (event === "SIGNED_OUT" && !session) {
+          // Could be a silent token refresh failure on Android — try to recover
+          supabase.auth.refreshSession().then(({ data }) => {
+            if (data.session) {
+              // Recovery successful — restore session silently
+              set({ session: data.session, user: data.session.user });
+              get().fetchProfile();
+            } else {
+              // Genuine sign-out — clear state
+              set({ profile: null, isGuest: wasGuest });
+            }
+          });
+          return;
+        }
+
         set({
           session,
           user: session?.user ?? null,
-          // Only clear guest if they actually signed in (got a session)
-          // Don't reset isGuest to true just because session is null
           isGuest: session ? false : wasGuest,
         });
         if (session) {

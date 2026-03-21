@@ -4,6 +4,7 @@
 // ============================================================
 
 import React, { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -98,6 +99,13 @@ export default function LeaderboardScreen() {
     setLoading(true);
     loadLeaderboard(activeTab, selectedRegion);
   }, [activeTab, loadLeaderboard, selectedRegion]);
+
+  // Refresh when navigating back to this tab
+  useFocusEffect(
+    useCallback(() => {
+      loadLeaderboard(activeTab, selectedRegion);
+    }, [activeTab, loadLeaderboard, selectedRegion])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);

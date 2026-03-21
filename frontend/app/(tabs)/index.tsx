@@ -24,7 +24,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../../store/trainStore";
 import { useAuthStore } from "../../store/authStore";
-import { identifyTrain, pollBlueprintStatus } from "../../services/api";
+import { identifyTrain, pollBlueprintStatus, healthCheck } from "../../services/api";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track, captureError, addBreadcrumb } from "../../services/analytics";
 
@@ -80,6 +80,11 @@ export default function HomeScreen() {
   const scansRemaining = isGuest || profile?.is_pro
     ? null
     : MAX_DAILY_SCANS - (profile?.daily_scans_used ?? 0);
+
+  // ── Pre-warm the backend on mount (prevents Render cold-start timeouts) ──
+  useEffect(() => {
+    healthCheck();
+  }, []);
 
   // ── Ambient glow pulse (always running, subtle) ──────────
   useEffect(() => {
