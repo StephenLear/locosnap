@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocoSnap — Identify Any Train with AI</title>
+  <meta name="description" content="Point your camera at any train and instantly get the class, operator, specs, rarity, and history. AI-powered train identification for iOS and Android.">
+  <meta property="og:title" content="LocoSnap — Identify Any Train with AI">
+  <meta property="og:description" content="Point your camera at any train. Get the full story instantly.">
+  <meta property="og:image" content="https://locosnap.app/og-image.jpg">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚂</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:    #00D4AA;
+      --teal-dim: rgba(0, 212, 170, 0.12);
+      --teal-glow: rgba(0, 212, 170, 0.35);
+      --yellow:  #FFE000;
+      --orange:  #F59E0B;
+      --bg:      #080d17;
+      --bg2:     #0d1420;
+      --surface: #121928;
+      --border:  rgba(0, 212, 170, 0.15);
+      --text:    #e8edf5;
+      --muted:   #6b7a94;
+      --rare:    #8B5CF6;
+      --legendary: #F59E0B;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Noise texture overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    /* ── Grid background ── */
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,170,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,170,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    /* ─────────────────────────────────────────
+       NAV
+    ───────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      background: rgba(8, 13, 23, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 4px;
+      color: var(--teal);
+      text-decoration: none;
+    }
+
+    .nav-logo span {
+      color: var(--text);
+      opacity: 0.4;
+      font-weight: 400;
+      margin-left: 2px;
+    }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--teal);
+      color: #080d17;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .btn-ghost {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+
+    .btn-ghost:hover { color: var(--teal); }
+
+    /* ─────────────────────────────────────────
+       HERO
+    ───────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      padding: 120px 48px 80px;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(0,212,170,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 580px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--teal-dim);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 16px;
+      margin-bottom: 32px;
+    }
+
+    .hero-badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero-badge-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--teal);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(64px, 8vw, 96px);
+      line-height: 0.95;
+      letter-spacing: -1px;
+      margin-bottom: 24px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--teal);
+    }
+
+    .hero-title .highlight {
+      position: relative;
+      display: inline-block;
+    }
+
+    .hero-title .highlight::after {
+      content: '';
+      position: absolute;
+      bottom: 4px; left: 0; right: 0;
+      height: 4px;
+      background: var(--yellow);
+      border-radius: 2px;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 40px;
+      max-width: 420px;
+      font-weight: 300;
+    }
+
+    .hero-sub strong { color: var(--text); font-weight: 600; }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-store {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 14px 24px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .btn-store:hover {
+      border-color: var(--teal);
+      transform: translateY(-2px);
+    }
+
+    .btn-store-icon { font-size: 28px; line-height: 1; }
+
+    .btn-store-text { text-align: left; }
+
+    .btn-store-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      display: block;
+      text-transform: uppercase;
+    }
+
+    .btn-store-main {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      display: block;
+    }
+
+    .btn-soon {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 24px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* ── Hero Visual (phone mockup) ── */
+    .hero-visual {
+      position: absolute;
+      right: 6vw;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+    }
+
+    .phone-mockup {
+      width: 280px;
+      background: #0a0f1a;
+      border-radius: 36px;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+      box-shadow:
+        0 0 0 6px rgba(255,255,255,0.04),
+        0 40px 80px rgba(0,0,0,0.6),
+        0 0 60px rgba(0,212,170,0.12);
+      position: relative;
+    }
+
+    .phone-notch {
+      width: 100px; height: 28px;
+      background: #0a0f1a;
+      border-radius: 0 0 16px 16px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    .phone-screen {
+      padding: 8px 16px 24px;
+    }
+
+    .phone-header {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--teal);
+      letter-spacing: 2px;
+      text-align: center;
+      padding: 4px 0 12px;
+      border-bottom: 1px solid rgba(0,212,170,0.1);
+      margin-bottom: 12px;
+    }
+
+    /* Train result card */
+    .train-card {
+      background: #0f1a2a;
+      border-radius: 16px;
+      border: 1.5px solid var(--legendary);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .train-card-badges {
+      position: absolute;
+      top: 10px; left: 10px; right: 10px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 2;
+    }
+
+    .badge-new {
+      background: var(--teal);
+      color: #0a0f1a;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      letter-spacing: 1px;
+    }
+
+    .badge-legendary {
+      background: var(--legendary);
+      color: #0a0f1a;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      letter-spacing: 1px;
+    }
+
+    .train-card-img {
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(135deg, #1a2535 0%, #0f1520 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .train-card-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 60%, #0f1a2a 100%);
+    }
+
+    /* Animated scan line on the card */
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--teal), transparent);
+      animation: scanline 2s ease-in-out infinite;
+      top: 0;
+    }
+
+    @keyframes scanline {
+      0% { top: 0; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .confetti-dot {
+      position: absolute;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      animation: confetti-fall 3s ease-in-out infinite;
+    }
+
+    .confetti-dot:nth-child(1) { background: var(--yellow); top: 20%; left: 15%; animation-delay: 0s; }
+    .confetti-dot:nth-child(2) { background: var(--teal); top: 40%; right: 12%; animation-delay: 0.5s; }
+    .confetti-dot:nth-child(3) { background: var(--orange); top: 60%; left: 20%; animation-delay: 1s; }
+    .confetti-dot:nth-child(4) { background: var(--yellow); top: 30%; right: 25%; animation-delay: 1.5s; }
+    .confetti-dot:nth-child(5) { background: var(--teal); top: 70%; left: 40%; animation-delay: 0.8s; }
+
+    @keyframes confetti-fall {
+      0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      50% { transform: translateY(6px) rotate(180deg); opacity: 0.6; }
+    }
+
+    .train-card-info {
+      padding: 12px;
+    }
+
+    .train-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .train-operator {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .train-stats {
+      display: flex;
+      gap: 12px;
+    }
+
+    .train-stat {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--teal);
+    }
+
+    .rarity-bar {
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-top: 10px;
+    }
+
+    .rarity-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--legendary);
+      letter-spacing: 2px;
+      margin-bottom: 2px;
+    }
+
+    .rarity-desc {
+      font-size: 9px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .match-badge {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: var(--teal);
+      color: #0a0f1a;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .match-badge span {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* Floating scan ring around phone */
+    .scan-ring {
+      position: absolute;
+      border: 1px solid rgba(0,212,170,0.2);
+      border-radius: 50%;
+      animation: ring-pulse 3s ease-in-out infinite;
+    }
+
+    .scan-ring:nth-child(1) {
+      width: 360px; height: 360px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .scan-ring:nth-child(2) {
+      width: 460px; height: 460px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: 1s;
+    }
+
+    @keyframes ring-pulse {
+      0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 0.1; transform: translate(-50%, -50%) scale(1.03); }
+    }
+
+    /* Viewfinder corners */
+    .vf-corner {
+      position: absolute;
+      width: 24px; height: 24px;
+    }
+    .vf-tl { top: -12px; left: -12px; border-top: 2px solid var(--teal); border-left: 2px solid var(--teal); }
+    .vf-tr { top: -12px; right: -12px; border-top: 2px solid var(--teal); border-right: 2px solid var(--teal); }
+    .vf-bl { bottom: -12px; left: -12px; border-bottom: 2px solid var(--teal); border-left: 2px solid var(--teal); }
+    .vf-br { bottom: -12px; right: -12px; border-bottom: 2px solid var(--teal); border-right: 2px solid var(--teal); }
+
+    /* ─────────────────────────────────────────
+       STATS BAR
+    ───────────────────────────────────────── */
+    .stats-bar {
+      position: relative;
+      z-index: 2;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: rgba(13, 20, 32, 0.8);
+      padding: 32px 48px;
+      display: flex;
+      justify-content: center;
+      gap: 80px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 48px;
+      line-height: 1;
+      color: var(--teal);
+      letter-spacing: -1px;
+    }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ─────────────────────────────────────────
+       HOW IT WORKS
+    ───────────────────────────────────────── */
+    section {
+      padding: 100px 48px;
+      position: relative;
+    }
+
+    .section-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--teal);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: clamp(40px, 5vw, 60px);
+      line-height: 1;
+      letter-spacing: -0.5px;
+      margin-bottom: 60px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      max-width: 960px;
+    }
+
+    .step {
+      background: var(--surface);
+      padding: 40px 32px;
+      position: relative;
+      border: 1px solid var(--border);
+      transition: border-color 0.3s;
+    }
+
+    .step:hover { border-color: rgba(0,212,170,0.4); }
+
+    .step:first-child { border-radius: 16px 0 0 16px; }
+    .step:last-child { border-radius: 0 16px 16px 0; }
+
+    .step-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 80px;
+      line-height: 1;
+      color: rgba(0,212,170,0.08);
+      position: absolute;
+      top: 16px; right: 20px;
+      pointer-events: none;
+    }
+
+    .step-icon {
+      font-size: 36px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .step-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: 0.3px;
+      margin-bottom: 12px;
+    }
+
+    .step-desc {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* ─────────────────────────────────────────
+       RARITY SYSTEM
+    ───────────────────────────────────────── */
+    .rarity-section {
+      background: var(--bg2);
+    }
+
+    .rarity-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      max-width: 900px;
+    }
+
+    .rarity-card {
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      border: 1px solid;
+      transition: transform 0.2s;
+    }
+
+    .rarity-card:hover { transform: translateY(-4px); }
+
+    .rarity-card.common    { background: rgba(100,116,139,0.08); border-color: rgba(100,116,139,0.3); }
+    .rarity-card.uncommon  { background: rgba(34,197,94,0.08);  border-color: rgba(34,197,94,0.3);  }
+    .rarity-card.rare      { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.3); }
+    .rarity-card.epic      { background: rgba(249,115,22,0.08); border-color: rgba(249,115,22,0.3); }
+    .rarity-card.legendary { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.5); }
+
+    .rarity-card-icon { font-size: 28px; margin-bottom: 10px; display: block; }
+
+    .rarity-card-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .rarity-card.common .rarity-card-name    { color: #94a3b8; }
+    .rarity-card.uncommon .rarity-card-name  { color: #22c55e; }
+    .rarity-card.rare .rarity-card-name      { color: #8b5cf6; }
+    .rarity-card.epic .rarity-card-name      { color: #f97316; }
+    .rarity-card.legendary .rarity-card-name { color: var(--legendary); }
+
+    .rarity-card-desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    /* ─────────────────────────────────────────
+       FEATURES
+    ───────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      max-width: 1000px;
+    }
+
+    .feature {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 36px 28px;
+      border-radius: 0;
+      transition: background 0.2s;
+    }
+
+    .feature:hover { background: rgba(18, 25, 40, 0.8); }
+
+    .feature:nth-child(1) { border-radius: 16px 0 0 0; }
+    .feature:nth-child(2) { border-radius: 0; }
+    .feature:nth-child(3) { border-radius: 0 16px 0 0; }
+    .feature:nth-child(4) { border-radius: 0 0 0 16px; }
+    .feature:nth-child(5) { border-radius: 0; }
+    .feature:nth-child(6) { border-radius: 0 0 16px 0; }
+
+    .feature-icon {
+      width: 44px; height: 44px;
+      background: var(--teal-dim);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .feature-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: 0.3px;
+      margin-bottom: 10px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* ─────────────────────────────────────────
+       LEADERBOARD PREVIEW
+    ───────────────────────────────────────── */
+    .leaderboard-section { background: var(--bg2); }
+
+    .lb-preview {
+      max-width: 480px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .lb-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lb-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 1px;
+    }
+
+    .lb-tab-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .lb-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    .lb-tab.active {
+      background: var(--teal-dim);
+      color: var(--teal);
+      border: 1px solid var(--border);
+    }
+
+    .lb-row {
+      display: flex;
+      align-items: center;
+      padding: 16px 24px;
+      gap: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+
+    .lb-row:hover { background: rgba(255,255,255,0.02); }
+    .lb-row:last-child { border-bottom: none; }
+
+    .lb-rank {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      width: 28px;
+      text-align: center;
+    }
+
+    .lb-rank.gold   { color: #f59e0b; }
+    .lb-rank.silver { color: #94a3b8; }
+    .lb-rank.bronze { color: #cd7f32; }
+
+    .lb-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--teal-dim);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .lb-info { flex: 1; }
+
+    .lb-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .lb-level {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    .lb-score {
+      text-align: right;
+    }
+
+    .lb-xp {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--teal);
+    }
+
+    .lb-xp-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    /* ─────────────────────────────────────────
+       CTA SECTION
+    ───────────────────────────────────────── */
+    .cta-section {
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-glow {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section .section-title { margin-bottom: 16px; }
+
+    .cta-sub {
+      font-size: 18px;
+      color: var(--muted);
+      margin-bottom: 48px;
+      font-weight: 300;
+    }
+
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .cta-note {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-top: 32px;
+    }
+
+    /* ─────────────────────────────────────────
+       FOOTER
+    ───────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 3px;
+      color: var(--teal);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .footer-links a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--teal); }
+
+    .footer-copy {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    /* ─────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 16px 24px; }
+      .hero { padding: 100px 24px 400px; }
+      .hero-visual { position: relative; right: auto; top: auto; transform: none; margin: 60px auto 0; width: fit-content; }
+      section { padding: 70px 24px; }
+      .stats-bar { gap: 40px; padding: 28px 24px; }
+      .steps { grid-template-columns: 1fr; }
+      .step:first-child { border-radius: 16px 16px 0 0; }
+      .step:last-child { border-radius: 0 0 16px 16px; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .feature:nth-child(1) { border-radius: 16px 0 0 0; }
+      .feature:nth-child(2) { border-radius: 0 16px 0 0; }
+      .feature:nth-child(5) { border-radius: 0 0 0 16px; }
+      .feature:nth-child(6) { border-radius: 0 0 16px 0; }
+      .feature:nth-child(3), .feature:nth-child(4) { border-radius: 0; }
+      .rarity-grid { grid-template-columns: repeat(3, 1fr); }
+      footer { flex-direction: column; text-align: center; padding: 32px 24px; }
+      .footer-links { justify-content: center; }
+    }
+
+    @media (max-width: 540px) {
+      .hero-title { font-size: 56px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .feature { border-radius: 0 !important; }
+      .feature:first-child { border-radius: 16px 16px 0 0 !important; }
+      .feature:last-child { border-radius: 0 0 16px 16px !important; }
+      .rarity-grid { grid-template-columns: 1fr 1fr; }
+      .nav-cta .btn-ghost { display: none; }
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <nav>
+    <a href="#" class="nav-logo">LOCO<span>SNAP</span></a>
+    <div class="nav-cta">
+      <a href="#how" class="btn-ghost">HOW IT WORKS</a>
+      <a href="https://apps.apple.com/app/locosnap/id6741445220" class="btn-primary" target="_blank">
+        Download Free
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="grid-bg"></div>
+    <div class="hero-glow"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        <span class="hero-badge-text">Now live on the App Store</span>
+      </div>
+
+      <h1 class="hero-title">
+        Identify<br>
+        <em>any train.</em><br>
+        <span class="highlight">Instantly.</span>
+      </h1>
+
+      <p class="hero-sub">
+        Point your camera at any locomotive, EMU, or DMU.
+        LocoSnap's AI returns the <strong>class, operator, specs, rarity tier,
+        and history</strong> — in seconds.
+      </p>
+
+      <div class="hero-actions">
+        <a href="https://apps.apple.com/app/locosnap/id6741445220" class="btn-store" target="_blank">
+          <span class="btn-store-icon">🍎</span>
+          <span class="btn-store-text">
+            <span class="btn-store-sub">Download on the</span>
+            <span class="btn-store-main">App Store</span>
+          </span>
+        </a>
+        <span class="btn-soon">
+          <span>🤖</span>
+          <span style="font-size:13px; color: var(--muted);">Android coming soon</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Phone mockup -->
+    <div class="hero-visual">
+      <div style="position: relative; display: inline-block;">
+        <div class="scan-ring"></div>
+        <div class="scan-ring"></div>
+        <div class="vf-corner vf-tl"></div>
+        <div class="vf-corner vf-tr"></div>
+        <div class="vf-corner vf-bl"></div>
+        <div class="vf-corner vf-br"></div>
+        <div class="phone-mockup">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="phone-header">LOCOSNAP · SCANNING</div>
+            <div class="train-card">
+              <div class="train-card-badges">
+                <span class="badge-new">✦ NEW!</span>
+                <span class="badge-legendary">⬥ LEGENDARY</span>
+              </div>
+              <div class="train-card-img">
+                <div class="scan-line"></div>
+                <div class="confetti-dot"></div>
+                <div class="confetti-dot"></div>
+                <div class="confetti-dot"></div>
+                <div class="confetti-dot"></div>
+                <div class="confetti-dot"></div>
+                🚂
+              </div>
+              <div class="train-card-info" style="position:relative">
+                <div class="match-badge">95<span>%</span></div>
+                <div class="train-name">VL80S</div>
+                <div class="train-operator">RZD · Electric · Red and Yellow</div>
+                <div class="train-stats">
+                  <span class="train-stat">⚡ 110 km/h</span>
+                  <span class="train-stat">⚡ 6,540 kW</span>
+                  <span class="train-stat">❤ 1 left</span>
+                </div>
+                <div class="rarity-bar">
+                  <div class="rarity-label">⬥ LEGENDARY</div>
+                  <div class="rarity-desc">Unique prototype. Only 1 ever built. Still in service.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STATS ── -->
+  <div class="stats-bar reveal">
+    <div class="stat-item">
+      <div class="stat-num">1000+</div>
+      <div class="stat-label">Train Classes</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Rarity Tiers</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">50+</div>
+      <div class="stat-label">Countries</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">&lt;10s</div>
+      <div class="stat-label">Avg Scan Time</div>
+    </div>
+  </div>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section id="how">
+    <div class="section-tag">// Process</div>
+    <h2 class="section-title reveal">Three steps.<br>One tap.</h2>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <span class="step-icon">📸</span>
+        <div class="step-title">Point & Shoot</div>
+        <p class="step-desc">Take a photo with your camera or choose one from your library. Any angle works — front, rear, or side-on.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <span class="step-icon">🔍</span>
+        <div class="step-title">AI Analyses</div>
+        <p class="step-desc">Our AI cross-references thousands of classes worldwide — bogies, livery, cab shape, pantograph configuration, visible fleet numbers.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <span class="step-icon">⬥</span>
+        <div class="step-title">Discover Everything</div>
+        <p class="step-desc">Get the class, operator, year built, technical specs, historical facts, rarity tier, and an AI-generated blueprint illustration.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── RARITY SYSTEM ── -->
+  <section class="rarity-section">
+    <div class="section-tag">// Rarity System</div>
+    <h2 class="section-title reveal">Not all trains<br>are equal.</h2>
+    <div class="rarity-grid reveal">
+      <div class="rarity-card common">
+        <span class="rarity-card-icon">🔷</span>
+        <div class="rarity-card-name">Common</div>
+        <div class="rarity-card-desc">Everyday workhorses. Hundreds built, still running strong.</div>
+      </div>
+      <div class="rarity-card uncommon">
+        <span class="rarity-card-icon">💎</span>
+        <div class="rarity-card-name">Uncommon</div>
+        <div class="rarity-card-desc">Worth a second look. Smaller fleets or regional variants.</div>
+      </div>
+      <div class="rarity-card rare">
+        <span class="rarity-card-icon">💜</span>
+        <div class="rarity-card-name">Rare</div>
+        <div class="rarity-card-desc">Hard to spot. Limited production runs or aging survivors.</div>
+      </div>
+      <div class="rarity-card epic">
+        <span class="rarity-card-icon">🔶</span>
+        <div class="rarity-card-name">Epic</div>
+        <div class="rarity-card-desc">A serious catch. Prototypes and near-extinct classes.</div>
+      </div>
+      <div class="rarity-card legendary">
+        <span class="rarity-card-icon">⭐</span>
+        <div class="rarity-card-name">Legendary</div>
+        <div class="rarity-card-desc">One of a kind. You may never see another.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ── -->
+  <section>
+    <div class="section-tag">// Features</div>
+    <h2 class="section-title reveal">Everything a spotter<br>needs. Nothing they don't.</h2>
+    <div class="features-grid reveal">
+      <div class="feature">
+        <div class="feature-icon">🌍</div>
+        <div class="feature-title">Global Coverage</div>
+        <p class="feature-desc">UK, European, Scandinavian, Japanese, North American — if it runs on rails, LocoSnap knows it.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Technical Specs</div>
+        <p class="feature-desc">Max speed, power output, weight, length, gauge, builder, fuel type — the full data sheet.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📜</div>
+        <div class="feature-title">History & Facts</div>
+        <p class="feature-desc">The story behind every class. Notable events, engineering milestones, and the facts that make spotters smile.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🎨</div>
+        <div class="feature-title">Blueprint Illustrations</div>
+        <p class="feature-desc">Generate a unique AI blueprint in Technical, Vintage, Schematic, or Cinematic style for any train you identify.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🏆</div>
+        <div class="feature-title">Leaderboard & XP</div>
+        <p class="feature-desc">Earn XP for every spot. Climb the global leaderboard. Build your collection. Maintain your streak.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📍</div>
+        <div class="feature-title">GPS Logging</div>
+        <p class="feature-desc">Every scan is logged with location so you can build a map of everywhere you've spotted.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── LEADERBOARD PREVIEW ── -->
+  <section class="leaderboard-section">
+    <div class="section-tag">// Community</div>
+    <h2 class="section-title reveal">Spot more.<br>Rank higher.</h2>
+    <div class="lb-preview reveal">
+      <div class="lb-header">
+        <span class="lb-title">RANKS</span>
+        <div class="lb-tab-group">
+          <span class="lb-tab active">ALL-TIME</span>
+          <span class="lb-tab">WEEKLY</span>
+          <span class="lb-tab">RARITY</span>
+        </div>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank gold">1</span>
+        <div class="lb-avatar">🚂</div>
+        <div class="lb-info">
+          <div class="lb-name">RailHunter_UK</div>
+          <div class="lb-level">Copping Legend</div>
+        </div>
+        <div class="lb-score">
+          <div class="lb-xp">2,847</div>
+          <div class="lb-xp-label">XP</div>
+        </div>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank silver">2</span>
+        <div class="lb-avatar">🛤️</div>
+        <div class="lb-info">
+          <div class="lb-name">BahnFreak_DE</div>
+          <div class="lb-level">Grinder</div>
+        </div>
+        <div class="lb-score">
+          <div class="lb-xp">1,923</div>
+          <div class="lb-xp-label">XP</div>
+        </div>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank bronze">3</span>
+        <div class="lb-avatar">⚡</div>
+        <div class="lb-info">
+          <div class="lb-name">PantographPete</div>
+          <div class="lb-level">Basher</div>
+        </div>
+        <div class="lb-score">
+          <div class="lb-xp">1,441</div>
+          <div class="lb-xp-label">XP</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="cta-section">
+    <div class="cta-glow"></div>
+    <div class="section-tag" style="text-align:center">// Download</div>
+    <h2 class="section-title reveal">
+      Your next spot<br>
+      <em>is waiting.</em>
+    </h2>
+    <p class="cta-sub">Free to download. Start scanning immediately.</p>
+    <div class="cta-actions reveal">
+      <a href="https://apps.apple.com/app/locosnap/id6741445220" class="btn-store" target="_blank">
+        <span class="btn-store-icon">🍎</span>
+        <span class="btn-store-text">
+          <span class="btn-store-sub">Download on the</span>
+          <span class="btn-store-main">App Store</span>
+        </span>
+      </a>
+      <span class="btn-soon" style="padding: 14px 24px;">
+        <span>🤖</span>
+        <span style="font-size:13px; font-family: 'Outfit'; font-weight:500;">Android — coming soon</span>
+      </span>
+    </div>
+    <p class="cta-note">LOCOSNAP.APP · AI-POWERED TRAIN IDENTIFICATION</p>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div class="footer-logo">LOCOSNAP</div>
+    <div class="footer-links">
+      <a href="mailto:hello@locosnap.app">Contact</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms</a>
+    </div>
+    <div class="footer-copy">© 2026 LocoSnap. All rights reserved.</div>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+    reveals.forEach(el => observer.observe(el));
+
+    // Stagger children in grids
+    document.querySelectorAll('.steps, .features-grid, .rarity-grid').forEach(grid => {
+      [...grid.children].forEach((child, i) => {
+        child.style.transitionDelay = `${i * 80}ms`;
+        child.classList.add('reveal');
+        observer.observe(child);
+      });
+    });
+  </script>
+
+</body>
+</html>
