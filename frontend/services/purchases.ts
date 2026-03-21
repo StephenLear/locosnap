@@ -101,11 +101,14 @@ export async function syncProStatus(userId: string): Promise<boolean> {
   try {
     const isPro = await checkEntitlements();
 
-    // Update Supabase to match RevenueCat state
-    await supabase
-      .from("profiles")
-      .update({ is_pro: isPro })
-      .eq("id", userId);
+    // Only write back to Supabase when RevenueCat grants Pro.
+    // Never let a RevenueCat "false" override a manually-granted is_pro.
+    if (isPro) {
+      await supabase
+        .from("profiles")
+        .update({ is_pro: true })
+        .eq("id", userId);
+    }
 
     return isPro;
   } catch (error) {

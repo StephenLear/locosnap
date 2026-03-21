@@ -214,12 +214,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // Sync Pro status with RevenueCat entitlements
+      // Only upgrade to Pro if RevenueCat confirms it — never downgrade a manually-granted Pro
       const isPro = await syncProStatus(user.id);
-      if (isPro !== data.is_pro) {
-        // RevenueCat disagrees with DB — update local state
+      if (isPro && !data.is_pro) {
         const currentProfile = get().profile;
         if (currentProfile) {
-          set({ profile: { ...currentProfile, is_pro: isPro } });
+          set({ profile: { ...currentProfile, is_pro: true } });
         }
       }
     }
