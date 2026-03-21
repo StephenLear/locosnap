@@ -139,9 +139,12 @@
       position: relative;
       min-height: 100vh;
       display: flex;
+      flex-direction: row;
       align-items: center;
+      justify-content: space-between;
+      gap: 48px;
       overflow: hidden;
-      padding: 120px 48px 80px;
+      padding: 120px 8vw 80px;
     }
 
     .hero-glow {
@@ -290,11 +293,12 @@
 
     /* ── Hero Visual (real screenshot) ── */
     .hero-visual {
-      position: absolute;
-      right: 6vw;
-      top: 50%;
-      transform: translateY(-50%);
+      position: relative;
       z-index: 2;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .hero-screenshot {
@@ -819,8 +823,8 @@
     ───────────────────────────────────────── */
     @media (max-width: 900px) {
       nav { padding: 16px 24px; }
-      .hero { padding: 100px 24px 80px; }
-      .hero-visual { position: relative; right: auto; top: auto; transform: none; margin: 60px auto 0; width: fit-content; }
+      .hero { padding: 100px 24px 80px; flex-direction: column; text-align: center; }
+      .hero-visual { margin: 40px auto 0; width: fit-content; }
       .hero-screenshot { width: 220px; }
       .screenshots-row { gap: 12px; justify-content: flex-start; padding-left: 24px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .screenshot-item img { width: 160px; }
