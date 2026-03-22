@@ -49,9 +49,9 @@ jest.mock("../../services/imageGen", () => ({
 }));
 
 jest.mock("../../services/trainCache", () => ({
-  getCachedTrainData: jest.fn().mockReturnValue(null),
-  setCachedTrainData: jest.fn(),
-  setCachedBlueprint: jest.fn(),
+  getCachedTrainData: jest.fn().mockResolvedValue(null),
+  setCachedTrainData: jest.fn().mockResolvedValue(undefined),
+  setCachedBlueprint: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock("../../services/analytics", () => ({
