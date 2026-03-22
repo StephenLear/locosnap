@@ -1,6 +1,6 @@
 # LocoSnap — Full Architecture Reference
 
-> Last updated: 2026-03-21
+> Last updated: 2026-03-22
 
 ---
 
@@ -17,7 +17,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.2 (live on App Store) |
+| iOS Version | 1.0.3 (live on App Store) |
 | Android Version | In closed testing (Google Play) |
 | App Store ID | 6741445220 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6741445220 |
@@ -96,8 +96,8 @@ RLS is enabled on all tables. Users can only read/write their own data.
 | Property | Value |
 |----------|-------|
 | Provider | Supabase Auth |
-| Supported Methods | Google OAuth, Apple OAuth, Email magic link |
-| Guest Mode | Yes — app works without sign-in |
+| Supported Methods | Email magic link (OTP), Google OAuth, Apple OAuth |
+| Guest Mode | **Removed** — see User Flow below |
 | Auth Email Sender | noreply@locosnap.app (via Resend SMTP) |
 | Sender Name | LocoSnap |
 
@@ -105,13 +105,20 @@ RLS is enabled on all tables. Users can only read/write their own data.
 
 ---
 
-## 6. Blueprint Task Store — Redis
+## 6. Blueprint Task Store + Train Data Cache — Redis
 
 | Property | Value |
 |----------|-------|
 | Production | Upstash Redis |
 | Local Dev | In-memory Map (automatic fallback) |
-| Purpose | Stores async blueprint generation task status |
+| Blueprint tasks | Stores async blueprint generation task status (key: `task:<id>`) |
+| Train data cache | Stores specs/facts/rarity/blueprints per train class+operator (key: `traindata:<class>::<operator>`) |
+
+**Cache architecture (2026-03-22):** The train data cache was previously written to the local filesystem (`train-cache.json`) which is wiped on every Render deploy. Migrated to a two-level cache:
+- **L1** — in-memory `Map` (fast, resets on server restart)
+- **L2** — Upstash Redis with 30-day TTL (persistent across deploys)
+
+Cache entries are lazy-loaded from Redis on first access. `trainCache.ts` functions (`getCachedTrainData`, `setCachedTrainData`, `setCachedBlueprint`) are all async. Saves ~84% of AI costs on repeat scans (£0.005 cached vs £0.031 fresh).
 
 ---
 
@@ -126,6 +133,18 @@ RLS is enabled on all tables. Users can only read/write their own data.
 | Manual Pro Grant | UPDATE public.profiles SET is_pro = true WHERE id = '...' |
 
 **Note:** RevenueCat is checked on profile load. If DB has `is_pro = true` (manually granted), RevenueCat will not override it (fixed in commit `7f0188a`).
+
+### Scan Limits (as of 2026-03-22)
+
+| User State | Scan Allowance |
+|-----------|---------------|
+| Unauthenticated (trial) | 3 total — tracked in AsyncStorage (`locosnap_presignup_scans`) |
+| Free account | 10 per calendar month — resets on new month (`daily_scans_used` / `daily_scans_reset_at`) |
+| Pro | Unlimited |
+
+**Important:** Guest mode was removed in 2026-03-22 because `canScan()` returned `true` unconditionally for guests (a loophole giving unlimited free scans). The sign-in screen no longer shows "Continue as Guest". Unauthenticated users can scan 3 times before being prompted to create a free account.
+
+The DB columns are named `daily_scans_used` / `daily_scans_reset_at` (legacy names) but are now used as **monthly** counters. The reset logic checks `getMonth()` + `getFullYear()` rather than `toDateString()`.
 
 ---
 
@@ -192,6 +211,8 @@ RLS is enabled on all tables. Users can only read/write their own data.
 |---------|---------|
 | PostHog | Product analytics — scan events, feature usage, funnels |
 | Sentry | Error tracking + crash reporting |
+
+**Sentry activation (2026-03-22):** `EXPO_PUBLIC_SENTRY_DSN` was missing from all build profiles and `.env`. Added to `eas.json` (preview + production), `frontend/.env`, and the backend's Render environment. `SENTRY_DISABLE_AUTO_UPLOAD=true` was also blocking production — removed from the production profile in `eas.json`. Sentry DSN: `https://874dfbb3d0666b9a54bf4ac8b3375872@o4511090253955072.ingest.de.sentry.io/4511090259198032` (EU region, project: locosnap).
 
 ---
 
@@ -271,30 +292,53 @@ FRONTEND_URL=https://locosnap.app
 
 ---
 
-## 17. Data Flow (Single Scan)
+## 17. User Flow (Scan-First, No Guest Mode)
+
+```
+1. App opens → user goes directly to scanner (no auth gate)
+2. Trial banner shows: "3 free scans to try — sign up to save your collection"
+3. User scans (up to 3 times, counted in AsyncStorage)
+4. On scan 4: "Create Your Free Account" prompt — sign-up gate
+5. User creates free account → 10 scans/month, cloud sync, leaderboard
+6. User upgrades to Pro → unlimited scans, all blueprint styles
+```
+
+**Key constants** (`authStore.ts`):
+- `PRE_SIGNUP_FREE_SCANS = 3` — trial scans before sign-up required
+- `MAX_MONTHLY_SCANS = 10` — monthly limit for free accounts
+- `PRE_SIGNUP_SCANS_KEY = "locosnap_presignup_scans"` — AsyncStorage key
+
+---
+
+## 18. Data Flow (Single Scan)
 
 ```
 1. User takes photo
-2. App uploads photo to POST /api/identify
-3. Backend pre-warms on app mount (healthCheck) to avoid cold start
-4. Vision API identifies the train (Claude or GPT-4o)
-5. Specs + Facts + Rarity fetched in parallel (Claude or GPT-4o)
-6. Blueprint generation starts async → returns taskId
-7. Train data returned immediately to app
-8. App displays results + polls GET /api/blueprint/:taskId
-9. Blueprint completes → uploaded to Supabase Storage
-10. Spot saved to Supabase (spots table)
-11. XP awarded, streak updated, achievements checked
-12. Leaderboard updated
+2. canScan() checked — trial/monthly limit enforced
+3. App uploads photo to POST /api/identify
+4. Backend pre-warms on app mount (healthCheck) to avoid cold start
+5. Vision API identifies the train (Claude or GPT-4o)
+6. Cache check — if train class+operator seen before, skip steps 7-9
+7. Specs + Facts + Rarity fetched in parallel (Claude or GPT-4o)
+8. Results cached in Redis (30-day TTL)
+9. Blueprint generation starts async → returns taskId
+10. Train data returned immediately to app
+11. App displays results + polls GET /api/blueprint/:taskId
+12. Blueprint completes → uploaded to Supabase Storage
+13. Spot saved to Supabase (spots table) — authenticated users only
+14. XP awarded, streak updated, achievements checked
+15. Leaderboard updated
 ```
 
 ---
 
-## 18. Known Limitations / Pending Work
+## 19. Known Limitations / Pending Work
 
 | Item | Status |
 |------|--------|
-| iOS update with latest fixes | Needs EAS build + App Store submission |
+| iOS 1.0.4 build with scan-first flow + Sentry | Needs EAS build + App Store submission |
 | Google Play closed testing | In Review |
-| Scan history on guest → sign-in migration | Not implemented |
-| Cloud sync race condition fix | Committed, needs EAS build to reach users |
+| History pagination (was capped at 50, now 200) | MAX_HISTORY raised — no pagination yet |
+| ICE 1 weight validation (< 10 tonnes = reject) | Pending |
+| Dual-voltage Czech/Slovak trains in specs prompt | Pending |
+| Czech tester's friend — add to TestFlight | Need Apple ID email |

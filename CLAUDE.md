@@ -172,6 +172,19 @@ Tests cover:
 - **Frontend store:** trainStore (Zustand state management)
 - **Frontend services:** API client (identifyTrain, checkBlueprintStatus, healthCheck, pollBlueprintStatus)
 
+## Mandatory Workflow Rules
+
+### After any code change — run `/changelog`
+After every session where you edit, create, or delete files in `frontend/` or `backend/`, you **MUST** invoke the `/changelog` skill to record what changed in `docs/CHANGELOG.md`. This is non-negotiable — the changelog is the permanent record of what changed and why. Do not skip it.
+
+### After any architectural change — update `docs/ARCHITECTURE.md`
+If a change affects how the system works (auth flow, data persistence, API endpoints, monetisation model, scan limits, new services), update `docs/ARCHITECTURE.md` to match.
+
+### Changelog location
+`docs/CHANGELOG.md` — all frontend and backend code changes recorded here with date, file, what changed, and why.
+
+---
+
 ## Key Design Decisions
 
 1. **Multi-provider architecture** — Works with either Anthropic or OpenAI keys
