@@ -5,6 +5,22 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-03-22 (session 4)
+
+### Frontend
+
+#### `services/analytics.ts` — Added captureWarning for expected user-facing failures
+- **Added** `captureWarning(message, context?)` — calls `Sentry.captureMessage()` at `"warning"` severity instead of `captureException`. Warning-level messages appear in Sentry's data but do not trigger high-priority alert rules.
+- **Why** Identification failures ("Could not identify a train") are expected product behaviour — unclear photo, non-train subject, depot obstruction. Routing them through `captureException` was creating high-priority Sentry issues for normal user flow outcomes, generating alert noise.
+
+#### `app/(tabs)/index.tsx` — Route identification failures to captureWarning
+- **Changed** `handleScan` catch block — was calling `captureError()` (→ `captureException`) for all errors
+- **Changed** Now checks error message prefix: `"Could not identify"` → `captureWarning`; all other errors (network timeout, server fault, unexpected exception) → `captureError` as before
+- **Added** Import of `captureWarning` from analytics
+- **Fixed** Sentry alert noise — "Could not identify" errors will no longer trigger high-priority notifications. Real crashes and network failures still alert correctly.
+
+---
+
 ## 2026-03-22 (session 3)
 
 ### Frontend
