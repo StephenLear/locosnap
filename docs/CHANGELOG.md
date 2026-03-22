@@ -5,6 +5,41 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-03-22 (session 3)
+
+### Frontend
+
+#### `plugins/withSentryDisableUpload.js` — New custom Expo config plugin (created)
+- **Added** Custom Expo config plugin that injects `SENTRY_DISABLE_AUTO_UPLOAD=true` directly into all Xcode build configurations as an Xcode build setting
+- **Fixed** EAS builds #1–3 failing with sentry-cli "An organization ID or slug is required" error
+- **Root cause** EAS Build passes env vars from `eas.json` to the macOS shell, but fastlane (which EAS uses to run Xcode) does not propagate all shell env vars into Xcode build phase scripts. The `sentry-xcode.sh` and `sentry-xcode-debug-files.sh` scripts check `$SENTRY_DISABLE_AUTO_UPLOAD` but never see it. Xcode build settings ARE visible to all run-script build phases regardless of how Xcode was invoked — so setting it as a build setting is the reliable fix.
+- DSN-based crash reporting at runtime is unaffected — this only disables the CI-time source map upload step
+
+#### `app.json` — Sentry disable plugin registered
+- **Added** `"./plugins/withSentryDisableUpload"` to the `plugins` array immediately after `"@sentry/react-native"`
+- Plugin runs at Expo prebuild time, modifying the generated Xcode project before EAS compiles it
+
+### Backend
+
+#### `services/vision.ts` — Depot and preserved loco identification improved
+- **Added** Explicit instruction to never return `{"error": "not_a_train"}` solely because foreground objects (barriers, fencing, other rolling stock) obscure part of the locomotive — depot and shed scenes routinely have this
+- **Added** Class 24 vs Class 25 disambiguation: both are BR Sulzer Type 2 Bo-Bo diesels, commonly preserved, frequently photographed in depot conditions. Class 24 (1958–60, shorter hood, round marker lights set into nose). Class 25 (1961–67, more numerous, subtle grille and nose profile differences). Instructs the model to accept lower confidence rather than returning `not_a_train`
+- **Added** Guidance that heavily weathered, dirty, partially repainted, or unnumbered preserved locos are still identifiable from cab shape, roof profile, bogie type, and bodyside panel shape
+- **Fixed** Two tester photos (BR-era locos at a depot with barriers in foreground) returning "Could not identify a train" — model was refusing to attempt ID due to foreground obstruction
+
+### Infrastructure
+
+#### EAS Build #3 (build number 26) — succeeded and submitted
+- **Fixed** Sentry source map upload block — build succeeded with `SENTRY_DISABLE_AUTO_UPLOAD=true` in eas.json env (env var propagated on this attempt)
+- **Submitted** v1.0.4 build 26 to Apple App Store Connect via `eas submit --id 963b738e-8e44-48de-80af-64cc53f4e20a`
+- **Status** Processed by Apple and available in TestFlight
+
+#### EAS Build #4 (build number 27) — succeeded (Sentry plugin fix)
+- Includes `withSentryDisableUpload` plugin — future builds will not rely on env var propagation through fastlane
+- Build URL: `https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/04ef6865-db26-4f42-bdd7-0d892eedd7a3`
+
+---
+
 ## 2026-03-22 (continued)
 
 ### Backend
