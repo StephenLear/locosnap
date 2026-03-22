@@ -26,7 +26,7 @@ import { useTrainStore } from "../../store/trainStore";
 import { useAuthStore, PRE_SIGNUP_FREE_SCANS, MAX_MONTHLY_SCANS } from "../../store/authStore";
 import { identifyTrain, pollBlueprintStatus, healthCheck } from "../../services/api";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
-import { track, captureError, addBreadcrumb } from "../../services/analytics";
+import { track, captureError, captureWarning, addBreadcrumb } from "../../services/analytics";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -295,11 +295,17 @@ export default function HomeScreen() {
       router.push("/card-reveal");
       startBlueprintPoll(blueprint?.taskId);
     } catch (error) {
-      track("scan_failed", { error: (error as Error).message });
-      captureError(error as Error, { context: "handleScan" });
-      setScanError(
-        (error as Error).message || "Something went wrong. Please try again."
-      );
+      const message = (error as Error).message || "Something went wrong. Please try again.";
+      track("scan_failed", { error: message });
+      // "Could not identify" is expected product behaviour (unclear photo, not a train, etc.)
+      // Log as a Sentry warning so it doesn't trigger high-priority alerts.
+      // Everything else (network errors, server errors) is a real exception.
+      if (message.startsWith("Could not identify")) {
+        captureWarning(message, { context: "handleScan" });
+      } else {
+        captureError(error as Error, { context: "handleScan" });
+      }
+      setScanError(message);
     }
   };
 

@@ -158,6 +158,23 @@ export function captureError(
   } catch {}
 }
 
+/**
+ * Log an expected, user-facing failure as a Sentry warning rather than an error.
+ * Use this for outcomes that are normal product behaviour (e.g. vision couldn't
+ * identify the image) so they don't trigger high-priority Sentry alerts.
+ */
+export function captureWarning(
+  message: string,
+  context?: Record<string, any>
+) {
+  try {
+    Sentry.withScope((scope) => {
+      if (context) scope.setExtras(context);
+      Sentry.captureMessage(message, "warning");
+    });
+  } catch {}
+}
+
 // ── Sentry Error Boundary wrapper ───────────────────────────
 
 export const ErrorBoundary = Sentry.ErrorBoundary;
