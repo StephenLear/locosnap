@@ -62,6 +62,7 @@
         }
       ],
       "@sentry/react-native",
+      "./plugins/withSentryDisableUpload",
       "expo-asset"
     ],
     "extra": {
