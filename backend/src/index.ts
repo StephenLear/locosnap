@@ -12,7 +12,7 @@ import webhooksRouter from "./routes/webhooks";
 import creditsRouter from "./routes/credits";
 import { getVisionProvider } from "./services/vision";
 import { getSupabase } from "./config/supabase";
-import { loadCache, getCacheStats } from "./services/trainCache";
+import { getCacheStats } from "./services/trainCache";
 import { initAnalytics, Sentry, flushAnalytics } from "./services/analytics";
 import { initRedis, getRedisStatus, pingRedis } from "./services/redis";
 
@@ -74,9 +74,6 @@ app.use("/api/credits", creditsRouter);
 // ── Error Handling ──────────────────────────────────────────
 app.use(notFoundHandler);
 app.use(errorHandler);
-
-// ── Load train cache from disk ──────────────────────────────
-loadCache();
 
 // ── Start Server ────────────────────────────────────────────
 app.listen(config.port, () => {

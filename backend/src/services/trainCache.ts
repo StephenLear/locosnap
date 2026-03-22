@@ -3,16 +3,18 @@
 // Caches specs, facts, rarity, AND blueprints for known classes
 // Eliminates 3 AI calls + 1 image gen per repeat scan
 //
-// First scan of a class:  ~£0.028 (vision + specs + facts + rarity + blueprint)
-// Repeat scans (cached):  ~£0.005 (vision only)
-// Saving per cached scan: ~£0.023 (82% reduction)
+// First scan of a class:  ~$0.031 (vision + specs + facts + rarity)
+// Repeat scans (cached):  ~$0.005 (vision only)
+// Saving per cached scan: ~$0.026 (84% reduction)
 //
-// Strategy: in-memory cache + JSON file persistence
+// Strategy:
+//   L1 — in-memory Map  (fast, resets on restart)
+//   L2 — Redis/Upstash  (persistent across deploys and restarts)
+//        Falls back to in-memory if Redis unavailable (local dev)
+//
 // Key: normalised "class::operator" (e.g. "class 390::avanti west coast")
 // ============================================================
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { join } from "path";
 import {
   TrainIdentification,
   TrainSpecs,
@@ -20,6 +22,7 @@ import {
   RarityInfo,
   BlueprintStyle,
 } from "../types";
+import { getTrainCache, setTrainCache } from "./redis";
 
 // ── Types ───────────────────────────────────────────────────
 
@@ -44,26 +47,21 @@ interface CacheStats {
 
 // ── Constants ───────────────────────────────────────────────
 
-const CACHE_DIR = join(process.cwd(), ".cache");
-const CACHE_FILE = join(CACHE_DIR, "train-data.json");
-const MAX_CACHE_SIZE = 500;
 const CACHE_TTL_DAYS = 30;
 
-// Cost saved per cached scan (specs + facts + rarity + blueprint) in GBP
-const COST_PER_CACHED_HIT = 0.023;
+// Cost saved per cached scan (specs + facts + rarity) in USD
+const COST_PER_CACHED_HIT = 0.026;
 
-// ── In-memory cache ─────────────────────────────────────────
+// ── L1 In-memory cache ──────────────────────────────────────
+// Fast lookup within a single server session.
+// Populated from Redis on first access of each key.
 
-let cache: Map<string, CachedTrainData> = new Map();
+const memoryCache = new Map<string, CachedTrainData>();
 let totalHits = 0;
 let totalMisses = 0;
 
 // ── Helpers ─────────────────────────────────────────────────
 
-/**
- * Create a normalised cache key from train identification.
- * Same class + operator = same specs/facts/rarity/blueprint.
- */
 function getCacheKey(train: TrainIdentification): string {
   return `${train.class}::${train.operator}`.toLowerCase().trim();
 }
@@ -74,51 +72,21 @@ function isExpired(entry: CachedTrainData): boolean {
   return ageDays > CACHE_TTL_DAYS;
 }
 
-// ── Load / Save ─────────────────────────────────────────────
-
-export function loadCache(): void {
+async function readFromRedis(key: string): Promise<CachedTrainData | null> {
   try {
-    if (!existsSync(CACHE_DIR)) {
-      mkdirSync(CACHE_DIR, { recursive: true });
-    }
-
-    if (existsSync(CACHE_FILE)) {
-      const raw = readFileSync(CACHE_FILE, "utf-8");
-      const data: Record<string, CachedTrainData> = JSON.parse(raw);
-      cache = new Map(Object.entries(data));
-
-      // Prune expired entries
-      let pruned = 0;
-      for (const [key, entry] of cache) {
-        if (isExpired(entry)) {
-          cache.delete(key);
-          pruned++;
-        }
-      }
-
-      console.log(
-        `[CACHE] Loaded ${cache.size} train classes from disk` +
-          (pruned > 0 ? ` (pruned ${pruned} expired)` : "")
-      );
-    } else {
-      console.log("[CACHE] No cache file found — starting fresh");
-    }
-  } catch (error) {
-    console.warn("[CACHE] Failed to load cache:", (error as Error).message);
-    cache = new Map();
+    const raw = await getTrainCache(key);
+    if (!raw) return null;
+    return JSON.parse(raw) as CachedTrainData;
+  } catch {
+    return null;
   }
 }
 
-function saveCache(): void {
+async function writeToRedis(key: string, entry: CachedTrainData): Promise<void> {
   try {
-    if (!existsSync(CACHE_DIR)) {
-      mkdirSync(CACHE_DIR, { recursive: true });
-    }
-
-    const data: Record<string, CachedTrainData> = Object.fromEntries(cache);
-    writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2), "utf-8");
-  } catch (error) {
-    console.warn("[CACHE] Failed to save cache:", (error as Error).message);
+    await setTrainCache(key, JSON.stringify(entry));
+  } catch (err) {
+    console.warn("[CACHE] Redis write failed:", (err as Error).message);
   }
 }
 
@@ -126,20 +94,31 @@ function saveCache(): void {
 
 /**
  * Look up cached data for a train.
+ * Checks L1 (memory) first, then L2 (Redis).
  * Returns null on cache miss.
- * Pass a style to get the style-specific cached blueprint URL.
  */
-export function getCachedTrainData(
+export async function getCachedTrainData(
   train: TrainIdentification,
   style: BlueprintStyle = "technical"
-): {
+): Promise<{
   specs: TrainSpecs;
   facts: TrainFacts;
   rarity: RarityInfo;
   blueprintUrl: string | null;
-} | null {
+} | null> {
   const key = getCacheKey(train);
-  const entry = cache.get(key);
+
+  // L1 check
+  let entry = memoryCache.get(key);
+
+  // L2 check (Redis) if not in memory
+  if (!entry) {
+    const redisEntry = await readFromRedis(key);
+    if (redisEntry) {
+      memoryCache.set(key, redisEntry); // populate L1
+      entry = redisEntry;
+    }
+  }
 
   if (!entry) {
     totalMisses++;
@@ -147,23 +126,22 @@ export function getCachedTrainData(
   }
 
   if (isExpired(entry)) {
-    cache.delete(key);
+    memoryCache.delete(key);
     totalMisses++;
     return null;
   }
 
-  // Cache hit!
+  // Cache hit
   entry.hitCount++;
   totalHits++;
 
-  // Resolve blueprint URL: check style-specific map first, then legacy field
   const blueprintUrl =
     entry.blueprintUrls?.[style] ??
     (style === "technical" ? entry.blueprintUrl : null);
 
   console.log(
     `[CACHE] HIT for "${key}" style="${style}" (${entry.hitCount} total hits)` +
-      (blueprintUrl ? " [has blueprint]" : " [no blueprint yet]")
+    (blueprintUrl ? " [has blueprint]" : " [no blueprint yet]")
   );
 
   return {
@@ -176,71 +154,68 @@ export function getCachedTrainData(
 
 /**
  * Store specs/facts/rarity in the cache after a fresh AI call.
- * Blueprint URL can be added later via setCachedBlueprint().
+ * Writes to both L1 (memory) and L2 (Redis).
  */
-export function setCachedTrainData(
+export async function setCachedTrainData(
   train: TrainIdentification,
   specs: TrainSpecs,
   facts: TrainFacts,
   rarity: RarityInfo
-): void {
+): Promise<void> {
   const key = getCacheKey(train);
 
-  // Evict least-used entry if cache is full
-  if (cache.size >= MAX_CACHE_SIZE) {
-    let lowestKey = "";
-    let lowestHits = Infinity;
-    for (const [k, v] of cache) {
-      if (v.hitCount < lowestHits) {
-        lowestKey = k;
-        lowestHits = v.hitCount;
-      }
-    }
-    if (lowestKey) {
-      cache.delete(lowestKey);
-      console.log(`[CACHE] Evicted least-used entry: "${lowestKey}"`);
-    }
-  }
-
-  cache.set(key, {
+  const entry: CachedTrainData = {
     specs,
     facts,
     rarity,
     blueprintUrl: null,
     cachedAt: new Date().toISOString(),
     hitCount: 0,
-  });
+  };
 
-  console.log(`[CACHE] Stored new entry: "${key}" (${cache.size} total)`);
-  saveCache();
+  memoryCache.set(key, entry);
+  await writeToRedis(key, entry);
+
+  console.log(`[CACHE] Stored: "${key}" (memory + Redis)`);
 }
 
 /**
  * Update a cached entry with a completed blueprint URL.
- * Called when blueprint generation finishes.
- * Stores in style-keyed map + legacy field for backwards compat.
+ * Writes updated entry back to both L1 and L2.
  */
-export function setCachedBlueprint(
+export async function setCachedBlueprint(
   train: TrainIdentification,
   blueprintUrl: string,
   style: BlueprintStyle = "technical"
-): void {
+): Promise<void> {
   const key = getCacheKey(train);
-  const entry = cache.get(key);
 
-  if (entry) {
-    // Store in style-keyed map
-    if (!entry.blueprintUrls) entry.blueprintUrls = {};
-    entry.blueprintUrls[style] = blueprintUrl;
-
-    // Also update legacy field for default style
-    if (style === "technical") {
-      entry.blueprintUrl = blueprintUrl;
+  // Get from L1, or pull from Redis if not in memory
+  let entry = memoryCache.get(key);
+  if (!entry) {
+    const redisEntry = await readFromRedis(key);
+    if (redisEntry) {
+      memoryCache.set(key, redisEntry);
+      entry = redisEntry;
     }
-
-    console.log(`[CACHE] Blueprint URL stored for "${key}" style="${style}"`);
-    saveCache();
   }
+
+  if (!entry) {
+    console.warn(`[CACHE] setCachedBlueprint: no entry found for "${key}"`);
+    return;
+  }
+
+  if (!entry.blueprintUrls) entry.blueprintUrls = {};
+  entry.blueprintUrls[style] = blueprintUrl;
+
+  if (style === "technical") {
+    entry.blueprintUrl = blueprintUrl;
+  }
+
+  memoryCache.set(key, entry);
+  await writeToRedis(key, entry);
+
+  console.log(`[CACHE] Blueprint stored for "${key}" style="${style}" (memory + Redis)`);
 }
 
 /**
@@ -252,18 +227,18 @@ export function getCacheStats(): CacheStats {
   const estimatedSavings = (totalHits * COST_PER_CACHED_HIT).toFixed(2);
 
   let entriesWithBlueprints = 0;
-  for (const entry of cache.values()) {
+  for (const entry of memoryCache.values()) {
     if (entry.blueprintUrl || (entry.blueprintUrls && Object.keys(entry.blueprintUrls).length > 0)) {
       entriesWithBlueprints++;
     }
   }
 
   return {
-    totalEntries: cache.size,
+    totalEntries: memoryCache.size,
     totalHits,
     totalMisses,
     hitRate: `${hitRate}%`,
-    estimatedSavings: `£${estimatedSavings}`,
+    estimatedSavings: `$${estimatedSavings}`,
     entriesWithBlueprints,
   };
 }
@@ -277,7 +252,7 @@ export function getTopTrains(limit: number = 10): Array<{
   hits: number;
   rarity: string;
 }> {
-  return Array.from(cache.entries())
+  return Array.from(memoryCache.entries())
     .map(([key, data]) => {
       const [cls, operator] = key.split("::");
       return {
@@ -290,3 +265,9 @@ export function getTopTrains(limit: number = 10): Array<{
     .sort((a, b) => b.hits - a.hits)
     .slice(0, limit);
 }
+
+// ── Removed: loadCache() / saveCache() ──────────────────────
+// Previously loaded/saved a local JSON file — broken on Render
+// (ephemeral filesystem wipes on every deploy).
+// Redis handles persistence now. No startup load needed —
+// cache entries are lazy-loaded from Redis on first access.

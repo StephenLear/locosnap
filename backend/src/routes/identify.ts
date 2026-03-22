@@ -114,7 +114,7 @@ router.post(
       let blueprintTaskId: string;
       let cacheHit = false;
 
-      const cached = getCachedTrainData(train, blueprintStyle);
+      const cached = await getCachedTrainData(train, blueprintStyle);
 
       if (cached) {
         // ── CACHE HIT ────────────────────────────────────
@@ -193,8 +193,10 @@ router.post(
           };
         }
 
-        // Store in cache for next time
-        setCachedTrainData(train, specs, facts, rarity);
+        // Store in cache for next time (fire and forget — non-blocking)
+        setCachedTrainData(train, specs, facts, rarity).catch((err) =>
+          console.warn("[IDENTIFY] Cache write failed:", err)
+        );
 
         // Start blueprint generation (Pro only — non-critical)
         if (shouldGenerateBlueprint) {

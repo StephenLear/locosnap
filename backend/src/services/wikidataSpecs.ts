@@ -8,10 +8,9 @@
 // Coverage: excellent for mainline European/UK/Japanese stock.
 // Falls back gracefully to null for anything not found.
 //
-// Known limitation: multi-voltage trains (e.g. Eurostar, Class 373)
-// have multiple P2660 voltage claims in Wikidata. We read only the
-// first claim, so the fuelType label may reflect a secondary voltage
-// rather than the primary one. The AI fallback has the same weakness.
+// Multi-voltage trains (e.g. ČD Class 362, Eurostar) have multiple
+// P2660 voltage claims in Wikidata. We read ALL claims and combine
+// them into e.g. "Dual-voltage Electric (3kV DC / 25kV 50Hz AC)".
 // ============================================================
 
 import axios from "axios";
@@ -103,16 +102,39 @@ function getYear(claims: any, property: string): string | null {
   }
 }
 
-function voltageToFuelType(volts: number): string {
-  if (volts >= 14500 && volts <= 15500) return "Electric (15kV 16.7Hz AC)";
+function voltageToSystem(volts: number): string {
+  if (volts >= 14500 && volts <= 15500) return "15kV 16.7Hz AC";
   // Note: no standard railway voltage exists between 15.5kV and 24kV,
   // so the gap between these two bands is intentional.
-  if (volts >= 24000 && volts <= 26000) return "Electric (25kV 50Hz AC)";
-  if (volts >= 2800  && volts <= 3200)  return "Electric (3kV DC)";
-  if (volts >= 1400  && volts <= 1600)  return "Electric (1.5kV DC)";
-  if (volts >= 700   && volts <= 800)   return "Electric (750V DC third rail)";
-  if (volts >= 580   && volts <= 650)   return "Electric (600V DC)";
-  return `Electric (${(volts / 1000).toFixed(1)}kV)`;
+  if (volts >= 24000 && volts <= 26000) return "25kV 50Hz AC";
+  if (volts >= 2800  && volts <= 3200)  return "3kV DC";
+  if (volts >= 1400  && volts <= 1600)  return "1.5kV DC";
+  if (volts >= 700   && volts <= 800)   return "750V DC third rail";
+  if (volts >= 580   && volts <= 650)   return "600V DC";
+  return `${(volts / 1000).toFixed(1)}kV`;
+}
+
+function voltageToFuelType(volts: number): string {
+  return `Electric (${voltageToSystem(volts)})`;
+}
+
+function voltageClaimsToFuelType(claims: any): string | null {
+  const allClaims: any[] = claims?.[P.VOLTAGE] ?? [];
+  const systems = allClaims
+    .map((claim: any) => {
+      try {
+        const dv = claim?.mainsnak?.datavalue;
+        if (dv?.type !== "quantity") return null;
+        return Math.abs(parseFloat(dv.value.amount));
+      } catch { return null; }
+    })
+    .filter((v): v is number => v !== null)
+    .map(voltageToSystem);
+
+  if (systems.length === 0) return null;
+  if (systems.length === 1) return `Electric (${systems[0]})`;
+  const prefix = systems.length === 2 ? "Dual" : "Multi";
+  return `${prefix}-voltage Electric (${systems.join(" / ")})`;
 }
 
 // ── Wikidata API calls ───────────────────────────────────────
@@ -266,10 +288,10 @@ export async function getWikidataSpecs(
       if (label) specs.builder = label;
     }
 
-    // Voltage → fuelType string
-    const voltage = getQuantity(claims, P.VOLTAGE);
-    if (voltage) {
-      specs.fuelType = voltageToFuelType(voltage.amount);
+    // Voltage → fuelType string (handles multi-voltage locos like ČD Class 362)
+    const fuelType = voltageClaimsToFuelType(claims);
+    if (fuelType) {
+      specs.fuelType = fuelType;
     }
 
     // Service entry year (e.g. "2020") — surfaced for future facts enrichment

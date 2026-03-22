@@ -133,6 +133,44 @@ export async function deleteBlueprintTask(taskId: string): Promise<void> {
   memoryStore.delete(key);
 }
 
+// ── Train Cache Operations ───────────────────────────────────
+// Persistent train data cache (specs/facts/rarity/blueprints).
+// Survives server restarts and Render deploys via Redis.
+// Falls back to in-memory if Redis unavailable.
+
+const TRAIN_CACHE_PREFIX = "traindata:";
+const TRAIN_CACHE_TTL = 60 * 60 * 24 * 30; // 30 days
+
+export async function setTrainCache(key: string, data: string): Promise<void> {
+  const redisKey = TRAIN_CACHE_PREFIX + key;
+
+  if (!useInMemoryFallback && redis) {
+    try {
+      await redis.setex(redisKey, TRAIN_CACHE_TTL, data);
+      return;
+    } catch {
+      // Fall through to in-memory
+    }
+  }
+
+  memoryStore.set(redisKey, data);
+  setTimeout(() => memoryStore.delete(redisKey), TRAIN_CACHE_TTL * 1000);
+}
+
+export async function getTrainCache(key: string): Promise<string | null> {
+  const redisKey = TRAIN_CACHE_PREFIX + key;
+
+  if (!useInMemoryFallback && redis) {
+    try {
+      return await redis.get(redisKey);
+    } catch {
+      return memoryStore.get(redisKey) ?? null;
+    }
+  }
+
+  return memoryStore.get(redisKey) ?? null;
+}
+
 // ── Cleanup ─────────────────────────────────────────────────
 
 export async function disconnectRedis(): Promise<void> {
