@@ -77,7 +77,7 @@ export default function ResultsScreen() {
     setBlueprintStatus,
   } = useTrainStore();
 
-  const { profile, isGuest, user, deductBlueprintCredit, fetchProfile } = useAuthStore();
+  const { profile, user, deductBlueprintCredit, fetchProfile } = useAuthStore();
   const isPro = profile?.is_pro ?? false;
   const credits = profile?.blueprint_credits ?? 0;
   const [isGenerating, setIsGenerating] = useState(false);
@@ -392,7 +392,7 @@ export default function ResultsScreen() {
             <Text style={styles.blueprintBtnSubtitle}>This may take up to 60 seconds</Text>
           </View>
         </View>
-      ) : !isGuest && credits > 0 ? (
+      ) : user && credits > 0 ? (
         /* Authenticated user with credits: generate with credit */
         <TouchableOpacity
           style={[styles.blueprintBtn, styles.blueprintBtnCredit]}

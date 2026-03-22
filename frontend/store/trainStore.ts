@@ -37,7 +37,7 @@ import {
 import { track, addBreadcrumb, captureError } from "../services/analytics";
 
 const HISTORY_KEY = "locosnap_history";
-const MAX_HISTORY = 50;
+const MAX_HISTORY = 200;
 
 interface TrainState {
   // Current scan state

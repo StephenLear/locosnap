@@ -26,22 +26,20 @@ import { initPurchases } from "../services/purchases";
 function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
-  const { session, isGuest, isLoading } = useAuthStore();
+  const { session, isLoading } = useAuthStore();
 
   useEffect(() => {
     if (isLoading) return;
 
-    const isFullyAuthenticated = session !== null;
     const isOnSignIn = segments[0] === "sign-in";
 
-    if (!isFullyAuthenticated && !isGuest && !isOnSignIn) {
-      // Not signed in and not a guest — redirect to sign-in
-      router.replace("/sign-in");
-    } else if ((isFullyAuthenticated || isGuest) && isOnSignIn) {
-      // Signed in or guest — no reason to stay on sign-in, go home
+    // If signed in and on sign-in screen, go home
+    if (session !== null && isOnSignIn) {
       router.replace("/");
     }
-  }, [session, isGuest, isLoading, segments]);
+    // Unauthenticated users can access the main app —
+    // the scan screen handles the 3-trial-scan gate itself
+  }, [session, isLoading, segments]);
 
   if (isLoading) {
     return (

@@ -98,7 +98,7 @@ const PRO_FEATURES = [
 export default function PaywallScreen() {
   const router = useRouter();
   const { source } = useLocalSearchParams<{ source?: string }>();
-  const { isGuest, user, fetchProfile } = useAuthStore();
+  const { user, fetchProfile } = useAuthStore();
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(1); // Default to annual

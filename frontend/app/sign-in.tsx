@@ -34,7 +34,6 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
-  const { continueAsGuest } = useAuthStore();
   const { supabase } = require("../config/supabase");
   const pendingAutoVerify = useRef(false);
 
@@ -135,10 +134,6 @@ export default function SignInScreen() {
     } finally {
       setLoading(null);
     }
-  };
-
-  const handleGuest = () => {
-    continueAsGuest();
   };
 
   // ── Render ──────────────────────────────────────────────────
@@ -271,19 +266,8 @@ export default function SignInScreen() {
               </View>
             )}
 
-            {/* ── Guest ───────────────────────────────────── */}
-            <TouchableOpacity
-              style={styles.guestBtn}
-              onPress={handleGuest}
-              disabled={loading !== null}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="eye-outline" size={18} color={colors.textSecondary} />
-              <Text style={styles.guestBtnText}>Continue as Guest</Text>
-            </TouchableOpacity>
-
             <Text style={styles.guestNote}>
-              5 free scans per day • Sign in to save your collection
+              Free account • 10 scans per month • Save your collection • Appear on leaderboard
             </Text>
           </View>
 

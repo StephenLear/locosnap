@@ -54,7 +54,7 @@ const TABS: { key: LeaderboardTab; label: string; icon: string }[] = [
 ];
 
 export default function LeaderboardScreen() {
-  const { user, isGuest, profile } = useAuthStore();
+  const { user, profile } = useAuthStore();
   const [activeTab, setActiveTab] = useState<LeaderboardTab>("global");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,7 +123,7 @@ export default function LeaderboardScreen() {
     ? entries.findIndex((e) => e.id === user.id) + 1
     : 0;
 
-  if (isGuest) {
+  if (!user) {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="podium-outline" size={64} color={colors.textMuted} />

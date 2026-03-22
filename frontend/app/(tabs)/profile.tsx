@@ -71,7 +71,7 @@ const rarityLabels: Record<RarityTier, string> = {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { profile, user, isGuest, signOut, updateRegion } = useAuthStore();
+  const { profile, user, signOut, updateRegion } = useAuthStore();
   const { history } = useTrainStore();
 
   // ── Achievements state ────────────────────────────────────
@@ -235,7 +235,7 @@ export default function ProfileScreen() {
             {profile?.username || user?.email?.split("@")[0] || "Guest Spotter"}
           </Text>
           <Text style={styles.userEmail}>
-            {isGuest ? "Not signed in" : user?.email || ""}
+            {user?.email || ""}
           </Text>
         </View>
         {profile?.is_pro && (
@@ -310,7 +310,7 @@ export default function ProfileScreen() {
       </View>
 
       {/* ── Region selector ─────────────────────────────── */}
-      {!isGuest && (
+      {user && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Region</Text>
           <Text style={styles.regionHelpText}>
@@ -462,22 +462,19 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Sign in prompt (guests) */}
-        {isGuest && (
+        {/* Sign in prompt (not signed in) */}
+        {!user && (
           <TouchableOpacity
             style={styles.signInPrompt}
-            onPress={() => {
-              useAuthStore.getState().clearGuest();
-              router.push("/sign-in");
-            }}
+            onPress={() => router.push("/sign-in")}
           >
             <Ionicons name="cloud-upload-outline" size={20} color={colors.accent} />
             <View style={styles.upgradeBtnContent}>
               <Text style={styles.signInPromptTitle}>
-                Sign in to save your collection
+                Create your free account
               </Text>
               <Text style={styles.signInPromptSubtitle}>
-                Cloud sync, leaderboards, and streak tracking
+                10 scans/month free • Cloud sync • Leaderboards • Streaks
               </Text>
             </View>
             <Ionicons
@@ -489,7 +486,7 @@ export default function ProfileScreen() {
         )}
 
         {/* Sign out (authenticated) */}
-        {!isGuest && user && (
+        {user && (
           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
             <Ionicons name="log-out-outline" size={20} color={colors.danger} />
             <Text style={styles.signOutText}>Sign Out</Text>
@@ -497,7 +494,7 @@ export default function ProfileScreen() {
         )}
 
         {/* Delete account (authenticated) */}
-        {!isGuest && user && (
+        {user && (
           <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
             <Ionicons name="trash-outline" size={20} color={colors.danger} />
             <Text style={styles.deleteText}>Delete Account & Data</Text>

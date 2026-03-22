@@ -3,6 +3,7 @@
 // ============================================================
 
 import { create } from "zustand";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../config/supabase";
 import { Session, User } from "@supabase/supabase-js";
 import { track, identifyUser, resetIdentity, addBreadcrumb } from "../services/analytics";
@@ -28,40 +29,48 @@ interface AuthState {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
-  isGuest: boolean;
   isLoading: boolean;
+  preSignupScansUsed: number; // Scans used before account creation (AsyncStorage)
 
   // Actions
   initialize: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signInWithMagicLink: (email: string) => Promise<void>;
-  continueAsGuest: () => void;
-  clearGuest: () => void;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setSession: (session: Session | null) => void;
   incrementDailyScans: () => Promise<void>;
+  incrementPreSignupScans: () => Promise<void>;
   updateRegion: (region: string | null) => Promise<void>;
   canScan: () => boolean;
   deductBlueprintCredit: () => Promise<boolean>;
   addBlueprintCredits: (amount: number) => Promise<void>;
 }
 
-const MAX_DAILY_SCANS = 5;
+// Unauthenticated users get 3 trial scans before sign-up is required
+export const PRE_SIGNUP_FREE_SCANS = 3;
+// Free accounts get 10 scans per month
+export const MAX_MONTHLY_SCANS = 10;
+const PRE_SIGNUP_SCANS_KEY = "locosnap_presignup_scans";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   user: null,
   profile: null,
-  isGuest: false,
   isLoading: true,
+  preSignupScansUsed: 0,
 
   initialize: async () => {
     try {
+      // Load pre-signup scan count from AsyncStorage
+      const storedScans = await AsyncStorage.getItem(PRE_SIGNUP_SCANS_KEY);
+      const preSignupScansUsed = storedScans ? parseInt(storedScans, 10) : 0;
+      set({ preSignupScansUsed: isNaN(preSignupScansUsed) ? 0 : preSignupScansUsed });
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        set({ session, user: session.user, isGuest: false, isLoading: false });
+        set({ session, user: session.user, isLoading: false });
         loginRevenueCat(session.user.id);
         get().fetchProfile();
       } else {
@@ -70,8 +79,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Listen for auth changes
       supabase.auth.onAuthStateChange((event, session) => {
-        const wasGuest = get().isGuest;
-
         if (event === "TOKEN_REFRESHED" && session) {
           // Silent token refresh — update session without disrupting state
           set({ session, user: session.user });
@@ -84,11 +91,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             if (data.session) {
               // Recovery successful — restore session silently
               set({ session: data.session, user: data.session.user });
-              get().fetchProfile();
+              get().fetchProfile().catch(() => {});
             } else {
               // Genuine sign-out — clear state
-              set({ profile: null, isGuest: wasGuest });
+              set({ profile: null });
             }
+          }).catch(() => {
+            // Recovery failed — clear state
+            set({ profile: null });
           });
           return;
         }
@@ -96,7 +106,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           session,
           user: session?.user ?? null,
-          isGuest: session ? false : wasGuest,
         });
         if (session) {
           loginRevenueCat(session.user.id);
@@ -147,30 +156,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     addBreadcrumb("auth", "Magic link sent");
   },
 
-  continueAsGuest: () => {
-    set({ isGuest: true, isLoading: false });
-    track("guest_mode");
-    addBreadcrumb("auth", "Continued as guest");
-  },
-
-  clearGuest: () => {
-    set({ isGuest: false });
-  },
-
   signOut: async () => {
     track("sign_out");
     await logoutRevenueCat();
     await supabase.auth.signOut();
-    set({ session: null, user: null, profile: null, isGuest: false });
+    set({ session: null, user: null, profile: null });
     resetIdentity();
   },
 
   setSession: (session) => {
-    const wasGuest = get().isGuest;
     set({
       session,
       user: session?.user ?? null,
-      isGuest: session ? false : wasGuest,
     });
   },
 
@@ -178,50 +175,61 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user } = get();
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
 
-    if (!error && data) {
-      // Identify user for analytics
-      identifyUser(user.id, {
-        is_pro: data.is_pro,
-        blueprint_credits: data.blueprint_credits ?? 0,
-        level: data.level,
-        region: data.region,
-      });
+      if (!error && data) {
+        // Identify user for analytics
+        identifyUser(user.id, {
+          is_pro: data.is_pro,
+          blueprint_credits: data.blueprint_credits ?? 0,
+          level: data.level,
+          region: data.region,
+        });
 
-      // Check if daily scans need reset (past midnight)
-      const resetAt = new Date(data.daily_scans_reset_at);
-      const now = new Date();
-      if (now.toDateString() !== resetAt.toDateString()) {
-        // New day — reset scan count
-        const { data: updated } = await supabase
-          .from("profiles")
-          .update({
-            daily_scans_used: 0,
-            daily_scans_reset_at: now.toISOString(),
-          })
-          .eq("id", user.id)
-          .select()
-          .single();
+        // Check if monthly scans need reset (new calendar month)
+        const resetAt = new Date(data.daily_scans_reset_at);
+        const now = new Date();
+        const isNewMonth =
+          now.getMonth() !== resetAt.getMonth() ||
+          now.getFullYear() !== resetAt.getFullYear();
+        if (isNewMonth) {
+          // New month — reset scan count
+          const { data: updated } = await supabase
+            .from("profiles")
+            .update({
+              daily_scans_used: 0,
+              daily_scans_reset_at: now.toISOString(),
+            })
+            .eq("id", user.id)
+            .select()
+            .single();
 
-        set({ profile: updated || data });
-      } else {
-        set({ profile: data });
-      }
+          set({ profile: updated || data });
+        } else {
+          set({ profile: data });
+        }
 
-      // Sync Pro status with RevenueCat entitlements
-      // Only upgrade to Pro if RevenueCat confirms it — never downgrade a manually-granted Pro
-      const isPro = await syncProStatus(user.id);
-      if (isPro && !data.is_pro) {
-        const currentProfile = get().profile;
-        if (currentProfile) {
-          set({ profile: { ...currentProfile, is_pro: true } });
+        // Sync Pro status with RevenueCat entitlements
+        // Only upgrade to Pro if RevenueCat confirms it — never downgrade a manually-granted Pro
+        try {
+          const isPro = await syncProStatus(user.id);
+          if (isPro && !data.is_pro) {
+            const currentProfile = get().profile;
+            if (currentProfile) {
+              set({ profile: { ...currentProfile, is_pro: true } });
+            }
+          }
+        } catch {
+          // RevenueCat sync failure — not fatal, keep existing Pro status
         }
       }
+    } catch {
+      // Profile fetch failure — not fatal
     }
   },
 
@@ -255,14 +263,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (data) set({ profile: data });
   },
 
+  incrementPreSignupScans: async () => {
+    const newCount = get().preSignupScansUsed + 1;
+    set({ preSignupScansUsed: newCount });
+    try {
+      await AsyncStorage.setItem(PRE_SIGNUP_SCANS_KEY, String(newCount));
+    } catch {
+      // Non-fatal
+    }
+  },
+
   canScan: () => {
-    const { profile, isGuest } = get();
-    // Guests can always scan (stored locally)
-    if (isGuest) return true;
+    const { session, profile, preSignupScansUsed } = get();
+    // Not signed in: allow up to PRE_SIGNUP_FREE_SCANS trial scans
+    if (!session) return preSignupScansUsed < PRE_SIGNUP_FREE_SCANS;
     // Pro users have unlimited scans
     if (profile?.is_pro) return true;
-    // Free users: check daily limit
-    return (profile?.daily_scans_used ?? 0) < MAX_DAILY_SCANS;
+    // Free users: check monthly limit
+    return (profile?.daily_scans_used ?? 0) < MAX_MONTHLY_SCANS;
   },
 
   deductBlueprintCredit: async () => {

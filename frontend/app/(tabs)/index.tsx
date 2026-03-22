@@ -23,13 +23,12 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../../store/trainStore";
-import { useAuthStore } from "../../store/authStore";
+import { useAuthStore, PRE_SIGNUP_FREE_SCANS, MAX_MONTHLY_SCANS } from "../../store/authStore";
 import { identifyTrain, pollBlueprintStatus, healthCheck } from "../../services/api";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track, captureError, addBreadcrumb } from "../../services/analytics";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const MAX_DAILY_SCANS = 5;
 
 // Scanner brand colors (matching the app icon)
 const SCANNER = {
@@ -75,11 +74,14 @@ export default function HomeScreen() {
     saveToHistory,
   } = useTrainStore();
 
-  const { canScan, profile, isGuest, user } = useAuthStore();
+  const { canScan, profile, session, preSignupScansUsed, incrementPreSignupScans } = useAuthStore();
 
-  const scansRemaining = isGuest || profile?.is_pro
-    ? null
-    : MAX_DAILY_SCANS - (profile?.daily_scans_used ?? 0);
+  // Badge shows trial scans remaining (unauthenticated) or monthly remaining (free users)
+  const scansRemaining = !session
+    ? PRE_SIGNUP_FREE_SCANS - preSignupScansUsed        // Trial: 3 - used
+    : profile?.is_pro
+      ? null                                             // Pro: no limit badge
+      : MAX_MONTHLY_SCANS - (profile?.daily_scans_used ?? 0); // Free: monthly remaining
 
   // ── Pre-warm the backend on mount (prevents Render cold-start timeouts) ──
   useEffect(() => {
@@ -190,15 +192,29 @@ export default function HomeScreen() {
 
   const handleScan = async (imageUri: string) => {
     if (!canScan()) {
-      track("daily_limit_hit");
-      Alert.alert(
-        "Daily Limit Reached",
-        "You've used all 5 free scans today. Upgrade to Pro for unlimited scans!",
-        [
-          { text: "Maybe Later", style: "cancel" },
-          { text: "Upgrade to Pro", onPress: () => router.push("/paywall?source=daily_limit") },
-        ]
-      );
+      if (!session) {
+        // Unauthenticated user has used all trial scans — prompt sign-up
+        track("trial_limit_hit");
+        Alert.alert(
+          "Create Your Free Account",
+          `You've used your ${PRE_SIGNUP_FREE_SCANS} free trial scans!\n\nSign up free to get 10 scans per month, save your collection, and appear on the leaderboard.`,
+          [
+            { text: "Maybe Later", style: "cancel" },
+            { text: "Create Free Account", onPress: () => router.push("/sign-in") },
+          ]
+        );
+      } else {
+        // Authenticated free user has hit monthly limit
+        track("monthly_limit_hit");
+        Alert.alert(
+          "Monthly Limit Reached",
+          `You've used all ${MAX_MONTHLY_SCANS} free scans this month. Upgrade to Pro for unlimited scans!`,
+          [
+            { text: "Maybe Later", style: "cancel" },
+            { text: "Upgrade to Pro", onPress: () => router.push("/paywall?source=monthly_limit") },
+          ]
+        );
+      }
       return;
     }
 
@@ -255,6 +271,7 @@ export default function HomeScreen() {
               text: "Yes, that's right",
               onPress: () => {
                 setScanResults(train, specs, facts, rarity);
+                if (!session) incrementPreSignupScans();
                 saveToHistory();
                 router.push("/card-reveal");
                 startBlueprintPoll(blueprint?.taskId);
@@ -272,6 +289,8 @@ export default function HomeScreen() {
         rarity: rarity.tier,
         confidence: train.confidence,
       });
+      // If not signed in, count this trial scan
+      if (!session) incrementPreSignupScans();
       saveToHistory();
       router.push("/card-reveal");
       startBlueprintPoll(blueprint?.taskId);
@@ -420,18 +439,17 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* ── Guest badge ── */}
-      {isGuest && (
+      {/* ── Trial banner (not signed in) ── */}
+      {!session && (
         <TouchableOpacity
           style={styles.guestBadge}
-          onPress={() => {
-            useAuthStore.getState().clearGuest();
-            router.push("/sign-in");
-          }}
+          onPress={() => router.push("/sign-in")}
         >
           <Ionicons name="cloud-offline-outline" size={13} color={colors.warning} />
           <Text style={styles.guestBadgeText}>
-            Guest mode — sign in to save
+            {preSignupScansUsed === 0
+              ? "Try free — sign up to save your collection"
+              : `${PRE_SIGNUP_FREE_SCANS - preSignupScansUsed} trial scan${PRE_SIGNUP_FREE_SCANS - preSignupScansUsed !== 1 ? "s" : ""} left — tap to create your free account`}
           </Text>
           <Ionicons name="chevron-forward" size={13} color={colors.textMuted} />
         </TouchableOpacity>

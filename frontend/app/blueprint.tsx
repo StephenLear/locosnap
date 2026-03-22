@@ -38,7 +38,7 @@ export default function BlueprintScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { blueprintStatus, currentTrain } = useTrainStore();
-  const { profile, isGuest } = useAuthStore();
+  const { profile, user } = useAuthStore();
   const isPro = profile?.is_pro ?? false;
   const [saving, setSaving] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -176,7 +176,7 @@ export default function BlueprintScreen() {
 
   // Pro gate: block non-Pro users UNLESS they have a blueprint ready (credit purchase)
   const hasBlueprintReady = blueprintStatus?.status === "completed" && blueprintStatus?.imageUrl;
-  if (!isPro && !isGuest && !hasBlueprintReady) {
+  if (!isPro && user && !hasBlueprintReady) {
     return (
       <View style={styles.emptyContainer}>
         <TouchableOpacity
