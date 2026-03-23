@@ -1,6 +1,6 @@
 # LocoSnap — Full Architecture Reference
 
-> Last updated: 2026-03-22
+> Last updated: 2026-03-23
 
 ---
 
@@ -17,11 +17,11 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.3 (live on App Store) |
-| Android Version | In closed testing (Google Play) |
-| App Store ID | 6741445220 |
-| App Store URL | https://apps.apple.com/app/locosnap/id6741445220 |
-| Bundle ID | com.stephenlear.locosnap |
+| iOS Version | 1.0.4 build 26 (live in TestFlight, pending App Store approval) |
+| Android Version | 1.0.4 build in progress (preview APK for testers) — last shipped: 1.0.2 |
+| App Store ID | 6759280267 |
+| App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
+| Bundle ID | com.locosnap.app |
 
 ### Key Screens
 - **Scan** (`app/(tabs)/index.tsx`) — camera + photo library, pre-warms backend on mount
@@ -200,8 +200,11 @@ The DB columns are named `daily_scans_used` / `daily_scans_reset_at` (legacy nam
 |----------|-------|
 | Provider | ImprovMX |
 | hello@locosnap.app | Forwards to unsunghistories@proton.me |
+| stephen@locosnap.app | Forwards to unsunghistories@proton.me (via catch-all) |
 | Catch-all (*) | Forwards to unsunghistories@proton.me |
 | Dashboard | https://improvmx.com |
+
+**Note:** `stephen@locosnap.app` is the primary contact/business email. Use this on App Store Connect, TestFlight, and any public-facing communications. All mail forwards to unsunghistories@proton.me.
 
 ---
 
@@ -234,7 +237,8 @@ The DB columns are named `daily_scans_used` / `daily_scans_reset_at` (legacy nam
 | iOS Profile | production |
 | Android Profile | preview (APK for testers) |
 | Build command | `eas build --platform [ios/android/all] --profile [production/preview]` |
-| Latest Android Build | https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/5437bbd6-bb1c-464c-8d8c-f7cb18675d8b |
+| Latest iOS Build | Build 26 (v1.0.4) — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/963b738e-8e44-48de-80af-64cc53f4e20a |
+| Latest Android Build | Build in progress (v1.0.4) — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/0996c54e-a558-4fd0-8e4c-42386f1eb5ea |
 
 ---
 
@@ -332,13 +336,41 @@ FRONTEND_URL=https://locosnap.app
 
 ---
 
-## 19. Known Limitations / Pending Work
+## 19. Beta Testers
+
+### Android Testers (12) — notified by email
+- Stephstottor@gmail.com
+- esseresser07@gmail.com
+- gazthomas@hotmail.com
+- kt4d.vip@gmail.com
+- leander.jakowski@gmail.com
+- mike.j.harvey@gmail.com
+- muz.campanet@gmail.com
+- qwertylikestrains@gmail.com
+- scr.trainmad@gmail.com
+- scrtrainmadother@gmail.com
+- unsunghistories@proton.me
+- vattuoula@gmail.com
+
+**Email format:** Bilingual EN/DE. Logo (https://locosnap.app/images/icon.png) at top. No emojis. Include APK download link from EAS.
+
+### iOS TestFlight Testers
+| Tester | Email | Status |
+|--------|-------|--------|
+| @Rheintalbahner_Neo | rheintalbahnerneo@gmail.com | Invite pending — add via App Store Connect → TestFlight |
+| Czech tester's friend | unknown | Apple ID email still outstanding |
+
+---
+
+## 20. Known Limitations / Pending Work
 
 | Item | Status |
 |------|--------|
-| iOS 1.0.4 build with scan-first flow + Sentry | Needs EAS build + App Store submission |
-| Google Play closed testing | In Review |
-| History pagination (was capped at 50, now 200) | MAX_HISTORY raised — no pagination yet |
+| iOS App Store submission (v1.0.4) | Submit build 26 once TestFlight testing confirmed |
+| Sentry source maps | Add SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT to EAS secrets |
+| Android APK for testers | Build in progress (v1.0.4) — send to testers on completion |
+| TestFlight invite — @Rheintalbahner_Neo | rheintalbahnerneo@gmail.com — invite via App Store Connect |
+| History pagination | MAX_HISTORY raised to 200 — no pagination yet |
 | ICE 1 weight validation (< 10 tonnes = reject) | Pending |
 | Dual-voltage Czech/Slovak trains in specs prompt | Pending |
 | Czech tester's friend — add to TestFlight | Need Apple ID email |
