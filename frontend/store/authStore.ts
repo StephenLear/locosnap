@@ -162,6 +162,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await supabase.auth.signOut();
     set({ session: null, user: null, profile: null });
     resetIdentity();
+    const { useTrainStore } = require("./trainStore");
+    await useTrainStore.getState().clearHistory();
   },
 
   setSession: (session) => {

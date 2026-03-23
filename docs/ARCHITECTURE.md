@@ -370,6 +370,7 @@ FRONTEND_URL=https://locosnap.app
 | Sentry source maps | Add SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT to EAS secrets |
 | Android APK for testers | Build in progress (v1.0.4) — send to testers on completion |
 | TestFlight invite — @Rheintalbahner_Neo | rheintalbahnerneo@gmail.com — invite via App Store Connect |
+| Offline spot sync | Spots scanned while offline are saved locally but never synced to Supabase when connectivity restores. Need to track unsynced items (local timestamp ID vs Supabase UUID) and sync on reconnect/foreground. Medium priority. |
 | History pagination | MAX_HISTORY raised to 200 — no pagination yet |
 | ICE 1 weight validation (< 10 tonnes = reject) | Pending |
 | Dual-voltage Czech/Slovak trains in specs prompt | Pending |

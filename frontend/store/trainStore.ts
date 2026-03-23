@@ -85,6 +85,7 @@ interface TrainState {
   loadHistory: () => Promise<void>;
   saveToHistory: () => Promise<void>;
   removeFromHistory: (id: string) => Promise<void>;
+  clearHistory: () => Promise<void>;
   viewHistoryItem: (item: HistoryItem) => void;
   setBlueprintStyle: (style: BlueprintStyle) => void;
   setCompareItems: (items: [HistoryItem, HistoryItem] | null) => void;
@@ -403,6 +404,15 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
     } catch {
       console.warn("Failed to update history");
+    }
+  },
+
+  clearHistory: async () => {
+    set({ history: [], historyLoaded: false });
+    try {
+      await AsyncStorage.removeItem(HISTORY_KEY);
+    } catch {
+      console.warn("Failed to clear history");
     }
   },
 
