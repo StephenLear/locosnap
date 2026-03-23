@@ -219,6 +219,24 @@ The DB columns are named `daily_scans_used` / `daily_scans_reset_at` (legacy nam
 
 **Sentry activation (2026-03-22):** `EXPO_PUBLIC_SENTRY_DSN` was missing from all build profiles and `.env`. Added to `eas.json` (preview + production), `frontend/.env`, and the backend's Render environment. `SENTRY_DISABLE_AUTO_UPLOAD=true` was also blocking production — removed from the production profile in `eas.json`. Sentry DSN: `https://874dfbb3d0666b9a54bf4ac8b3375872@o4511090253955072.ingest.de.sentry.io/4511090259198032` (EU region, project: locosnap).
 
+### Sentry Source Maps (EAS Secrets)
+
+| Property | Value |
+|----------|-------|
+| Org slug | `locosnap` |
+| Project slug | `react-native` |
+| Token name | `EAS Source Maps` |
+| Token scopes | `project:write`, `release:admin`, `organization:read` |
+| Token value | `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` |
+| EAS secret name | `SENTRY_AUTH_TOKEN` |
+
+**Setup (2026-03-23):** Personal token created in Sentry → User Settings → Auth Tokens. Added to EAS project secrets so that EAS builds can upload source maps and symbolicate stack traces. Commands used:
+```bash
+eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value "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"
+eas secret:create --scope project --name SENTRY_ORG --value "locosnap"
+eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
+```
+
 ---
 
 ## 12. Push Notifications
