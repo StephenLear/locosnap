@@ -156,6 +156,7 @@ The DB columns are named `daily_scans_used` / `daily_scans_reset_at` (legacy nam
 | Domain | locosnap.app |
 | Expires | 2027-03-21 |
 | DNS Panel | hPanel → Domains → locosnap.app → DNS / Nameservers |
+| API Key | gLnygWWPZjzE5TEGCCUQe7Zurn2v4hP4rkFz8aPr7ae2c002 |
 
 ### DNS Records
 | Type | Name | Value | Purpose |
