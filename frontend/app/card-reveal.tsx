@@ -95,7 +95,7 @@ export default function CardRevealScreen() {
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
 
   const [isFlipped, setIsFlipped] = useState(false);
   const [revealComplete, setRevealComplete] = useState(false);
@@ -151,14 +151,6 @@ export default function CardRevealScreen() {
         ).start();
       }
 
-      // Shimmer across the card
-      Animated.loop(
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 3000,
-          useNativeDriver: true,
-        })
-      ).start();
     });
   }, []);
 
@@ -321,21 +313,28 @@ export default function CardRevealScreen() {
         >
           {/* FRONT of card */}
           <Animated.View
-            ref={cardRef}
             style={[
-              styles.card,
-              styles.cardFront,
+              styles.cardGlowWrapper,
               {
-                borderColor: rarityColor,
-                transform: [{ perspective: 1000 }, { rotateY: frontInterpolate }],
-                opacity: frontOpacity,
                 shadowColor: rarityColor,
                 shadowRadius: glowRadius as any,
                 shadowOpacity: glowOpacity as any,
               },
             ]}
-            collapsable={false}
           >
+            <Animated.View
+              ref={cardRef}
+              style={[
+                styles.card,
+                styles.cardFront,
+                {
+                  borderColor: rarityColor,
+                  transform: [{ rotateY: frontInterpolate }],
+                  opacity: frontOpacity,
+                },
+              ]}
+              collapsable={false}
+            >
             {/* Photo area */}
             <View style={styles.cardPhotoArea}>
               {currentPhotoUri ? (
@@ -425,23 +424,31 @@ export default function CardRevealScreen() {
                 <Text style={styles.cardBrandingText}>LocoSnap</Text>
               </View>
             </View>
+            </Animated.View>
           </Animated.View>
 
           {/* BACK of card */}
           <Animated.View
             style={[
-              styles.card,
-              styles.cardBack,
+              styles.cardGlowWrapper,
               {
-                borderColor: rarityColor,
-                transform: [{ perspective: 1000 }, { rotateY: backInterpolate }],
-                opacity: backOpacity,
                 shadowColor: rarityColor,
                 shadowRadius: glowRadius as any,
                 shadowOpacity: glowOpacity as any,
               },
             ]}
           >
+            <Animated.View
+              style={[
+                styles.card,
+                styles.cardBack,
+                {
+                  borderColor: rarityColor,
+                  transform: [{ rotateY: backInterpolate }],
+                  opacity: backOpacity,
+                },
+              ]}
+            >
             <View style={styles.cardBackContent}>
               {/* Specs */}
               <Text style={[styles.backTitle, { color: rarityColor }]}>
@@ -493,6 +500,7 @@ export default function CardRevealScreen() {
                 <Text style={styles.cardBrandingText}>LocoSnap</Text>
               </View>
             </View>
+            </Animated.View>
           </Animated.View>
         </TouchableOpacity>
       </Animated.View>
@@ -609,18 +617,22 @@ const styles = StyleSheet.create({
   cardTouchable: {
     width: "100%",
     height: "100%",
+    transform: [{ perspective: 1000 }],
   },
 
   // Card base
-  card: {
+  cardGlowWrapper: {
     position: "absolute",
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 12,
+  },
+  card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     borderRadius: borderRadius.xl,
     borderWidth: 2,
-    backfaceVisibility: "hidden",
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 12,
   },
   cardFront: {
     backgroundColor: colors.surface,
