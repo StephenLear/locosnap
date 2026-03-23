@@ -191,8 +191,9 @@ The DB columns are named `daily_scans_used` / `daily_scans_reset_at` (legacy nam
 | Domain | locosnap.app (verified ✅) |
 | Region | eu-west-1 |
 | Domain ID | c3f826ac-93d9-49f0-af9f-65ecf2b8396a |
-| From address | hello@locosnap.app |
+| From address | stephen@locosnap.app (primary contact/tester emails) |
 | Auth email | noreply@locosnap.app (Supabase auth) |
+| API Key | re_XU3bJw3A_FeZwjrnRpiKQ7tz3GTQVcTi8 (Resend dashboard → API Keys) |
 | Dashboard | https://resend.com |
 
 ### Receiving / Forwarding (ImprovMX)
