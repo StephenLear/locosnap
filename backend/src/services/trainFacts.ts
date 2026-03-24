@@ -29,12 +29,12 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 }
 
 Rules:
-- "summary" should be enthusiastic but accurate — write as a fellow trainspotter, not a textbook.
+- "summary" should be enthusiastic but accurate — write as a fellow trainspotter, not a textbook. Only state things you are certain about.
 - "historicalSignificance" can be null for unremarkable modern stock (e.g. a Class 150 Sprinter). But if it's a famous class (A4, Deltic, HST, Class 37, Shinkansen), give it proper credit.
-- "funFacts" should have 2-5 items. Include things like nicknames, speed records, unusual uses, pop culture appearances, preservation stories.
-- "notableEvents" should have 1-3 items. Real, verifiable events only.
+- "funFacts" should have 2-5 items. Focus on: documented speed records, unusual operational history, specific notable roles (royal train workings, railtours, film appearances), preservation status, fleet numbers of notable survivors. DO NOT invent or guess nicknames — only include a nickname if it is genuinely well-known and documented within the rail community (e.g. "Deltic", "Shed" for Class 66, "Thunderbird" for Class 57, "Granny" for Class 73, "Bones" for Class 20). If you are not certain a nickname exists and is widely used, omit it entirely. A missing nickname is far better than a hallucinated one. Trainspotters will immediately know if a nickname is invented.
+- "notableEvents" should have 1-3 items. Real, verifiable events only — specific dates, locations, and outcomes where you are confident. If you cannot recall a specific verifiable event, return fewer items or an empty array rather than fabricating plausible-sounding events.
 - If this is a named locomotive (e.g. Flying Scotsman, Mallard), include facts specific to that individual loco as well as the class.
-- Be accurate — trainspotters will fact-check you.`;
+- ACCURACY IS PARAMOUNT. Trainspotters are experts who will fact-check every claim. Do not state a year, manufacturer, speed record, or operator unless you are confident it is correct. When uncertain, use cautious language ("reportedly", "approximately") or omit the detail entirely. Never state something confidently that you are guessing at.`;
 
 const FALLBACK_FACTS: TrainFacts = {
   summary: "Unable to generate facts for this train.",
