@@ -17,8 +17,8 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.4 build 26 (live in TestFlight, pending App Store approval) |
-| Android Version | 1.0.4 build in progress (preview APK for testers) — last shipped: 1.0.2 |
+| iOS Version | 1.0.5 build 28 — submitted to App Store Review 2026-03-24 |
+| Android Version | 1.0.5 build 3 — preview APK building (2026-03-24), last shipped APK: v1.0.4 |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
 | Bundle ID | com.locosnap.app |
@@ -257,8 +257,9 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | iOS Profile | production |
 | Android Profile | preview (APK for testers) |
 | Build command | `eas build --platform [ios/android/all] --profile [production/preview]` |
-| Latest iOS Build | Build 26 (v1.0.4) — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/963b738e-8e44-48de-80af-64cc53f4e20a |
-| Latest Android Build | Build in progress (v1.0.4) — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/0996c54e-a558-4fd0-8e4c-42386f1eb5ea |
+| Latest iOS Build | Build 28 (v1.0.5) — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/074c63d6-0479-4ce1-95f7-7f4c4acc9cd4 — in App Store Review |
+| Latest Android Production Build | Build 3 (v1.0.5) AAB — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/d11235b8-3b43-4408-b68f-9cbb047896c2 |
+| Latest Android Preview Build | Build 3 (v1.0.5) APK — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/48ca3a8a-d379-4aa6-a091-4702e79d35d8 — in progress |
 
 ---
 
@@ -390,9 +391,10 @@ FRONTEND_URL=https://locosnap.app
 
 | Item | Status |
 |------|--------|
-| iOS App Store submission (v1.0.4) | Submit build 26 once TestFlight testing confirmed |
+| iOS App Store submission (v1.0.5) | In App Store Review — submitted 2026-03-24, build 28 |
+| Android APK for testers (v1.0.5) | Preview build 48ca3a8a in progress — send to 12 testers on completion |
+| Competitor noted: Traintrack (traintrack.app) | iOS/Android, 557 followers TikTok, aggressive paywall, launched 2026. Monitor. |
 | Sentry source maps | Add SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT to EAS secrets |
-| Android APK for testers | Build in progress (v1.0.4) — send to testers on completion |
 | Offline spot sync | Spots scanned while offline are saved locally but never synced to Supabase when connectivity restores. Need to track unsynced items (local timestamp ID vs Supabase UUID) and sync on reconnect/foreground. Medium priority. |
 | History pagination | MAX_HISTORY raised to 200 — no pagination yet |
 | ICE 1 weight validation (< 10 tonnes = reject) | Pending |
