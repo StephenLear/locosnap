@@ -374,10 +374,14 @@ FRONTEND_URL=https://locosnap.app
 
 **Email format:** Bilingual EN/DE. Logo (https://locosnap.app/images/icon.png) at top. No emojis. Include APK download link from EAS.
 
-### iOS TestFlight Testers
+### iOS TestFlight Testers (1) — notified by email
+- rheintalbahnerneo@gmail.com (@Rheintalbahner_Neo)
+
+**Email format:** English only. Include TestFlight link. No emojis.
+
 | Tester | Email | Status |
 |--------|-------|--------|
-| @Rheintalbahner_Neo | rheintalbahnerneo@gmail.com | Invite pending — add via App Store Connect → TestFlight |
+| @Rheintalbahner_Neo | rheintalbahnerneo@gmail.com | Invited ✅ |
 | Czech tester's friend | unknown | Apple ID email still outstanding |
 
 ---
@@ -389,7 +393,6 @@ FRONTEND_URL=https://locosnap.app
 | iOS App Store submission (v1.0.4) | Submit build 26 once TestFlight testing confirmed |
 | Sentry source maps | Add SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT to EAS secrets |
 | Android APK for testers | Build in progress (v1.0.4) — send to testers on completion |
-| TestFlight invite — @Rheintalbahner_Neo | rheintalbahnerneo@gmail.com — invite via App Store Connect |
 | Offline spot sync | Spots scanned while offline are saved locally but never synced to Supabase when connectivity restores. Need to track unsynced items (local timestamp ID vs Supabase UUID) and sync on reconnect/foreground. Medium priority. |
 | History pagination | MAX_HISTORY raised to 200 — no pagination yet |
 | ICE 1 weight validation (< 10 tonnes = reject) | Pending |
