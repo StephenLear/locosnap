@@ -20,8 +20,10 @@ services:
         sync: false  # Set in dashboard
       - key: REPLICATE_API_TOKEN
         sync: false  # Set in dashboard (optional)
-      - key: REDIS_URL
-        sync: false  # Upstash Redis URL — set in dashboard
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false  # Upstash REST URL — set in dashboard (Connect → REST tab)
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false  # Upstash REST token — set in dashboard (Connect → REST tab)
       - key: SUPABASE_URL
         sync: false  # Set in dashboard
       - key: SUPABASE_SERVICE_KEY

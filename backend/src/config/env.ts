@@ -73,10 +73,11 @@ export const config = {
     return this.revenuecatWebhookSecret.length > 0;
   },
 
-  // Redis
-  redisUrl: optionalEnv("REDIS_URL", ""),
+  // Redis (Upstash REST — works on Render free tier, unlike TCP/6379)
+  upstashRedisRestUrl: optionalEnv("UPSTASH_REDIS_REST_URL", ""),
+  upstashRedisRestToken: optionalEnv("UPSTASH_REDIS_REST_TOKEN", ""),
 
   get hasRedis(): boolean {
-    return this.redisUrl.length > 0;
+    return this.upstashRedisRestUrl.length > 0 && this.upstashRedisRestToken.length > 0;
   },
 };
