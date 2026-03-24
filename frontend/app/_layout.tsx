@@ -8,8 +8,10 @@ import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, useRouter, useSegments, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as Linking from "expo-linking";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
+import { supabase } from "../services/supabase";
 import { colors } from "../constants/theme";
 import {
   registerForPushNotifications,
@@ -66,6 +68,45 @@ function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize);
   const user = useAuthStore((state) => state.user);
   const pathname = usePathname();
+
+  // Handle magic link deep link callbacks (locosnap://auth/callback)
+  useEffect(() => {
+    const handleUrl = async (url: string) => {
+      if (!url.includes("auth/callback")) return;
+
+      // Implicit flow: tokens arrive in URL hash
+      // e.g. locosnap://auth/callback#access_token=xxx&refresh_token=xxx
+      const hashIndex = url.indexOf("#");
+      if (hashIndex !== -1) {
+        const params = new URLSearchParams(url.slice(hashIndex + 1));
+        const access_token = params.get("access_token");
+        const refresh_token = params.get("refresh_token");
+        if (access_token && refresh_token) {
+          await supabase.auth.setSession({ access_token, refresh_token });
+          return;
+        }
+      }
+
+      // PKCE flow: auth code arrives as query param
+      // e.g. locosnap://auth/callback?code=xxx
+      const queryIndex = url.indexOf("?");
+      if (queryIndex !== -1) {
+        const params = new URLSearchParams(url.slice(queryIndex + 1));
+        if (params.get("code")) {
+          await supabase.auth.exchangeCodeForSession(url);
+        }
+      }
+    };
+
+    // App opened from closed state via deep link
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl(url);
+    });
+
+    // App already running when deep link fires
+    const sub = Linking.addEventListener("url", ({ url }) => handleUrl(url));
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     initAnalytics();

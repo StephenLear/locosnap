@@ -149,6 +149,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email,
       options: {
         shouldCreateUser: true,
+        emailRedirectTo: "locosnap://auth/callback",
       },
     });
     if (error) throw error;
