@@ -359,10 +359,11 @@ FRONTEND_URL=https://locosnap.app
 
 ## 19. Beta Testers
 
-### Android Testers (12) — notified by email
+### Android Testers (13) — notified by email
 - Stephstottor@gmail.com
 - esseresser07@gmail.com
 - gazthomas@hotmail.com
+- jlison1154@gmail.com
 - kt4d.vip@gmail.com
 - leander.jakowski@gmail.com
 - mike.j.harvey@gmail.com
@@ -392,7 +393,7 @@ FRONTEND_URL=https://locosnap.app
 | Item | Status |
 |------|--------|
 | iOS App Store submission (v1.0.5) | In App Store Review — submitted 2026-03-24, build 28 |
-| Android APK for testers (v1.0.5) | Preview build 48ca3a8a in progress — send to 12 testers on completion |
+| Android APK for testers (v1.0.5) | Preview build 48ca3a8a finished — APK: https://expo.dev/artifacts/eas/9Zk2rLcqzY9n8Ruc4Sk9Bj.apk — send to 13 testers |
 | Competitor noted: Traintrack (traintrack.app) | iOS/Android, 557 followers TikTok, aggressive paywall, launched 2026. Monitor. |
 | Sentry source maps | Add SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT to EAS secrets |
 | Offline spot sync | Spots scanned while offline are saved locally but never synced to Supabase when connectivity restores. Need to track unsynced items (local timestamp ID vs Supabase UUID) and sync on reconnect/foreground. Medium priority. |
