@@ -227,12 +227,12 @@ The DB columns are named `daily_scans_used` / `daily_scans_reset_at` (legacy nam
 | Project slug | `react-native` |
 | Token name | `EAS Source Maps` |
 | Token scopes | `project:write`, `release:admin`, `organization:read` |
-| Token value | `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` |
+| Token value | `sntryu_****` (stored in EAS secrets, not checked in) |
 | EAS secret name | `SENTRY_AUTH_TOKEN` |
 
 **Setup (2026-03-23):** Personal token created in Sentry → User Settings → Auth Tokens. Added to EAS project secrets so that EAS builds can upload source maps and symbolicate stack traces. Commands used:
 ```bash
-eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value "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"
+eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value "<your-sentry-token>"
 eas secret:create --scope project --name SENTRY_ORG --value "locosnap"
 eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 ```
