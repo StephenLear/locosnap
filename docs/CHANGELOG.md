@@ -7,7 +7,25 @@ Format: newest first within each date block.
 
 ## 2026-03-25
 
+### Backend
+
+#### `src/services/vision.ts` — Add ICE 3 family disambiguation to vision prompt
+- **Added** Explicit disambiguation block for the BR 403 / BR 406 / BR 407 / BR 408 ICE 3 family, matching the style of existing disambiguation entries (S-Bahn 480/485, Vectron variants, etc.). Root cause of the inconsistency: all four classes share the same white + red-stripe ICE livery and broadly similar nose profile, so without explicit guidance the model was freely cycling between "ICE 3", "BR 403", "BR 406", and "BR 407" on repeated scans of the same train.
+- **Added** Route indicator rule: trains photographed at Amsterdam, Utrecht, Arnhem, or anywhere on the Amsterdam–Utrecht–Oberhausen–Cologne–Frankfurt corridor must be classified as BR 406. The BR 403 is single-voltage and does not operate into the Netherlands, so any ICE 3 at Utrecht Centraal is almost certainly a BR 406.
+- **Added** Nose profile discriminator: 403/406 = rounder/softer classic ICE 3 nose; 407 = more angular with sharper crease lines and larger rectangular windscreen; 408 = sharpest and flattest, most modern LED headlight cluster.
+- **Added** Fleet number rules: visible "406 xxx" or "4651–4667" (NS side numbers) confirm BR 406 definitively.
+- **Added** Speed correction note: all ICE 3 variants have a 330 km/h theoretical max but 300 km/h operational max in regular DB service — instructs the model to use 300 km/h, preventing the incorrect 330 km/h figure from appearing in specs.
+- **Added** Fallback rule: if 403 vs 406 is genuinely uncertain, output "BR 406/403" at lower confidence rather than defaulting to a generic label or the wrong class.
+
 ### Frontend
+
+#### `store/authStore.ts` — Fix train history not cleared on auth-listener sign-out
+- **Fixed** Cross-account collection contamination — when a genuine sign-out was detected via `onAuthStateChange` (e.g. token refresh failure, session expiry, or remote sign-out from another device), the handler only called `set({ profile: null })`, leaving the previous user's scans in Zustand memory. The explicit `signOut()` action already cleared trainStore, but any sign-out that bypassed that action (all non-explicit paths) did not.
+- **Changed** Both branches of the `SIGNED_OUT` recovery path (recovery succeeded but session null, and recovery threw an error) now call `set({ session: null, user: null, profile: null })` followed by `useTrainStore.getState().clearHistory()`. Uses the same dynamic `require` pattern already present in `signOut()` to avoid the circular import between authStore and trainStore.
+
+#### `app/_layout.tsx` — Clear stale history when switching between accounts
+- **Fixed** Account B seeing Account A's local scans after a sign-in switch — root cause: the `user?.id` effect called `loadHistory()` on any new user ID; if Account B had zero cloud spots, `loadHistory()` fell through to AsyncStorage which still contained Account A's local backup written during their session.
+- **Changed** `clearHistory` is now also subscribed from `useTrainStore` in `RootLayout`. When `user?.id` changes and `prevId` is not null (i.e. switching accounts, not a cold app start with no prior user), `clearHistory()` is awaited before `loadHistory()` is called. Cold-start behaviour (prevId is null → first sign-in) is unchanged and does not clear history first.
 
 #### `app/card-reveal.tsx` — Fix fatal mixed animation driver crash on card reveal
 - **Fixed** React Native fatal error caused by `glowAnim` (JS driver, `useNativeDriver: false`) and `flipAnim` (native driver, `useNativeDriver: true`) being applied to the same `Animated.View` node. RN cannot reconcile mixed driver types on a single view and throws at runtime.
