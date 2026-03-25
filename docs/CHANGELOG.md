@@ -42,6 +42,26 @@ Format: newest first within each date block.
 #### `docs/ARCHITECTURE.md` — iOS testers section reformatted
 - **Changed** iOS TestFlight Testers section — reformatted to match Android tester list style (bullet email list + email format note). Added `rheintalbahnerneo@gmail.com` (@Rheintalbahner_Neo) as first confirmed iOS tester. Removed duplicate pending item from section 20.
 
+### Frontend (session 4 — evening)
+
+#### `store/authStore.ts` — Fix magic link redirect on Android
+- **Fixed** Magic link sign-in showing a white page with one line of code on Android — root cause was missing `emailRedirectTo` in `signInWithOtp`. Supabase was falling back to the Site URL (`exp://localhost:8081`) which doesn't exist in production, causing the browser to show a raw error page instead of returning the user to the app.
+- **Added** `emailRedirectTo: "locosnap://auth/callback"` in the `signInWithMagicLink` options — Supabase now explicitly redirects to the app's custom URL scheme after link click.
+
+#### `app/_layout.tsx` — Handle deep link auth callbacks
+- **Added** `expo-linking` import and `supabase` import
+- **Added** `useEffect` in `RootLayout` that listens for incoming deep links to `locosnap://auth/callback`
+- **Added** Implicit flow handler — extracts `access_token` + `refresh_token` from URL hash and calls `supabase.auth.setSession()`. Used when Supabase is configured for implicit flow.
+- **Added** PKCE flow handler — extracts `code` from query params and calls `supabase.auth.exchangeCodeForSession()`. Used when Supabase is configured for PKCE.
+- **Added** `Linking.getInitialURL()` check for app opened from cold state via deep link
+- **Added** `Linking.addEventListener("url", ...)` for deep links received while app is already running
+- **Fixed** Without this handler, `setSession()` was never called on magic link return, leaving the user on a blank screen with no auth state set even if the redirect URL was correct.
+
+### Infrastructure (session 4 — evening)
+
+#### Supabase dashboard — URL Configuration
+- **Changed** Site URL from `exp://localhost:8081` (dev default) to `https://locosnap.app` — the old value was the fallback Supabase used when no `emailRedirectTo` was specified, causing production magic links to redirect nowhere useful.
+
 ### Backend (session 3)
 
 #### `src/services/vision.ts` — Alstom Coradia family vs Stadler FLIRT disambiguation

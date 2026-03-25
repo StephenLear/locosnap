@@ -42,7 +42,8 @@ Rules:
 - "productionCount" and "survivingCount" should be your best estimates (use null if truly unknown).
 - Be generous but honest — spotters want excitement but not inflated rarity.
 - German regional fleet awareness: DB Class 643/644 (Talent) have been largely retired from DB mainline service and are now rare. DB Class 628 is mostly withdrawn. DB Class 218 diesel locos are dwindling. DB Class 103 electric is essentially museum-only. Do not classify retired or near-retired German classes as "common".
-- If a class was once common but is now largely withdrawn or transferred to secondary operators, classify based on its CURRENT rarity, not its historical abundance.`;
+- If a class was once common but is now largely withdrawn or transferred to secondary operators, classify based on its CURRENT rarity, not its historical abundance.
+- DR Class 156 (LEW Class 252 prototype): ONLY 4 were ever built by LEW Hennigsdorf (1989–1991). This is an extremely rare prototype electric locomotive from Deutsche Reichsbahn. Any sighting of a DR Class 156 must be classified as "legendary" — a production run of 4 examples is one of the smallest of any mainline locomotive class. Do NOT classify it as "common", "uncommon", or "rare". It is LEGENDARY tier without exception.`;
 
 const FALLBACK_RARITY: RarityInfo = {
   tier: "common",
