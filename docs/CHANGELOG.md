@@ -5,6 +5,18 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-03-25
+
+### Frontend
+
+#### `app/card-reveal.tsx` — Fix fatal mixed animation driver crash on card reveal
+- **Fixed** React Native fatal error caused by `glowAnim` (JS driver, `useNativeDriver: false`) and `flipAnim` (native driver, `useNativeDriver: true`) being applied to the same `Animated.View` node. RN cannot reconcile mixed driver types on a single view and throws at runtime.
+- **Changed** View wrapping structure for both the front and back card faces — previously each face was an outer `Animated.View` (glow: JS driver) wrapping an inner `Animated.View` (flip transform + opacity: native driver), which still placed both driver types in a parent-child relationship on the same rendered node path. Now restructured to: outer `Animated.View` carries only the flip transform and opacity (`rotateY`, native driver); inner `Animated.View` carries only the glow shadow props (`shadowRadius`, `shadowOpacity`, JS driver); innermost card content is a plain `View` with no animation driver.
+- **Changed** `styles.cardGlowWrapper` — removed `shadowOffset` and `elevation` from the stylesheet entry (they moved to the inner glow `Animated.View`'s inline style) since the outer wrapper no longer owns shadow props.
+- **Note** No animation values, timing, sequences, or visual output were changed — only the JSX wrapper structure.
+
+---
+
 ## 2026-03-24
 
 ### Backend

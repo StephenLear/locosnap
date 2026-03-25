@@ -312,194 +312,208 @@ export default function CardRevealScreen() {
           style={styles.cardTouchable}
         >
           {/* FRONT of card */}
+          {/* Outer Animated.View: flip transform only (native driver) */}
           <Animated.View
             style={[
               styles.cardGlowWrapper,
               {
-                shadowColor: rarityColor,
-                shadowRadius: glowRadius as any,
-                shadowOpacity: glowOpacity as any,
+                transform: [{ rotateY: frontInterpolate }],
+                opacity: frontOpacity,
               },
             ]}
           >
+            {/* Inner Animated.View: glow only (JS driver) */}
             <Animated.View
-              ref={cardRef}
-              style={[
-                styles.card,
-                styles.cardFront,
-                {
-                  borderColor: rarityColor,
-                  transform: [{ rotateY: frontInterpolate }],
-                  opacity: frontOpacity,
-                },
-              ]}
-              collapsable={false}
+              style={{
+                shadowColor: rarityColor,
+                shadowRadius: glowRadius as any,
+                shadowOpacity: glowOpacity as any,
+                shadowOffset: { width: 0, height: 8 },
+                elevation: 12,
+              }}
             >
-            {/* Photo area */}
-            <View style={styles.cardPhotoArea}>
-              {currentPhotoUri ? (
-                <Image
-                  source={{ uri: currentPhotoUri }}
-                  style={styles.cardPhoto}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.cardPhotoPlaceholder}>
-                  <Ionicons name="train" size={64} color={rarityColor} />
-                </View>
-              )}
-
-              {/* Rarity badge overlay */}
               <View
+                ref={cardRef}
                 style={[
-                  styles.rarityOverlay,
-                  { backgroundColor: rarityColor },
+                  styles.card,
+                  styles.cardFront,
+                  { borderColor: rarityColor },
                 ]}
+                collapsable={false}
               >
-                <Ionicons name="diamond" size={12} color="#fff" />
-                <Text style={styles.rarityOverlayText}>
-                  {rarityLabels[currentRarity.tier]}
-                </Text>
-              </View>
+              {/* Photo area */}
+              <View style={styles.cardPhotoArea}>
+                {currentPhotoUri ? (
+                  <Image
+                    source={{ uri: currentPhotoUri }}
+                    style={styles.cardPhoto}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.cardPhotoPlaceholder}>
+                    <Ionicons name="train" size={64} color={rarityColor} />
+                  </View>
+                )}
 
-              {/* NEW! badge for first-of-class */}
-              {isNewClass && (
-                <View style={styles.newBadge}>
-                  <Ionicons name="sparkles" size={12} color="#fff" />
-                  <Text style={styles.newBadgeText}>NEW!</Text>
-                </View>
-              )}
-
-              {/* Duplicate badge */}
-              {!isNewClass && existingSpotCount > 1 && (
-                <View style={styles.duplicateBadge}>
-                  <Ionicons name="camera" size={12} color="#fff" />
-                  <Text style={styles.duplicateBadgeText}>
-                    Spotted ×{existingSpotCount}
+                {/* Rarity badge overlay */}
+                <View
+                  style={[
+                    styles.rarityOverlay,
+                    { backgroundColor: rarityColor },
+                  ]}
+                >
+                  <Ionicons name="diamond" size={12} color="#fff" />
+                  <Text style={styles.rarityOverlayText}>
+                    {rarityLabels[currentRarity.tier]}
                   </Text>
                 </View>
-              )}
-            </View>
 
-            {/* Card info area */}
-            <View style={styles.cardInfoArea}>
-              <Text style={styles.cardClass} numberOfLines={1}>
-                {currentTrain.class}
-              </Text>
-              {currentTrain.name && (
-                <Text style={[styles.cardName, { color: rarityColor }]} numberOfLines={1}>
-                  "{currentTrain.name}"
-                </Text>
-              )}
-              <Text style={styles.cardMeta} numberOfLines={1}>
-                {currentTrain.operator} · {currentTrain.type}
-              </Text>
-
-              {/* Mini stats row */}
-              <View style={styles.cardStatsRow}>
-                {currentSpecs?.maxSpeed && (
-                  <View style={styles.cardStat}>
-                    <Ionicons name="speedometer" size={12} color={colors.accent} />
-                    <Text style={styles.cardStatText}>{currentSpecs.maxSpeed}</Text>
+                {/* NEW! badge for first-of-class */}
+                {isNewClass && (
+                  <View style={styles.newBadge}>
+                    <Ionicons name="sparkles" size={12} color="#fff" />
+                    <Text style={styles.newBadgeText}>NEW!</Text>
                   </View>
                 )}
-                {currentSpecs?.power && (
-                  <View style={styles.cardStat}>
-                    <Ionicons name="flash" size={12} color={colors.accent} />
-                    <Text style={styles.cardStatText}>{currentSpecs.power}</Text>
-                  </View>
-                )}
-                {currentRarity.survivingCount && (
-                  <View style={styles.cardStat}>
-                    <Ionicons name="heart" size={12} color={colors.danger} />
-                    <Text style={styles.cardStatText}>
-                      {currentRarity.survivingCount} left
+
+                {/* Duplicate badge */}
+                {!isNewClass && existingSpotCount > 1 && (
+                  <View style={styles.duplicateBadge}>
+                    <Ionicons name="camera" size={12} color="#fff" />
+                    <Text style={styles.duplicateBadgeText}>
+                      Spotted ×{existingSpotCount}
                     </Text>
                   </View>
                 )}
               </View>
 
-              {/* LocoSnap branding */}
-              <View style={styles.cardBranding}>
-                <Text style={styles.cardBrandingText}>LocoSnap</Text>
+              {/* Card info area */}
+              <View style={styles.cardInfoArea}>
+                <Text style={styles.cardClass} numberOfLines={1}>
+                  {currentTrain.class}
+                </Text>
+                {currentTrain.name && (
+                  <Text style={[styles.cardName, { color: rarityColor }]} numberOfLines={1}>
+                    "{currentTrain.name}"
+                  </Text>
+                )}
+                <Text style={styles.cardMeta} numberOfLines={1}>
+                  {currentTrain.operator} · {currentTrain.type}
+                </Text>
+
+                {/* Mini stats row */}
+                <View style={styles.cardStatsRow}>
+                  {currentSpecs?.maxSpeed && (
+                    <View style={styles.cardStat}>
+                      <Ionicons name="speedometer" size={12} color={colors.accent} />
+                      <Text style={styles.cardStatText}>{currentSpecs.maxSpeed}</Text>
+                    </View>
+                  )}
+                  {currentSpecs?.power && (
+                    <View style={styles.cardStat}>
+                      <Ionicons name="flash" size={12} color={colors.accent} />
+                      <Text style={styles.cardStatText}>{currentSpecs.power}</Text>
+                    </View>
+                  )}
+                  {currentRarity.survivingCount && (
+                    <View style={styles.cardStat}>
+                      <Ionicons name="heart" size={12} color={colors.danger} />
+                      <Text style={styles.cardStatText}>
+                        {currentRarity.survivingCount} left
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* LocoSnap branding */}
+                <View style={styles.cardBranding}>
+                  <Text style={styles.cardBrandingText}>LocoSnap</Text>
+                </View>
               </View>
-            </View>
+              </View>
             </Animated.View>
           </Animated.View>
 
           {/* BACK of card */}
+          {/* Outer Animated.View: flip transform only (native driver) */}
           <Animated.View
             style={[
               styles.cardGlowWrapper,
               {
-                shadowColor: rarityColor,
-                shadowRadius: glowRadius as any,
-                shadowOpacity: glowOpacity as any,
+                transform: [{ rotateY: backInterpolate }],
+                opacity: backOpacity,
               },
             ]}
           >
+            {/* Inner Animated.View: glow only (JS driver) */}
             <Animated.View
-              style={[
-                styles.card,
-                styles.cardBack,
-                {
-                  borderColor: rarityColor,
-                  transform: [{ rotateY: backInterpolate }],
-                  opacity: backOpacity,
-                },
-              ]}
+              style={{
+                shadowColor: rarityColor,
+                shadowRadius: glowRadius as any,
+                shadowOpacity: glowOpacity as any,
+                shadowOffset: { width: 0, height: 8 },
+                elevation: 12,
+              }}
             >
-            <View style={styles.cardBackContent}>
-              {/* Specs */}
-              <Text style={[styles.backTitle, { color: rarityColor }]}>
-                Specifications
-              </Text>
+              <View
+                style={[
+                  styles.card,
+                  styles.cardBack,
+                  { borderColor: rarityColor },
+                ]}
+              >
+              <View style={styles.cardBackContent}>
+                {/* Specs */}
+                <Text style={[styles.backTitle, { color: rarityColor }]}>
+                  Specifications
+                </Text>
 
-              <View style={styles.backSpecsGrid}>
-                {currentSpecs?.maxSpeed && (
-                  <BackSpec label="Max Speed" value={currentSpecs.maxSpeed} />
-                )}
-                {currentSpecs?.power && (
-                  <BackSpec label="Power" value={currentSpecs.power} />
-                )}
-                {currentSpecs?.weight && (
-                  <BackSpec label="Weight" value={currentSpecs.weight} />
-                )}
-                {currentSpecs?.builder && (
-                  <BackSpec label="Builder" value={currentSpecs.builder} />
-                )}
-                {currentSpecs?.gauge && (
-                  <BackSpec label="Gauge" value={currentSpecs.gauge} />
-                )}
-                {currentSpecs?.fuelType && (
-                  <BackSpec label="Fuel" value={currentSpecs.fuelType} />
-                )}
-              </View>
-
-              {/* Summary */}
-              {currentFacts?.summary && (
-                <View style={styles.backSummary}>
-                  <Text style={styles.backSummaryText} numberOfLines={3}>
-                    {currentFacts.summary}
-                  </Text>
+                <View style={styles.backSpecsGrid}>
+                  {currentSpecs?.maxSpeed && (
+                    <BackSpec label="Max Speed" value={currentSpecs.maxSpeed} />
+                  )}
+                  {currentSpecs?.power && (
+                    <BackSpec label="Power" value={currentSpecs.power} />
+                  )}
+                  {currentSpecs?.weight && (
+                    <BackSpec label="Weight" value={currentSpecs.weight} />
+                  )}
+                  {currentSpecs?.builder && (
+                    <BackSpec label="Builder" value={currentSpecs.builder} />
+                  )}
+                  {currentSpecs?.gauge && (
+                    <BackSpec label="Gauge" value={currentSpecs.gauge} />
+                  )}
+                  {currentSpecs?.fuelType && (
+                    <BackSpec label="Fuel" value={currentSpecs.fuelType} />
+                  )}
                 </View>
-              )}
 
-              {/* Fun fact */}
-              {currentFacts?.funFacts[0] && (
-                <View style={styles.backFunFact}>
-                  <Ionicons name="bulb" size={14} color={colors.accent} />
-                  <Text style={styles.backFunFactText} numberOfLines={3}>
-                    {currentFacts.funFacts[0]}
-                  </Text>
+                {/* Summary */}
+                {currentFacts?.summary && (
+                  <View style={styles.backSummary}>
+                    <Text style={styles.backSummaryText} numberOfLines={3}>
+                      {currentFacts.summary}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Fun fact */}
+                {currentFacts?.funFacts[0] && (
+                  <View style={styles.backFunFact}>
+                    <Ionicons name="bulb" size={14} color={colors.accent} />
+                    <Text style={styles.backFunFactText} numberOfLines={3}>
+                      {currentFacts.funFacts[0]}
+                    </Text>
+                  </View>
+                )}
+
+                {/* LocoSnap branding */}
+                <View style={styles.cardBranding}>
+                  <Text style={styles.cardBrandingText}>LocoSnap</Text>
                 </View>
-              )}
-
-              {/* LocoSnap branding */}
-              <View style={styles.cardBranding}>
-                <Text style={styles.cardBrandingText}>LocoSnap</Text>
               </View>
-            </View>
+              </View>
             </Animated.View>
           </Animated.View>
         </TouchableOpacity>
@@ -625,8 +639,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 12,
   },
   card: {
     width: CARD_WIDTH,
