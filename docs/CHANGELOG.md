@@ -9,6 +9,23 @@ Format: newest first within each date block.
 
 ### Backend
 
+#### `src/services/vision.ts` — Add 15 tester-reported misidentification fixes to vision prompt
+- **Fixed** BR 480 vs BR 481 (S-Bahn Berlin): added rule distinguishing BR 480 (rounder front, single-piece windscreen) from the far more numerous BR 481 (flatter angular front, split windscreen). BR 481 is now the default when windscreen detail is ambiguous.
+- **Fixed** BR 445 Twindexx vs Bombardier Talent 2: added explicit double-deck (Twindexx) vs single-deck curved-nose (Talent 2) rule. A double-deck train can never be a Talent 2.
+- **Fixed** CD 380 (Škoda 109E) vs ČD Class 151: modern angular Škoda loco on Czech Railways = CD 380; boxy 1970s Soviet-era body = Class 151.
+- **Fixed** CD 654 (RegioPanter) vs Stadler FLIRT: Škoda cab face = CD 654; Leo Express branding = FLIRT. Never conflate these.
+- **Fixed** ICE T (BR 411 / BR 415) vs ICE 3: tilting train with bogie tilt fairings and bulbous nose = ICE T; non-tilting = ICE 3. BR 411 = 7-car, BR 415 = 5-car.
+- **Fixed** ST 44 (M62 family, Poland/Czech/Hungary) vs Class 159 (UK DMU): completely different vehicles on different continents. Long-hood Soviet-era freight loco in Central/Eastern Europe = M62 family.
+- **Fixed** VT 650 (Regio-Shuttle RS1) vs VT 628: compact modern low-floor single car = VT 650; boxy 1980s two-car set = VT 628.
+- **Fixed** EL2 / EU06 family vs E 94: active Co'Co' freight electric in Poland/Czech Republic = EL2/EU06 family; E 94 is a WWII museum piece, not in regular freight service.
+- **Fixed** BR 563 (Siemens Mireo) vs Alstom Coradia LINT 41: pantographs on roof = cannot be LINT 41; no pantograph + Alstom cab = LINT 41.
+- **Fixed** BR 462 (ICE 3neo / Velaro MS) vs BR 642 (Desiro Classic): number-reversal confusion. Full ICE high-speed train = BR 462; small regional DMU = BR 642.
+- **Fixed** VT 646 Gen 1 (Talent 1) vs DB Class 648 (LINT 48): Talent 1 boxy cab face = VT 646; Alstom LINT cab = Class 648.
+- **Fixed** BR 646 Gen 2 (Talent 2 variant) vs Alstom Coradia LINT 41: ODEG operator + Talent 2 curved nose = VT 646 / Talent 2, not LINT 41.
+- **Fixed** LU A Stock vs 1972 Tube Stock: A Stock is sub-surface gauge (wider, Metropolitan/Hammersmith & City lines); 1972 Stock is tube gauge (narrower, Bakerloo/Northern lines).
+- **Fixed** LU 1960 Tube Stock vs 1992 Tube Stock: 1992 Stock has modern flat-ended aluminium body with roof AC domes; 1960 Stock has older rounded pre-modern body shape.
+- **Fixed** LU CO/CP Stock vs 1938 Tube Stock: CO/CP is sub-surface gauge (wider, Circle/Hammersmith); 1938 Stock is tube gauge (narrower), dark red with rounded 1938-style cab ends.
+
 #### `src/services/vision.ts` — Add ICE 3 family disambiguation to vision prompt
 - **Added** Explicit disambiguation block for the BR 403 / BR 406 / BR 407 / BR 408 ICE 3 family, matching the style of existing disambiguation entries (S-Bahn 480/485, Vectron variants, etc.). Root cause of the inconsistency: all four classes share the same white + red-stripe ICE livery and broadly similar nose profile, so without explicit guidance the model was freely cycling between "ICE 3", "BR 403", "BR 406", and "BR 407" on repeated scans of the same train.
 - **Added** Route indicator rule: trains photographed at Amsterdam, Utrecht, Arnhem, or anywhere on the Amsterdam–Utrecht–Oberhausen–Cologne–Frankfurt corridor must be classified as BR 406. The BR 403 is single-voltage and does not operate into the Netherlands, so any ICE 3 at Utrecht Centraal is almost certainly a BR 406.

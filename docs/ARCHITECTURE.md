@@ -17,7 +17,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.5 build 28 — submitted to App Store Review 2026-03-24 |
+| iOS Version | 1.0.5 build 28 — **Live on App Store** 2026-03-25. Includes partial card-reveal crash fix (2026-03-23). Full driver-separation fix staged for build 29. |
 | Android Version | 1.0.5 build 3 — preview APK building (2026-03-24), last shipped APK: v1.0.4 |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
