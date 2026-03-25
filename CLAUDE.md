@@ -183,6 +183,18 @@ If a change affects how the system works (auth flow, data persistence, API endpo
 ### Changelog location
 `docs/CHANGELOG.md` — all frontend and backend code changes recorded here with date, file, what changed, and why.
 
+### No emojis — ever
+Never use emojis in any response, output, file, caption, script, email, or message in this project. This applies everywhere without exception. No emoji characters of any kind.
+
+### Before asserting what is or is not in a build
+Always read `docs/CHANGELOG.md` first. Never state what a build contains or does not contain from memory.
+
+### After any backend commit — push-or-hold decision required
+After committing any backend change, explicitly state: "Not yet deployed — needs a push to go live on Render." Then ask: push now or hold? Never leave a backend commit sitting without a clear decision on deployment.
+
+### After triggering an EAS build — confirm monitoring method
+After any `eas build` command, confirm how the build will be monitored and how the APK/IPA link will be retrieved and distributed. Never ask the user to supply the link — handle it directly.
+
 ---
 
 ## Key Design Decisions
