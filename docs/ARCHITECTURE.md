@@ -388,6 +388,61 @@ FRONTEND_URL=https://locosnap.app
 
 ---
 
+## 21. Social Media Strategy
+
+> Last updated: 2026-03-25. Research based on TikTok/Instagram niche analysis.
+
+### Core Insight
+No competitor in the rail niche has a product mechanic at the centre of their content. Francis Bourgeois (3.3M TikTok) never identifies, never explains — he performs joy. LocoSnap owns the technical knowledge layer, the ID mechanic, the rarity system, and the blueprint. Every scan is a repeatable content unit no other creator can produce.
+
+### Accounts to Watch
+| Account | Platform | Followers | What They Do | Gap LocoSnap Owns |
+|---------|----------|-----------|--------------|-------------------|
+| Francis Bourgeois (@francis.bourgeois) | TikTok/IG | 3.3M TikTok | Face-cam reaction + train footage. Zero education, zero ID. | Everything informational |
+| Geoff Marshall (Geofftech) | YouTube | 100M+ views | Long-form documentary, research-heavy | Short-form platform-native content |
+| TrainAndy (@trainandy) | TikTok | 37K | Trains + travel, platform-native | No ID mechanic, no rarity system |
+| Jago Hazzard | YouTube | Growing | London transport + railway history | Live, real-time identification angle |
+| #eisenbahn community | TikTok | Fragmented | German rail, no dominant personality | First-mover in DE market |
+| Traintrack (traintrack.app) | TikTok | 557 | Competitor app, aggressive paywall | Better UX, rarity system, blueprints |
+
+### Formats That Work Right Now
+1. **Interrupted reveal** — scan + cut before result + return. Replay mechanic built in.
+2. **Pass/Fail ID challenge** — freeze frame, "what class is this?", reveal in comments.
+3. **Rare sighting documentation** — raw handheld, real audio, text overlay on rarity.
+4. **Satisfying ASMR** — clean platform footage, no voiceover, real sound. Crosses out of niche.
+5. **Did You Know drops** — one fact, 20-30 seconds, no list. Circulates outside the niche.
+6. **Live app demo** — point, scan, result. The product sells itself.
+
+### Posting Cadence
+| Platform | Frequency | Format Mix |
+|----------|-----------|------------|
+| TikTok | 1 per day | Rotate: ID reveal, educational drop, ASMR/reaction |
+| Instagram | 3x per week | 2 Reels + 1 carousel (carousels drive saves) |
+
+### Hashtag Strategy
+- **TikTok 3-3-3 rule:** 3 broad (#trains #railway #trainspotting) + 3 niche (#trainspotter #uktrains #locosnap) + 3 content-specific (class name, operator, etc.)
+- **Instagram:** Hashtags in first comment, not caption. Keep captions clean for storytelling.
+- **German audience tags:** #eisenbahn #zugspotter #bahnfotografie #zugfotografie #bahnliebe
+
+### Posting Times
+| Audience | Platform | Best Window |
+|----------|----------|-------------|
+| UK | TikTok | 6-9pm GMT weekdays |
+| German | TikTok | 7-9pm CET Tue/Thu/Sun |
+| Both | Instagram | Wednesday + Saturday evenings |
+
+### Content Pillars (Rotate Weekly)
+1. **Identify** — live app demo, challenge, interrupted reveal
+2. **Educate** — Did You Know, class history, spec facts
+3. **Rare** — rarity reveal, Legendary sighting, "this shouldn't exist"
+4. **Aesthetic** — ASMR, blueprint reveal, journey time-lapse
+
+### The TikTok Quote (Organic Social Proof)
+> "This app is crazy." — unsolicited TikTok DM from a new user, March 2026.
+Use as overlay text on future ad content. Do not attribute — let it stand alone.
+
+---
+
 ## 20. Known Limitations / Pending Work
 
 | Item | Status |

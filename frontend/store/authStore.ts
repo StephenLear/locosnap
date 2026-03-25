@@ -93,12 +93,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               set({ session: data.session, user: data.session.user });
               get().fetchProfile().catch(() => {});
             } else {
-              // Genuine sign-out — clear state
-              set({ profile: null });
+              // Genuine sign-out — clear all user state including train history
+              set({ session: null, user: null, profile: null });
+              const { useTrainStore } = require("./trainStore");
+              useTrainStore.getState().clearHistory();
             }
           }).catch(() => {
-            // Recovery failed — clear state
-            set({ profile: null });
+            // Recovery failed — clear all user state including train history
+            set({ session: null, user: null, profile: null });
+            const { useTrainStore } = require("./trainStore");
+            useTrainStore.getState().clearHistory();
           });
           return;
         }

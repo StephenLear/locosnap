@@ -124,12 +124,19 @@ function RootLayout() {
 
   // Re-load history from Supabase when user signs in
   // This fixes the race condition where loadHistory() runs before initialize() completes
+  // Also clears stale history when switching between accounts so collections don't cross-contaminate
   const prevUserIdRef = React.useRef<string | null>(null);
+  const clearHistory = useTrainStore((state) => state.clearHistory);
   useEffect(() => {
     const prevId = prevUserIdRef.current;
     const currentId = user?.id ?? null;
     if (currentId && currentId !== prevId) {
-      loadHistory();
+      // If there was a previous user, clear their history before loading the new user's
+      if (prevId !== null) {
+        clearHistory().then(() => loadHistory());
+      } else {
+        loadHistory();
+      }
     }
     prevUserIdRef.current = currentId;
   }, [user?.id]);
