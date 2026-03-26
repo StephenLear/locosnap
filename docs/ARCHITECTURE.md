@@ -257,9 +257,18 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | iOS Profile | production |
 | Android Profile | preview (APK for testers) |
 | Build command | `eas build --platform [ios/android/all] --profile [production/preview]` |
-| Latest iOS Build | Build 28 (v1.0.5) — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/074c63d6-0479-4ce1-95f7-7f4c4acc9cd4 — in App Store Review |
+| Latest iOS Build | Build 28 (v1.0.5) — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/074c63d6-0479-4ce1-95f7-7f4c4acc9cd4 — Live on App Store |
 | Latest Android Production Build | Build 3 (v1.0.5) AAB — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/d11235b8-3b43-4408-b68f-9cbb047896c2 |
-| Latest Android Preview Build | Build 3 (v1.0.5) APK — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/48ca3a8a-d379-4aa6-a091-4702e79d35d8 — in progress |
+| Latest Android Preview Build | Build 3 (v1.0.5) APK — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/48ca3a8a-d379-4aa6-a091-4702e79d35d8 |
+
+### Android APK Build History
+
+Every APK shipped to testers must be recorded here on the day it is sent.
+
+| Date | Version | What Was In It | APK Link | Sent To |
+|------|---------|---------------|----------|---------|
+| 2026-03-24 | v1.0.5 (preview build 3) | Card-reveal animation crash fix (native driver separation on Android). authStore SIGNED_OUT recovery fix. Account cross-contamination fix (_layout). S-Bahn 480/485 pantograph disambiguation. LU vintage stock fixes (A Stock, 1960 Stock, CO/CP). 15 new German class disambiguation rules in vision prompt. | https://expo.dev/artifacts/eas/9Zk2rLcqzY9n8Ruc4Sk9Bj.apk | 13 Android testers (full list) |
+| 2026-03-26 | v1.0.5 (preview) | Card-reveal animation crash fix. S-Bahn 480/485 now distinguished by pantograph check. DR Class 156 corrected to Legendary rarity (only 4 built). | https://expo.dev/artifacts/eas/uhB5zAZwTry8AiX5Y5QEaB.apk | Nero (gerlachr70@gmail.com) — new tester onboarding |
 
 ---
 
