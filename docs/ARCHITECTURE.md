@@ -359,7 +359,8 @@ FRONTEND_URL=https://locosnap.app
 
 ## 19. Beta Testers
 
-### Android Testers (13) — notified by email
+### Android Testers (14) — notified by email
+- gerlachr70@gmail.com (Nero — German ICE enthusiast, recruited via Frankfurt TikTok/Instagram ad 2026-03-26)
 - Stephstottor@gmail.com
 - esseresser07@gmail.com
 - gazthomas@hotmail.com
