@@ -150,8 +150,40 @@ export async function getTrainSpecs(
 
     // Wikidata wins for factual fields (speed, voltage, dimensions, builder)
     // AI wins for contextual fields (gauge, route, status, numberSurviving)
+    //
+    // maxSpeed exception: if Wikidata and AI disagree by more than 20%, the
+    // Wikidata entry is likely stale, variant-specific, or mismatched. In that
+    // case we log a warning and fall back to AI, which uses current knowledge.
+    const resolveMaxSpeed = (): string | null => {
+      if (!wiki.maxSpeed) return ai.maxSpeed;
+      if (!ai.maxSpeed)   return wiki.maxSpeed;
+
+      const parseKmh = (s: string): number | null => {
+        const m = s.match(/([\d.]+)\s*km\/h/i);
+        if (m) return parseFloat(m[1]);
+        const mph = s.match(/([\d.]+)\s*mph/i);
+        if (mph) return parseFloat(mph[1]) * 1.60934;
+        return null;
+      };
+
+      const wikiKmh = parseKmh(wiki.maxSpeed);
+      const aiKmh   = parseKmh(ai.maxSpeed);
+
+      if (wikiKmh !== null && aiKmh !== null) {
+        const diff = Math.abs(wikiKmh - aiKmh) / Math.max(wikiKmh, aiKmh);
+        if (diff > 0.20) {
+          console.warn(
+            `[SPECS] maxSpeed mismatch >20% — Wikidata: ${wiki.maxSpeed}, AI: ${ai.maxSpeed}. Using AI.`
+          );
+          return ai.maxSpeed;
+        }
+      }
+
+      return wiki.maxSpeed;
+    };
+
     const merged: TrainSpecs = {
-      maxSpeed:        wiki.maxSpeed        ?? ai.maxSpeed,
+      maxSpeed:        resolveMaxSpeed(),
       power:           wiki.power           ?? ai.power,
       weight:          wiki.weight          ?? ai.weight,
       length:          wiki.length          ?? ai.length,

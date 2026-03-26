@@ -5,6 +5,38 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-03-26
+
+### Frontend
+
+#### `app/paywall.tsx` — Fix silent purchase failure when only one RevenueCat package returns
+- **Fixed** Silent no-op on purchase attempt — `selectedIndex` was hardcoded to `1` (annual), so if RevenueCat returned only one package (e.g. during a network hiccup or phased rollout), `packages[1]` was `undefined` and `handlePurchase` returned without error or feedback.
+- **Changed** `selectedIndex` initial state from `1` to `0`. After offerings load, `loadOfferings` now finds the annual package index dynamically (`findIndex` on `packageType === "ANNUAL"` or identifier containing `"annual"`) and sets `selectedIndex` to that value, or `0` if no annual package exists. Eliminates the hardcoded assumption that annual is always at index 1.
+
+#### `app/paywall.tsx` — Pull blueprint credit price from RevenueCat instead of hardcoding
+- **Fixed** Hardcoded `£0.99` credit price on the blueprint credit card — would display the wrong currency and amount for any non-GBP storefront (e.g. German users from Frankfurt ad campaign seeing £ instead of €).
+- **Added** `creditPrice` state variable (`string | null`). `loadOfferings` now reads `offerings.all["blueprint_credits"]?.availablePackages?.[0]?.product.priceString` and stores it in state.
+- **Changed** Credit card price display from static `£0.99` to `{creditPrice ?? "—"}` — shows the App Store / Play Store localised price once loaded, or a neutral dash if unavailable.
+
+#### `app/paywall.tsx` — Fix "Unlimited daily scans" copy
+- **Fixed** Feature label read "Unlimited daily scans" — the app has no daily reset mechanic, so "daily" was misleading. Changed to "Unlimited scans".
+
+#### `app/paywall.tsx` — Remove "Exclusive card frames" from Pro features list
+- **Removed** "Exclusive card frames" feature row from `PRO_FEATURES` — this feature has not been built and was falsely advertising a capability that does not exist. Removed to avoid misleading users on the paywall.
+
+#### `app/(tabs)/profile.tsx` — Remove hardcoded £4.99/month from upgrade button
+- **Fixed** Upgrade button subtitle showed "Unlimited scans + premium blueprints · £4.99/month" — hardcoded GBP price would display incorrectly for any non-GBP storefront. Root cause: same Frankfurt ad / German market exposure risk as the paywall credit price.
+- **Changed** Subtitle to "Unlimited scans · Premium blueprints · All styles" — factual, currency-neutral, and consistent with the corrected paywall feature list.
+
+### Backend
+
+#### `src/services/trainSpecs.ts` — Fix maxSpeed taking wrong Wikidata value when it conflicts with AI
+- **Fixed** DB Class 403 (ICE 3) showing 265 km/h instead of 300/330 km/h — root cause: Wikidata `maxSpeed` was unconditionally preferred over AI output. The Wikidata entity being matched for the Class 403 contained a stale or variant-specific speed figure (265 km/h) that the "Wikidata wins" merge rule silently propagated into the response.
+- **Added** `resolveMaxSpeed()` function in the merge block. Parses both Wikidata and AI speed strings into km/h for comparison. If the two values differ by more than 20%, logs a `WARN` and uses the AI figure instead. If only one source has speed data, that source wins as before. Disagreement under 20% continues to prefer Wikidata.
+- **Changed** `merged.maxSpeed` from `wiki.maxSpeed ?? ai.maxSpeed` to `resolveMaxSpeed()`.
+
+---
+
 ## 2026-03-25
 
 ### Backend
