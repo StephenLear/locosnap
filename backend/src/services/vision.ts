@@ -131,6 +131,7 @@ async function identifyWithClaude(
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 1024,
+    temperature: 0,
     messages: [
       {
         role: "user",
@@ -165,6 +166,7 @@ async function identifyWithOpenAI(
       {
         model: "gpt-4o",
         max_tokens: 1024,
+        temperature: 0,
         messages: [
           {
             role: "user",

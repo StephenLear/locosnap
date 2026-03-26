@@ -50,7 +50,14 @@ Rules:
   European electric: "Electric (15kV 16.7Hz AC)" for Germany/Austria/Switzerland/Sweden/Norway, "Electric (25kV 50Hz AC)" for France/Belgium/UK HS1/Finland, "Electric (3kV DC)" for Italy/Poland/Belgium/Czech/Slovak, "Electric (1.5kV DC)" for Netherlands/France some, "Electric (600/750V DC)" for metros/trams.
   Nordic specific: Sweden/Norway use 15kV 16.7Hz; Finland uses 25kV 50Hz; Denmark uses 25kV 50Hz (IC3 is diesel).
   Other: "Diesel", "Coal", "Dual-voltage Electric", "Tri-voltage Electric", "Dual-fuel", "Battery", "Hydrogen".
-- Be accurate — trainspotters will check these numbers.`;
+- Be accurate — trainspotters will check these numbers.
+- ICE 3 family — use these exact values, do not deviate:
+  BR 403 (ICE 3, original): maxSpeed "300 km/h", power "8,000 kW", builder "Siemens/Bombardier", numberBuilt 13, fuelType "Electric (15kV 16.7Hz AC)"
+  BR 406 (ICE 3M/3MF, multi-system): maxSpeed "300 km/h", power "8,000 kW", builder "Siemens/Bombardier", numberBuilt 17, fuelType "Electric (multi-system: 15kV 16.7Hz / 25kV 50Hz / 3kV DC / 1.5kV DC)"
+  BR 407 (ICE 3neo / Velaro D): maxSpeed "320 km/h", power "8,000 kW", builder "Siemens", numberBuilt 17, fuelType "Electric (15kV 16.7Hz AC)"
+  BR 408 (ICE 3neo, latest generation): maxSpeed "320 km/h", power "9,200 kW", builder "Siemens", fuelType "Electric (15kV 16.7Hz AC)"
+  BR 462 (ICE 3neo / Velaro MS): maxSpeed "320 km/h", power "9,200 kW", builder "Siemens", fuelType "Electric (multi-system)"
+  All ICE 3 variants are EMU type, Standard gauge (1,435 mm), operator DB.`;
 
 const FALLBACK_SPECS: TrainSpecs = {
   maxSpeed: null,
@@ -98,6 +105,7 @@ async function getAISpecs(train: TrainIdentification): Promise<TrainSpecs> {
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1024,
+      temperature: 0,
       messages: [{ role: "user", content: prompt }],
     });
     const content = response.content[0];
@@ -112,6 +120,7 @@ async function getAISpecs(train: TrainIdentification): Promise<TrainSpecs> {
       {
         model: "gpt-4o",
         max_tokens: 1024,
+        temperature: 0,
         messages: [{ role: "user", content: prompt }],
       },
       {
@@ -173,9 +182,10 @@ export async function getTrainSpecs(
         const diff = Math.abs(wikiKmh - aiKmh) / Math.max(wikiKmh, aiKmh);
         if (diff > 0.20) {
           console.warn(
-            `[SPECS] maxSpeed mismatch >20% — Wikidata: ${wiki.maxSpeed}, AI: ${ai.maxSpeed}. Using AI.`
+            `[SPECS] maxSpeed mismatch >20% — Wikidata: ${wiki.maxSpeed}, AI: ${ai.maxSpeed}. Trusting Wikidata.`
           );
-          return ai.maxSpeed;
+          // Wikidata is a structured factual source — prefer it over AI when they diverge
+          return wiki.maxSpeed;
         }
       }
 
