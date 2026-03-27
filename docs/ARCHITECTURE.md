@@ -1,6 +1,6 @@
 # LocoSnap — Full Architecture Reference
 
-> Last updated: 2026-03-23
+> Last updated: 2026-03-27
 
 ---
 
@@ -17,8 +17,8 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.5 build 28 — **Live on App Store** 2026-03-25. Includes partial card-reveal crash fix (2026-03-23). Full driver-separation fix staged for build 29. |
-| Android Version | 1.0.5 build 3 — preview APK building (2026-03-24), last shipped APK: v1.0.4 |
+| iOS Version | 1.0.6 build 29 — **Submitted to TestFlight** 2026-03-27. Identification improvements (ICE 3 family, 15 class fixes), paywall display bug fixes, account history fix. App Store name corrected to "LocoSnap". |
+| Android Version | 1.0.6 build 4 — production AAB built 2026-03-27, preview APK sent to 13 testers. Auto-submit to internal track pending service account permission propagation. |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
 | Bundle ID | com.locosnap.app |
@@ -257,9 +257,9 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | iOS Profile | production |
 | Android Profile | preview (APK for testers) |
 | Build command | `eas build --platform [ios/android/all] --profile [production/preview]` |
-| Latest iOS Build | Build 28 (v1.0.5) — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/074c63d6-0479-4ce1-95f7-7f4c4acc9cd4 — Live on App Store |
-| Latest Android Production Build | Build 3 (v1.0.5) AAB — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/d11235b8-3b43-4408-b68f-9cbb047896c2 |
-| Latest Android Preview Build | Build 3 (v1.0.5) APK — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/48ca3a8a-d379-4aa6-a091-4702e79d35d8 |
+| Latest iOS Build | Build 29 (v1.0.6) — Submitted to TestFlight 2026-03-27 |
+| Latest Android Production Build | Build 4 (v1.0.6) AAB — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/f040f353-97cf-4804-b1d6-11608f6706f0 — submit to internal track pending service account permission propagation |
+| Latest Android Preview Build | Build 4 (v1.0.6) APK — https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk |
 
 ### Android APK Build History
 
@@ -269,6 +269,7 @@ Every APK shipped to testers must be recorded here on the day it is sent.
 |------|---------|---------------|----------|---------|
 | 2026-03-24 | v1.0.5 (preview build 3) | Card-reveal animation crash fix (native driver separation on Android). authStore SIGNED_OUT recovery fix. Account cross-contamination fix (_layout). S-Bahn 480/485 pantograph disambiguation. LU vintage stock fixes (A Stock, 1960 Stock, CO/CP). 15 new German class disambiguation rules in vision prompt. | https://expo.dev/artifacts/eas/9Zk2rLcqzY9n8Ruc4Sk9Bj.apk | 13 Android testers (full list) |
 | 2026-03-26 | v1.0.5 (preview) | Card-reveal animation crash fix. S-Bahn 480/485 now distinguished by pantograph check. DR Class 156 corrected to Legendary rarity (only 4 built). | https://expo.dev/artifacts/eas/uhB5zAZwTry8AiX5Y5QEaB.apk | Nero (gerlachr70@gmail.com) — new tester onboarding |
+| 2026-03-27 | v1.0.6 (preview build 4) | ICE 3 family disambiguation (BR 403/406/407/408). 15 identification fixes including ICE T, BR 462/642, BR 480/481, LINT 41/Mireo, FLIRT/CD 654, VT 650/628, Twindexx/Talent 2. ICE 3 max speed corrected to 300 km/h. Paywall display bug fixes (currency localisation, purchase failure, copy). Account history no longer persists after sign-out. | https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk | 13 Android testers (full list) |
 
 ---
 
@@ -451,14 +452,37 @@ No competitor in the rail niche has a product mechanic at the centre of their co
 > "This app is crazy." — unsolicited TikTok DM from a new user, March 2026.
 Use as overlay text on future ad content. Do not attribute — let it stand alone.
 
+### Video Production Standards
+
+**End screen — mandatory elements:**
+- LocoSnap app icon (`frontend/assets/icon-512.png`) centred above the app name — always present, no exceptions
+- "LOCOSNAP" in large white Impact text below the icon
+- "Free on App Store" in yellow Impact text
+- "Coming soon to Android" in white Impact text
+- Dark background (#0d0d0d)
+- Duration: 2 seconds minimum
+
+**Text overlays:**
+- Font: Impact
+- Colour: yellow (#FFFF00) with black border, borderwidth 6
+- Large size (90-95px at 1080px wide)
+- Two lines maximum — one top-left, one bottom-left
+- No time claims for blueprint generation (takes up to 60 seconds in the app)
+
+**Hook structure:**
+- Frame 1 must be a pattern interrupt — moving train or strongest visual asset
+- Never open on the scan UI or app chrome
+- Blueprint reveals go after the footage cut, not before
+
 ---
 
 ## 20. Known Limitations / Pending Work
 
 | Item | Status |
 |------|--------|
-| iOS App Store submission (v1.0.5) | In App Store Review — submitted 2026-03-24, build 28 |
-| Android APK for testers (v1.0.5) | Preview build 48ca3a8a finished — APK: https://expo.dev/artifacts/eas/9Zk2rLcqzY9n8Ruc4Sk9Bj.apk — send to 13 testers |
+| iOS App Store submission (v1.0.6) | Submitted to TestFlight 2026-03-27, build 29 — App Store name corrected to "LocoSnap" |
+| Android APK for testers (v1.0.6) | Sent to 13 testers 2026-03-27 — APK: https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk |
+| Android auto-submit to Play Store (v1.0.6) | Infrastructure set up (service account, API enabled, eas.json updated). Submit pending service account permission propagation. Retry: eas submit --platform android --profile production --id f040f353-97cf-4804-b1d6-11608f6706f0 --non-interactive |
 | Competitor noted: Traintrack (traintrack.app) | iOS/Android, 557 followers TikTok, aggressive paywall, launched 2026. Monitor. |
 | Sentry source maps | Add SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT to EAS secrets |
 | Offline spot sync | Spots scanned while offline are saved locally but never synced to Supabase when connectivity restores. Need to track unsynced items (local timestamp ID vs Supabase UUID) and sync on reconnect/foreground. Medium priority. |

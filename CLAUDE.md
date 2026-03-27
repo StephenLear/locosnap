@@ -189,6 +189,12 @@ Never use emojis in any response, output, file, caption, script, email, or messa
 ### Before asserting what is or is not in a build
 Always read `docs/CHANGELOG.md` first. Never state what a build contains or does not contain from memory.
 
+### Before searching project files for a previous session output
+When the user references a list, plan, schedule, or output created in a previous session, check `docs/handoffs/` newest-first before searching anywhere else. Handovers are the authoritative record of what was produced in each session.
+
+### When writing German copy
+Always verify umlaut characters are correct before outputting. Use the proper Unicode characters: ä, ö, ü, Ä, Ö, Ü, ß. Common failure points: schön (not schon), überzeugt (not uberzeugt), Grüße (not Gruse), für (not fur). Read back any German text once before sending.
+
 ### After any backend commit — push-or-hold decision required
 After committing any backend change, explicitly state: "Not yet deployed — needs a push to go live on Render." Then ask: push now or hold? Never leave a backend commit sitting without a clear decision on deployment.
 

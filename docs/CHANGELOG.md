@@ -5,6 +5,18 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-03-27
+
+### Docs
+
+#### `docs/ARCHITECTURE.md` — Add Video Production Standards to Section 21
+- **Added** Video Production Standards subsection under Social Media Strategy (Section 21) covering mandatory end screen elements, text overlay standards, and hook structure rules.
+- **Added** Rule: every video end screen must include the app icon (`frontend/assets/icon-512.png`) above the LOCOSNAP wordmark — no exceptions. Root cause for rule: blueprint v1 and v2 shipped without the icon on the end screen.
+- **Added** Rule: no time claims for blueprint generation in any video copy — the feature takes up to 60 seconds in the app. Prevents false advertising.
+- **Added** Rule: frame 1 must always be a pattern interrupt (moving train or strongest visual asset) — never open on scan UI or app chrome. Based on drop-off data from today's Instagram ad (26 views) and consistent 0:02 drop-off pattern across Frankfurt and EU07 footage.
+
+---
+
 ## 2026-03-26
 
 ### Frontend
