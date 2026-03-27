@@ -451,7 +451,7 @@ export default function ProfileScreen() {
             <View style={styles.upgradeBtnContent}>
               <Text style={styles.upgradeBtnTitle}>Upgrade to Pro</Text>
               <Text style={styles.upgradeBtnSubtitle}>
-                Unlimited scans + premium blueprints · £4.99/month
+                Unlimited scans · Premium blueprints · All styles
               </Text>
             </View>
             <Ionicons

@@ -75,18 +75,13 @@ const BLUEPRINT_PREVIEWS = [
 const PRO_FEATURES = [
   {
     icon: "infinite",
-    label: "Unlimited daily scans",
+    label: "Unlimited scans",
     desc: "No more waiting — scan every train you see",
   },
   {
     icon: "construct",
     label: "Premium technical blueprints",
     desc: "Detailed engineering diagrams for your collection",
-  },
-  {
-    icon: "color-palette",
-    label: "Exclusive card frames",
-    desc: "Stand out with rare collector card designs",
   },
   {
     icon: "heart",
@@ -101,7 +96,8 @@ export default function PaywallScreen() {
   const { user, fetchProfile } = useAuthStore();
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(1); // Default to annual
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [creditPrice, setCreditPrice] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
@@ -183,6 +179,15 @@ export default function PaywallScreen() {
         return 0;
       });
       setPackages(sorted);
+      // Default to annual if available, otherwise first package
+      const annualIdx = sorted.findIndex(
+        (p) => p.packageType === "ANNUAL" || p.identifier.includes("annual")
+      );
+      setSelectedIndex(annualIdx >= 0 ? annualIdx : 0);
+
+      // Capture blueprint credit price from RevenueCat
+      const creditPkg = offerings?.all?.["blueprint_credits"]?.availablePackages?.[0];
+      if (creditPkg) setCreditPrice(creditPkg.product.priceString);
     } else {
       setError("Unable to load subscription options. Please try again later.");
     }
@@ -477,7 +482,7 @@ export default function PaywallScreen() {
                   Generate one blueprint for any train
                 </Text>
               </View>
-              <Text style={styles.creditPrice}>£0.99</Text>
+              <Text style={styles.creditPrice}>{creditPrice ?? "—"}</Text>
             </TouchableOpacity>
           </View>
         )}
