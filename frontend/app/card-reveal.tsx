@@ -197,54 +197,42 @@ export default function CardRevealScreen() {
     setIsFlipped(!isFlipped);
   };
 
-  // Share card as image (with text fallback for Expo Go)
+  // Share card as image
   const handleShare = async () => {
-    const trainName = currentTrain?.class || "train";
-    const shareText = `Check out this ${currentRarity?.tier || ""} ${trainName} I spotted on LocoSnap! 🚂`;
+    if (isSharing || !shareCardRef.current) return;
+    setIsSharing(true);
 
     try {
-      if (Platform.OS === "web") {
-        if (navigator.share) {
-          await navigator.share({ text: shareText });
-        } else {
-          await navigator.clipboard.writeText(shareText);
-          alert("Copied to clipboard!");
-        }
-        return;
-      }
+      const uri = await captureRef(shareCardRef, {
+        format: "png",
+        quality: 1,
+      });
 
-      // Try image capture first, fall back to text share
-      if (cardRef.current) {
-        try {
-          const uri = await captureRef(cardRef, {
-            format: "png",
-            quality: 1,
-          });
+      const slug = (currentTrain?.class || "train")
+        .replace(/\s+/g, "-")
+        .toLowerCase();
+      const destPath = `${FileSystem.cacheDirectory}locosnap-${slug}.png`;
+      await FileSystem.moveAsync({ from: uri, to: destPath });
 
-          const filename = `locosnap-${trainName.replace(/\s+/g, "-").toLowerCase()}.png`;
-          const newPath = `${FileSystem.cacheDirectory}${filename}`;
-          await FileSystem.moveAsync({ from: uri, to: newPath });
+      const shareText = locationName
+        ? `Guess what I just spotted and added to my collection near ${locationName}. Identified with LocoSnap.`
+        : "Guess what I just spotted and added to my collection. Identified with LocoSnap.";
 
-          if (await Sharing.isAvailableAsync()) {
-            await Sharing.shareAsync(newPath, {
-              mimeType: "image/png",
-              dialogTitle: shareText,
-            });
-            return;
-          }
-        } catch {
-          // Image capture failed (e.g. in Expo Go) — fall back to text
-        }
-      }
-
-      // Text-only fallback
       if (await Sharing.isAvailableAsync()) {
-        const tempFile = `${FileSystem.cacheDirectory}locosnap-share.txt`;
-        await FileSystem.writeAsStringAsync(tempFile, shareText);
-        await Sharing.shareAsync(tempFile);
+        await Sharing.shareAsync(destPath, {
+          mimeType: "image/png",
+          dialogTitle: shareText,
+        });
       }
+
+      track("card_shared", {
+        train_class: currentTrain?.class,
+        has_location: !!locationName,
+      });
     } catch (error) {
       console.warn("Share failed:", (error as Error).message);
+    } finally {
+      setIsSharing(false);
     }
   };
 
