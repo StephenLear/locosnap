@@ -21,6 +21,7 @@
       "infoPlist": {
         "NSCameraUsageDescription": "LocoSnap needs camera access to take photos of trains for identification.",
         "NSPhotoLibraryUsageDescription": "LocoSnap needs photo library access to select train photos for identification.",
+        "NSPhotoLibraryAddUsageDescription": "LocoSnap saves your train cards to your photo library.",
         "NSLocationWhenInUseUsageDescription": "LocoSnap uses your location to record where you spotted each train, so you can see your sightings on a map.",
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -63,7 +64,15 @@
       ],
       "@sentry/react-native",
       "./plugins/withSentryDisableUpload",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow LocoSnap to save train cards to your photo library.",
+          "savePhotosPermission": "Allow LocoSnap to save train cards to your photo library.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ]
     ],
     "extra": {
       "router": {},
