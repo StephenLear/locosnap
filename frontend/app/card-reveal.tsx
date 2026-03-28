@@ -1042,8 +1042,9 @@ const styles = StyleSheet.create({
   // Hidden static card — used only for image export (Share + Save)
   shareCard: {
     position: "absolute",
-    left: -9999,
     top: 0,
+    left: 0,
+    transform: [{ translateX: -9999 }],
     width: 400,
     height: 580,
     borderRadius: 20,
