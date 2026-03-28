@@ -5,6 +5,34 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-03-28
+
+### Frontend
+
+#### `frontend/app/card-reveal.tsx` — Add Share image and Save to Gallery for train card
+
+- **Added** `shareCardRef` (`useRef<View>`) — dedicated capture target for `captureRef`. Points at a hidden static View, completely independent of all animation wrappers.
+- **Added** Hidden off-screen ShareCard component: `position: absolute, left: -9999`, fixed 400x580px, `collapsable={false}`. Renders photo area, rarity badge, class name, operator, stats row (speed, power, surviving count), and LocoSnap watermark. Always rendered, never visible. Exists solely as the capture target.
+- **Added** `handleSave` — calls `captureRef(shareCardRef)`, requests `MediaLibrary.WRITE` permission if not already granted, saves PNG to device library as `LocoSnap_[CLASS]_[OPERATOR].png`. Tracks `card_saved` event to PostHog.
+- **Changed** `handleShare` — previously targeted the animated `cardRef` inside nested `Animated.View` layers, causing silent failure on device (white PNG or no image). Now targets `shareCardRef`. Saves capture to cache directory as `locosnap-[class]-[operator].png`. Shares via `expo-sharing`.
+- **Changed** Share text — removed emoji (was firing fallback with train emoji). New format: `"Guess what I just spotted and added to my collection near [CITY]. Identified with LocoSnap."` (with location) or without city when unavailable. Class name, operator, and rarity deliberately excluded — card image is the hook.
+- **Added** `locationName` state — resolved on mount via `Location.reverseGeocodeAsync()` with 2s timeout. Uses `place.city ?? place.district ?? place.region` as the city string. Falls back silently to null if geocoding fails or times out.
+- **Added** `currentLocation` pulled from `useTrainStore` to supply `latitude`/`longitude` for reverse geocoding.
+- **Added** `isSaving` and `isSharing` loading states — buttons show hourglass icon and 0.5 opacity while capture is in progress.
+- **Changed** Action button row from two buttons ([Share] [Full Details]) to three ([Save] [Share] [Full Details]). Save uses `download-outline` icon. All three equal flex.
+- **Added** 18 `shareCard*` styles to StyleSheet covering card layout, photo area, rarity badge, operator row, stats row, watermark, and label typography.
+- **Added** Imports: `expo-media-library`, `expo-location`.
+
+### Docs
+
+#### `docs/plans/2026-03-28-shareable-card-design.md` — Design document for shareable card feature
+- **Added** Design document covering: hidden static card approach, share text format, Save to Gallery behaviour, three-button action row layout, data flow diagram, success criteria.
+
+#### `docs/plans/2026-03-28-shareable-card-implementation.md` — Implementation plan for shareable card feature
+- **Added** 7-task implementation plan with TDD steps, exact file paths, commands, and expected test output for each task.
+
+---
+
 ## 2026-03-27
 
 ### Docs
