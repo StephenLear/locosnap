@@ -573,6 +573,98 @@ export default function CardRevealScreen() {
         </TouchableOpacity>
       </Animated.View>
 
+      {/* Hidden static card — captured by captureRef for Share and Save */}
+      <View
+        ref={shareCardRef}
+        collapsable={false}
+        style={styles.shareCard}
+      >
+        {/* Photo area */}
+        <View style={styles.shareCardPhotoArea}>
+          {currentPhotoUri ? (
+            <Image
+              source={{ uri: currentPhotoUri }}
+              style={styles.shareCardPhoto}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.shareCardPhotoPlaceholder}>
+              <Ionicons name="train" size={64} color={rarityColor} />
+            </View>
+          )}
+
+          {/* Rarity badge */}
+          <View style={[styles.shareCardRarityBadge, { backgroundColor: rarityColor }]}>
+            <Ionicons name="diamond" size={12} color="#fff" />
+            <Text style={styles.shareCardRarityText}>
+              {rarityLabels[currentRarity.tier]}
+            </Text>
+          </View>
+
+          {/* NEW badge */}
+          {isNewClass && (
+            <View style={styles.shareCardNewBadge}>
+              <Ionicons name="sparkles" size={12} color="#fff" />
+              <Text style={styles.shareCardNewText}>NEW!</Text>
+            </View>
+          )}
+
+          {/* Duplicate badge */}
+          {!isNewClass && existingSpotCount > 1 && (
+            <View style={styles.shareCardDuplicateBadge}>
+              <Ionicons name="camera" size={12} color="#fff" />
+              <Text style={styles.shareCardDuplicateText}>
+                Spotted x{existingSpotCount}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Info area */}
+        <View style={styles.shareCardInfoArea}>
+          <Text style={styles.shareCardClass} numberOfLines={1}>
+            {currentTrain.class}
+          </Text>
+          {currentTrain.name && (
+            <Text style={[styles.shareCardName, { color: rarityColor }]} numberOfLines={1}>
+              "{currentTrain.name}"
+            </Text>
+          )}
+          <Text style={styles.shareCardMeta} numberOfLines={1}>
+            {currentTrain.operator} · {currentTrain.type}
+          </Text>
+
+          {/* Stats row */}
+          <View style={styles.shareCardStatsRow}>
+            {currentSpecs?.maxSpeed && (
+              <View style={styles.shareCardStat}>
+                <Ionicons name="speedometer" size={12} color={colors.accent} />
+                <Text style={styles.shareCardStatText}>{currentSpecs.maxSpeed}</Text>
+              </View>
+            )}
+            {currentSpecs?.power && (
+              <View style={styles.shareCardStat}>
+                <Ionicons name="flash" size={12} color={colors.accent} />
+                <Text style={styles.shareCardStatText}>{currentSpecs.power}</Text>
+              </View>
+            )}
+            {currentRarity.survivingCount && (
+              <View style={styles.shareCardStat}>
+                <Ionicons name="heart" size={12} color={colors.danger} />
+                <Text style={styles.shareCardStatText}>
+                  {currentRarity.survivingCount} left
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Branding */}
+          <View style={styles.shareCardBranding}>
+            <Text style={styles.shareCardBrandingText}>LocoSnap</Text>
+          </View>
+        </View>
+      </View>
+
       {/* Tap to flip hint */}
       {revealComplete && (
         <Text style={styles.flipHint}>
@@ -921,5 +1013,130 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.semibold,
     color: colors.textPrimary,
+  },
+
+  // Hidden static card — used only for image export (Share + Save)
+  shareCard: {
+    position: "absolute",
+    left: -9999,
+    top: 0,
+    width: 400,
+    height: 580,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    overflow: "hidden",
+  },
+  shareCardPhotoArea: {
+    flex: 1,
+    backgroundColor: colors.surfaceLight,
+  },
+  shareCardPhoto: {
+    width: "100%",
+    height: "100%",
+  },
+  shareCardPhotoPlaceholder: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.surfaceLight,
+  },
+  shareCardRarityBadge: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  shareCardRarityText: {
+    fontSize: 11,
+    fontWeight: "700" as const,
+    color: "#fff",
+    letterSpacing: 1,
+  },
+  shareCardNewBadge: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: "#22c55e",
+  },
+  shareCardNewText: {
+    fontSize: 11,
+    fontWeight: "700" as const,
+    color: "#fff",
+    letterSpacing: 1,
+  },
+  shareCardDuplicateBadge: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: "#0066FF",
+  },
+  shareCardDuplicateText: {
+    fontSize: 11,
+    fontWeight: "700" as const,
+    color: "#fff",
+  },
+  shareCardInfoArea: {
+    padding: 16,
+    paddingTop: 12,
+  },
+  shareCardClass: {
+    fontSize: 28,
+    fontWeight: "700" as const,
+    color: colors.textPrimary,
+  },
+  shareCardName: {
+    fontSize: 18,
+    fontWeight: "600" as const,
+    marginTop: 2,
+  },
+  shareCardMeta: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  shareCardStatsRow: {
+    flexDirection: "row",
+    gap: 16,
+    marginTop: 12,
+  },
+  shareCardStat: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  shareCardStatText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: "500" as const,
+  },
+  shareCardBranding: {
+    position: "absolute",
+    bottom: 12,
+    right: 16,
+  },
+  shareCardBrandingText: {
+    fontSize: 11,
+    color: colors.textMuted,
+    fontWeight: "600" as const,
+    letterSpacing: 1,
   },
 });
