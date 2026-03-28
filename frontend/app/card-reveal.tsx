@@ -69,10 +69,12 @@ export default function CardRevealScreen() {
     currentFacts,
     currentRarity,
     currentPhotoUri,
+    currentLocation,
     history,
   } = useTrainStore();
 
   const cardRef = useRef<View>(null);
+  const shareCardRef = useRef<View>(null);
 
   // Check if this is a new class or a duplicate
   const { isNewClass, existingSpotCount } = useMemo(() => {
@@ -101,6 +103,9 @@ export default function CardRevealScreen() {
 
   const [isFlipped, setIsFlipped] = useState(false);
   const [revealComplete, setRevealComplete] = useState(false);
+  const [locationName, setLocationName] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   // Track card reveal on mount
   useEffect(() => {
@@ -111,6 +116,29 @@ export default function CardRevealScreen() {
         is_new_class: isNewClass,
       });
     }
+  }, []);
+
+  // Reverse-geocode stored location to a readable city name for share text
+  useEffect(() => {
+    if (!currentLocation) return;
+
+    const timeout = setTimeout(() => setLocationName(null), 2000);
+
+    Location.reverseGeocodeAsync(
+      { latitude: currentLocation.latitude, longitude: currentLocation.longitude },
+    )
+      .then((results) => {
+        clearTimeout(timeout);
+        const place = results[0];
+        const name = place?.city || place?.district || place?.region || null;
+        setLocationName(name);
+      })
+      .catch(() => {
+        clearTimeout(timeout);
+        setLocationName(null);
+      });
+
+    return () => clearTimeout(timeout);
   }, []);
 
   // Entrance animation
