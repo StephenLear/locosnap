@@ -24,6 +24,8 @@ import { RarityTier } from "../types";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
+import * as MediaLibrary from "expo-media-library";
+import * as Location from "expo-location";
 import ParticleEffect from "../components/ParticleEffect";
 import * as FileSystem from "expo-file-system/legacy";
 import { track } from "../services/analytics";
