@@ -676,19 +676,40 @@ export default function CardRevealScreen() {
       {revealComplete && (
         <View style={styles.actionButtons}>
           <TouchableOpacity
-            style={[styles.actionBtn, { borderColor: rarityColor }]}
-            onPress={handleShare}
+            style={[styles.actionBtn, { borderColor: rarityColor }, isSaving && styles.actionBtnDisabled]}
+            onPress={handleSave}
+            disabled={isSaving}
+            activeOpacity={0.7}
           >
-            <Ionicons name="share-outline" size={20} color={colors.textPrimary} />
+            <Ionicons
+              name={isSaving ? "hourglass-outline" : "download-outline"}
+              size={20}
+              color={colors.textPrimary}
+            />
+            <Text style={styles.actionBtnText}>Save</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionBtn, { borderColor: rarityColor }, isSharing && styles.actionBtnDisabled]}
+            onPress={handleShare}
+            disabled={isSharing}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isSharing ? "hourglass-outline" : "share-outline"}
+              size={20}
+              color={colors.textPrimary}
+            />
             <Text style={styles.actionBtnText}>Share</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionBtn, styles.primaryBtn]}
             onPress={() => router.push("/results")}
+            activeOpacity={0.7}
           >
             <Ionicons name="information-circle-outline" size={20} color={colors.textPrimary} />
-            <Text style={styles.actionBtnText}>Full Details</Text>
+            <Text style={styles.actionBtnText}>Details</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -990,9 +1011,9 @@ const styles = StyleSheet.create({
   // Action buttons
   actionButtons: {
     flexDirection: "row",
-    gap: spacing.md,
+    gap: spacing.sm,
     marginTop: spacing.xl,
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.lg,
   },
   actionBtn: {
     flex: 1,
@@ -1004,6 +1025,9 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  actionBtnDisabled: {
+    opacity: 0.5,
   },
   primaryBtn: {
     backgroundColor: colors.accent,
