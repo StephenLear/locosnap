@@ -236,6 +236,42 @@ export default function CardRevealScreen() {
     }
   };
 
+  // Save card image to device gallery
+  const handleSave = async () => {
+    if (isSaving || !shareCardRef.current) return;
+    setIsSaving(true);
+
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== "granted") {
+        console.warn("Media library permission denied");
+        setIsSaving(false);
+        return;
+      }
+
+      const uri = await captureRef(shareCardRef, {
+        format: "png",
+        quality: 1,
+      });
+
+      const slug = (currentTrain?.class || "train")
+        .replace(/\s+/g, "-")
+        .toLowerCase();
+      const destPath = `${FileSystem.cacheDirectory}locosnap-save-${slug}.png`;
+      await FileSystem.moveAsync({ from: uri, to: destPath });
+
+      await MediaLibrary.saveToLibraryAsync(destPath);
+
+      track("card_saved", {
+        train_class: currentTrain?.class,
+      });
+    } catch (error) {
+      console.warn("Save failed:", (error as Error).message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (!currentTrain || !currentRarity) {
     return (
       <View style={styles.emptyContainer}>
