@@ -16,6 +16,7 @@ import {
   Dimensions,
   Image,
   Platform,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -230,7 +231,9 @@ export default function CardRevealScreen() {
         has_location: !!locationName,
       });
     } catch (error) {
-      console.warn("Share failed:", (error as Error).message);
+      const msg = (error as Error).message ?? String(error);
+      console.warn("Share failed:", msg);
+      Alert.alert("Share failed", msg);
     } finally {
       setIsSharing(false);
     }
@@ -266,7 +269,9 @@ export default function CardRevealScreen() {
         train_class: currentTrain?.class,
       });
     } catch (error) {
-      console.warn("Save failed:", (error as Error).message);
+      const msg = (error as Error).message ?? String(error);
+      console.warn("Save failed:", msg);
+      Alert.alert("Save failed", msg);
     } finally {
       setIsSaving(false);
     }
@@ -573,10 +578,11 @@ export default function CardRevealScreen() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Hidden static card — captured by captureRef for Share and Save */}
+      {/* Static card — off-screen via opacity, captured by captureRef for Share and Save */}
       <View
         ref={shareCardRef}
         collapsable={false}
+        pointerEvents="none"
         style={styles.shareCard}
       >
         {/* Photo area */}
@@ -1044,7 +1050,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    transform: [{ translateX: -9999 }],
     width: 400,
     height: 580,
     borderRadius: 20,
@@ -1052,6 +1057,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
     overflow: "hidden",
+    opacity: 0.01,
+    zIndex: -1,
   },
   shareCardPhotoArea: {
     flex: 1,
