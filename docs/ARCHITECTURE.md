@@ -18,7 +18,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
 | iOS Version | 1.0.7 build 33 — **Submitted to TestFlight** 2026-03-29. Shareable train card (Save to Photos + Share sheet). translateX fix for iOS GPU rendering of off-screen captureRef view. |
-| Android Version | 1.0.6 build 4 — production AAB built 2026-03-27, preview APK sent to 13 testers. Auto-submit to internal track pending service account permission propagation. |
+| Android Version | 1.0.7 build 5 — preview APK sent to 14 testers 2026-03-29, 2 new testers 2026-03-30. Production AAB built, auto-submit to internal track pending service account permission propagation. |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
 | Bundle ID | com.locosnap.app |
@@ -272,7 +272,8 @@ Every APK shipped to testers must be recorded here on the day it is sent.
 | 2026-03-24 | v1.0.5 (preview build 3) | Card-reveal animation crash fix (native driver separation on Android). authStore SIGNED_OUT recovery fix. Account cross-contamination fix (_layout). S-Bahn 480/485 pantograph disambiguation. LU vintage stock fixes (A Stock, 1960 Stock, CO/CP). 15 new German class disambiguation rules in vision prompt. | https://expo.dev/artifacts/eas/9Zk2rLcqzY9n8Ruc4Sk9Bj.apk | 13 Android testers (full list) |
 | 2026-03-26 | v1.0.5 (preview) | Card-reveal animation crash fix. S-Bahn 480/485 now distinguished by pantograph check. DR Class 156 corrected to Legendary rarity (only 4 built). | https://expo.dev/artifacts/eas/uhB5zAZwTry8AiX5Y5QEaB.apk | Nero (gerlachr70@gmail.com) — new tester onboarding |
 | 2026-03-27 | v1.0.6 (preview build 4) | ICE 3 family disambiguation (BR 403/406/407/408). 15 identification fixes including ICE T, BR 462/642, BR 480/481, LINT 41/Mireo, FLIRT/CD 654, VT 650/628, Twindexx/Talent 2. ICE 3 max speed corrected to 300 km/h. Paywall display bug fixes (currency localisation, purchase failure, copy). Account history no longer persists after sign-out. | https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk | 13 Android testers (full list) |
-| 2026-03-30 | v1.0.7 (preview build 5) | Collection photos in scan history. Cold start fix (scan buttons disabled until healthCheck resolves). photoUri plumbing (save, update to CDN, restore on viewHistoryItem). DB Class 156 specs fix (null speed/power/fuel, 0 tonnes weight). | https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk | foxiar771@gmail.com, dieterbrandes6@gmail.com (new testers onboarding) |
+| 2026-03-29 | v1.0.7 (preview build 5) | Collection photos in scan history. Cold start fix (scan buttons disabled until healthCheck resolves). photoUri plumbing (save, update to CDN, restore on viewHistoryItem). | https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk | 14 Android testers (full list) |
+| 2026-03-30 | v1.0.7 (preview build 5) | Same build as above — onboarding two new testers. | https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk | foxiar771@gmail.com, dieterbrandes6@gmail.com |
 
 ---
 
