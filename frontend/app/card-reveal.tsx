@@ -28,7 +28,6 @@ import * as Sharing from "expo-sharing";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import ParticleEffect from "../components/ParticleEffect";
-import * as FileSystem from "expo-file-system/legacy";
 import { track } from "../services/analytics";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -209,18 +208,12 @@ export default function CardRevealScreen() {
         quality: 1,
       });
 
-      const slug = (currentTrain?.class || "train")
-        .replace(/\s+/g, "-")
-        .toLowerCase();
-      const destPath = `${FileSystem.cacheDirectory}locosnap-${slug}.png`;
-      await FileSystem.moveAsync({ from: uri, to: destPath });
-
       const shareText = locationName
         ? `Guess what I just spotted and added to my collection near ${locationName}. Identified with LocoSnap.`
         : "Guess what I just spotted and added to my collection. Identified with LocoSnap.";
 
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(destPath, {
+        await Sharing.shareAsync(uri, {
           mimeType: "image/png",
           dialogTitle: shareText,
         });
@@ -257,13 +250,7 @@ export default function CardRevealScreen() {
         quality: 1,
       });
 
-      const slug = (currentTrain?.class || "train")
-        .replace(/\s+/g, "-")
-        .toLowerCase();
-      const destPath = `${FileSystem.cacheDirectory}locosnap-save-${slug}.png`;
-      await FileSystem.moveAsync({ from: uri, to: destPath });
-
-      await MediaLibrary.saveToLibraryAsync(destPath);
+      await MediaLibrary.saveToLibraryAsync(uri);
 
       track("card_saved", {
         train_class: currentTrain?.class,
