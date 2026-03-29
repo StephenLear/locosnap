@@ -5,6 +5,18 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-03-30
+
+### Backend
+
+#### `backend/src/services/wikidataSpecs.ts` — Guard against zero weight from Wikidata
+- **Fixed** DB Class 156 (and any future loco) showing "0 tonnes" for weight. Root cause: Wikidata's P2067 (mass) claim for the matched entity contained an amount of 0, which passed the `if (mass)` guard because the quantity object existed. `Math.abs(0)` = 0 formatted as "0 tonnes", which then won over AI's correct value via `wiki.weight ?? ai.weight`. Fixed by adding `mass.amount > 0` and `tonnes > 0` guards so zero-valued mass claims are skipped and treated as missing data.
+
+#### `backend/src/services/trainSpecs.ts` — Hardcode DB Class 156 specs in AI prompt
+- **Fixed** DB Class 156 returning null for maxSpeed, power, and fuelType. Root cause: no pinned entry in the SPECS_PROMPT meant Claude was not confident enough about this East German Bo'Bo' loco and returned null rather than guessing. Added hardcoded entry: `maxSpeed "120 km/h"`, `power "6,360 kW"`, `weight "123 tonnes"`, `length "19.6 m"`, `builder "LEW Hennigsdorf"`, `numberBuilt 186`, `fuelType "Electric (15kV 16.7Hz AC)"`, `status "Withdrawn"`. Follows the same pattern as the ICE 3 family pinned entries.
+
+---
+
 ## 2026-03-29
 
 ### Frontend

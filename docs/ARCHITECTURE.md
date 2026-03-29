@@ -272,6 +272,7 @@ Every APK shipped to testers must be recorded here on the day it is sent.
 | 2026-03-24 | v1.0.5 (preview build 3) | Card-reveal animation crash fix (native driver separation on Android). authStore SIGNED_OUT recovery fix. Account cross-contamination fix (_layout). S-Bahn 480/485 pantograph disambiguation. LU vintage stock fixes (A Stock, 1960 Stock, CO/CP). 15 new German class disambiguation rules in vision prompt. | https://expo.dev/artifacts/eas/9Zk2rLcqzY9n8Ruc4Sk9Bj.apk | 13 Android testers (full list) |
 | 2026-03-26 | v1.0.5 (preview) | Card-reveal animation crash fix. S-Bahn 480/485 now distinguished by pantograph check. DR Class 156 corrected to Legendary rarity (only 4 built). | https://expo.dev/artifacts/eas/uhB5zAZwTry8AiX5Y5QEaB.apk | Nero (gerlachr70@gmail.com) — new tester onboarding |
 | 2026-03-27 | v1.0.6 (preview build 4) | ICE 3 family disambiguation (BR 403/406/407/408). 15 identification fixes including ICE T, BR 462/642, BR 480/481, LINT 41/Mireo, FLIRT/CD 654, VT 650/628, Twindexx/Talent 2. ICE 3 max speed corrected to 300 km/h. Paywall display bug fixes (currency localisation, purchase failure, copy). Account history no longer persists after sign-out. | https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk | 13 Android testers (full list) |
+| 2026-03-30 | v1.0.7 (preview build 5) | Collection photos in scan history. Cold start fix (scan buttons disabled until healthCheck resolves). photoUri plumbing (save, update to CDN, restore on viewHistoryItem). DB Class 156 specs fix (null speed/power/fuel, 0 tonnes weight). | https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk | foxiar771@gmail.com, dieterbrandes6@gmail.com (new testers onboarding) |
 
 ---
 
@@ -371,16 +372,18 @@ FRONTEND_URL=https://locosnap.app
 
 ## 19. Beta Testers
 
-### Android Testers (14) — notified by email
+### Android Testers (16) — notified by email
 - gerlachr70@gmail.com (Nero — German ICE enthusiast, recruited via Frankfurt TikTok/Instagram ad 2026-03-26)
 - Stephstottor@gmail.com
 - esseresser07@gmail.com
+- foxiar771@gmail.com (recruited via TikTok DM 2026-03-29)
 - gazthomas@hotmail.com
 - jlison1154@gmail.com
 - kt4d.vip@gmail.com
 - leander.jakowski@gmail.com
 - mike.j.harvey@gmail.com
 - muz.campanet@gmail.com
+- dieterbrandes6@gmail.com (recruited 2026-03-29)
 - qwertylikestrains@gmail.com
 - scr.trainmad@gmail.com
 - scrtrainmadother@gmail.com
@@ -388,6 +391,8 @@ FRONTEND_URL=https://locosnap.app
 - vattuoula@gmail.com
 
 **Email format:** Bilingual EN/DE. Logo (https://locosnap.app/images/icon.png) at top. No emojis. Include APK download link from EAS.
+
+**MANDATORY: Always draft the email and present it to Stephen for approval before sending. Never send tester emails without explicit sign-off.**
 
 ### iOS TestFlight Testers (1) — notified by email
 - rheintalbahnerneo@gmail.com (@Rheintalbahner_Neo)
