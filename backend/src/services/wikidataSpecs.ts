@@ -262,10 +262,14 @@ export async function getWikidataSpecs(
     }
 
     // Mass → tonnes
+    // Guard: skip if Wikidata returns 0 — no locomotive weighs 0 tonnes;
+    // this indicates a missing/corrupt claim rather than real data.
     const mass = getQuantity(claims, P.MASS);
-    if (mass) {
+    if (mass && mass.amount > 0) {
       const tonnes = mass.unit === UNIT.TONNE ? mass.amount : mass.amount / 1000;
-      specs.weight = `${tonnes.toFixed(0)} tonnes`;
+      if (tonnes > 0) {
+        specs.weight = `${tonnes.toFixed(0)} tonnes`;
+      }
     }
 
     // Power → kW
