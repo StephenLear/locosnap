@@ -17,7 +17,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.6 build 29 — **Submitted to TestFlight** 2026-03-27. Identification improvements (ICE 3 family, 15 class fixes), paywall display bug fixes, account history fix. App Store name corrected to "LocoSnap". |
+| iOS Version | 1.0.7 build 33 — **Submitted to TestFlight** 2026-03-29. Shareable train card (Save to Photos + Share sheet). translateX fix for iOS GPU rendering of off-screen captureRef view. |
 | Android Version | 1.0.6 build 4 — production AAB built 2026-03-27, preview APK sent to 13 testers. Auto-submit to internal track pending service account permission propagation. |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
@@ -257,7 +257,9 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | iOS Profile | production |
 | Android Profile | preview (APK for testers) |
 | Build command | `eas build --platform [ios/android/all] --profile [production/preview]` |
-| Latest iOS Build | Build 29 (v1.0.6) — Submitted to TestFlight 2026-03-27 |
+| Local dev build | Not yet built. Run `eas build --profile development --platform ios` once to install it. After that, `npx expo start --dev-client` pushes code changes instantly without rebuilding. **Build this before the next debugging session to avoid wasting TestFlight builds.** |
+| Expo Go limitations | Two errors appear when testing via Expo Go — these are NOT code bugs and do NOT appear in TestFlight: (1) RevenueCat "invalid API key" — Expo Go has no native store access; (2) Worklets mismatch 0.7.4 vs 0.5.1 — Expo Go bundles an older version. Both are resolved in any real build. |
+| Latest iOS Build | Build 35 (v1.0.7) — Submitted to TestFlight 2026-03-29 — IPA: https://expo.dev/artifacts/eas/av6agRFTb5uSZBVJh1U5tt.ipa |
 | Latest Android Production Build | Build 4 (v1.0.6) AAB — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/f040f353-97cf-4804-b1d6-11608f6706f0 — submit to internal track pending service account permission propagation |
 | Latest Android Preview Build | Build 4 (v1.0.6) APK — https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk |
 
@@ -480,7 +482,7 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 
 | Item | Status |
 |------|--------|
-| iOS App Store submission (v1.0.6) | Submitted to TestFlight 2026-03-27, build 29 — App Store name corrected to "LocoSnap" |
+| iOS App Store submission (v1.0.7) | Submitted to TestFlight 2026-03-29, build 33 — shareable card feature (Save + Share) |
 | Android APK for testers (v1.0.6) | Sent to 13 testers 2026-03-27 — APK: https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk |
 | Android auto-submit to Play Store (v1.0.6) | Infrastructure set up (service account, API enabled, eas.json updated). Submit pending service account permission propagation. Retry: eas submit --platform android --profile production --id f040f353-97cf-4804-b1d6-11608f6706f0 --non-interactive |
 | Competitor noted: Traintrack (traintrack.app) | iOS/Android, 557 followers TikTok, aggressive paywall, launched 2026. Monitor. |

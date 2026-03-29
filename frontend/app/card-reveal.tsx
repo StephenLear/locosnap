@@ -74,7 +74,7 @@ export default function CardRevealScreen() {
   } = useTrainStore();
 
   const cardRef = useRef<View>(null);
-  const shareCardRef = useRef<View>(null);
+  const cardBackRef = useRef<View>(null);
 
   // Check if this is a new class or a duplicate
   const { isNewClass, existingSpotCount } = useMemo(() => {
@@ -106,6 +106,7 @@ export default function CardRevealScreen() {
   const [locationName, setLocationName] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [saveConfirm, setSaveConfirm] = useState<string | null>(null);
 
   // Track card reveal on mount
   useEffect(() => {
@@ -197,17 +198,20 @@ export default function CardRevealScreen() {
     setIsFlipped(!isFlipped);
   };
 
-  // Share card as image
+  // Capture whichever face is currently showing
+  const captureCurrentFace = async (): Promise<string> => {
+    const ref = isFlipped ? cardBackRef : cardRef;
+    if (!ref.current) throw new Error("Card not ready");
+    return captureRef(ref, { format: "png", quality: 1 });
+  };
+
+  // Share whichever card face is showing
   const handleShare = async () => {
-    if (isSharing || !shareCardRef.current) return;
+    if (isSharing) return;
     setIsSharing(true);
 
     try {
-      const uri = await captureRef(shareCardRef, {
-        format: "png",
-        quality: 1,
-      });
-
+      const uri = await captureCurrentFace();
       const shareText = locationName
         ? `Guess what I just spotted and added to my collection near ${locationName}. Identified with LocoSnap.`
         : "Guess what I just spotted and added to my collection. Identified with LocoSnap.";
@@ -222,6 +226,7 @@ export default function CardRevealScreen() {
       track("card_shared", {
         train_class: currentTrain?.class,
         has_location: !!locationName,
+        face: isFlipped ? "back" : "front",
       });
     } catch (error) {
       const msg = (error as Error).message ?? String(error);
@@ -232,28 +237,29 @@ export default function CardRevealScreen() {
     }
   };
 
-  // Save card image to device gallery
+  // Save whichever card face is showing to device gallery
   const handleSave = async () => {
-    if (isSaving || !shareCardRef.current) return;
+    if (isSaving) return;
     setIsSaving(true);
 
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== "granted") {
-        console.warn("Media library permission denied");
+        Alert.alert("Permission required", "Allow LocoSnap to save photos in Settings > Privacy > Photos.");
         setIsSaving(false);
         return;
       }
 
-      const uri = await captureRef(shareCardRef, {
-        format: "png",
-        quality: 1,
-      });
-
+      const uri = await captureCurrentFace();
       await MediaLibrary.saveToLibraryAsync(uri);
+
+      const label = isFlipped ? "Back card saved to Photos" : "Front card saved to Photos";
+      setSaveConfirm(label);
+      setTimeout(() => setSaveConfirm(null), 2500);
 
       track("card_saved", {
         train_class: currentTrain?.class,
+        face: isFlipped ? "back" : "front",
       });
     } catch (error) {
       const msg = (error as Error).message ?? String(error);
@@ -502,6 +508,8 @@ export default function CardRevealScreen() {
               }}
             >
               <View
+                ref={cardBackRef}
+                collapsable={false}
                 style={[
                   styles.card,
                   styles.cardBack,
@@ -565,103 +573,10 @@ export default function CardRevealScreen() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Static card — off-screen via opacity, captured by captureRef for Share and Save */}
-      <View
-        ref={shareCardRef}
-        collapsable={false}
-        pointerEvents="none"
-        style={styles.shareCard}
-      >
-        {/* Photo area */}
-        <View style={styles.shareCardPhotoArea}>
-          {currentPhotoUri ? (
-            <Image
-              source={{ uri: currentPhotoUri }}
-              style={styles.shareCardPhoto}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={styles.shareCardPhotoPlaceholder}>
-              <Ionicons name="train" size={64} color={rarityColor} />
-            </View>
-          )}
-
-          {/* Rarity badge */}
-          <View style={[styles.shareCardRarityBadge, { backgroundColor: rarityColor }]}>
-            <Ionicons name="diamond" size={12} color="#fff" />
-            <Text style={styles.shareCardRarityText}>
-              {rarityLabels[currentRarity.tier]}
-            </Text>
-          </View>
-
-          {/* NEW badge */}
-          {isNewClass && (
-            <View style={styles.shareCardNewBadge}>
-              <Ionicons name="sparkles" size={12} color="#fff" />
-              <Text style={styles.shareCardNewText}>NEW!</Text>
-            </View>
-          )}
-
-          {/* Duplicate badge */}
-          {!isNewClass && existingSpotCount > 1 && (
-            <View style={styles.shareCardDuplicateBadge}>
-              <Ionicons name="camera" size={12} color="#fff" />
-              <Text style={styles.shareCardDuplicateText}>
-                Spotted x{existingSpotCount}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Info area */}
-        <View style={styles.shareCardInfoArea}>
-          <Text style={styles.shareCardClass} numberOfLines={1}>
-            {currentTrain.class}
-          </Text>
-          {currentTrain.name && (
-            <Text style={[styles.shareCardName, { color: rarityColor }]} numberOfLines={1}>
-              "{currentTrain.name}"
-            </Text>
-          )}
-          <Text style={styles.shareCardMeta} numberOfLines={1}>
-            {currentTrain.operator} · {currentTrain.type}
-          </Text>
-
-          {/* Stats row */}
-          <View style={styles.shareCardStatsRow}>
-            {currentSpecs?.maxSpeed && (
-              <View style={styles.shareCardStat}>
-                <Ionicons name="speedometer" size={12} color={colors.accent} />
-                <Text style={styles.shareCardStatText}>{currentSpecs.maxSpeed}</Text>
-              </View>
-            )}
-            {currentSpecs?.power && (
-              <View style={styles.shareCardStat}>
-                <Ionicons name="flash" size={12} color={colors.accent} />
-                <Text style={styles.shareCardStatText}>{currentSpecs.power}</Text>
-              </View>
-            )}
-            {currentRarity.survivingCount && (
-              <View style={styles.shareCardStat}>
-                <Ionicons name="heart" size={12} color={colors.danger} />
-                <Text style={styles.shareCardStatText}>
-                  {currentRarity.survivingCount} left
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Branding */}
-          <View style={styles.shareCardBranding}>
-            <Text style={styles.shareCardBrandingText}>LocoSnap</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Tap to flip hint */}
+      {/* Tap to flip hint / save confirmation */}
       {revealComplete && (
-        <Text style={styles.flipHint}>
-          {isFlipped ? "Tap to see front" : "Tap to flip"}
+        <Text style={[styles.flipHint, saveConfirm ? styles.saveConfirmText : null]}>
+          {saveConfirm ?? (isFlipped ? "Tap to see front" : "Tap to flip")}
         </Text>
       )}
 
@@ -679,7 +594,7 @@ export default function CardRevealScreen() {
               size={20}
               color={colors.textPrimary}
             />
-            <Text style={styles.actionBtnText}>Save</Text>
+            <Text style={styles.actionBtnText}>{isFlipped ? "Save back" : "Save front"}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -1031,131 +946,9 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.semibold,
     color: colors.textPrimary,
   },
+  saveConfirmText: {
+    color: colors.accent,
+    fontWeight: fonts.weights.semibold,
+  },
 
-  // Hidden static card — used only for image export (Share + Save)
-  shareCard: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: 400,
-    height: 580,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    overflow: "hidden",
-    opacity: 0.01,
-    zIndex: -1,
-  },
-  shareCardPhotoArea: {
-    flex: 1,
-    backgroundColor: colors.surfaceLight,
-  },
-  shareCardPhoto: {
-    width: "100%",
-    height: "100%",
-  },
-  shareCardPhotoPlaceholder: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.surfaceLight,
-  },
-  shareCardRarityBadge: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  shareCardRarityText: {
-    fontSize: 11,
-    fontWeight: "700" as const,
-    color: "#fff",
-    letterSpacing: 1,
-  },
-  shareCardNewBadge: {
-    position: "absolute",
-    top: 12,
-    left: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: "#22c55e",
-  },
-  shareCardNewText: {
-    fontSize: 11,
-    fontWeight: "700" as const,
-    color: "#fff",
-    letterSpacing: 1,
-  },
-  shareCardDuplicateBadge: {
-    position: "absolute",
-    top: 12,
-    left: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: "#0066FF",
-  },
-  shareCardDuplicateText: {
-    fontSize: 11,
-    fontWeight: "700" as const,
-    color: "#fff",
-  },
-  shareCardInfoArea: {
-    padding: 16,
-    paddingTop: 12,
-  },
-  shareCardClass: {
-    fontSize: 28,
-    fontWeight: "700" as const,
-    color: colors.textPrimary,
-  },
-  shareCardName: {
-    fontSize: 18,
-    fontWeight: "600" as const,
-    marginTop: 2,
-  },
-  shareCardMeta: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  shareCardStatsRow: {
-    flexDirection: "row",
-    gap: 16,
-    marginTop: 12,
-  },
-  shareCardStat: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  shareCardStatText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: "500" as const,
-  },
-  shareCardBranding: {
-    position: "absolute",
-    bottom: 12,
-    right: 16,
-  },
-  shareCardBrandingText: {
-    fontSize: 11,
-    color: colors.textMuted,
-    fontWeight: "600" as const,
-    letterSpacing: 1,
-  },
 });
