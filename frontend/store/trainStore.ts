@@ -247,6 +247,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       facts: state.currentFacts,
       rarity: state.currentRarity,
       blueprintUrl: state.blueprintStatus?.imageUrl || null,
+      photoUri: state.currentPhotoUri,
       spottedAt: new Date().toISOString(),
       latitude: state.currentLocation?.latitude || null,
       longitude: state.currentLocation?.longitude || null,
@@ -314,9 +315,9 @@ export const useTrainStore = create<TrainState>((set, get) => ({
 
         if (spotId) {
           set({ currentSpotId: spotId });
-          // Update history item with cloud ID
+          // Update history item with cloud ID and permanent photo URL
           const updated = newHistory.map((h) =>
-            h.id === item.id ? { ...h, id: spotId } : h
+            h.id === item.id ? { ...h, id: spotId, photoUri: photoUrl || h.photoUri } : h
           );
           set({ history: updated });
 
@@ -433,7 +434,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       isScanning: false,
       scanError: null,
       currentSpotId: null,
-      currentPhotoUri: null,
+      currentPhotoUri: item.photoUri || null,
     });
   },
 

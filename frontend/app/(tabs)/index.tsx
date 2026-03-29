@@ -54,6 +54,7 @@ export default function HomeScreen() {
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [scanStage, setScanStage] = useState(0);
+  const [isBackendReady, setIsBackendReady] = useState(false);
 
   // Animations
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -85,7 +86,9 @@ export default function HomeScreen() {
 
   // ── Pre-warm the backend on mount (prevents Render cold-start timeouts) ──
   useEffect(() => {
-    healthCheck();
+    healthCheck()
+      .then(() => setIsBackendReady(true))
+      .catch(() => setIsBackendReady(true)); // Even on error, unblock the UI
   }, []);
 
   // ── Ambient glow pulse (always running, subtle) ──────────
@@ -564,13 +567,21 @@ export default function HomeScreen() {
         </View>
       )}
 
+      {/* ── Warming up indicator ── */}
+      {!isBackendReady && (
+        <View style={styles.warmingBox}>
+          <Ionicons name="cloud-outline" size={14} color={colors.textMuted} />
+          <Text style={styles.warmingText}>Connecting to server...</Text>
+        </View>
+      )}
+
       {/* ── Action Buttons ── */}
       <View style={styles.actions}>
         {/* Primary: Camera */}
         <TouchableOpacity
-          style={styles.cameraBtn}
+          style={[styles.cameraBtn, (!isBackendReady || isScanning) && styles.btnDisabled]}
           onPress={openCamera}
-          disabled={isScanning}
+          disabled={!isBackendReady || isScanning}
           activeOpacity={0.8}
         >
           <View style={styles.cameraBtnGlow} />
@@ -580,9 +591,9 @@ export default function HomeScreen() {
 
         {/* Secondary: Library */}
         <TouchableOpacity
-          style={styles.libraryBtn}
+          style={[styles.libraryBtn, (!isBackendReady || isScanning) && styles.btnDisabled]}
           onPress={pickImage}
-          disabled={isScanning}
+          disabled={!isBackendReady || isScanning}
           activeOpacity={0.7}
         >
           <Ionicons name="images-outline" size={20} color={SCANNER.teal} />
@@ -905,6 +916,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.danger,
     lineHeight: 18,
+  },
+
+  // ── Warming up ──
+  warmingBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 6,
+    marginBottom: 8,
+  },
+  warmingText: {
+    fontSize: 12,
+    color: colors.textMuted,
+    fontStyle: "italic",
+  },
+  btnDisabled: {
+    opacity: 0.45,
   },
 
   // ── Action Buttons ──

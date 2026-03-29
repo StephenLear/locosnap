@@ -15,6 +15,7 @@ import {
   ScrollView,
   TextInput,
   Switch,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -217,9 +218,17 @@ function HistoryCard({
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardContent}>
-        {/* Train icon with rarity glow */}
+        {/* Photo thumbnail or train icon with rarity border */}
         <View style={[styles.cardIcon, { borderColor: rarityColor }]}>
-          <Ionicons name="train" size={28} color={rarityColor} />
+          {item.photoUri ? (
+            <Image
+              source={{ uri: item.photoUri }}
+              style={styles.cardPhoto}
+              resizeMode="cover"
+            />
+          ) : (
+            <Ionicons name="train" size={28} color={rarityColor} />
+          )}
         </View>
 
         {/* Train info */}
@@ -1131,6 +1140,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: spacing.md,
     borderWidth: 1,
+    overflow: "hidden",
+  },
+  cardPhoto: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.md,
   },
   cardInfo: {
     flex: 1,

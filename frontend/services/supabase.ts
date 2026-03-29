@@ -204,6 +204,7 @@ export async function fetchSpots(
         survivingCount: null,
       },
       blueprintUrl: spot.blueprint_url,
+      photoUri: spot.photo_url || null,
       spottedAt: spot.created_at,
     } as HistoryItem;
   });

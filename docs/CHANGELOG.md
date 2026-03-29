@@ -5,6 +5,43 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-03-29
+
+### Frontend
+
+#### `frontend/app/(tabs)/history.tsx` — Show train photo thumbnail in collection cards
+- **Added** `Image` imported from `react-native`.
+- **Changed** `HistoryCard` icon area: previously always rendered a `<Ionicons name="train" />` icon. Now conditionally renders `<Image source={{ uri: item.photoUri }} />` when `item.photoUri` is present, falling back to the train icon when no photo is available.
+- **Added** `cardPhoto` style — `width: 48, height: 48, borderRadius: borderRadius.md` — fills the card icon slot exactly.
+- **Added** `overflow: "hidden"` to `cardIcon` style so the photo thumbnail is clipped to the rounded corners.
+
+#### `frontend/app/(tabs)/index.tsx` — Render cold start fix: disable scan buttons until backend is ready
+- **Added** `isBackendReady` state (default `false`). Set to `true` when `healthCheck()` resolves or rejects on mount.
+- **Changed** `healthCheck()` useEffect: previously called with no state tracking, so scan could be triggered before the backend was warm. Now resolves the `isBackendReady` flag on both success and failure (so a dead backend never permanently blocks the UI).
+- **Added** "Connecting to server..." indicator (`warmingBox` / `warmingText` styles) shown above the action buttons while `!isBackendReady`.
+- **Changed** Camera and Library buttons: `disabled` and `btnDisabled` opacity applied while `!isBackendReady || isScanning`. Prevents users from hitting a cold Render instance before the health check response arrives.
+- **Added** `warmingBox`, `warmingText`, and `btnDisabled` styles.
+
+#### `frontend/types/index.ts` — Add photoUri to HistoryItem
+- **Added** `photoUri: string | null` field to `HistoryItem` interface. Previously the field was missing from the type despite photo URIs being stored in Supabase and tracked in Zustand state.
+
+#### `frontend/services/supabase.ts` — Return photoUri from fetchSpots
+- **Added** `photoUri: spot.photo_url || null` to the `HistoryItem` mapping in `fetchSpots`. `photo_url` was already being selected from Supabase but was not mapped to the returned object, so cloud-loaded history never had photos.
+
+#### `frontend/store/trainStore.ts` — Wire photoUri through history lifecycle
+- **Added** `photoUri: state.currentPhotoUri` to the initial `HistoryItem` in `saveToHistory`, so local saves include the capture URI immediately.
+- **Changed** Post-cloud-upload history update: now includes `photoUri: photoUrl || h.photoUri` so the Supabase Storage URL replaces the local file URI once the upload completes.
+- **Changed** `viewHistoryItem`: changed `currentPhotoUri: null` to `currentPhotoUri: item.photoUri || null`, so navigating to a history item restores the photo for display in results.
+
+### Infrastructure
+
+#### `EAS Build / TestFlight` — Build and submit v1.0.7 (build 33)
+- **Added** iOS build 33 (v1.0.7) triggered after passing pre-build checklist: `transform: [{ translateX: -9999 }]` confirmed on `shareCard` style, `shareCardRef` confirmed on correct `<View>` with `collapsable={false}`, `handleShare`/`handleSave` confirmed targeting `shareCardRef`, `NSPhotoLibraryAddUsageDescription` and `expo-media-library` plugin confirmed in `app.json`, 39/39 tests passing, tsc clean except pre-existing `_layout.tsx TS2459`.
+- **Added** Build submitted to TestFlight via `eas submit --platform ios --latest --non-interactive`. IPA: `https://expo.dev/artifacts/eas/4ThtAzq48Fq3i8n62jrvXB.ipa`.
+- **Changed** ARCHITECTURE.md iOS version entry updated from 1.0.6 build 29 to 1.0.7 build 33.
+
+---
+
 ## 2026-03-28
 
 ### Frontend

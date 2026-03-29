@@ -259,7 +259,7 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | Build command | `eas build --platform [ios/android/all] --profile [production/preview]` |
 | Local dev build | Not yet built. Run `eas build --profile development --platform ios` once to install it. After that, `npx expo start --dev-client` pushes code changes instantly without rebuilding. **Build this before the next debugging session to avoid wasting TestFlight builds.** |
 | Expo Go limitations | Two errors appear when testing via Expo Go — these are NOT code bugs and do NOT appear in TestFlight: (1) RevenueCat "invalid API key" — Expo Go has no native store access; (2) Worklets mismatch 0.7.4 vs 0.5.1 — Expo Go bundles an older version. Both are resolved in any real build. |
-| Latest iOS Build | Build 35 (v1.0.7) — Submitted to TestFlight 2026-03-29 — IPA: https://expo.dev/artifacts/eas/av6agRFTb5uSZBVJh1U5tt.ipa |
+| Latest iOS Build | Build 36 (v1.0.7) — Submitted to TestFlight 2026-03-29 — IPA: https://expo.dev/artifacts/eas/8nVgpTxYmZhoRKosrpxybn.ipa |
 | Latest Android Production Build | Build 4 (v1.0.6) AAB — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/f040f353-97cf-4804-b1d6-11608f6706f0 — submit to internal track pending service account permission propagation |
 | Latest Android Preview Build | Build 4 (v1.0.6) APK — https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk |
 
@@ -482,7 +482,8 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 
 | Item | Status |
 |------|--------|
-| iOS App Store submission (v1.0.7) | Submitted to TestFlight 2026-03-29, build 33 — shareable card feature (Save + Share) |
+| iOS App Store submission (v1.0.7) | Build 36 in TestFlight 2026-03-29 — Save/Share current card face confirmed working |
+| Render cold start — 7 users affected | Backend on Render free tier spins down after inactivity. healthCheck() pre-warms on mount but users who scan immediately still hit "Could not connect" error. Fix options: (1) disable scan button until healthCheck responds, show "warming up..." indicator — zero cost; (2) upgrade Render to paid ($7/month) to eliminate cold starts. 14 Sentry events across 7 users since March 22. |
 | Android APK for testers (v1.0.6) | Sent to 13 testers 2026-03-27 — APK: https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk |
 | Android auto-submit to Play Store (v1.0.6) | Infrastructure set up (service account, API enabled, eas.json updated). Submit pending service account permission propagation. Retry: eas submit --platform android --profile production --id f040f353-97cf-4804-b1d6-11608f6706f0 --non-interactive |
 | Competitor noted: Traintrack (traintrack.app) | iOS/Android, 557 followers TikTok, aggressive paywall, launched 2026. Monitor. |
