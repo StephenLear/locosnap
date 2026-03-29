@@ -156,6 +156,8 @@ export async function fetchSpots(
       photo_url,
       blueprint_url,
       confidence,
+      latitude,
+      longitude,
       spotted_at,
       created_at,
       train:trains (
@@ -206,6 +208,8 @@ export async function fetchSpots(
       blueprintUrl: spot.blueprint_url,
       photoUri: spot.photo_url || null,
       spottedAt: spot.created_at,
+      latitude: spot.latitude ?? null,
+      longitude: spot.longitude ?? null,
     } as HistoryItem;
   });
 }
