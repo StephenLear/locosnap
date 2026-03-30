@@ -91,8 +91,13 @@ function parseSpecsResponse(text: string): TrainSpecs {
     return {
       maxSpeed: parsed.maxSpeed ?? null,
       power: parsed.power ?? null,
-      // Guard against AI returning 0 instead of null for numeric fields
-      weight: (parsed.weight && parsed.weight !== "0 tonnes" && parsed.weight !== "0") ? parsed.weight : null,
+      // Guard against AI returning 0 instead of null — parse the numeric value
+      weight: (() => {
+        if (!parsed.weight) return null;
+        const match = String(parsed.weight).match(/([\d.]+)/);
+        if (!match) return null;
+        return parseFloat(match[1]) > 0 ? parsed.weight : null;
+      })(),
       length: parsed.length ?? null,
       gauge: parsed.gauge ?? null,
       builder: parsed.builder ?? null,
