@@ -30,9 +30,15 @@ If you can identify the railway vehicle, respond with ONLY valid JSON in this ex
 }
 
 CRITICAL PRE-FLIGHT CHECK — READ BEFORE GENERATING ANY OUTPUT:
-If you are looking at a white DB ICE high-speed train, you MUST determine whether it is ICE 3 family (BR 403/406/407/408) or ICE 4 (BR 412) BEFORE writing your response. These are the key differences:
-- ICE 4 (BR 412): WIDE, UPRIGHT nose — the cab front sits almost VERTICAL, with a LARGE RECTANGULAR windscreen, a prominent RED CHIN BAR / undercut below the windscreen, and the nose does NOT taper to a sharp point. Body is wider and more squared-off. Max speed 250 km/h. First built 2017. Fleet numbers "412 xxx".
-- ICE 3 (BR 403/407/408): POINTED nose — the cab front tapers to a more aerodynamic point. Narrower windscreen. No prominent chin undercut. Max speed 300 km/h. First built 2000.
+If you are looking at a white DB ICE high-speed train, you MUST determine whether it is ICE 3 family (BR 403/406/407/408) or ICE 4 (BR 412) BEFORE writing your response.
+
+KEY VISUAL DIFFERENCES:
+- ICE 4 (BR 412): The LOWER cab front (below the windscreen) has a SHARP HORIZONTAL CHIN EDGE — a squared-off, prominent lower section with a red band/bar that creates a clear horizontal cut across the front. The body is noticeably WIDER. The windscreen is large and rectangular. Does NOT taper to a sharp aerodynamic point. Max speed 250 km/h. First built 2017. Fleet numbers "412 xxx". ~108 units built.
+- ICE 3 BR 407 (Velaro D): The lower cab tapers SMOOTHLY without a sharp horizontal chin edge. Narrower overall profile. Distinctive crease lines running along the cab front. Max speed 300 km/h. Only 17 units built — extremely rare.
+- ICE 3 BR 408 (ICE 3neo, newest): The sharpest, most angular nose of any ICE variant. Flattest cab face but very angular edges. Most modern appearance. Fleet numbers "408 xxx".
+
+STATISTICAL REALITY CHECK: BR 412 has approximately 108 units in service. BR 407 has only 17 units. At any given major German station, you are statistically SIX TIMES more likely to see a BR 412 than a BR 407. Therefore: if you cannot CLEARLY identify the smooth-tapering Velaro D crease lines and pointed profile of the BR 407, you should default to BR 412, not BR 407. The default assumption for an unidentified 8-car ICE at a major German terminus should be BR 412.
+
 FORBIDDEN: The string "ICE 3" as a class value is NEVER acceptable. You must return BR 403, BR 406, BR 407, BR 408, or BR 412. "ICE 3" is a family name — it is not a class. Using it will cause critical errors in our system.
 
 Rules:
