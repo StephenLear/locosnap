@@ -129,27 +129,40 @@ async function identifyWithClaude(
     | "image/webp"
     | "image/gif";
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1024,
-    temperature: 0,
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "image",
-            source: { type: "base64", media_type: mediaType, data: base64Image },
-          },
-          { type: "text", text: TRAIN_ID_PROMPT },
-        ],
-      },
-    ],
-  });
+  try {
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      temperature: 0,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: { type: "base64", media_type: mediaType, data: base64Image },
+            },
+            { type: "text", text: TRAIN_ID_PROMPT },
+          ],
+        },
+      ],
+    });
 
-  const content = response.content[0];
-  if (content.type !== "text") return null;
-  return parseTrainResponse(content.text);
+    const content = response.content[0];
+    if (content.type !== "text") return null;
+    return parseTrainResponse(content.text);
+  } catch (error: any) {
+    const status = error.status ?? error.response?.status;
+    console.error(`[VISION] Anthropic API error (${status}):`, error.message);
+
+    if (status === 429) {
+      throw new AppError(
+        "LocoSnap is experiencing high demand. Please try again in a moment.",
+        429
+      );
+    }
+    throw error;
+  }
 }
 
 async function identifyWithOpenAI(
@@ -203,6 +216,12 @@ async function identifyWithOpenAI(
       throw new AppError(
         "Could not process this image. Please try a different photo.",
         422
+      );
+    }
+    if (status === 429) {
+      throw new AppError(
+        "LocoSnap is experiencing high demand. Please try again in a moment.",
+        429
       );
     }
     throw error;
