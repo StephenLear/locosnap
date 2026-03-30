@@ -142,6 +142,30 @@ async function getAISpecs(train: TrainIdentification): Promise<TrainSpecs> {
   return FALLBACK_SPECS;
 }
 
+// Known Wikidata data quality corrections.
+// Wikidata wins in the merge, but these fields are factually wrong for specific classes —
+// apply after merge to ensure trainspotters see correct values.
+type SpecsOverride = Partial<Pick<TrainSpecs, "maxSpeed" | "power" | "weight" | "builder" | "fuelType" | "numberBuilt">>;
+const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
+  // BR 462 (ICE 3neo Velaro MS) — Wikidata matches a wrong entity and returns "Crewe Works"
+  "br 462": { builder: "Siemens" },
+  // DB Class 642 (Siemens Desiro Classic) — Wikidata returns wrong builder
+  "db class 642": { builder: "Siemens" },
+  "class 642": { builder: "Siemens" },
+  // DB Class 114 (push-pull locomotive) — Wikidata maxSpeed stale/incorrect
+  "db class 114": { maxSpeed: "160 km/h" },
+  "class 114": { maxSpeed: "160 km/h" },
+  "br 114": { maxSpeed: "160 km/h" },
+};
+
+function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
+  const key = trainClass.toLowerCase().trim();
+  const correction = WIKIDATA_CORRECTIONS[key];
+  if (!correction) return specs;
+  console.log(`[SPECS] Applying known corrections for "${trainClass}": ${JSON.stringify(correction)}`);
+  return { ...specs, ...correction };
+}
+
 export async function getTrainSpecs(
   train: TrainIdentification
 ): Promise<TrainSpecs> {
@@ -157,7 +181,7 @@ export async function getTrainSpecs(
 
     if (!wiki) {
       console.log("[SPECS] Wikidata: no data — using AI only");
-      return ai;
+      return applyKnownCorrections(train.class, ai);
     }
 
     // Wikidata wins for factual fields (speed, voltage, dimensions, builder)
@@ -213,7 +237,7 @@ export async function getTrainSpecs(
       .filter((k) => wiki[k] !== undefined);
     console.log(`[SPECS] Merged — Wikidata provided: ${wikidataFields.join(", ")}`);
 
-    return merged;
+    return applyKnownCorrections(train.class, merged);
   } catch (error) {
     console.error("[SPECS] Error:", (error as Error).message);
     return FALLBACK_SPECS;
