@@ -65,7 +65,7 @@ let totalMisses = 0;
 // Bump this version when cached specs/facts data is known to be stale
 // (e.g. after fixing AI prompt or Wikidata corrections). Old entries are
 // automatically orphaned and will be recomputed on next scan.
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
 
 function getCacheKey(train: TrainIdentification): string {
   return `${CACHE_VERSION}::${train.class}::${train.operator}`.toLowerCase().trim();

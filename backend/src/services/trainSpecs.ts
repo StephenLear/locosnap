@@ -239,10 +239,17 @@ export async function getTrainSpecs(
       return wiki.maxSpeed;
     };
 
+    const rejectZeroWeight = (w: string | null | undefined): string | null => {
+      if (!w) return null;
+      const match = String(w).match(/([\d.]+)/);
+      if (!match) return null;
+      return parseFloat(match[1]) > 0 ? w : null;
+    };
+
     const merged: TrainSpecs = {
       maxSpeed:        resolveMaxSpeed(),
       power:           wiki.power           ?? ai.power,
-      weight:          wiki.weight          ?? ai.weight,
+      weight:          rejectZeroWeight(wiki.weight) ?? rejectZeroWeight(ai.weight),
       length:          wiki.length          ?? ai.length,
       gauge:           ai.gauge,                           // AI only
       builder:         wiki.builder         ?? ai.builder,
