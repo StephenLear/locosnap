@@ -63,6 +63,9 @@ Rules:
   BR 412 (ICE 4, 12-car): maxSpeed "250 km/h", power "9,280 kW", builder "Siemens Mobility", fuelType "Electric (15kV 16.7Hz AC)"
   BR 412 (ICE 4, 13-car): maxSpeed "250 km/h", builder "Siemens Mobility", fuelType "Electric (15kV 16.7Hz AC)"
   CRITICAL: ICE 4 max speed is 250 km/h — NOT 300 or 320 km/h. Do not confuse with ICE 3 variants.
+- Class 810 "Aurora" (East Midlands Railway, Hitachi AT300 bi-mode) — use these exact values:
+  maxSpeed "125 mph", power "2,940 kW", builder "Hitachi Rail", numberBuilt 33, fuelType "Bi-mode (25kV AC OHL / Diesel)", status "In service", gauge "Standard (1,435 mm)"
+  This is a 5-car bi-mode multiple unit, NOT an HST. Type is "Bi-mode". Do not use HST type or 2,250 HP power figure.
 - DB Class 156 (also DR Class 156, built for Deutsche Reichsbahn) — use these exact values:
   maxSpeed "120 km/h", power "6,360 kW", weight "123 tonnes", length "19.6 m", builder "LEW Hennigsdorf", numberBuilt 186, fuelType "Electric (15kV 16.7Hz AC)", status "Withdrawn", gauge "Standard (1,435 mm)"
   This is a Bo'Bo' electric freight/mixed-traffic locomotive built 1990–1993. Do not confuse with any diesel class.`;
@@ -165,6 +168,9 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // BR 412 (ICE 4) — ensure correct max speed (250 km/h, not 300/320 km/h like ICE 3)
   "br 412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
   "ice 4": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
+  // Class 810 Aurora — correct power and unit count
+  "class 810": { power: "2,940 kW", numberBuilt: 33 },
+  "br 810": { power: "2,940 kW", numberBuilt: 33 },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
