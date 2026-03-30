@@ -62,8 +62,13 @@ let totalMisses = 0;
 
 // ── Helpers ─────────────────────────────────────────────────
 
+// Bump this version when cached specs/facts data is known to be stale
+// (e.g. after fixing AI prompt or Wikidata corrections). Old entries are
+// automatically orphaned and will be recomputed on next scan.
+const CACHE_VERSION = "v2";
+
 function getCacheKey(train: TrainIdentification): string {
-  return `${train.class}::${train.operator}`.toLowerCase().trim();
+  return `${CACHE_VERSION}::${train.class}::${train.operator}`.toLowerCase().trim();
 }
 
 function isExpired(entry: CachedTrainData): boolean {
