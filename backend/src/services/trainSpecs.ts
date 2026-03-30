@@ -58,6 +58,11 @@ Rules:
   BR 408 (ICE 3neo, latest generation): maxSpeed "320 km/h", power "9,200 kW", builder "Siemens", fuelType "Electric (15kV 16.7Hz AC)"
   BR 462 (ICE 3neo / Velaro MS): maxSpeed "320 km/h", power "9,200 kW", builder "Siemens", fuelType "Electric (multi-system)"
   All ICE 3 variants are EMU type, Standard gauge (1,435 mm), operator DB.
+- ICE 4 family (BR 412) — use these exact values, do not deviate:
+  BR 412 (ICE 4, 8-car): maxSpeed "250 km/h", power "7,440 kW", builder "Siemens Mobility", fuelType "Electric (15kV 16.7Hz AC)"
+  BR 412 (ICE 4, 12-car): maxSpeed "250 km/h", power "9,280 kW", builder "Siemens Mobility", fuelType "Electric (15kV 16.7Hz AC)"
+  BR 412 (ICE 4, 13-car): maxSpeed "250 km/h", builder "Siemens Mobility", fuelType "Electric (15kV 16.7Hz AC)"
+  CRITICAL: ICE 4 max speed is 250 km/h — NOT 300 or 320 km/h. Do not confuse with ICE 3 variants.
 - DB Class 156 (also DR Class 156, built for Deutsche Reichsbahn) — use these exact values:
   maxSpeed "120 km/h", power "6,360 kW", weight "123 tonnes", length "19.6 m", builder "LEW Hennigsdorf", numberBuilt 186, fuelType "Electric (15kV 16.7Hz AC)", status "Withdrawn", gauge "Standard (1,435 mm)"
   This is a Bo'Bo' electric freight/mixed-traffic locomotive built 1990–1993. Do not confuse with any diesel class.`;
@@ -83,7 +88,8 @@ function parseSpecsResponse(text: string): TrainSpecs {
     return {
       maxSpeed: parsed.maxSpeed ?? null,
       power: parsed.power ?? null,
-      weight: parsed.weight ?? null,
+      // Guard against AI returning 0 instead of null for numeric fields
+      weight: (parsed.weight && parsed.weight !== "0 tonnes" && parsed.weight !== "0") ? parsed.weight : null,
       length: parsed.length ?? null,
       gauge: parsed.gauge ?? null,
       builder: parsed.builder ?? null,
@@ -156,6 +162,9 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "db class 114": { maxSpeed: "160 km/h" },
   "class 114": { maxSpeed: "160 km/h" },
   "br 114": { maxSpeed: "160 km/h" },
+  // BR 412 (ICE 4) — ensure correct max speed (250 km/h, not 300/320 km/h like ICE 3)
+  "br 412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
+  "ice 4": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
