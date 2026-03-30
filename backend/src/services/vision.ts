@@ -14,7 +14,7 @@ const TRAIN_ID_PROMPT = `You are a railway and locomotive identification expert 
 
 Analyze this image and identify the train, locomotive, or multiple unit.
 
-If this is NOT a train/locomotive/railway vehicle or the image is too unclear to identify, respond with exactly: {"error": "not_a_train"}
+Only respond with {"error": "not_a_train"} if there is DEFINITELY NO railway vehicle present in the image at all (e.g. a photo of a person, a landscape, food, a car, or a completely blank/black image). Do NOT return this error for blurry, dark, distant, or partially obscured railway photos — always attempt a best-effort identification with lower confidence instead. If you can see any part of a train, locomotive, or railway vehicle, attempt to identify it.
 
 If you can identify the railway vehicle, respond with ONLY valid JSON in this exact format (no markdown, no explanation, no code fences):
 {
