@@ -171,8 +171,14 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "class 114": { maxSpeed: "160 km/h" },
   "br 114": { maxSpeed: "160 km/h" },
   // BR 412 (ICE 4) — ensure correct max speed (250 km/h, not 300/320 km/h like ICE 3)
+  // Multiple variants because vision may return different class string formats
   "br 412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
+  "br412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
   "ice 4": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
+  "ice4": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
+  "412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
+  "ice 4 (br 412)": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
+  "br 412 (ice 4)": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
   // Class 810 Aurora — correct power and unit count
   "class 810": { power: "2,940 kW", numberBuilt: 33 },
   "br 810": { power: "2,940 kW", numberBuilt: 33 },
