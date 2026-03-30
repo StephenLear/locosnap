@@ -413,7 +413,12 @@ export default function HomeScreen() {
               </View>
             </TouchableOpacity>
 
-            <View style={{ width: 48 }} />
+            <TouchableOpacity
+              style={styles.cameraCancelBtn}
+              onPress={() => { setCameraMode(false); pickImage(); }}
+            >
+              <Ionicons name="images-outline" size={24} color="#fff" />
+            </TouchableOpacity>
           </View>
         </CameraView>
       </View>

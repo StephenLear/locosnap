@@ -12,8 +12,43 @@ Format: newest first within each date block.
 #### `backend/src/services/wikidataSpecs.ts` — Guard against zero weight from Wikidata
 - **Fixed** DB Class 156 (and any future loco) showing "0 tonnes" for weight. Root cause: Wikidata's P2067 (mass) claim for the matched entity contained an amount of 0, which passed the `if (mass)` guard because the quantity object existed. `Math.abs(0)` = 0 formatted as "0 tonnes", which then won over AI's correct value via `wiki.weight ?? ai.weight`. Fixed by adding `mass.amount > 0` and `tonnes > 0` guards so zero-valued mass claims are skipped and treated as missing data.
 
+#### `backend/src/services/vision.ts` — Loosen rejection criteria to reduce false not_a_train errors
+- **Fixed** 17 Sentry events (13 iOS production users) where blurry, dark, or distant train photos were being rejected with "Could not identify a train." Root cause: the prompt told the AI to reject images that were "too unclear to identify," which the AI interpreted too conservatively. Changed to: only return `{"error": "not_a_train"}` if there is definitively no railway vehicle present. All partial, blurry, or distant shots now receive a best-effort low-confidence identification instead.
+
+#### `backend/src/services/vision.ts` — Handle 429 rate limit errors with user-facing message
+- **Fixed** HTTP 429 responses from Anthropic and OpenAI vision APIs bubbling up as a generic 500 "Could not connect" error. Both `identifyWithClaude` and `identifyWithOpenAI` now catch 429 explicitly and throw an `AppError` with message "LocoSnap is experiencing high demand. Please try again in a moment." and correct 429 status code, which surfaces correctly to the user via the existing axios error handler.
+
+#### `backend/src/services/trainSpecs.ts` — Post-merge corrections for known Wikidata data quality errors
+- **Fixed** BR 462 showing builder as "Crewe Works" instead of Siemens. Root cause: Wikidata was matching a wrong entity for this class and returning a UK builder. Added post-merge corrections map (`WIKIDATA_CORRECTIONS`) applied after every Wikidata+AI merge (and on the AI-only path) to force correct values where Wikidata is demonstrably wrong.
+- **Fixed** DB Class 642 showing wrong builder. Correction: Siemens (Desiro Classic).
+- **Fixed** DB Class 114 showing incorrect maxSpeed. Correction: 160 km/h.
+- **Added** `applyKnownCorrections()` function — takes the merged specs and overrides specific fields for specific classes. Covers all class name variants (e.g. "br 114", "class 114", "db class 114"). Pattern is reusable for future Wikidata quality issues.
+
 #### `backend/src/services/trainSpecs.ts` — Hardcode DB Class 156 specs in AI prompt
 - **Fixed** DB Class 156 returning null for maxSpeed, power, and fuelType. Root cause: no pinned entry in the SPECS_PROMPT meant Claude was not confident enough about this East German Bo'Bo' loco and returned null rather than guessing. Added hardcoded entry: `maxSpeed "120 km/h"`, `power "6,360 kW"`, `weight "123 tonnes"`, `length "19.6 m"`, `builder "LEW Hennigsdorf"`, `numberBuilt 186`, `fuelType "Electric (15kV 16.7Hz AC)"`, `status "Withdrawn"`. Follows the same pattern as the ICE 3 family pinned entries.
+
+#### `backend/src/services/vision.ts` — Switch to Claude Vision and fix ICE 4 (BR 412) identification
+- **Fixed** ICE 4 (BR 412) being consistently misidentified as BR 407 by GPT-4o Vision. Root cause: GPT-4o has a strong prior toward the more common BR 407 (Velaro D) and could not be corrected through prompt changes alone. Fix: set `ANTHROPIC_API_KEY` on Render to switch the vision provider from GPT-4o to Claude Vision (Anthropic), which correctly identifies BR 412 from the nose profile.
+- **Fixed** Generic "ICE 3" being returned as the class value instead of a specific BR number. Added a CRITICAL PRE-FLIGHT CHECK at the very top of the prompt (before all other rules) explicitly banning "ICE 3" as a class return value and requiring one of: BR 403, BR 406, BR 407, BR 408, or BR 412.
+- **Added** Statistical tiebreaker for BR 412 vs BR 407: BR 412 has ~108 units in service vs BR 407's 17 — model now defaults to BR 412 at any major German terminus unless the Velaro D crease lines and pointed nose are clearly visible.
+- **Added** Sharp horizontal chin edge as the primary visual discriminator for BR 412 — the squared-off lower cab front with a red band is distinctive and differs from the smooth-tapering BR 407 cab.
+- **Added** ICE 4 disambiguation rules to the disambiguation section covering: wider/upright nose, flatter cab front, fleet numbers starting with "412", max speed 250 km/h not 300/320 km/h.
+
+#### `backend/src/services/trainSpecs.ts` — Additional BR 412 class string variants in corrections map
+- **Added** Six additional key variants to `WIKIDATA_CORRECTIONS` for BR 412: "br412", "ice4", "412", "ice 4 (br 412)", "br 412 (ice 4)" — ensures the 250 km/h maxSpeed correction and Siemens Mobility builder always apply regardless of how the vision model formats the class string.
+
+#### `backend/src/services/trainCache.ts` — Bump cache version to v6
+- **Changed** `CACHE_VERSION` from `"v5"` to `"v6"` to orphan all stale Redis entries from earlier in this session (which cached incorrect "ice 3::db" data with wrong specs). All cache keys now use `v6::` prefix; old v5 entries are ignored and will be recomputed on next scan.
+
+### Frontend
+
+#### `frontend/app/(tabs)/index.tsx` — Gallery toggle button in camera view
+- **Added** Gallery icon button (`images-outline`) in the camera controls row, replacing the empty placeholder `View` on the right side of the shutter button. Tapping it calls `setCameraMode(false)` then `pickImage()` — closes the camera and opens the photo library picker directly without requiring the user to exit the app. Fixes friction reported by Android tester (locosnapwerbung).
+
+### Infrastructure
+
+#### Render — ANTHROPIC_API_KEY environment variable
+- **Added** `ANTHROPIC_API_KEY` to Render environment variables for the locosnap backend service. Backend now uses Claude Vision (Anthropic) as the primary vision provider instead of GPT-4o (OpenAI). OpenAI key retained as fallback. Health endpoint now reports `"visionProvider": "Claude Vision (Anthropic)"`.
 
 ---
 
