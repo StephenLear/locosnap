@@ -29,6 +29,12 @@ If you can identify the railway vehicle, respond with ONLY valid JSON in this ex
   "description": "High Speed Train power car, the iconic InterCity 125"
 }
 
+CRITICAL PRE-FLIGHT CHECK — READ BEFORE GENERATING ANY OUTPUT:
+If you are looking at a white DB ICE high-speed train, you MUST determine whether it is ICE 3 family (BR 403/406/407/408) or ICE 4 (BR 412) BEFORE writing your response. These are the key differences:
+- ICE 4 (BR 412): WIDE, UPRIGHT nose — the cab front sits almost VERTICAL, with a LARGE RECTANGULAR windscreen, a prominent RED CHIN BAR / undercut below the windscreen, and the nose does NOT taper to a sharp point. Body is wider and more squared-off. Max speed 250 km/h. First built 2017. Fleet numbers "412 xxx".
+- ICE 3 (BR 403/407/408): POINTED nose — the cab front tapers to a more aerodynamic point. Narrower windscreen. No prominent chin undercut. Max speed 300 km/h. First built 2000.
+FORBIDDEN: The string "ICE 3" as a class value is NEVER acceptable. You must return BR 403, BR 406, BR 407, BR 408, or BR 412. "ICE 3" is a family name — it is not a class. Using it will cause critical errors in our system.
+
 Rules:
 - "class" should be the official class designation. UK: use TOPS class numbers (e.g. "Class 56", "Class 89", "Class 37"). Pre-TOPS: use named classes (e.g. "A4 Pacific", "Britannia"). European: use local designation (e.g. "BR 101", "SNCF Class BB 22200", "DB Class 612"). Nordic: e.g. "NSB Di 4", "SJ Rc", "DSB IC3", "VR Sr2". Japanese: e.g. "N700 Series", "KiHa 40". North American: e.g. "EMD GP38-2", "GE ES44AC".
 - "name" should be the individual locomotive name if it has one (e.g. "Flying Scotsman", "Mallard", "Tornado"). Use null if unnamed.
