@@ -178,7 +178,20 @@ Tests cover:
 After every session where you edit, create, or delete files in `frontend/` or `backend/`, you **MUST** invoke the `/changelog` skill to record what changed in `docs/CHANGELOG.md`. This is non-negotiable — the changelog is the permanent record of what changed and why. Do not skip it.
 
 ### After any architectural change — update `docs/ARCHITECTURE.md`
-If a change affects how the system works (auth flow, data persistence, API endpoints, monetisation model, scan limits, new services), update `docs/ARCHITECTURE.md` to match.
+`docs/ARCHITECTURE.md` must be kept in perfect sync with the codebase at all times. Update it in the same session as the change — never defer to a later session. Zero information loss is the standard.
+
+Update `docs/ARCHITECTURE.md` whenever any of the following change:
+- Auth flow, data persistence, API endpoints, monetisation model, scan limits, new services
+- AI provider configuration — active provider, fallback, temperature, prompt strategy, hardcoded specs or disambiguation rules
+- Cache version, cache strategy, or cache invalidation logic
+- Wikidata integration behaviour — guards, conflict resolution rules, corrections map
+- Database schema, table structure, or RLS rules
+- Build versions, EAS configuration, or distribution status
+- Tester list — additions, corrections, signup status, Pro grant status
+- Infrastructure — Render, Supabase, Redis, Resend, RevenueCat, Sentry, PostHog
+- Operational processes — any process documented in the architecture doc that changes
+
+**The test:** if a new session reads only `docs/ARCHITECTURE.md`, it should have a complete and accurate picture of the system with no gaps. If a handover contains information not in the architecture doc, the architecture doc is wrong and must be fixed before the session closes.
 
 ### Changelog location
 `docs/CHANGELOG.md` — all frontend and backend code changes recorded here with date, file, what changed, and why.
