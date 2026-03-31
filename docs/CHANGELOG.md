@@ -5,6 +5,36 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-03-31
+
+### Infrastructure
+
+#### `Supabase — profiles table` — Pro access granted to all testers with accounts
+- **Changed** 11 tester profiles updated to `is_pro = true` via Supabase REST API (service role). Testers affected: aylojasimir, esseresser07, gazthomas, gerlachr70, joshimosh2607, kt4d.vip, leander.jakowski, rheintalbahnerneo, stephstottor, unsunghistories, vattuoula. Root cause: no process existed to grant Pro at tester onboarding — Pro grants were being done ad hoc and most testers were on the free tier, hitting the 10 scan/month cap and unable to test properly.
+- **Note** 9 testers (dieterbrandes6, jlison1154, krawiec.jr69, mike.j.harvey, muz.campanet, qwertylikestrains, scr.trainmad, scrtrainmadother, trithioacetone) have not signed up in-app yet. Pro must be re-granted once they create accounts.
+
+#### `Resend — tester email` — Pro activation email sent to all 19 Android testers + iOS tester
+- **Added** Bilingual EN/DE email sent to all testers explaining that free Pro access has been granted and that they must sign up in the app with their tester email address to activate it. Resend ID: `8738a615-86b0-4cbe-90e8-58556e8a03d3`. Triggered by discovery that only 3 testers had signed up in-app despite 19 being on the Play beta list.
+
+### Docs
+
+#### `docs/ARCHITECTURE.md` — Full audit and update against all handover docs
+- **Fixed** iOS build number inconsistency — Section 1 referenced build 33, Section 13 referenced build 36. Corrected to build 36 throughout with note that builds 32-35 were earlier v1.0.7 attempts.
+- **Fixed** Tester list was out of date: `foxiar771@gmail.com` corrected to `trithioacetone@gmail.com`, `aylojasimir@gmail.com` added (was missing entirely), `joshimosh2607@gmail.com` and `krawiec.jr69@gmail.com` added (recruited 2026-03-30), count updated from 16 to 19.
+- **Fixed** Known Limitations section: Android APK updated from v1.0.6 to v1.0.7, auto-submit updated from v1.0.6 to v1.0.7 with gotcha note about eas.json local path, added v1.0.8 pending item.
+- **Added** Current live vision provider note — Claude Vision (Anthropic) confirmed via health endpoint. Switched from GPT-4o on 2026-03-30.
+- **Added** Temperature=0 documentation — all vision and specs/facts/rarity calls are deterministic. Eliminates oscillation on repeat scans of ambiguous classes.
+- **Added** Hardcoded specs documentation — ICE 3 family, BR 412, DB/DR Class 156 are pinned in SPECS_PROMPT to prevent hallucination.
+- **Added** Wikidata zero-value guard documentation — quantity fields can return 0; guards skip these and treat as missing data.
+- **Added** maxSpeed conflict resolution rule — Wikidata trusted over AI when they disagree by >20% (changed 2026-03-26).
+- **Added** Cache version v6 documentation with explanation of when/why to bump.
+- **Added** Auth known fixes — clearHistory() on SIGNED_OUT, _layout.tsx account switch fix.
+- **Added** Automated Pro grant monitor note under Monetisation — runs every 4 hours, auto-grants Pro to new tester signups.
+- **Added** Tester Pro Grant Process section under Monetisation — documents that Pro grants only apply to existing profiles, that new sign-ups need a re-grant, and provides the exact SQL and REST API commands to run.
+- **Changed** Last updated date from 2026-03-27 to 2026-03-31.
+
+---
+
 ## 2026-03-30
 
 ### Backend

@@ -1,6 +1,6 @@
 # LocoSnap — Full Architecture Reference
 
-> Last updated: 2026-03-27
+> Last updated: 2026-03-31
 
 ---
 
@@ -17,8 +17,8 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.7 build 33 — **Submitted to TestFlight** 2026-03-29. Shareable train card (Save to Photos + Share sheet). translateX fix for iOS GPU rendering of off-screen captureRef view. |
-| Android Version | 1.0.7 build 5 — preview APK sent to 14 testers 2026-03-29, 2 new testers 2026-03-30. Production AAB built, auto-submit to internal track pending service account permission propagation. |
+| iOS Version | 1.0.7 build 36 — **Submitted to TestFlight** 2026-03-29. Shareable train card (Save to Photos + Share sheet). translateX fix for iOS GPU rendering of off-screen captureRef view. Build 36 is the definitive v1.0.7 — builds 32-35 were earlier v1.0.7 attempts, build 36 has the translateX fix. |
+| Android Version | 1.0.7 build 5 — preview APK sent to 14 testers 2026-03-29, 2 new testers 2026-03-30. Production AAB built, auto-submit to internal track pending service account permission propagation. v1.0.8 pending — camera gallery toggle committed to main, not yet built. |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
 | Bundle ID | com.locosnap.app |
@@ -64,6 +64,19 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 
 **How it works:** Backend auto-detects which API keys are present and uses the right provider. Prefers Anthropic. Only ONE of `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` is required.
 
+**Current live provider (Render):** Claude Vision (Anthropic) for identification. Confirmed via `/api/health` which reports `"visionProvider": "Claude Vision (Anthropic)"`. Switched from GPT-4o Vision on 2026-03-30 after Claude correctly identified BR 412 (ICE 4) on first attempt where GPT-4o failed repeatedly.
+
+**AI call configuration:** Temperature is set to `0` on all vision and specs/facts/rarity calls (both Claude and OpenAI paths). This ensures deterministic output — the same photo returns the same class on every scan. Previously, repeat scans of ambiguous classes (e.g. ICE 3 family) would oscillate between BR 403/406/407.
+
+**Hardcoded specs in prompt (prevents AI hallucination):**
+- ICE 3 family: BR 403, BR 406, BR 407, BR 408, BR 462 — maxSpeed 300 km/h, power 8,000 kW, builder Siemens
+- DB/DR Class 156 — maxSpeed 120 km/h, power 6,360 kW, weight 123 t, builder LEW Hennigsdorf, 186 built, Electric (15kV 16.7Hz AC), status Withdrawn
+- BR 412 (ICE 4) — maxSpeed 250 km/h, power 7,440 kW, 108 built
+
+**Wikidata data quality guards:** Quantity fields (e.g. P2067 mass) can return a value of 0 from Wikidata. Guards check `amount > 0` and `tonnes > 0` before accepting any Wikidata quantity — zero values are skipped and treated as missing data.
+
+**maxSpeed conflict resolution:** When Wikidata and AI disagree on maxSpeed by more than 20%, Wikidata is trusted (changed 2026-03-26 — previously AI was overriding correct Wikidata values for well-documented trains).
+
 ---
 
 ## 4. Database — Supabase
@@ -101,7 +114,10 @@ RLS is enabled on all tables. Users can only read/write their own data.
 | Auth Email Sender | noreply@locosnap.app (via Resend SMTP) |
 | Sender Name | LocoSnap |
 
-**Known fix (implemented):** Android session expiry — `onAuthStateChange` now handles `TOKEN_REFRESHED` and unexpected `SIGNED_OUT` events with session recovery before clearing state.
+**Known fixes (implemented):**
+- Android session expiry — `onAuthStateChange` now handles `TOKEN_REFRESHED` and unexpected `SIGNED_OUT` events with session recovery before clearing state.
+- All `SIGNED_OUT` paths now explicitly call `clearHistory()` to prevent scan history from persisting after sign-out or account switch.
+- `app/_layout.tsx` account switching now awaits `clearHistory()` before calling `loadHistory()` — fixes cross-contamination bug where signing into a second account could show the previous account's collection.
 
 ---
 
@@ -120,6 +136,8 @@ RLS is enabled on all tables. Users can only read/write their own data.
 
 Cache entries are lazy-loaded from Redis on first access. `trainCache.ts` functions (`getCachedTrainData`, `setCachedTrainData`, `setCachedBlueprint`) are all async. Saves ~84% of AI costs on repeat scans (£0.005 cached vs £0.031 fresh).
 
+**Cache version: v6** (as of 2026-03-30). Version is embedded in all cache keys. Bump the version in `trainCache.ts` whenever wrong identification data may have been cached during iterative prompt/model fixes — this orphans all stale Redis entries and forces fresh AI calls on next scan. Every version bump means the first scan of every class will miss cache and run the full AI pipeline.
+
 ---
 
 ## 7. Monetisation — RevenueCat
@@ -133,6 +151,35 @@ Cache entries are lazy-loaded from Redis on first access. `trainCache.ts` functi
 | Manual Pro Grant | UPDATE public.profiles SET is_pro = true WHERE id = '...' |
 
 **Note:** RevenueCat is checked on profile load. If DB has `is_pro = true` (manually granted), RevenueCat will not override it (fixed in commit `7f0188a`).
+
+### Tester Pro Grant Process
+
+All beta testers must be granted Pro manually via Supabase. The grant only applies to profiles that already exist — a new sign-up creates a fresh profile without `is_pro = true`.
+
+**Process every time a tester signs up or a new tester is added:**
+
+1. Run the diagnostic to find their user ID:
+```sql
+SELECT id, email FROM auth.users WHERE lower(email) = 'tester@example.com';
+```
+
+2. Grant Pro:
+```sql
+UPDATE public.profiles SET is_pro = true WHERE id = '<user-id>';
+```
+
+Or via REST API (service role key required):
+```bash
+curl -X PATCH "https://vfzudbnmtwgirlrfoxpq.supabase.co/rest/v1/profiles?id=eq.<user-id>" \
+  -H "apikey: <service-role-key>" \
+  -H "Authorization: Bearer <service-role-key>" \
+  -H "Content-Type: application/json" \
+  -d '{"is_pro": true}'
+```
+
+**Important:** After any signup wave (e.g. following a Pro access email to testers), re-run the bulk grant for all tester emails — new sign-ups will not have Pro until this is done. The service role key is in Render → locosnap-backend → Environment Variables → `SUPABASE_SERVICE_KEY`.
+
+**Automated monitor (active as of 2026-03-31):** A local scheduled task runs every 4 hours, checks whether any of the 9 outstanding testers have signed up, grants Pro automatically, and emails a summary to unsunghistories@proton.me. Task file: `/Users/StephenLear/.claude/scheduled-tasks/locosnap-tester-pro-monitor/SKILL.md`. Manage via the Scheduled tab in Claude Code sidebar. The monitor can be disabled once all 9 outstanding testers have signed up — it will notify when this happens.
 
 ### Scan Limits (as of 2026-03-22)
 
@@ -373,21 +420,24 @@ FRONTEND_URL=https://locosnap.app
 
 ## 19. Beta Testers
 
-### Android Testers (16) — notified by email
-- gerlachr70@gmail.com (Nero — German ICE enthusiast, recruited via Frankfurt TikTok/Instagram ad 2026-03-26)
-- Stephstottor@gmail.com
+### Android Testers (19) — notified by email
+- aylojasimir@gmail.com
+- dieterbrandes6@gmail.com (locosnapwerbung — organic TikTok promoter, recruited 2026-03-30)
 - esseresser07@gmail.com
-- foxiar771@gmail.com (recruited via TikTok DM 2026-03-29)
 - gazthomas@hotmail.com
+- gerlachr70@gmail.com (Nero — German ICE enthusiast, recruited via Frankfurt TikTok/Instagram ad 2026-03-26)
 - jlison1154@gmail.com
+- joshimosh2607@gmail.com (recruited 2026-03-30)
+- krawiec.jr69@gmail.com (recruited 2026-03-30)
 - kt4d.vip@gmail.com
 - leander.jakowski@gmail.com
 - mike.j.harvey@gmail.com
 - muz.campanet@gmail.com
-- dieterbrandes6@gmail.com (recruited 2026-03-29)
 - qwertylikestrains@gmail.com
 - scr.trainmad@gmail.com
 - scrtrainmadother@gmail.com
+- Stephstottor@gmail.com
+- trithioacetone@gmail.com (recruited 2026-03-29, corrected from foxiar771@gmail.com which was wrong)
 - unsunghistories@proton.me
 - vattuoula@gmail.com
 
@@ -488,10 +538,11 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 
 | Item | Status |
 |------|--------|
-| iOS App Store submission (v1.0.7) | Build 36 in TestFlight 2026-03-29 — Save/Share current card face confirmed working |
-| Render cold start — 7 users affected | Backend on Render free tier spins down after inactivity. healthCheck() pre-warms on mount but users who scan immediately still hit "Could not connect" error. Fix options: (1) disable scan button until healthCheck responds, show "warming up..." indicator — zero cost; (2) upgrade Render to paid ($7/month) to eliminate cold starts. 14 Sentry events across 7 users since March 22. |
-| Android APK for testers (v1.0.6) | Sent to 13 testers 2026-03-27 — APK: https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk |
-| Android auto-submit to Play Store (v1.0.6) | Infrastructure set up (service account, API enabled, eas.json updated). Submit pending service account permission propagation. Retry: eas submit --platform android --profile production --id f040f353-97cf-4804-b1d6-11608f6706f0 --non-interactive |
+| iOS App Store submission (v1.0.7) | Build 36 in TestFlight 2026-03-29 — with Apple for review as of 2026-03-31. Save/Share current card face confirmed working. |
+| Render cold start — 7 users affected | Backend on Render free tier spins down after inactivity. healthCheck() pre-warms on mount and scan buttons are disabled until healthCheck resolves. 14 Sentry events across 7 users since March 22. Upgrade Render to paid ($7/month) to eliminate entirely. |
+| Android APK for testers (v1.0.7) | Build 5 sent to 14 testers 2026-03-29, 2 new testers 2026-03-30 — APK: https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk |
+| Android v1.0.8 build pending | Camera gallery toggle committed to main. Run: eas build --platform android --profile preview |
+| Android auto-submit to Play Store (v1.0.7) | Infrastructure set up (service account, API enabled, eas.json updated). Submit pending service account permission propagation. Retry: eas submit --platform android --profile production --id f040f353-97cf-4804-b1d6-11608f6706f0 --non-interactive. Note: do not commit eas.json with local absolute path to play-store-key.json — it will not exist in EAS Build environment. |
 | Competitor noted: Traintrack (traintrack.app) | iOS/Android, 557 followers TikTok, aggressive paywall, launched 2026. Monitor. |
 | Sentry source maps | Add SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT to EAS secrets |
 | Offline spot sync | Spots scanned while offline are saved locally but never synced to Supabase when connectivity restores. Need to track unsynced items (local timestamp ID vs Supabase UUID) and sync on reconnect/foreground. Medium priority. |
