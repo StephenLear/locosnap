@@ -72,7 +72,8 @@
           "savePhotosPermission": "Allow LocoSnap to save train cards to your photo library.",
           "isAccessMediaLocationEnabled": false
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "extra": {
       "router": {},

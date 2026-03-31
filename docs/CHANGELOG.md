@@ -7,6 +7,75 @@ Format: newest first within each date block.
 
 ## 2026-03-31
 
+### Frontend
+
+#### `frontend/store/settingsStore.ts` — Wire i18n to language changes
+- **Fixed** UI always rendering in English regardless of stored or detected language preference. Root cause: `setLanguage` and `initialize` updated Zustand state and AsyncStorage but never called `i18n.changeLanguage()`, so i18next remained on its default `"en"` language for the lifetime of every session.
+- **Added** `import i18n from "../i18n"` — no circular dependency risk; `i18n/index.ts` imports only from `locales/`.
+- **Changed** `initialize()`: after resolving the stored or device-detected language into `language`, now calls `await i18n.changeLanguage(language)` before committing state to Zustand. This ensures the active i18next language matches the resolved preference on every cold start.
+- **Changed** `setLanguage(lang)`: now calls `await i18n.changeLanguage(lang)` inside the existing `try` block after the `AsyncStorage.setItem` call, so the UI language switches immediately when the user picks a language from the picker.
+
+#### `frontend/__tests__/settingsStore.test.ts` — Fix German locale detection test and add i18n mock
+- **Fixed** German locale detection test passing vacuously. Root cause: `jest.doMock("expo-localization", ...)` was called after `jest.mock(...)` had already registered the `"en"` mock at module-load time, and the `settingsStore` module was required before `doMock` could take effect. Fixed by calling `jest.resetModules()` at the top of that test before `jest.doMock(...)` and the subsequent `require` calls, ensuring the German locale mock is the one loaded when the store module initialises.
+- **Added** `jest.mock("../i18n", ...)` at the top of the file — mocks `i18n.changeLanguage` as a no-op resolved promise so tests do not attempt to initialise the real i18next instance, which has no React Native environment available in Jest.
+
+#### `frontend/locales/en.json` — Rename "Built" locale key value
+- **Changed** `results.built` value from `"Built"` to `"Units built"` — aligns with the results.tsx label fix so any component consuming the locale key shows the correct label.
+
+#### `frontend/locales/de.json` — Rename "Built" locale key value
+- **Changed** `results.built` value from `"Gebaut"` to `"Gebaute Einheiten"` — German equivalent of "Units built", replacing the ambiguous "Gebaut" which implies a construction year rather than a production count.
+
+#### `frontend/app/(tabs)/_layout.tsx` — Wire tab labels to i18n
+- **Added** `useTranslation` hook; tab `title` options now call `t("tabs.scan")`, `t("tabs.history")`, `t("tabs.leaderboard")`, `t("tabs.profile")` so tab bar labels change language when the user switches locale.
+
+#### `frontend/app/(tabs)/index.tsx` — Wire scan screen strings to i18n
+- **Added** `useTranslation` hook.
+- **Changed** "Scan with Camera" button label now uses `t("scan.scanButton")`.
+- **Changed** Warming-up indicator "Connecting to server..." now uses `t("scan.warmingUp")`.
+- **Changed** Guest trial banner text now uses `t("scan.signUpPrompt")` (zero scans used) and `t("scan.trialBanner", { remaining })` (scans used), replacing hardcoded English strings with pluralisation-aware keys.
+
+#### `frontend/app/(tabs)/history.tsx` — Wire history screen empty state to i18n
+- **Added** `useTranslation` hook.
+- **Changed** Empty-state subtitle now uses `t("history.empty")` instead of the hardcoded English string.
+
+#### `frontend/app/(tabs)/profile.tsx` — Wire profile screen strings to i18n
+- **Added** `useTranslation` hook.
+- **Changed** Level number label now uses `t("profile.level")` prefix.
+- **Changed** "Total Spots" StatBox label now uses `t("profile.totalSpots")`.
+- **Changed** "Day Streak" StatBox label now uses `t("profile.streak")`.
+- **Changed** "Upgrade to Pro" button title now uses `t("profile.upgradeToPro")`.
+- **Changed** "Sign Out" button text now uses `t("profile.signOut")`.
+- **Changed** "PRO" badge text now uses `t("profile.pro").toUpperCase()`.
+
+#### `frontend/app/results.tsx` — Wire results screen strings to i18n
+- **Added** `useTranslation` hook.
+- **Changed** "Specifications" section heading now uses `t("results.specs")`.
+- **Changed** "Facts & History" section heading now uses `t("results.facts")`.
+- **Changed** "Status" spec row label now uses `t("results.status")`.
+- **Changed** SpecRow labels for Max Speed, Power, Weight, Length, Builder, and Units Built now use the corresponding `results.*` keys.
+- **Changed** "View Blueprint" button text (both Pro and credit-user variants) now uses `t("results.viewBlueprint")`.
+- **Changed** "Generating Blueprint..." loading text (both Pro and credit-user variants) now uses `t("results.generatingBlueprint")`.
+
+#### `frontend/app/sign-in.tsx` — Wire sign-in screen strings to i18n
+- **Added** `useTranslation` hook.
+- **Changed** Email input placeholder now uses `t("auth.emailPlaceholder")` instead of hardcoded "Email address".
+- **Changed** Guest note text now uses `t("auth.freeAccountPerks")` instead of hardcoded English perks list.
+
+#### `frontend/app/paywall.tsx` — Wire paywall screen strings to i18n
+- **Added** `useTranslation` hook.
+- **Changed** Hero title "Unlock LocoSnap Pro" now uses `t("paywall.title")`.
+- **Changed** Primary CTA button "Upgrade to Pro" now uses `t("paywall.subscribe")`.
+- **Changed** Restore purchases button text now uses `t("paywall.restorePurchases")`.
+
+### Backend
+
+#### `backend/src/services/wikidataSpecs.ts` — Fix length unit conversion (mm/km to metres)
+- **Fixed** DB Class 101 (and any train where Wikidata stores length in millimetres) displaying wildly incorrect length values like "19100.0 m". Root cause: `getQuantity()` extracted the raw numeric amount from Wikidata without checking the unit URI, so 19100 mm was displayed as 19100 m. Fixed by checking the unit QID on the extracted quantity: `Q11573` (metre) used as-is, `Q174789` (kilometre) multiplied by 1000, `Q11570` (millimetre) divided by 1000. An additional sanity-check fallback divides any value exceeding 500 by 1000, on the assumption that no train is longer than 500 m and such a value must be in millimetres.
+- **Added** `KILOMETRE: "Q174789"` and `MILLIMETRE: "Q11570"` entries to the `UNIT` constants map.
+
+#### `backend/src/services/vision.ts` — Add locomotive vs EMU type classification guidance
+- **Fixed** DB Class 101 (and similar single-unit electric locos) being classified as `"EMU"` instead of `"Electric"`. Root cause: the prompt listed valid type values but gave no guidance on how to distinguish a single-unit electric locomotive (hauls separate coaches, Bo-Bo/Co-Co wheel arrangement) from an EMU (self-propelled articulated set with passenger seating inside the powered vehicles). Added three clarifying bullet points under the `"type"` rule: "Electric" for single traction units such as DB Class 101/103/120/185/187 and BR Class 90/91; "EMU" for self-propelled articulated sets such as ICE 3, Desiro, Talent, FLIRT, Velaro, Class 319/387; explicit prohibition against classifying a single-unit electric locomotive as EMU.
+
 ### Infrastructure
 
 #### `Supabase — profiles table` — Pro access granted to all testers with accounts
@@ -75,10 +144,118 @@ Format: newest first within each date block.
 #### `frontend/app/(tabs)/index.tsx` — Gallery toggle button in camera view
 - **Added** Gallery icon button (`images-outline`) in the camera controls row, replacing the empty placeholder `View` on the right side of the shutter button. Tapping it calls `setCameraMode(false)` then `pickImage()` — closes the camera and opens the photo library picker directly without requiring the user to exit the app. Fixes friction reported by Android tester (locosnapwerbung).
 
+#### `frontend/app/language-picker.tsx` — First-launch language selection screen (new file)
+- **Added** Full-screen language picker shown once on first launch before any language is set. Displays the app icon (`assets/icon.png`), hardcoded English title "Choose your language", and hardcoded English subtitle "Select the language for the app" — these are intentionally not translated since i18n is not yet initialised at this point.
+- **Added** Two `TouchableOpacity` buttons: "English" and "Deutsch". Each calls `setLanguage(lang)`, `i18n.changeLanguage(lang)`, and `markLanguageChosen()` in sequence, then uses `router.replace("/(tabs)")` to navigate to the main app. `replace` (not `push`) prevents the user from navigating back to this screen after selecting a language.
+- **Added** Uses `colors.accent` (`#00D4AA`) as the primary button fill, matching the scanner aesthetic of existing screens. Secondary button (Deutsch) is transparent with an accent-coloured border and label.
+
+#### `frontend/__tests__/languagePicker.test.tsx` — Language picker store interaction tests (new file)
+- **Added** Three tests covering the store contracts the language picker screen depends on: (1) both `"en"` and `"de"` are present in `SUPPORTED_LANGUAGES`; (2) selecting English calls `setLanguage("en")`, updates `language` state to `"en"`, calls `i18n.changeLanguage("en")`, and sets `languageChosen` to `true` via `markLanguageChosen()`; (3) same assertions for `"de"`. Tests are pure store logic — no React Native rendering required.
+
+#### `frontend/jest.config.js` — Extend test match to include .tsx test files
+- **Changed** `testMatch` array: added `"**/__tests__/**/*.test.tsx"` alongside the existing `"**/__tests__/**/*.test.ts"` pattern. Required to pick up `languagePicker.test.tsx` and any future component-adjacent logic tests written in TSX.
+
+#### `frontend/app/(tabs)/profile.tsx` — Add language toggle row to profile screen
+- **Added** `useSettingsStore` and `i18n` imports.
+- **Added** `language` and `setLanguage` destructured from `useSettingsStore()` inside the component.
+- **Added** `handleLanguageToggle` — computes `next` as the opposite of the current language (`en` -> `de`, `de` -> `en`), then awaits `setLanguage(next)` and `i18n.changeLanguage(next)` so the UI rerenders with the correct language immediately.
+- **Added** Language toggle row as a `TouchableOpacity` using the existing `infoRow` style, placed immediately after the "Best Streak" row. Displays a `language-outline` Ionicon, the `t("profile.language")` label, the current language name ("English" or "Deutsch"), and a `chevron-forward` affordance. Visual style is identical to adjacent info rows.
+
+#### `frontend/services/api.ts` — Pass current language to backend on every identify request
+- **Added** `useSettingsStore` import from `../store/settingsStore`.
+- **Changed** `identifyTrainWeb`: reads `useSettingsStore.getState().language` (store accessed via `getState()` — not a hook, safe in a service) and appends it as `"language"` to the `FormData` before the `fetch` call.
+- **Changed** `identifyTrainNative`: same — reads `useSettingsStore.getState().language` and appends `"language"` to the `FormData` before `api.post`. Backend can now use this field to return facts and specs in the user's chosen language.
+
+#### `frontend/__tests__/languageSelector.test.ts` — Tests for profile screen language toggle logic (new file)
+- **Added** Four tests: toggle from `en` to `de` updates store state; toggle from `de` to `en` updates store state; `i18n.changeLanguage` is called with the new code on toggle; display label returns "English" for `en` and "Deutsch" for `de`.
+
+#### `frontend/__tests__/services/api.test.ts` — Add settingsStore mock and language field assertion
+- **Added** `jest.mock("../../store/settingsStore", ...)` — mocks `useSettingsStore.getState()` to return `{ language: "en" }` by default, preventing the real store's AsyncStorage and expo-localization deps from running in Jest.
+- **Added** Test "includes language field from settingsStore in the request body" — overrides the mock to `{ language: "de" }`, calls `identifyTrain`, and asserts `formData.get("language") === "de"`.
+
 ### Infrastructure
 
 #### Render — ANTHROPIC_API_KEY environment variable
 - **Added** `ANTHROPIC_API_KEY` to Render environment variables for the locosnap backend service. Backend now uses Claude Vision (Anthropic) as the primary vision provider instead of GPT-4o (OpenAI). OpenAI key retained as fallback. Health endpoint now reports `"visionProvider": "Claude Vision (Anthropic)"`.
+
+#### Render — backend language support deployed
+- **Deployed** backend commits `aff40d8` and `bbf4195` to Render via `git push origin main`. Backend now accepts `language` field on `/api/identify`, returns AI-generated facts, specs, and rarity descriptions in German when `language === "de"`. Cache version bumped to v7 as part of this deploy, invalidating all v6 entries.
+
+---
+
+Additional frontend and backend changes from language picker feature (v1.0.8):
+
+### Frontend (language picker infrastructure)
+
+#### `frontend/store/settingsStore.ts` — Create language preference store (new file)
+- **Added** Zustand store (`useSettingsStore`) managing `language: AppLanguage`, `languageChosen: boolean`, `isLoading: boolean`. Exported type `AppLanguage = "en" | "de"` and constant `SUPPORTED_LANGUAGES: AppLanguage[] = ["en", "de"]`.
+- **Added** `initialize()` — reads stored language from AsyncStorage (`locosnap_language`), falls back to device locale (via `expo-localization`), defaults to `"en"` if no match. Sets `languageChosen` from `locosnap_language_chosen` key. Calls `i18n.changeLanguage()` with resolved language before committing state, so i18next is synchronised on every cold start.
+- **Added** Guard at top of `initialize()`: `if (!get().isLoading) return` — prevents double-invocation in React StrictMode (development) from causing two concurrent async chains writing to AsyncStorage.
+- **Added** `setLanguage(lang)` — writes to AsyncStorage, calls `i18n.changeLanguage(lang)`, updates Zustand state. UI language switches immediately.
+- **Added** `markLanguageChosen()` — writes `"true"` to `locosnap_language_chosen` and sets `languageChosen: true`. Called after user selects a language on the picker screen so the gate is not shown again.
+
+#### `frontend/i18n/index.ts` — Create i18next configuration (new file)
+- **Added** i18next instance configured with `react-i18next`, loading EN and DE translation resources. Settings: `lng: "en"`, `fallbackLng: "en"`, `interpolation: { escapeValue: false }`, `compatibilityJSON: "v3"` (required to avoid console warnings in React Native with i18next v23+).
+- **Added** `LANGUAGE_RESOURCES = { en, de }` export — gives non-component code access to raw locale JSON without importing the i18n instance.
+- **Added** Side-effect import pattern: consumers import `"../i18n"` to initialise i18next once at module load.
+
+#### `frontend/locales/en.json` — Create English translation file (new file)
+- **Added** 80 translation keys across 11 namespaces: `tabs`, `scan`, `results`, `profile`, `history`, `leaderboard`, `auth`, `paywall`, `rarity`, `errors`, `languagePicker`. Covers all user-visible strings across main app screens. Plural forms use i18next v3 `_plural` suffix convention (e.g. `scan.trialBanner` / `scan.trialBanner_plural`, `scan.scanBadge` / `scan.scanBadge_plural`). Interpolation variables use `{{variable}}` syntax (e.g. `scan.trialBanner` uses `{{remaining}}`).
+
+#### `frontend/locales/de.json` — Create German translation file (new file)
+- **Added** 80 matching German translation keys with identical structure to `en.json`. All umlauts verified: ä, ö, ü, Ä, Ö, Ü, ß. Key translation choices: "Scannen" (scan), "Sammlung" (collection/history), "Bestenliste" (leaderboard), "Hochstgeschwindigkeit" (max speed), "Gebaute Einheiten" (units built), "Legendar" (legendary), "Gewohnlich" (common).
+
+#### `frontend/app/_layout.tsx` — Add language picker gate before app stack
+- **Added** `import "../i18n"` side-effect import to initialise i18next at root layout load time.
+- **Added** `useSettingsStore` import; reads `languageChosen`, `isLoading` (aliased `settingsLoading`), and `initializeSettings` from the store.
+- **Added** `useEffect(() => { initializeSettings(); }, [initializeSettings])` — calls store initialisation on mount, triggering AsyncStorage read and language resolution.
+- **Added** Loading gate: while `settingsLoading` is true, renders a full-screen `View` with `backgroundColor: colors.background` (no spinner) to prevent FOUC while AsyncStorage resolves.
+- **Added** Language picker gate: when `settingsLoading` is false and `languageChosen` is false, renders `<Redirect href="/language-picker" />`. This is the outermost conditional — executes before AuthGate and all other navigation logic.
+- **Added** `language-picker` as a named `Stack.Screen` entry so Expo Router recognises the route.
+
+#### `frontend/__tests__/layout.test.ts` — Tests for root layout language gate logic (new file)
+- **Added** Three tests covering the three store-state conditions that drive layout behaviour: (1) store initialises with `isLoading: true` so a blank view is shown on first render; (2) after `initialize()` with no stored preference, `isLoading` becomes false and `languageChosen` remains false, which would trigger the `<Redirect>`; (3) after `initialize()` with `locosnap_language_chosen = "true"` in AsyncStorage, `languageChosen` becomes true and the redirect is bypassed.
+
+#### `frontend/app/(tabs)/index.tsx` — Wire remaining scan screen keys to i18n
+- **Changed** Scan progress label from `{SCAN_STAGES[scanStage]}` to `{t("scan.scanning")}` — SCAN_STAGES animation cycle retained for dot-count logic; only the visible text label uses the translation key.
+- **Changed** "No train found" error string to `t("scan.noTrainFound")` — was hardcoded English fallback in `setScanError` call.
+- **Changed** Camera permission denial Alert message body to `t("scan.cameraPermission")` — was hardcoded English Alert string.
+- **Changed** Trial banner `t()` call to pass `{ count: remaining, remaining }` where `remaining` is a named local variable — `count` drives i18next v3 pluralisation (selecting `trialBanner` vs `trialBanner_plural`), `remaining` is the interpolated number. Previously passed the computed expression twice without a named variable.
+- **Changed** Scan badge label from `` `${scansRemaining} scan${scansRemaining !== 1 ? "s" : ""}` `` to `t("scan.scanBadge", { count: scansRemaining })` — removes English-only pluralisation logic; i18next now handles singular/plural via `scanBadge` / `scanBadge_plural` keys.
+
+#### `frontend/app/(tabs)/profile.tsx` — Additional i18n fixes and profile toggle cleanup
+- **Changed** Level label from `{t("profile.level")} {levelInfo.index}` to `{t("profile.level", { number: levelInfo.index })}` with translation string updated to `"Level {{number}}"` — removes string concatenation outside `t()`, which breaks word order in non-English locales.
+- **Changed** Rarity labels: replaced hardcoded `rarityLabels` map with `getRarityLabel(tier)` switch/case using static `t("rarity.*")` calls for all five tiers (common, uncommon, rare, epic, legendary). No dynamic key construction.
+- **Fixed** Redundant `i18n.changeLanguage(next)` call removed from `handleLanguageToggle` — `setLanguage()` already calls `i18n.changeLanguage()` internally via settingsStore. Calling it twice caused two overlapping i18next language-change events on every toggle.
+
+#### `frontend/app/results.tsx` — Additional i18n fixes
+- **Changed** Rarity labels: replaced hardcoded `rarityLabels` map with `getRarityLabel(tier)` switch/case using `t("rarity.*")` calls — same pattern as profile.tsx.
+- **Changed** Blueprint section title wired to `t("results.blueprint")` — was hardcoded "Blueprint Style" in the Pro style picker heading.
+
+### Backend (language support — v1.0.8)
+
+#### `backend/src/routes/identify.ts` — Accept and validate language parameter
+- **Added** `VALID_LANGUAGES = ["en", "de"] as const` and derived `Language` type.
+- **Added** Language extraction from `req.body.language` with validation: any value not in `VALID_LANGUAGES` (including missing, empty, or capitalised variants) defaults to `"en"` — never errors.
+- **Changed** `language` forwarded to `getCachedTrainData`, `getTrainSpecs`, `getTrainFacts`, `classifyRarity`, `setCachedTrainData`, and `monitorBlueprintForCache` so language-specific AI content is cached and served per language.
+- **Fixed** `monitorBlueprintForCache` missing `language` parameter — blueprints generated during a German-language scan were being stored under the English cache key, causing unnecessary regeneration on subsequent German scans of the same train.
+
+#### `backend/src/services/trainFacts.ts` — Add German language instruction to facts prompt
+- **Added** `language: string = "en"` parameter.
+- **Added** When `language === "de"`: prepends `"Respond in German (Deutsch). Use formal register.\n\n"` as the very first line of the prompt, so the model's first instruction is the language directive. AI-generated facts and historical descriptions are now returned in German for German-language sessions.
+
+#### `backend/src/services/trainSpecs.ts` — Add German language instruction to specs prompt
+- **Added** `language: string = "en"` parameter.
+- **Added** German instruction prepended when `language === "de"`. Technical spec values (numbers, units, speed, weight, length) remain in standard international format regardless of language — only narrative text fields like `status` and `route` change language.
+
+#### `backend/src/services/rarity.ts` — Add German language instruction to rarity prompt
+- **Added** `language: string = "en"` parameter.
+- **Added** German instruction prepended when `language === "de"`. The `tier` field (enum value) stays in English; `description` and `reasoning` fields are returned in German.
+
+#### `backend/src/services/trainCache.ts` — Cache v7 with language segment in key
+- **Changed** `CACHE_VERSION` from `"v6"` to `"v7"` — invalidates all v6 cache entries. Required because v6 entries contain English-only AI content; v7 entries are language-specific.
+- **Changed** Cache key format from `v6::{class}::{operator}` to `v7::{language}::{class}::{operator}` — EN and DE results for the same train are stored as separate entries, preventing German-session users from receiving cached English content.
+- **Fixed** `getTopTrains()` key-split broken by the new language segment — was destructuring `[cls, operator] = key.split("::")` (indices 0 and 1), but indices 0 and 1 are now the version and language segments. Fixed to `[, , cls, operator] = key.split("::")` to skip the first two segments.
 
 ---
 
