@@ -155,7 +155,7 @@ router.post(
           blueprintTaskId = await startBlueprintGeneration(train, specs, blueprintStyle);
 
           // Store blueprint URL when it completes (fire and forget)
-          monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle);
+          monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle, language);
         }
       } else {
         // ── CACHE MISS — full AI pipeline ────────────────
@@ -213,7 +213,7 @@ router.post(
         if (shouldGenerateBlueprint) {
           try {
             blueprintTaskId = await startBlueprintGeneration(train, specs, blueprintStyle);
-            monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle);
+            monitorBlueprintForCache(blueprintTaskId, train, blueprintStyle, language);
           } catch (bpErr) {
             console.error("[IDENTIFY] Blueprint generation failed:", bpErr);
             blueprintTaskId = `failed-${Date.now()}`;
@@ -283,7 +283,8 @@ import { getTaskStatus } from "../services/imageGen";
 function monitorBlueprintForCache(
   taskId: string,
   train: any,
-  style: BlueprintStyle = "technical"
+  style: BlueprintStyle = "technical",
+  language: string = "en"
 ): void {
   const checkInterval = setInterval(async () => {
     try {
@@ -294,7 +295,7 @@ function monitorBlueprintForCache(
       }
 
       if (task.status === "completed" && task.imageUrl) {
-        setCachedBlueprint(train, task.imageUrl, style);
+        setCachedBlueprint(train, task.imageUrl, style, language);
         clearInterval(checkInterval);
       } else if (task.status === "failed") {
         clearInterval(checkInterval);

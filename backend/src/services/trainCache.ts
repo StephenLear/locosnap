@@ -262,7 +262,7 @@ export function getTopTrains(limit: number = 10): Array<{
 }> {
   return Array.from(memoryCache.entries())
     .map(([key, data]) => {
-      const [cls, operator] = key.split("::");
+      const [, , cls, operator] = key.split("::");
       return {
         class: cls,
         operator,
