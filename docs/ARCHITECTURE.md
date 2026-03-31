@@ -18,7 +18,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
 | iOS Version | 1.0.7 build 36 — **Live on App Store** 2026-03-31. Shareable train card (Save to Photos + Share sheet). translateX fix for iOS GPU rendering of off-screen captureRef view. App Store name corrected to "LocoSnap" in this release. Build 36 is the definitive v1.0.7 — builds 32-35 were earlier v1.0.7 attempts. |
-| Android Version | 1.0.7 build 5 — preview APK sent to 14 testers 2026-03-29, 2 new testers 2026-03-30. Production AAB built, auto-submit to internal track pending service account permission propagation. v1.0.8 pending — camera gallery toggle committed to main, not yet built. |
+| Android Version | 1.0.7 build 5 — preview APK sent to 14 testers 2026-03-29, 2 new testers 2026-03-30. Production AAB built, auto-submit to internal track pending service account permission propagation. v1.0.8 pending — language picker (EN/DE) + camera gallery toggle + DB Class 101 data fixes committed to main, not yet built. Run: `eas build --platform android --profile preview` from `frontend/`. |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
 | Bundle ID | com.locosnap.app |
@@ -40,14 +40,14 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 |----------|-------|
 | Framework | Express.js (TypeScript) |
 | Hosting | Render.com (Web Service) |
-| URL | https://locosnap-backend.onrender.com (or similar) |
+| URL | https://locosnap.onrender.com |
 | Cold Start | ~60s after inactivity — pre-warmed by healthCheck() on app mount |
 | Source | `/backend/src/` |
 
 ### Endpoints
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | /api/identify | Upload photo → train ID, specs, facts, rarity, blueprint task ID |
+| POST | /api/identify | Upload photo + optional `language` field (`"en"`/`"de"`) → train ID, specs, facts, rarity (in requested language), blueprint task ID |
 | GET | /api/blueprint/:taskId | Poll blueprint generation status |
 | GET | /api/health | Health check — active providers + Redis status |
 | POST | /api/webhooks/revenuecat | RevenueCat subscription webhooks |
@@ -76,6 +76,31 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 **Wikidata data quality guards:** Quantity fields (e.g. P2067 mass) can return a value of 0 from Wikidata. Guards check `amount > 0` and `tonnes > 0` before accepting any Wikidata quantity — zero values are skipped and treated as missing data.
 
 **maxSpeed conflict resolution:** When Wikidata and AI disagree on maxSpeed by more than 20%, Wikidata is trusted (changed 2026-03-26 — previously AI was overriding correct Wikidata values for well-documented trains).
+
+**Length unit conversion (2026-03-31):** Wikidata P2043 (length) can return values in millimetres (Q11570), metres (Q11573), or kilometres (Q174789). `wikidataSpecs.ts` `getQuantity()` now checks the unit QID and converts to metres before use. Fallback: any value exceeding 500 is assumed to be in mm and divided by 1000. Fixes DB Class 101 showing "19100.0 m" instead of "19.1 m".
+
+---
+
+## 3a. Language / Localisation
+
+| Property | Value |
+|----------|-------|
+| Supported languages | English (`en`), German (`de`) — v1.0.8 |
+| Future languages | Architecture supports FR, NL, PL, CS — add locale file + 6 lines in `i18n/index.ts` |
+| Language preference store | `frontend/store/settingsStore.ts` — `AppLanguage`, `initialize()`, `setLanguage()`, `markLanguageChosen()` |
+| i18n library | i18next + react-i18next + expo-localization |
+| Translation files | `frontend/locales/en.json`, `frontend/locales/de.json` — 80 keys, 11 namespaces |
+| First-launch gate | `frontend/app/language-picker.tsx` — shown once before auth, `router.replace("/(tabs)")` after selection |
+| Language gate in layout | `frontend/app/_layout.tsx` — outermost gate: blank loading view → language picker redirect → AuthGate |
+| Language toggle | Profile screen (`(tabs)/profile.tsx`) — toggles EN/DE, persists to AsyncStorage, switches immediately |
+| Backend language param | Frontend sends `language` field in FormData on every `/api/identify` POST |
+| Backend validation | `backend/src/routes/identify.ts` — `VALID_LANGUAGES = ["en", "de"]`, defaults to `"en"` for invalid/missing |
+| AI content in German | When `language === "de"`, a German instruction is prepended to facts, specs, and rarity prompts. Narrative fields (descriptions, reasoning) return in German. Technical values (numbers, units, speed) remain in standard international format. Train identification (vision) always runs in English regardless of language setting. |
+| Cache per language | Cache key includes language segment: `v7::{language}::{class}::{operator}`. EN and DE results stored as separate entries. |
+
+**Language detection on first launch:** `settingsStore.initialize()` reads `locosnap_language` from AsyncStorage. If not set, checks device locale via `expo-localization`. If device locale matches a supported language, that language is pre-selected. Otherwise defaults to `"en"`. The language picker screen is shown on first launch; subsequent launches skip it.
+
+**Adding a new language:** (1) Create `frontend/locales/{code}.json` matching the en.json structure. (2) Import it in `frontend/i18n/index.ts` and add to the `resources` object. (3) Add the language code to `SUPPORTED_LANGUAGES` in `settingsStore.ts` and `VALID_LANGUAGES` in `identify.ts`. (4) Add a button to `language-picker.tsx`. (5) Add translations for the new language button in all locale files. (6) Bump backend if the AI prompt needs language-specific tuning.
 
 ---
 
@@ -136,7 +161,7 @@ RLS is enabled on all tables. Users can only read/write their own data.
 
 Cache entries are lazy-loaded from Redis on first access. `trainCache.ts` functions (`getCachedTrainData`, `setCachedTrainData`, `setCachedBlueprint`) are all async. Saves ~84% of AI costs on repeat scans (£0.005 cached vs £0.031 fresh).
 
-**Cache version: v6** (as of 2026-03-30). Version is embedded in all cache keys. Bump the version in `trainCache.ts` whenever wrong identification data may have been cached during iterative prompt/model fixes — this orphans all stale Redis entries and forces fresh AI calls on next scan. Every version bump means the first scan of every class will miss cache and run the full AI pipeline.
+**Cache version: v7** (as of 2026-03-31). Version is embedded in all cache keys. Key format: `v7::{language}::{class}::{operator}` — language segment added so EN and DE results for the same train are stored as separate entries. Bump the version in `trainCache.ts` whenever wrong identification data may have been cached during iterative prompt/model fixes, or when the cache key format changes — this orphans all stale Redis entries and forces fresh AI calls on next scan. Every version bump means the first scan of every class will miss cache and run the full AI pipeline.
 
 ---
 
@@ -328,7 +353,7 @@ Every APK shipped to testers must be recorded here on the day it is sent.
 
 | Workflow | Trigger | Description |
 |----------|---------|-------------|
-| ci.yml | Push to any branch | Runs backend (53) + frontend (39) tests |
+| ci.yml | Push to any branch | Runs backend (93) + frontend (56) tests |
 | preview.yml | PR with frontend changes | EAS preview build |
 
 ---
@@ -541,7 +566,7 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 | iOS App Store (v1.0.7) | Live on App Store 2026-03-31. App Store name corrected to "LocoSnap". |
 | Render cold start — 7 users affected | Backend on Render free tier spins down after inactivity. healthCheck() pre-warms on mount and scan buttons are disabled until healthCheck resolves. 14 Sentry events across 7 users since March 22. Upgrade Render to paid ($7/month) to eliminate entirely. |
 | Android APK for testers (v1.0.7) | Build 5 sent to 14 testers 2026-03-29, 2 new testers 2026-03-30 — APK: https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk |
-| Android v1.0.8 build pending | Camera gallery toggle committed to main. Run: eas build --platform android --profile preview |
+| Android v1.0.8 build pending | Language picker (EN/DE), camera gallery toggle, DB Class 101 data fixes all committed to main. `app.json` version bumped to 1.0.8. Run: `eas build --platform android --profile preview` from `frontend/`. |
 | Android auto-submit to Play Store (v1.0.7) | Infrastructure set up (service account, API enabled, eas.json updated). Submit pending service account permission propagation. Retry: eas submit --platform android --profile production --id f040f353-97cf-4804-b1d6-11608f6706f0 --non-interactive. Note: do not commit eas.json with local absolute path to play-store-key.json — it will not exist in EAS Build environment. |
 | Competitor noted: Traintrack (traintrack.app) | iOS/Android, 557 followers TikTok, aggressive paywall, launched 2026. Monitor. |
 | Sentry source maps | Add SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT to EAS secrets |
