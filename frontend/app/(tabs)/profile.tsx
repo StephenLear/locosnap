@@ -62,16 +62,19 @@ const rarityColors: Record<RarityTier, string> = {
   legendary: "#f59e0b",
 };
 
-const rarityLabels: Record<RarityTier, string> = {
-  common: "Common",
-  uncommon: "Uncommon",
-  rare: "Rare",
-  epic: "Epic",
-  legendary: "Legendary",
-};
-
 export default function ProfileScreen() {
   const { t } = useTranslation();
+
+  const getRarityLabel = (tier: string) => {
+    switch (tier?.toLowerCase()) {
+      case "common": return t("rarity.common");
+      case "uncommon": return t("rarity.uncommon");
+      case "rare": return t("rarity.rare");
+      case "epic": return t("rarity.epic");
+      case "legendary": return t("rarity.legendary");
+      default: return tier;
+    }
+  };
   const router = useRouter();
   const { profile, user, signOut, updateRegion } = useAuthStore();
   const { history } = useTrainStore();
@@ -251,7 +254,7 @@ export default function ProfileScreen() {
       <View style={styles.levelCard}>
         <View style={styles.levelHeader}>
           <Text style={styles.levelName}>{levelInfo.current.name}</Text>
-          <Text style={styles.levelNumber}>{t("profile.level")} {levelInfo.index}</Text>
+          <Text style={styles.levelNumber}>{t("profile.level", { number: levelInfo.index })}</Text>
         </View>
         <View style={styles.xpBarContainer}>
           <View
@@ -291,7 +294,7 @@ export default function ProfileScreen() {
         />
         <StatBox
           icon="diamond"
-          value={rarityLabels[stats.rarestTier]}
+          value={getRarityLabel(stats.rarestTier)}
           label="Rarest Find"
           accent={rarityColors[stats.rarestTier]}
         />
@@ -433,7 +436,7 @@ export default function ProfileScreen() {
                   { backgroundColor: rarityColors[tier] },
                 ]}
               />
-              <Text style={styles.rarityLabel}>{rarityLabels[tier]}</Text>
+              <Text style={styles.rarityLabel}>{getRarityLabel(tier)}</Text>
               <Text
                 style={[styles.rarityCount, { color: rarityColors[tier] }]}
               >

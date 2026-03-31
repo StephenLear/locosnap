@@ -14,7 +14,9 @@
     "trialBanner_plural": "Noch {{remaining}} kostenlose Scans",
     "signUpPrompt": "Erstelle ein kostenloses Konto, um deine Sammlung zu speichern.",
     "noTrainFound": "Kein Zug erkannt. Bitte versuche es mit einem klareren Foto.",
-    "cameraPermission": "Kamerazugriff wird zum Scannen von Zügen benötigt."
+    "cameraPermission": "Kamerazugriff wird zum Scannen von Zügen benötigt.",
+    "scanBadge": "{{count}} Scan",
+    "scanBadge_plural": "{{count}} Scans"
   },
   "results": {
     "specs": "Technische Daten",
@@ -43,7 +45,7 @@
     "free": "Kostenlos",
     "scansThisMonth": "Scans diesen Monat",
     "totalSpots": "Gesamt-Spots",
-    "level": "Level",
+    "level": "Level {{number}}",
     "xp": "XP",
     "streak": "Tage-Streak",
     "upgradeToPro": "Auf Pro upgraden",
@@ -84,6 +86,7 @@
     "common": "Häufig",
     "uncommon": "Ungewöhnlich",
     "rare": "Selten",
+    "epic": "Episch",
     "legendary": "Legendär"
   },
   "errors": {

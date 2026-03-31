@@ -14,7 +14,9 @@
     "trialBanner_plural": "{{remaining}} free scans left",
     "signUpPrompt": "Create a free account to save your collection",
     "noTrainFound": "Could not identify a train. Try a clearer photo.",
-    "cameraPermission": "Camera access is needed to scan trains."
+    "cameraPermission": "Camera access is needed to scan trains.",
+    "scanBadge": "{{count}} scan",
+    "scanBadge_plural": "{{count}} scans"
   },
   "results": {
     "specs": "Specifications",
@@ -43,7 +45,7 @@
     "free": "Free",
     "scansThisMonth": "Scans this month",
     "totalSpots": "Total spots",
-    "level": "Level",
+    "level": "Level {{number}}",
     "xp": "XP",
     "streak": "Day streak",
     "upgradeToPro": "Upgrade to Pro",
@@ -84,6 +86,7 @@
     "common": "Common",
     "uncommon": "Uncommon",
     "rare": "Rare",
+    "epic": "Epic",
     "legendary": "Legendary"
   },
   "errors": {

@@ -31,13 +31,6 @@ const rarityColors: Record<RarityTier, string> = {
   legendary: "#f59e0b",
 };
 
-const rarityLabels: Record<RarityTier, string> = {
-  common: "COMMON",
-  uncommon: "UNCOMMON",
-  rare: "RARE",
-  epic: "EPIC",
-  legendary: "LEGENDARY",
-};
 
 // ── Spec Row Component ──────────────────────────────────
 function SpecRow({
@@ -67,6 +60,17 @@ function SpecRow({
 export default function ResultsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+
+  const getRarityLabel = (tier: string) => {
+    switch (tier?.toLowerCase()) {
+      case "common": return t("rarity.common");
+      case "uncommon": return t("rarity.uncommon");
+      case "rare": return t("rarity.rare");
+      case "epic": return t("rarity.epic");
+      case "legendary": return t("rarity.legendary");
+      default: return tier;
+    }
+  };
   const {
     currentTrain,
     currentSpecs,
@@ -166,7 +170,7 @@ export default function ResultsScreen() {
           <View style={styles.rarityHeader}>
             <Ionicons name="diamond" size={20} color={rarityColor} />
             <Text style={[styles.rarityTier, { color: rarityColor }]}>
-              {rarityLabels[currentRarity.tier]}
+              {getRarityLabel(currentRarity.tier)}
             </Text>
           </View>
           <Text style={styles.rarityReason}>{currentRarity.reason}</Text>

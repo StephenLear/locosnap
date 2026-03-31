@@ -448,7 +448,7 @@ export default function HomeScreen() {
               ]}
             >
               {scansRemaining > 0
-                ? `${scansRemaining} scan${scansRemaining !== 1 ? "s" : ""}`
+                ? t("scan.scanBadge", { count: scansRemaining })
                 : "No scans left"}
             </Text>
           </View>
@@ -465,7 +465,10 @@ export default function HomeScreen() {
           <Text style={styles.guestBadgeText}>
             {preSignupScansUsed === 0
               ? t("scan.signUpPrompt")
-              : t("scan.trialBanner", { count: PRE_SIGNUP_FREE_SCANS - preSignupScansUsed, remaining: PRE_SIGNUP_FREE_SCANS - preSignupScansUsed })}
+              : (() => {
+                  const remaining = PRE_SIGNUP_FREE_SCANS - preSignupScansUsed;
+                  return t("scan.trialBanner", { count: remaining, remaining });
+                })()}
           </Text>
           <Ionicons name="chevron-forward" size={13} color={colors.textMuted} />
         </TouchableOpacity>
