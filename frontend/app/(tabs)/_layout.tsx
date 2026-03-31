@@ -8,9 +8,10 @@ import { useTranslation } from "react-i18next";
 import { colors } from "../../constants/theme";
 
 export default function TabLayout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <Tabs
+      key={i18n.language}
       screenOptions={{
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textMuted,

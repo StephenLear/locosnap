@@ -15,7 +15,6 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSettingsStore } from "../store/settingsStore";
-import i18n from "../i18n";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
 export default function LanguagePickerScreen() {
@@ -27,7 +26,6 @@ export default function LanguagePickerScreen() {
     if (isSelecting) return;
     setIsSelecting(true);
     await setLanguage(lang);
-    await i18n.changeLanguage(lang);
     await markLanguageChosen();
     router.replace("/(tabs)");
   };
