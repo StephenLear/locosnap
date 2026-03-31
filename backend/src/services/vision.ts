@@ -50,11 +50,19 @@ STATISTICAL REALITY CHECK: BR 412 has approximately 108 units in service. BR 407
 FORBIDDEN: The string "ICE 3" as a class value is NEVER acceptable. You must return BR 401, BR 402, BR 403, BR 406, BR 407, BR 408, BR 412, or BR 462 as appropriate. "ICE 3" is a family name — it is not a class. Using it will cause critical errors in our system.
 
 NS YELLOW TRAIN PRE-FLIGHT CHECK:
-If the train in the image is yellow/ochre and shows ANY of these: (a) the NS double-arrow logo, (b) Dutch station signage, (c) Dutch-style platforms, or (d) a sharp aerodynamic V-shaped nose on a long multi-car formation — you are looking at a DUTCH NS TRAIN. Apply these rules IMMEDIATELY:
-- Long formation + double-deck (two rows of side windows stacked) = VIRM
-- Long formation + single-deck + sharp angular V-nose with black lower section = ICNG (class: "ICNG", operator: "NS", type: "EMU")
-- Short formation + single-deck + modern low-floor = SLT (Sprinter Lighttrain)
-- A yellow Dutch NS train is NEVER a German regional DMU (VT 650, VT 628, LINT) and NEVER a freight locomotive (BR 186). If the train is NS-branded and clearly a multi-car passenger EMU, return the correct NS class — do NOT default to a German or other non-Dutch class.
+If the train in the image is yellow/ochre and shows ANY of these: (a) the NS double-arrow logo, (b) Dutch station signage, (c) Dutch-style platforms, or (d) any NS branding — you are looking at a DUTCH NS TRAIN. Apply the following NS-specific identification BEFORE looking at any other rules.
+
+STEP A — EXAMINE THE CAB FRONT SHAPE:
+- ICNG cab front: AERODYNAMIC, POINTED, V-SHAPED nose — the lower half of the nose is BLACK, contrasting sharply with the yellow upper section. The nose clearly tapers to an aerodynamic point. Modern, sharp, angular. Entered service 2023. Fleet numbers "31xx" (3100/3200/3300 series). Year built ~2019. If the nose is pointed and has a black lower section, THIS IS THE ICNG.
+- VIRM cab front: FLAT and RECTANGULAR — the cab face is essentially a vertical flat panel, not a pointed aerodynamic shape. The cab is squared-off with no prominent taper to a point. If the nose is flat and rectangular, check for double-deck (two rows of side windows). Year built 1994–2004. Fleet numbers "86xx".
+- SLT cab front: Lower, rounder nose profile, shorter formation, commuter service.
+
+STEP B — CONFIRM WITH SIDE VIEW (if visible):
+- ICNG: single-deck (ONE row of large panoramic passenger windows). Jacobs bogies (shared bogies visible between cars).
+- VIRM: double-deck (TWO rows of passenger windows stacked vertically on the bodyside).
+
+CRITICAL DEFAULT RULE: If you are looking at a yellow NS train with a POINTED, AERODYNAMIC, BLACK-AND-YELLOW V-NOSE — even if you are uncertain — return ICNG, NOT VIRM. The ICNG has been in service since April 2023 and is the current NS intercity on the high-speed line. Do NOT default to VIRM simply because VIRM is more familiar — if the nose is clearly aerodynamic and pointed rather than flat and rectangular, it is the ICNG.
+A yellow Dutch NS train is NEVER a German regional DMU (VT 650, VT 628, LINT) and NEVER a freight locomotive (BR 186).
 
 Rules:
 - "class" should be the official class designation. UK: use TOPS class numbers (e.g. "Class 56", "Class 89", "Class 37"). Pre-TOPS: use named classes (e.g. "A4 Pacific", "Britannia"). European: use local designation (e.g. "BR 101", "SNCF Class BB 22200", "DB Class 612"). Nordic: e.g. "NSB Di 4", "SJ Rc", "DSB IC3", "VR Sr2". Japanese: e.g. "N700 Series", "KiHa 40". North American: e.g. "EMD GP38-2", "GE ES44AC".
