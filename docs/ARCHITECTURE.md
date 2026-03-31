@@ -17,7 +17,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.7 build 36 — **Submitted to TestFlight** 2026-03-29. Shareable train card (Save to Photos + Share sheet). translateX fix for iOS GPU rendering of off-screen captureRef view. Build 36 is the definitive v1.0.7 — builds 32-35 were earlier v1.0.7 attempts, build 36 has the translateX fix. |
+| iOS Version | 1.0.7 build 36 — **Live on App Store** 2026-03-31. Shareable train card (Save to Photos + Share sheet). translateX fix for iOS GPU rendering of off-screen captureRef view. App Store name corrected to "LocoSnap" in this release. Build 36 is the definitive v1.0.7 — builds 32-35 were earlier v1.0.7 attempts. |
 | Android Version | 1.0.7 build 5 — preview APK sent to 14 testers 2026-03-29, 2 new testers 2026-03-30. Production AAB built, auto-submit to internal track pending service account permission propagation. v1.0.8 pending — camera gallery toggle committed to main, not yet built. |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
@@ -453,7 +453,7 @@ FRONTEND_URL=https://locosnap.app
 | Tester | Email | Status |
 |--------|-------|--------|
 | @Rheintalbahner_Neo | rheintalbahnerneo@gmail.com | Invited ✅ |
-| Czech tester's friend | unknown | Apple ID email still outstanding |
+| Czech tester's friend | confirmed 2026-03-31 | Invited ✅ |
 
 ---
 
@@ -538,7 +538,7 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 
 | Item | Status |
 |------|--------|
-| iOS App Store submission (v1.0.7) | Build 36 in TestFlight 2026-03-29 — with Apple for review as of 2026-03-31. Save/Share current card face confirmed working. |
+| iOS App Store (v1.0.7) | Live on App Store 2026-03-31. App Store name corrected to "LocoSnap". |
 | Render cold start — 7 users affected | Backend on Render free tier spins down after inactivity. healthCheck() pre-warms on mount and scan buttons are disabled until healthCheck resolves. 14 Sentry events across 7 users since March 22. Upgrade Render to paid ($7/month) to eliminate entirely. |
 | Android APK for testers (v1.0.7) | Build 5 sent to 14 testers 2026-03-29, 2 new testers 2026-03-30 — APK: https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk |
 | Android v1.0.8 build pending | Camera gallery toggle committed to main. Run: eas build --platform android --profile preview |
