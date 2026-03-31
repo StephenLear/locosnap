@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { useTrainStore } from "../../store/trainStore";
 import {
@@ -70,6 +71,7 @@ const rarityLabels: Record<RarityTier, string> = {
 };
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { profile, user, signOut, updateRegion } = useAuthStore();
   const { history } = useTrainStore();
@@ -240,7 +242,7 @@ export default function ProfileScreen() {
         </View>
         {profile?.is_pro && (
           <View style={styles.proBadge}>
-            <Text style={styles.proBadgeText}>PRO</Text>
+            <Text style={styles.proBadgeText}>{t("profile.pro").toUpperCase()}</Text>
           </View>
         )}
       </View>
@@ -249,7 +251,7 @@ export default function ProfileScreen() {
       <View style={styles.levelCard}>
         <View style={styles.levelHeader}>
           <Text style={styles.levelName}>{levelInfo.current.name}</Text>
-          <Text style={styles.levelNumber}>Level {levelInfo.index}</Text>
+          <Text style={styles.levelNumber}>{t("profile.level")} {levelInfo.index}</Text>
         </View>
         <View style={styles.xpBarContainer}>
           <View
@@ -272,7 +274,7 @@ export default function ProfileScreen() {
         <StatBox
           icon="camera"
           value={stats.totalSpots.toString()}
-          label="Total Spots"
+          label={t("profile.totalSpots")}
         />
         <StatBox
           icon="layers"
@@ -282,7 +284,7 @@ export default function ProfileScreen() {
         <StatBox
           icon="flame"
           value={(profile?.streak_current ?? 0).toString()}
-          label="Day Streak"
+          label={t("profile.streak")}
           accent={
             (profile?.streak_current ?? 0) >= 3 ? colors.accent : undefined
           }
@@ -449,7 +451,7 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.upgradeBtn} onPress={() => router.push("/paywall?source=profile")}>
             <Ionicons name="rocket" size={20} color="#fff" />
             <View style={styles.upgradeBtnContent}>
-              <Text style={styles.upgradeBtnTitle}>Upgrade to Pro</Text>
+              <Text style={styles.upgradeBtnTitle}>{t("profile.upgradeToPro")}</Text>
               <Text style={styles.upgradeBtnSubtitle}>
                 Unlimited scans · Premium blueprints · All styles
               </Text>
@@ -489,7 +491,7 @@ export default function ProfileScreen() {
         {user && (
           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
             <Ionicons name="log-out-outline" size={20} color={colors.danger} />
-            <Text style={styles.signOutText}>Sign Out</Text>
+            <Text style={styles.signOutText}>{t("profile.signOut")}</Text>
           </TouchableOpacity>
         )}
 

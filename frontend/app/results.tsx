@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
 import { RarityTier, BlueprintStyle, BLUEPRINT_STYLES } from "../types";
@@ -64,6 +65,7 @@ function SpecRow({
 
 // ── Main Results Screen ─────────────────────────────────
 export default function ResultsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const {
     currentTrain,
@@ -304,7 +306,7 @@ export default function ResultsScreen() {
           >
             <Ionicons name="image" size={24} color={colors.accent} />
             <View style={styles.blueprintBtnContent}>
-              <Text style={styles.blueprintBtnTitle}>View Blueprint</Text>
+              <Text style={styles.blueprintBtnTitle}>{t("results.viewBlueprint")}</Text>
               <Text style={styles.blueprintBtnSubtitle}>Tap to view your blueprint</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -333,7 +335,7 @@ export default function ResultsScreen() {
         <View style={[styles.blueprintBtn, styles.blueprintBtnLoading]}>
           <Ionicons name="hourglass" size={24} color={colors.textSecondary} />
           <View style={styles.blueprintBtnContent}>
-            <Text style={styles.blueprintBtnTitle}>Generating Blueprint...</Text>
+            <Text style={styles.blueprintBtnTitle}>{t("results.generatingBlueprint")}</Text>
             <Text style={styles.blueprintBtnSubtitle}>This may take up to 60 seconds</Text>
           </View>
         </View>
@@ -378,7 +380,7 @@ export default function ResultsScreen() {
         >
           <Ionicons name="image" size={24} color={colors.accent} />
           <View style={styles.blueprintBtnContent}>
-            <Text style={styles.blueprintBtnTitle}>View Technical Blueprint</Text>
+            <Text style={styles.blueprintBtnTitle}>{t("results.viewBlueprint")}</Text>
             <Text style={styles.blueprintBtnSubtitle}>Locomotive works drawing style</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -388,7 +390,7 @@ export default function ResultsScreen() {
         <View style={[styles.blueprintBtn, styles.blueprintBtnLoading]}>
           <Ionicons name="hourglass" size={24} color={colors.textSecondary} />
           <View style={styles.blueprintBtnContent}>
-            <Text style={styles.blueprintBtnTitle}>Generating Blueprint...</Text>
+            <Text style={styles.blueprintBtnTitle}>{t("results.generatingBlueprint")}</Text>
             <Text style={styles.blueprintBtnSubtitle}>This may take up to 60 seconds</Text>
           </View>
         </View>
@@ -451,11 +453,11 @@ export default function ResultsScreen() {
       {/* ── Specs Section ────────────────────────────── */}
       {currentSpecs && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Specifications</Text>
+          <Text style={styles.sectionTitle}>{t("results.specs")}</Text>
           <View style={styles.specsCard}>
             {currentSpecs.status && (
               <View style={styles.statusRow}>
-                <Text style={styles.statusLabel}>Status</Text>
+                <Text style={styles.statusLabel}>{t("results.status")}</Text>
                 <Text
                   style={[
                     styles.statusValue,
@@ -472,18 +474,18 @@ export default function ResultsScreen() {
                 </Text>
               </View>
             )}
-            <SpecRow icon="speedometer" label="Max Speed" value={currentSpecs.maxSpeed} />
-            <SpecRow icon="flash" label="Power" value={currentSpecs.power} />
-            <SpecRow icon="scale" label="Weight" value={currentSpecs.weight} />
-            <SpecRow icon="resize" label="Length" value={currentSpecs.length} />
+            <SpecRow icon="speedometer" label={t("results.maxSpeed")} value={currentSpecs.maxSpeed} />
+            <SpecRow icon="flash" label={t("results.power")} value={currentSpecs.power} />
+            <SpecRow icon="scale" label={t("results.weight")} value={currentSpecs.weight} />
+            <SpecRow icon="resize" label={t("results.length")} value={currentSpecs.length} />
             <SpecRow icon="git-merge" label="Gauge" value={currentSpecs.gauge} />
-            <SpecRow icon="construct" label="Builder" value={currentSpecs.builder} />
+            <SpecRow icon="construct" label={t("results.builder")} value={currentSpecs.builder} />
             <SpecRow icon="flame" label="Fuel" value={currentSpecs.fuelType} />
             <SpecRow icon="map" label="Route" value={currentSpecs.route} />
             {currentSpecs.numberBuilt && (
               <SpecRow
                 icon="layers"
-                label="Units built"
+                label={t("results.built")}
                 value={`${currentSpecs.numberBuilt} units`}
               />
             )}
@@ -501,7 +503,7 @@ export default function ResultsScreen() {
       {/* ── Facts Section ────────────────────────────── */}
       {currentFacts && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Facts & History</Text>
+          <Text style={styles.sectionTitle}>{t("results.facts")}</Text>
 
           {/* Summary */}
           <View style={styles.summaryCard}>

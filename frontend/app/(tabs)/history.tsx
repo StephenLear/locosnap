@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useTrainStore } from "../../store/trainStore";
 import { HistoryItem, RarityTier } from "../../types";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
@@ -281,6 +282,7 @@ function HistoryCard({
 // ── Main Screen ───────────────────────────────────────────────
 
 export default function HistoryScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { history, removeFromHistory, viewHistoryItem, setCompareItems } = useTrainStore();
 
@@ -486,7 +488,7 @@ export default function HistoryScreen() {
         <Ionicons name="albums-outline" size={64} color={colors.textMuted} />
         <Text style={styles.emptyTitle}>No Spots Yet</Text>
         <Text style={styles.emptySubtitle}>
-          Trains you spot will appear here so you can build your collection
+          {t("history.empty")}
         </Text>
       </View>
     );

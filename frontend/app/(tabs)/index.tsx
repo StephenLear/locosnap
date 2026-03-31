@@ -16,6 +16,7 @@ import {
   Alert,
   Platform,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as Location from "expo-location";
@@ -48,6 +49,7 @@ const SCAN_STAGES = [
 ];
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [cameraMode, setCameraMode] = useState(false);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
@@ -462,8 +464,8 @@ export default function HomeScreen() {
           <Ionicons name="cloud-offline-outline" size={13} color={colors.warning} />
           <Text style={styles.guestBadgeText}>
             {preSignupScansUsed === 0
-              ? "Try free — sign up to save your collection"
-              : `${PRE_SIGNUP_FREE_SCANS - preSignupScansUsed} trial scan${PRE_SIGNUP_FREE_SCANS - preSignupScansUsed !== 1 ? "s" : ""} left — tap to create your free account`}
+              ? t("scan.signUpPrompt")
+              : t("scan.trialBanner", { remaining: PRE_SIGNUP_FREE_SCANS - preSignupScansUsed })}
           </Text>
           <Ionicons name="chevron-forward" size={13} color={colors.textMuted} />
         </TouchableOpacity>
@@ -576,7 +578,7 @@ export default function HomeScreen() {
       {!isBackendReady && (
         <View style={styles.warmingBox}>
           <Ionicons name="cloud-outline" size={14} color={colors.textMuted} />
-          <Text style={styles.warmingText}>Connecting to server...</Text>
+          <Text style={styles.warmingText}>{t("scan.warmingUp")}</Text>
         </View>
       )}
 
@@ -591,7 +593,7 @@ export default function HomeScreen() {
         >
           <View style={styles.cameraBtnGlow} />
           <Ionicons name="camera" size={26} color="#fff" />
-          <Text style={styles.cameraBtnLabel}>Scan with Camera</Text>
+          <Text style={styles.cameraBtnLabel}>{t("scan.scanButton")}</Text>
         </TouchableOpacity>
 
         {/* Secondary: Library */}

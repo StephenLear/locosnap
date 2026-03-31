@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/authStore";
 import {
   getOfferings,
@@ -91,6 +92,7 @@ const PRO_FEATURES = [
 ];
 
 export default function PaywallScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { source } = useLocalSearchParams<{ source?: string }>();
   const { user, fetchProfile } = useAuthStore();
@@ -333,7 +335,7 @@ export default function PaywallScreen() {
             </Animated.View>
           </View>
 
-          <Text style={styles.heroTitle}>Unlock LocoSnap Pro</Text>
+          <Text style={styles.heroTitle}>{t("paywall.title")}</Text>
           <Text style={styles.heroSubtitle}>
             Take your trainspotting to the next level
           </Text>
@@ -510,7 +512,7 @@ export default function PaywallScreen() {
             <>
               <Ionicons name="flash" size={20} color="#fff" />
               <Text style={styles.primaryBtnText}>
-                Upgrade to Pro
+                {t("paywall.subscribe")}
               </Text>
             </>
           )}
@@ -525,7 +527,7 @@ export default function PaywallScreen() {
           {restoring ? (
             <ActivityIndicator size="small" color={colors.textMuted} />
           ) : (
-            <Text style={styles.restoreText}>Restore Purchases</Text>
+            <Text style={styles.restoreText}>{t("paywall.restorePurchases")}</Text>
           )}
         </TouchableOpacity>
 

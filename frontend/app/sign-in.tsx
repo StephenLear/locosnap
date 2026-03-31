@@ -19,6 +19,7 @@ import {
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/authStore";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
@@ -30,6 +31,7 @@ const TEAL_BORDER = "rgba(0, 212, 170, 0.25)";
 const BLUE_GLOW = "rgba(0, 102, 255, 0.12)";
 
 export default function SignInScreen() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState<"email" | "otp" | null>(null);
   const [email, setEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -233,7 +235,7 @@ export default function SignInScreen() {
                   <Ionicons name="mail-outline" size={18} color={colors.textMuted} />
                   <TextInput
                     style={styles.emailInput}
-                    placeholder="Email address"
+                    placeholder={t("auth.emailPlaceholder")}
                     placeholderTextColor={colors.textMuted}
                     value={email}
                     onChangeText={setEmail}
@@ -267,7 +269,7 @@ export default function SignInScreen() {
             )}
 
             <Text style={styles.guestNote}>
-              Free account • 10 scans per month • Save your collection • Appear on leaderboard
+              {t("auth.freeAccountPerks")}
             </Text>
           </View>
 
