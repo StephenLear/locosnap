@@ -32,6 +32,17 @@ describe("settingsStore", () => {
     expect(useSettingsStore.getState().language).toBe("de");
   });
 
+  it("detects German device locale and defaults to de when no stored language", async () => {
+    jest.doMock("expo-localization", () => ({
+      getLocales: jest.fn(() => [{ languageCode: "de" }]),
+    }));
+    const AsyncStorage = require("@react-native-async-storage/async-storage");
+    AsyncStorage.getItem.mockResolvedValue(null);
+    const { useSettingsStore } = require("../store/settingsStore");
+    await useSettingsStore.getState().initialize();
+    expect(useSettingsStore.getState().language).toBe("de");
+  });
+
   it("persists language to AsyncStorage on setLanguage", async () => {
     const AsyncStorage = require("@react-native-async-storage/async-storage");
     AsyncStorage.getItem.mockResolvedValue(null);
