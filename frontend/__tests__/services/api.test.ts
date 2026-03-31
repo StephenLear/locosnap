@@ -10,6 +10,13 @@ jest.mock("../../constants/api", () => ({
   BLUEPRINT_TIMEOUT: 500,
 }));
 
+// Mock settingsStore so api.ts can call getState().language without RN deps
+jest.mock("../../store/settingsStore", () => ({
+  useSettingsStore: {
+    getState: jest.fn(() => ({ language: "en" })),
+  },
+}));
+
 // Mock axios
 jest.mock("axios", () => {
   const mockAxiosInstance = {
@@ -99,6 +106,23 @@ describe("API client", () => {
       await expect(identifyTrain("file:///train.jpg")).rejects.toThrow(
         "Could not connect"
       );
+    });
+
+    it("includes language field from settingsStore in the request body", async () => {
+      const { useSettingsStore } = require("../../store/settingsStore");
+      // Override to return "de" for this test
+      (useSettingsStore.getState as jest.Mock).mockReturnValue({ language: "de" });
+
+      mockAxios.post.mockResolvedValue({
+        data: { success: true, data: null, error: null, processingTimeMs: 100 },
+      });
+
+      await identifyTrain("file:///train.jpg");
+
+      const formDataArg: FormData = mockAxios.post.mock.calls[0][1];
+      // FormData in Node/jest environment exposes _parts or get(); use the
+      // internal jest FormData which has a .get() method via our global mock
+      expect((formDataArg as any).get("language")).toBe("de");
     });
   });
 

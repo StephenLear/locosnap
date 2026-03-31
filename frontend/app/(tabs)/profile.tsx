@@ -17,6 +17,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { useTrainStore } from "../../store/trainStore";
+import { useSettingsStore } from "../../store/settingsStore";
+import i18n from "../../i18n";
 import {
   RarityTier,
   AchievementType,
@@ -78,6 +80,13 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { profile, user, signOut, updateRegion } = useAuthStore();
   const { history } = useTrainStore();
+  const { language, setLanguage } = useSettingsStore();
+
+  const handleLanguageToggle = async () => {
+    const next = language === "en" ? "de" : "en";
+    await setLanguage(next);
+    await i18n.changeLanguage(next);
+  };
 
   // ── Achievements state ────────────────────────────────────
   const [unlockedAchievements, setUnlockedAchievements] = useState<
@@ -313,6 +322,16 @@ export default function ProfileScreen() {
           {profile?.streak_best ?? 0} days
         </Text>
       </View>
+
+      {/* ── Language toggle ──────────────────────────────── */}
+      <TouchableOpacity style={styles.infoRow} onPress={handleLanguageToggle}>
+        <Ionicons name="language-outline" size={18} color={colors.textSecondary} />
+        <Text style={styles.infoLabel}>{t("profile.language")}</Text>
+        <Text style={styles.infoValue}>
+          {language === "en" ? "English" : "Deutsch"}
+        </Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} style={{ marginLeft: 4 }} />
+      </TouchableOpacity>
 
       {/* ── Region selector ─────────────────────────────── */}
       {user && (

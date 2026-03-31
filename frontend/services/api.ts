@@ -12,6 +12,7 @@ import {
   BLUEPRINT_TIMEOUT,
 } from "../constants/api";
 import { IdentifyResponse, BlueprintStatus, BlueprintStyle } from "../types";
+import { useSettingsStore } from "../store/settingsStore";
 
 // Max longest-edge dimension before we resize (keeps detail, cuts file size)
 const MAX_IMAGE_DIMENSION = 1920;
@@ -97,10 +98,13 @@ async function identifyTrainWeb(
 
     console.log("[API] Web upload:", file.name, file.type, file.size, "bytes");
 
+    const language = useSettingsStore.getState().language;
+
     const formData = new FormData();
     formData.append("image", file);
     formData.append("blueprintStyle", blueprintStyle);
     formData.append("generateBlueprint", String(generateBlueprint));
+    formData.append("language", language);
 
     // Use native fetch — do NOT set Content-Type (browser adds boundary)
     const response = await fetch(`${API_BASE_URL}/api/identify`, {
@@ -136,6 +140,8 @@ async function identifyTrainNative(
   // Compress before upload — reduces 20-30 MB gallery photos to ~1-2 MB
   const compressedUri = await compressImageForUpload(imageUri);
 
+  const language = useSettingsStore.getState().language;
+
   const formData = new FormData();
 
   const filename = compressedUri.split("/").pop() || "train.jpg";
@@ -153,6 +159,7 @@ async function identifyTrainNative(
 
   formData.append("blueprintStyle", blueprintStyle);
   formData.append("generateBlueprint", String(generateBlueprint));
+  formData.append("language", language);
 
   try {
     const response = await api.post<IdentifyResponse>(
