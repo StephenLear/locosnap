@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Localization from "expo-localization";
+import i18n from "../i18n";
 
 export type AppLanguage = "en" | "de";
 
@@ -44,6 +45,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
           ? (storedLang as AppLanguage)
           : detectDeviceLanguage();
 
+      await i18n.changeLanguage(language);
       set({
         language,
         languageChosen: chosen === "true",
@@ -58,6 +60,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     set({ language: lang });
     try {
       await AsyncStorage.setItem(LANGUAGE_KEY, lang);
+      await i18n.changeLanguage(lang);
     } catch {
       // Non-fatal
     }

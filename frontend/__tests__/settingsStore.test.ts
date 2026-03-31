@@ -7,6 +7,13 @@ jest.mock("expo-localization", () => ({
   getLocales: jest.fn(() => [{ languageCode: "en" }]),
 }));
 
+jest.mock("../i18n", () => ({
+  __esModule: true,
+  default: {
+    changeLanguage: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 describe("settingsStore", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -33,6 +40,7 @@ describe("settingsStore", () => {
   });
 
   it("detects German device locale and defaults to de when no stored language", async () => {
+    jest.resetModules();
     jest.doMock("expo-localization", () => ({
       getLocales: jest.fn(() => [{ languageCode: "de" }]),
     }));
