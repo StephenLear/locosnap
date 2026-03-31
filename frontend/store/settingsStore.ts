@@ -28,12 +28,13 @@ interface SettingsState {
   markLanguageChosen: () => Promise<void>;
 }
 
-export const useSettingsStore = create<SettingsState>((set) => ({
+export const useSettingsStore = create<SettingsState>((set, get) => ({
   language: "en",
   languageChosen: false,
   isLoading: true,
 
   initialize: async () => {
+    if (!get().isLoading) return;   // already initialised or in progress
     try {
       const [storedLang, chosen] = await Promise.all([
         AsyncStorage.getItem(LANGUAGE_KEY),

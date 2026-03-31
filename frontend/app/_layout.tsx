@@ -78,7 +78,7 @@ function RootLayout() {
   // Initialise settings store (language preference + chosen flag) on mount
   useEffect(() => {
     initializeSettings();
-  }, []);
+  }, [initializeSettings]);
 
   // Handle magic link deep link callbacks (locosnap://auth/callback)
   useEffect(() => {
