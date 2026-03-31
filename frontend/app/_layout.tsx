@@ -6,11 +6,12 @@
 import React, { useEffect } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Stack, useRouter, useSegments, usePathname } from "expo-router";
+import { Stack, Redirect, useRouter, useSegments, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
+import { useSettingsStore } from "../store/settingsStore";
 import { supabase } from "../services/supabase";
 import { colors } from "../constants/theme";
 import {
@@ -24,6 +25,7 @@ import {
   wrap,
 } from "../services/analytics";
 import { initPurchases } from "../services/purchases";
+import "../i18n";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -68,6 +70,15 @@ function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize);
   const user = useAuthStore((state) => state.user);
   const pathname = usePathname();
+
+  const initializeSettings = useSettingsStore((state) => state.initialize);
+  const languageChosen = useSettingsStore((state) => state.languageChosen);
+  const settingsLoading = useSettingsStore((state) => state.isLoading);
+
+  // Initialise settings store (language preference + chosen flag) on mount
+  useEffect(() => {
+    initializeSettings();
+  }, []);
 
   // Handle magic link deep link callbacks (locosnap://auth/callback)
   useEffect(() => {
@@ -146,6 +157,16 @@ function RootLayout() {
     if (pathname) trackScreen(pathname);
   }, [pathname]);
 
+  // While settings are loading, show a blank screen (no spinner — avoids flash)
+  if (settingsLoading) {
+    return <View style={{ flex: 1, backgroundColor: colors.background }} />;
+  }
+
+  // First-launch user — language not yet chosen: gate before auth
+  if (!languageChosen) {
+    return <Redirect href="/language-picker" />;
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
     <ErrorBoundary fallback={<CrashFallback />}>
@@ -159,6 +180,10 @@ function RootLayout() {
             contentStyle: { backgroundColor: colors.background },
           }}
         >
+          <Stack.Screen
+            name="language-picker"
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="sign-in"
             options={{ headerShown: false }}
