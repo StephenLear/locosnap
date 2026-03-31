@@ -1,0 +1,102 @@
+{
+  "tabs": {
+    "scan": "Scan",
+    "history": "History",
+    "profile": "Profile",
+    "leaderboard": "Leaderboard"
+  },
+  "scan": {
+    "title": "LocoSnap",
+    "scanButton": "Scan Train",
+    "scanning": "Identifying...",
+    "warmingUp": "Warming up...",
+    "trialBanner": "{{remaining}} free scan left",
+    "trialBanner_plural": "{{remaining}} free scans left",
+    "signUpPrompt": "Create a free account to save your collection",
+    "noTrainFound": "Could not identify a train. Try a clearer photo.",
+    "cameraPermission": "Camera access is needed to scan trains."
+  },
+  "results": {
+    "specs": "Specifications",
+    "facts": "Facts & History",
+    "rarity": "Rarity",
+    "blueprint": "Blueprint",
+    "maxSpeed": "Max Speed",
+    "power": "Power",
+    "weight": "Weight",
+    "length": "Length",
+    "builder": "Builder",
+    "built": "Built",
+    "status": "Status",
+    "operator": "Operator",
+    "yearIntroduced": "Introduced",
+    "savePhoto": "Save to Photos",
+    "share": "Share",
+    "viewBlueprint": "View Blueprint",
+    "generatingBlueprint": "Generating blueprint..."
+  },
+  "profile": {
+    "title": "Profile",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "pro": "Pro",
+    "free": "Free",
+    "scansThisMonth": "Scans this month",
+    "totalSpots": "Total spots",
+    "level": "Level",
+    "xp": "XP",
+    "streak": "Day streak",
+    "upgradeToPro": "Upgrade to Pro",
+    "language": "Language",
+    "settings": "Settings"
+  },
+  "history": {
+    "title": "Collection",
+    "empty": "No trains scanned yet. Get out there!",
+    "scannedOn": "Scanned {{date}}"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "rank": "Rank",
+    "spotter": "Spotter",
+    "spots": "Spots"
+  },
+  "auth": {
+    "signInWithApple": "Sign in with Apple",
+    "signInWithGoogle": "Sign in with Google",
+    "signInWithEmail": "Sign in with email",
+    "emailPlaceholder": "Enter your email",
+    "sendMagicLink": "Send magic link",
+    "checkEmail": "Check your email for a sign-in link.",
+    "freeAccountPerks": "Save your collection, earn XP, climb the leaderboard."
+  },
+  "paywall": {
+    "title": "Go Pro",
+    "unlimitedScans": "Unlimited scans",
+    "allBlueprintStyles": "All blueprint styles",
+    "leaderboardAccess": "Leaderboard access",
+    "subscribe": "Subscribe",
+    "restorePurchases": "Restore purchases",
+    "monthlyPrice": "{{price}} / month",
+    "yearlyPrice": "{{price}} / year"
+  },
+  "rarity": {
+    "common": "Common",
+    "uncommon": "Uncommon",
+    "rare": "Rare",
+    "legendary": "Legendary"
+  },
+  "errors": {
+    "networkError": "Could not connect to LocoSnap servers. Please try again.",
+    "timeout": "Request timed out. Please check your connection.",
+    "highDemand": "LocoSnap is experiencing high demand. Please try again in a moment.",
+    "generic": "Something went wrong. Please try again."
+  },
+  "languagePicker": {
+    "title": "Choose your language",
+    "subtitle": "You can change this later in your profile.",
+    "english": "English",
+    "german": "Deutsch",
+    "continue": "Continue"
+  }
+}

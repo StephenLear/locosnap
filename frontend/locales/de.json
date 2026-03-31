@@ -1,0 +1,102 @@
+{
+  "tabs": {
+    "scan": "Scannen",
+    "history": "Sammlung",
+    "profile": "Profil",
+    "leaderboard": "Bestenliste"
+  },
+  "scan": {
+    "title": "LocoSnap",
+    "scanButton": "Zug scannen",
+    "scanning": "Wird erkannt...",
+    "warmingUp": "Wird gestartet...",
+    "trialBanner": "Noch {{remaining}} kostenloser Scan",
+    "trialBanner_plural": "Noch {{remaining}} kostenlose Scans",
+    "signUpPrompt": "Erstelle ein kostenloses Konto, um deine Sammlung zu speichern.",
+    "noTrainFound": "Kein Zug erkannt. Bitte versuche es mit einem klareren Foto.",
+    "cameraPermission": "Kamerazugriff wird zum Scannen von Zügen benötigt."
+  },
+  "results": {
+    "specs": "Technische Daten",
+    "facts": "Fakten & Geschichte",
+    "rarity": "Seltenheit",
+    "blueprint": "Blueprint",
+    "maxSpeed": "Höchstgeschwindigkeit",
+    "power": "Leistung",
+    "weight": "Gewicht",
+    "length": "Länge",
+    "builder": "Hersteller",
+    "built": "Gebaut",
+    "status": "Status",
+    "operator": "Betreiber",
+    "yearIntroduced": "Eingeführt",
+    "savePhoto": "In Fotos speichern",
+    "share": "Teilen",
+    "viewBlueprint": "Blueprint anzeigen",
+    "generatingBlueprint": "Blueprint wird erstellt..."
+  },
+  "profile": {
+    "title": "Profil",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "pro": "Pro",
+    "free": "Kostenlos",
+    "scansThisMonth": "Scans diesen Monat",
+    "totalSpots": "Gesamt-Spots",
+    "level": "Level",
+    "xp": "XP",
+    "streak": "Tage-Streak",
+    "upgradeToPro": "Auf Pro upgraden",
+    "language": "Sprache",
+    "settings": "Einstellungen"
+  },
+  "history": {
+    "title": "Sammlung",
+    "empty": "Noch keine Züge gescannt. Los geht's!",
+    "scannedOn": "Gescannt am {{date}}"
+  },
+  "leaderboard": {
+    "title": "Bestenliste",
+    "rank": "Rang",
+    "spotter": "Spotter",
+    "spots": "Spots"
+  },
+  "auth": {
+    "signInWithApple": "Mit Apple anmelden",
+    "signInWithGoogle": "Mit Google anmelden",
+    "signInWithEmail": "Mit E-Mail anmelden",
+    "emailPlaceholder": "E-Mail-Adresse eingeben",
+    "sendMagicLink": "Magic Link senden",
+    "checkEmail": "Prüfe deine E-Mails für einen Anmelde-Link.",
+    "freeAccountPerks": "Speichere deine Sammlung, sammle XP und klettere in der Bestenliste."
+  },
+  "paywall": {
+    "title": "Pro werden",
+    "unlimitedScans": "Unbegrenzte Scans",
+    "allBlueprintStyles": "Alle Blueprint-Stile",
+    "leaderboardAccess": "Zugang zur Bestenliste",
+    "subscribe": "Abonnieren",
+    "restorePurchases": "Käufe wiederherstellen",
+    "monthlyPrice": "{{price}} / Monat",
+    "yearlyPrice": "{{price}} / Jahr"
+  },
+  "rarity": {
+    "common": "Häufig",
+    "uncommon": "Ungewöhnlich",
+    "rare": "Selten",
+    "legendary": "Legendär"
+  },
+  "errors": {
+    "networkError": "Keine Verbindung zu den LocoSnap-Servern. Bitte erneut versuchen.",
+    "timeout": "Zeitüberschreitung. Bitte überprüfe deine Verbindung.",
+    "highDemand": "LocoSnap ist gerade stark ausgelastet. Bitte in einem Moment erneut versuchen.",
+    "generic": "Etwas ist schiefgelaufen. Bitte erneut versuchen."
+  },
+  "languagePicker": {
+    "title": "Sprache wählen",
+    "subtitle": "Du kannst dies später in deinem Profil ändern.",
+    "english": "English",
+    "german": "Deutsch",
+    "continue": "Weiter"
+  }
+}
