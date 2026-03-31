@@ -85,7 +85,6 @@ export default function ProfileScreen() {
   const handleLanguageToggle = async () => {
     const next = language === "en" ? "de" : "en";
     await setLanguage(next);
-    await i18n.changeLanguage(next);
   };
 
   // ── Achievements state ────────────────────────────────────
