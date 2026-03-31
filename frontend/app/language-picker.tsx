@@ -4,7 +4,7 @@
 // Text is hardcoded in English — no i18n needed here.
 // ============================================================
 
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -21,8 +21,11 @@ import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 export default function LanguagePickerScreen() {
   const router = useRouter();
   const { setLanguage, markLanguageChosen } = useSettingsStore();
+  const [isSelecting, setIsSelecting] = useState(false);
 
   const handleSelectLanguage = async (lang: "en" | "de") => {
+    if (isSelecting) return;
+    setIsSelecting(true);
     await setLanguage(lang);
     await i18n.changeLanguage(lang);
     await markLanguageChosen();
@@ -38,6 +41,8 @@ export default function LanguagePickerScreen() {
             source={require("../assets/icon.png")}
             style={styles.logo}
             resizeMode="contain"
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no"
           />
         </View>
 
@@ -53,6 +58,9 @@ export default function LanguagePickerScreen() {
             style={styles.languageBtn}
             onPress={() => handleSelectLanguage("en")}
             activeOpacity={0.8}
+            disabled={isSelecting}
+            accessibilityRole="button"
+            accessibilityLabel="Select English as the app language"
           >
             <Text style={styles.languageBtnLabel}>English</Text>
           </TouchableOpacity>
@@ -61,6 +69,9 @@ export default function LanguagePickerScreen() {
             style={[styles.languageBtn, styles.languageBtnSecondary]}
             onPress={() => handleSelectLanguage("de")}
             activeOpacity={0.8}
+            disabled={isSelecting}
+            accessibilityRole="button"
+            accessibilityLabel="Deutsch als App-Sprache auswaehlen"
           >
             <Text style={[styles.languageBtnLabel, styles.languageBtnLabelSecondary]}>
               Deutsch
