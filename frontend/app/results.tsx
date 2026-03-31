@@ -483,7 +483,7 @@ export default function ResultsScreen() {
             {currentSpecs.numberBuilt && (
               <SpecRow
                 icon="layers"
-                label="Built"
+                label="Units built"
                 value={`${currentSpecs.numberBuilt} units`}
               />
             )}

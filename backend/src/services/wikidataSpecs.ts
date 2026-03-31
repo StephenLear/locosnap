@@ -29,13 +29,15 @@ const P = {
 
 // ── Wikidata unit QIDs ───────────────────────────────────────
 const UNIT = {
-  METRE:    "Q11573",
-  KM_PER_H: "Q180154",
-  MPH:      "Q158081",
-  KILOGRAM: "Q11570",
-  TONNE:    "Q41803",
-  WATT:     "Q25269",
-  KILOWATT: "Q483551",
+  METRE:      "Q11573",
+  KILOMETRE:  "Q174789",
+  MILLIMETRE: "Q11570",
+  KM_PER_H:  "Q180154",
+  MPH:        "Q158081",
+  KILOGRAM:   "Q11570",
+  TONNE:      "Q41803",
+  WATT:       "Q25269",
+  KILOWATT:   "Q483551",
 };
 
 const USER_AGENT = "LocoSnap/1.0 (train identification app; contact@locosnap.app)";
@@ -256,9 +258,24 @@ export async function getWikidataSpecs(
     }
 
     // Length
+    // Wikidata may return length in metres (Q11573), kilometres (Q174789),
+    // or millimetres (Q11570). Convert all to metres before display.
+    // Fallback sanity check: no train is longer than 500 m — if the raw
+    // value exceeds 500 and the unit is unknown, assume millimetres.
     const length = getQuantity(claims, P.LENGTH);
     if (length) {
-      specs.length = `${length.amount.toFixed(1)} m`;
+      let lengthMetres: number;
+      if (length.unit === UNIT.KILOMETRE) {
+        lengthMetres = length.amount * 1000;
+      } else if (length.unit === UNIT.MILLIMETRE) {
+        lengthMetres = length.amount / 1000;
+      } else if (length.unit === UNIT.METRE) {
+        lengthMetres = length.amount;
+      } else {
+        // Unknown unit — apply sanity check
+        lengthMetres = length.amount > 500 ? length.amount / 1000 : length.amount;
+      }
+      specs.length = `${lengthMetres.toFixed(1)} m`;
     }
 
     // Mass → tonnes

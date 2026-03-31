@@ -46,6 +46,9 @@ Rules:
 - "name" should be the individual locomotive name if it has one (e.g. "Flying Scotsman", "Mallard", "Tornado"). Use null if unnamed.
 - "operator" should be the current or most recent operator. UK examples: "LNER", "GWR", "Avanti West Coast", "DB Cargo UK", "Colas Rail", "GB Railfreight", "DRS", "DCRail". European: "DB", "SNCF", "ÖBB", "Trenitalia". Nordic: "Vy" (Norway), "SJ" (Sweden), "VR" (Finland), "DSB" (Denmark). If preserved, use the heritage railway name.
 - "type" should be one of: Steam, Diesel, Electric, DMU, EMU, HST, Freight, Shunter, Railcar, Tram, Metro, Monorail, Maglev, Other
+  - Use "Electric" for electric locomotives — single traction units that haul separate coaches (e.g. DB Class 101, 103, 120, 185, 187, BR Class 90, 91). These have a Bo-Bo or Co-Co wheel arrangement and do not carry passengers within their own bodyshell.
+  - Use "EMU" for electric multiple units — self-propelled articulated train sets where passenger seating is within the powered vehicles (e.g. ICE 3, ICE-T, Desiro, Talent, FLIRT, Siemens Velaro, Class 319, Class 387).
+  - Do NOT classify a single-unit electric locomotive as EMU. If a vehicle hauls separate coaches and is itself a single traction unit, it is "Electric", not "EMU".
 - "designation" is the wheel arrangement (e.g. "4-6-2 Pacific", "0-6-0T", "Bo-Bo", "Co-Co", "A1A-A1A") or unit type (e.g. "3-car EMU", "5-car Pendolino").
 - "yearBuilt" is your best estimate of when this class was first built. Use null if very uncertain.
 - "confidence" is 0-100. Be honest — a partially obscured or distant loco should score lower.
