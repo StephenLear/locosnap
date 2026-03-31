@@ -253,7 +253,7 @@ export default function HomeScreen() {
       if (!result.success || !result.data) {
         track("scan_failed", { error: result.error || "unknown" });
         setScanError(
-          result.error || "Could not identify the train. Try a different photo."
+          result.error || t("scan.noTrainFound")
         );
         return;
       }
@@ -374,7 +374,7 @@ export default function HomeScreen() {
       if (!result.granted) {
         Alert.alert(
           "Camera Permission Required",
-          "LocoSnap needs camera access to identify trains. Please enable it in your device settings.",
+          t("scan.cameraPermission"),
           [{ text: "OK" }]
         );
         return;
@@ -465,7 +465,7 @@ export default function HomeScreen() {
           <Text style={styles.guestBadgeText}>
             {preSignupScansUsed === 0
               ? t("scan.signUpPrompt")
-              : t("scan.trialBanner", { remaining: PRE_SIGNUP_FREE_SCANS - preSignupScansUsed })}
+              : t("scan.trialBanner", { count: PRE_SIGNUP_FREE_SCANS - preSignupScansUsed, remaining: PRE_SIGNUP_FREE_SCANS - preSignupScansUsed })}
           </Text>
           <Ionicons name="chevron-forward" size={13} color={colors.textMuted} />
         </TouchableOpacity>
@@ -518,7 +518,7 @@ export default function HomeScreen() {
             {/* Progress text */}
             <View style={styles.scanProgress}>
               <Text style={styles.scanStageText}>
-                {SCAN_STAGES[scanStage]}
+                {t("scan.scanning")}
               </Text>
               <View style={styles.progressDots}>
                 {SCAN_STAGES.map((_, i) => (

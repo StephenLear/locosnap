@@ -251,7 +251,7 @@ export default function ResultsScreen() {
       {/* ── Blueprint Style Picker (Pro only) ─────────── */}
       {isPro && (
         <View style={styles.styleSection}>
-          <Text style={styles.styleSectionTitle}>Blueprint Style</Text>
+          <Text style={styles.styleSectionTitle}>{t("results.blueprint")}</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
