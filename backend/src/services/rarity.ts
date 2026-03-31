@@ -9,8 +9,10 @@ import axios from "axios";
 import { config } from "../config/env";
 import { TrainIdentification, TrainSpecs, RarityInfo, RarityTier } from "../types";
 
-const RARITY_PROMPT = (train: TrainIdentification, specs: TrainSpecs) =>
-  `You are a trainspotting rarity expert. Classify the rarity of spotting a ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
+const GERMAN_INSTRUCTION = "Respond in German (Deutsch). Use formal register.\n\n";
+
+const RARITY_PROMPT = (train: TrainIdentification, specs: TrainSpecs, language: string = "en") =>
+  `${language === "de" ? GERMAN_INSTRUCTION : ""}You are a trainspotting rarity expert. Classify the rarity of spotting a ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
 
 Known specs:
 - Number built: ${specs.numberBuilt ?? "unknown"}
@@ -74,10 +76,11 @@ function parseRarityResponse(text: string): RarityInfo {
 
 export async function classifyRarity(
   train: TrainIdentification,
-  specs: TrainSpecs
+  specs: TrainSpecs,
+  language: string = "en"
 ): Promise<RarityInfo> {
   try {
-    const prompt = RARITY_PROMPT(train, specs);
+    const prompt = RARITY_PROMPT(train, specs, language);
 
     if (config.hasAnthropic) {
       console.log("[RARITY] Using Claude (Anthropic)");

@@ -114,4 +114,52 @@ describe("getTrainFacts", () => {
     const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
     expect(promptSent).not.toContain("VERIFIED FACT");
   });
+
+  it("prepends German instruction when language is 'de'", async () => {
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({
+        summary: "Ein moderner Triebzug.",
+        historicalSignificance: null,
+        funFacts: [],
+        notableEvents: [],
+      }) }],
+    });
+
+    await getTrainFacts(makeTrain({ class: "ICE 3" }), "de");
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).toMatch(/^Respond in German \(Deutsch\)\. Use formal register\./);
+  });
+
+  it("does not prepend German instruction when language is 'en'", async () => {
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({
+        summary: "A modern train.",
+        historicalSignificance: null,
+        funFacts: [],
+        notableEvents: [],
+      }) }],
+    });
+
+    await getTrainFacts(makeTrain(), "en");
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).not.toContain("Respond in German");
+  });
+
+  it("defaults to English when language param is omitted", async () => {
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({
+        summary: "A modern train.",
+        historicalSignificance: null,
+        funFacts: [],
+        notableEvents: [],
+      }) }],
+    });
+
+    await getTrainFacts(makeTrain());
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).not.toContain("Respond in German");
+  });
 });

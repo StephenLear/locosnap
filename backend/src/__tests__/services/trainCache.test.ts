@@ -89,4 +89,49 @@ describe("trainCache", () => {
     expect(stats.totalHits).toBe(2);
     expect(stats.totalMisses).toBe(1);
   });
+
+  it("uses v7 as the cache version prefix", async () => {
+    const { setTrainCache } = require("../../services/redis");
+    await setCachedTrainData(train, specs, facts, rarity);
+    const keyUsed: string = setTrainCache.mock.calls[0][0];
+    expect(keyUsed).toMatch(/^v7::/);
+  });
+
+  it("includes language in cache key — English", async () => {
+    const { setTrainCache } = require("../../services/redis");
+    await setCachedTrainData(train, specs, facts, rarity, "en");
+    const keyUsed: string = setTrainCache.mock.calls[0][0];
+    expect(keyUsed).toContain("::en::");
+  });
+
+  it("includes language in cache key — German", async () => {
+    const { setTrainCache } = require("../../services/redis");
+    await setCachedTrainData(train, specs, facts, rarity, "de");
+    const keyUsed: string = setTrainCache.mock.calls[0][0];
+    expect(keyUsed).toContain("::de::");
+  });
+
+  it("German and English entries do not collide", async () => {
+    await setCachedTrainData(train, specs, facts, rarity, "en");
+    await setCachedTrainData(
+      train,
+      makeSpecs({ maxSpeed: "300 km/h" }),
+      facts,
+      rarity,
+      "de"
+    );
+
+    const enResult = await getCachedTrainData(train, "technical", "en");
+    const deResult = await getCachedTrainData(train, "technical", "de");
+
+    expect(enResult!.specs.maxSpeed).toBe("125 mph");
+    expect(deResult!.specs.maxSpeed).toBe("300 km/h");
+  });
+
+  it("defaults to 'en' language when language param is omitted", async () => {
+    const { setTrainCache } = require("../../services/redis");
+    await setCachedTrainData(train, specs, facts, rarity);
+    const keyUsed: string = setTrainCache.mock.calls[0][0];
+    expect(keyUsed).toContain("::en::");
+  });
 });

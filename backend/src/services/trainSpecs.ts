@@ -14,8 +14,10 @@ import { config } from "../config/env";
 import { TrainIdentification, TrainSpecs } from "../types";
 import { getWikidataSpecs } from "./wikidataSpecs";
 
-const SPECS_PROMPT = (train: TrainIdentification) =>
-  `You are a railway engineering reference database with deep knowledge of UK, European, Scandinavian, Japanese, and North American rolling stock. Provide technical specifications for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
+const GERMAN_INSTRUCTION = "Respond in German (Deutsch). Use formal register.\n\n";
+
+const SPECS_PROMPT = (train: TrainIdentification, language: string = "en") =>
+  `${language === "de" ? GERMAN_INSTRUCTION : ""}You are a railway engineering reference database with deep knowledge of UK, European, Scandinavian, Japanese, and North American rolling stock. Provide technical specifications for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
 
 Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 {
@@ -113,8 +115,8 @@ function parseSpecsResponse(text: string): TrainSpecs {
   }
 }
 
-async function getAISpecs(train: TrainIdentification): Promise<TrainSpecs> {
-  const prompt = SPECS_PROMPT(train);
+async function getAISpecs(train: TrainIdentification, language: string = "en"): Promise<TrainSpecs> {
+  const prompt = SPECS_PROMPT(train, language);
 
   if (config.hasAnthropic) {
     console.log("[SPECS] Using Claude (Anthropic)");
@@ -193,12 +195,13 @@ function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpec
 }
 
 export async function getTrainSpecs(
-  train: TrainIdentification
+  train: TrainIdentification,
+  language: string = "en"
 ): Promise<TrainSpecs> {
   try {
     // Run AI and Wikidata in parallel — don't let either block the other
     const [aiResult, wikiResult] = await Promise.allSettled([
-      getAISpecs(train),
+      getAISpecs(train, language),
       getWikidataSpecs(train.class, train.operator, train.name),
     ]);
 

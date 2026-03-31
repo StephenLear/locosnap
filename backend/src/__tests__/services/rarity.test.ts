@@ -97,4 +97,67 @@ describe("classifyRarity", () => {
     const result = await classifyRarity(makeTrain(), makeSpecs());
     expect(result.tier).toBe("common");
   });
+
+  it("prepends German instruction when language is 'de'", async () => {
+    mockCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            tier: "common",
+            reason: "Häufiger moderner Zug.",
+            productionCount: 56,
+            survivingCount: 56,
+          }),
+        },
+      ],
+    });
+
+    await classifyRarity(makeTrain(), makeSpecs(), "de");
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).toMatch(/^Respond in German \(Deutsch\)\. Use formal register\./);
+  });
+
+  it("does not prepend German instruction when language is 'en'", async () => {
+    mockCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            tier: "common",
+            reason: "Large fleet",
+            productionCount: 56,
+            survivingCount: 56,
+          }),
+        },
+      ],
+    });
+
+    await classifyRarity(makeTrain(), makeSpecs(), "en");
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).not.toContain("Respond in German");
+  });
+
+  it("defaults to English when language param is omitted", async () => {
+    mockCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            tier: "common",
+            reason: "Large fleet",
+            productionCount: 56,
+            survivingCount: 56,
+          }),
+        },
+      ],
+    });
+
+    await classifyRarity(makeTrain(), makeSpecs());
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).not.toContain("Respond in German");
+  });
 });

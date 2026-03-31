@@ -27,6 +27,9 @@ import { AppError } from "../middleware/errorHandler";
 import { trackServerEvent } from "../services/analytics";
 import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo, BlueprintStyle } from "../types";
 
+const VALID_LANGUAGES = ["en", "de"] as const;
+type Language = typeof VALID_LANGUAGES[number];
+
 const router = Router();
 
 // Configure multer for image uploads (max 10MB)
@@ -72,6 +75,14 @@ router.post(
         `[IDENTIFY] Processing image: ${req.file.originalname} (${(req.file.size / 1024).toFixed(1)}KB)`
       );
 
+      // ── Language validation ────────────────────────────
+      // Accept "en" or "de". Any missing or unrecognised value defaults to "en".
+      const requestedLanguage = req.body?.language as string;
+      const language: Language =
+        requestedLanguage && (VALID_LANGUAGES as readonly string[]).includes(requestedLanguage)
+          ? (requestedLanguage as Language)
+          : "en";
+
       // ── Step 1: Vision AI (always runs) ────────────────
       console.log("[IDENTIFY] Step 1: Identifying train via Vision AI...");
       const train = await identifyTrainFromImage(
@@ -114,7 +125,7 @@ router.post(
       let blueprintTaskId: string;
       let cacheHit = false;
 
-      const cached = await getCachedTrainData(train, blueprintStyle);
+      const cached = await getCachedTrainData(train, blueprintStyle, language);
 
       if (cached) {
         // ── CACHE HIT ────────────────────────────────────
@@ -154,8 +165,8 @@ router.post(
 
         // Fetch specs and facts in parallel (with graceful fallbacks)
         const [specsResult, factsResult] = await Promise.allSettled([
-          getTrainSpecs(train),
-          getTrainFacts(train),
+          getTrainSpecs(train, language),
+          getTrainFacts(train, language),
         ]);
 
         specs = specsResult.status === "fulfilled"
@@ -182,7 +193,7 @@ router.post(
 
         // Classify rarity (needs specs — use fallback if it fails)
         try {
-          rarity = await classifyRarity(train, specs);
+          rarity = await classifyRarity(train, specs, language);
         } catch (rarityErr) {
           console.error("[IDENTIFY] Rarity classification failed:", rarityErr);
           rarity = {
@@ -194,7 +205,7 @@ router.post(
         }
 
         // Store in cache for next time (fire and forget — non-blocking)
-        setCachedTrainData(train, specs, facts, rarity).catch((err) =>
+        setCachedTrainData(train, specs, facts, rarity, language).catch((err) =>
           console.warn("[IDENTIFY] Cache write failed:", err)
         );
 

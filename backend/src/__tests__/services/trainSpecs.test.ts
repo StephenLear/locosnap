@@ -134,4 +134,55 @@ describe("getTrainSpecs", () => {
     expect(result.maxSpeed).toBe("125 mph");
     expect(result.builder).toBe("BREL Crewe");
   });
+
+  it("prepends German instruction when language is 'de'", async () => {
+    mockCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ maxSpeed: "300 km/h", builder: "Siemens" }),
+        },
+      ],
+    });
+    mockGetWikidataSpecs.mockResolvedValueOnce(null);
+
+    await getTrainSpecs(makeTrain({ class: "ICE 3" }), "de");
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).toMatch(/^Respond in German \(Deutsch\)\. Use formal register\./);
+  });
+
+  it("does not prepend German instruction when language is 'en'", async () => {
+    mockCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ maxSpeed: "125 mph", builder: "BREL Crewe" }),
+        },
+      ],
+    });
+    mockGetWikidataSpecs.mockResolvedValueOnce(null);
+
+    await getTrainSpecs(makeTrain(), "en");
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).not.toContain("Respond in German");
+  });
+
+  it("defaults to English when language param is omitted", async () => {
+    mockCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ maxSpeed: "125 mph" }),
+        },
+      ],
+    });
+    mockGetWikidataSpecs.mockResolvedValueOnce(null);
+
+    await getTrainSpecs(makeTrain());
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).not.toContain("Respond in German");
+  });
 });

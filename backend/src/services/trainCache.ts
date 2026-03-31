@@ -65,10 +65,10 @@ let totalMisses = 0;
 // Bump this version when cached specs/facts data is known to be stale
 // (e.g. after fixing AI prompt or Wikidata corrections). Old entries are
 // automatically orphaned and will be recomputed on next scan.
-const CACHE_VERSION = "v6";
+const CACHE_VERSION = "v7";
 
-function getCacheKey(train: TrainIdentification): string {
-  return `${CACHE_VERSION}::${train.class}::${train.operator}`.toLowerCase().trim();
+function getCacheKey(train: TrainIdentification, language: string = "en"): string {
+  return `${CACHE_VERSION}::${language}::${train.class}::${train.operator}`.toLowerCase().trim();
 }
 
 function isExpired(entry: CachedTrainData): boolean {
@@ -104,14 +104,15 @@ async function writeToRedis(key: string, entry: CachedTrainData): Promise<void> 
  */
 export async function getCachedTrainData(
   train: TrainIdentification,
-  style: BlueprintStyle = "technical"
+  style: BlueprintStyle = "technical",
+  language: string = "en"
 ): Promise<{
   specs: TrainSpecs;
   facts: TrainFacts;
   rarity: RarityInfo;
   blueprintUrl: string | null;
 } | null> {
-  const key = getCacheKey(train);
+  const key = getCacheKey(train, language);
 
   // L1 check
   let entry = memoryCache.get(key);
@@ -165,9 +166,10 @@ export async function setCachedTrainData(
   train: TrainIdentification,
   specs: TrainSpecs,
   facts: TrainFacts,
-  rarity: RarityInfo
+  rarity: RarityInfo,
+  language: string = "en"
 ): Promise<void> {
-  const key = getCacheKey(train);
+  const key = getCacheKey(train, language);
 
   const entry: CachedTrainData = {
     specs,
@@ -191,9 +193,10 @@ export async function setCachedTrainData(
 export async function setCachedBlueprint(
   train: TrainIdentification,
   blueprintUrl: string,
-  style: BlueprintStyle = "technical"
+  style: BlueprintStyle = "technical",
+  language: string = "en"
 ): Promise<void> {
-  const key = getCacheKey(train);
+  const key = getCacheKey(train, language);
 
   // Get from L1, or pull from Redis if not in memory
   let entry = memoryCache.get(key);

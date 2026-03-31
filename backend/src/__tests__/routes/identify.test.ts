@@ -207,4 +207,56 @@ describe("POST /api/identify", () => {
 
     expect(res.status).toBe(400);
   });
+
+  it("accepts language='de' and passes it to service calls", async () => {
+    const res = await request(app)
+      .post("/api/identify")
+      .attach("image", Buffer.from("fake-image"), {
+        filename: "train.jpg",
+        contentType: "image/jpeg",
+      })
+      .field("language", "de");
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    // Language should be forwarded to facts, specs, rarity
+    expect(mockGetFacts).toHaveBeenCalledWith(expect.any(Object), "de");
+    expect(mockGetSpecs).toHaveBeenCalledWith(expect.any(Object), "de");
+    expect(mockClassifyRarity).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Object),
+      "de"
+    );
+  });
+
+  it("defaults to 'en' when language is missing", async () => {
+    const res = await request(app)
+      .post("/api/identify")
+      .attach("image", Buffer.from("fake-image"), {
+        filename: "train.jpg",
+        contentType: "image/jpeg",
+      });
+
+    expect(res.status).toBe(200);
+    expect(mockGetFacts).toHaveBeenCalledWith(expect.any(Object), "en");
+    expect(mockGetSpecs).toHaveBeenCalledWith(expect.any(Object), "en");
+    expect(mockClassifyRarity).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Object),
+      "en"
+    );
+  });
+
+  it("defaults to 'en' for an unrecognised language value", async () => {
+    const res = await request(app)
+      .post("/api/identify")
+      .attach("image", Buffer.from("fake-image"), {
+        filename: "train.jpg",
+        contentType: "image/jpeg",
+      })
+      .field("language", "fr");
+
+    expect(res.status).toBe(200);
+    expect(mockGetFacts).toHaveBeenCalledWith(expect.any(Object), "en");
+  });
 });
