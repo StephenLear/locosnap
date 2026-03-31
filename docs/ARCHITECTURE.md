@@ -40,8 +40,9 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 |----------|-------|
 | Framework | Express.js (TypeScript) |
 | Hosting | Render.com (Web Service) |
+| Plan | Starter ($7/month) — upgraded 2026-03-31. No spin-down, zero downtime deploys. |
 | URL | https://locosnap.onrender.com |
-| Cold Start | ~60s after inactivity — pre-warmed by healthCheck() on app mount |
+| Cold Start | Eliminated — Starter plan keeps dyno live permanently. healthCheck() pre-warm retained as belt-and-braces. |
 | Source | `/backend/src/` |
 
 ### Endpoints
@@ -564,7 +565,7 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 | Item | Status |
 |------|--------|
 | iOS App Store (v1.0.7) | Live on App Store 2026-03-31. App Store name corrected to "LocoSnap". |
-| Render cold start — 7 users affected | Backend on Render free tier spins down after inactivity. healthCheck() pre-warms on mount and scan buttons are disabled until healthCheck resolves. 14 Sentry events across 7 users since March 22. Upgrade Render to paid ($7/month) to eliminate entirely. |
+| Render cold start | Resolved 2026-03-31 — upgraded to Starter ($7/month). Dyno stays live permanently. REACT-NATIVE-1 Sentry issue should stop recurring. |
 | Android APK for testers (v1.0.7) | Build 5 sent to 14 testers 2026-03-29, 2 new testers 2026-03-30 — APK: https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk |
 | Android v1.0.8 build pending | Language picker (EN/DE), camera gallery toggle, DB Class 101 data fixes all committed to main. `app.json` version bumped to 1.0.8. Run: `eas build --platform android --profile preview` from `frontend/`. |
 | Android auto-submit to Play Store (v1.0.7) | Infrastructure set up (service account, API enabled, eas.json updated). Submit pending service account permission propagation. Retry: eas submit --platform android --profile production --id f040f353-97cf-4804-b1d6-11608f6706f0 --non-interactive. Note: do not commit eas.json with local absolute path to play-store-key.json — it will not exist in EAS Build environment. |
