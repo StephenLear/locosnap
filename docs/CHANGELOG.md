@@ -7,6 +7,34 @@ Format: newest first within each date block.
 
 ## 2026-04-01
 
+### Frontend (v1.0.11)
+
+#### `frontend/store/settingsStore.ts` — Remove expo-localization entirely
+- **Removed** `import * as Localization from "expo-localization"` — the native module was crashing at startup on devices with non-EN/DE device locales (confirmed: Finnish tester on Samsung S24) before Sentry could initialise, making the crash invisible to monitoring.
+- **Removed** `detectDeviceLanguage()` function — replaced with hardcoded `"en"` default. App now starts in English on first launch; user selects German via the language picker in settings.
+- **Changed** fallback in `initialize()` from `detectDeviceLanguage()` to `"en"`.
+
+#### `frontend/__tests__/settingsStore.test.ts` — Remove expo-localization mock and locale detection test
+- **Removed** `jest.mock("expo-localization", ...)` — package no longer in the project.
+- **Removed** test case `"detects German device locale and defaults to de when no stored language"` — the behaviour no longer exists; device locale is not read at startup.
+
+#### `frontend/app.json` — Bump version to 1.0.11
+- **Changed** `version` from `"1.0.10"` to `"1.0.11"`.
+- expo-localization removed from plugins array (was removed in v1.0.10 — package itself now removed).
+
+#### `frontend/package.json` — Remove expo-localization dependency
+- **Removed** `expo-localization` from dependencies — package uninstalled via `npm uninstall expo-localization`.
+
+---
+
+### Frontend (v1.0.10)
+
+#### `frontend/app.json` — Remove expo-localization native plugin, bump to v1.0.10
+- **Removed** `"expo-localization"` from the plugins array in `app.json` — attempted crash fix. Hypothesis: native plugin crashing at Android module registration on devices with unsupported locales. Fix was insufficient: package remained installed and settingsStore.ts still called `Localization.getLocales()` at startup.
+- **Changed** `version` from `"1.0.9"` to `"1.0.10"`.
+
+---
+
 ### Frontend
 
 #### `frontend/app/(tabs)/_layout.tsx` — Remove key={i18n.language} from Tabs to fix Android 16 launch crash

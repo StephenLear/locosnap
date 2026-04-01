@@ -18,7 +18,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
 | iOS Version | 1.0.7 build 36 — **Live on App Store** 2026-03-31. Shareable train card (Save to Photos + Share sheet). translateX fix for iOS GPU rendering of off-screen captureRef view. App Store name corrected to "LocoSnap" in this release. Build 36 is the definitive v1.0.7 — builds 32-35 were earlier v1.0.7 attempts. |
-| Android Version | 1.0.7 build 5 — preview APK sent to 14 testers 2026-03-29, 2 new testers 2026-03-30. Production AAB built, auto-submit to internal track pending service account permission propagation. v1.0.8 pending — language picker (EN/DE) + camera gallery toggle + DB Class 101 data fixes committed to main, not yet built. Run: `eas build --platform android --profile preview` from `frontend/`. |
+| Android Version | 1.0.11 build 5 — sent to Finnish tester 2026-04-01. Crash fix: removed expo-localization entirely. v1.0.8 introduced expo-localization native plugin which crashed at startup on devices with non-EN/DE device locales (Finnish tester confirmed). v1.0.9 (wrong fix — removed key prop from Tabs), v1.0.10 (partial fix — removed plugin from app.json but not package), v1.0.11 (correct fix — removed package and import entirely; app defaults to EN, user can switch to DE via picker). APK: https://expo.dev/artifacts/eas/451HLSXRSRiqoFAMpfm4sy.apk |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
 | Bundle ID | com.locosnap.app |
@@ -347,6 +347,9 @@ Every APK shipped to testers must be recorded here on the day it is sent.
 | 2026-03-27 | v1.0.6 (preview build 4) | ICE 3 family disambiguation (BR 403/406/407/408). 15 identification fixes including ICE T, BR 462/642, BR 480/481, LINT 41/Mireo, FLIRT/CD 654, VT 650/628, Twindexx/Talent 2. ICE 3 max speed corrected to 300 km/h. Paywall display bug fixes (currency localisation, purchase failure, copy). Account history no longer persists after sign-out. | https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk | 13 Android testers (full list) |
 | 2026-03-29 | v1.0.7 (preview build 5) | Collection photos in scan history. Cold start fix (scan buttons disabled until healthCheck resolves). photoUri plumbing (save, update to CDN, restore on viewHistoryItem). | https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk | 14 Android testers (full list) |
 | 2026-03-30 | v1.0.7 (preview build 5) | Same build as above — onboarding two new testers. | https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk | foxiar771@gmail.com, dieterbrandes6@gmail.com |
+| 2026-04-01 | v1.0.9 (preview build 5) | Remove key={i18n.language} from Tabs — attempted crash fix for Finnish tester (Samsung S24). Did not resolve crash. | https://expo.dev/artifacts/eas/bgSBn4vfGRTDzvdgubz3zy.apk | vattuoula@gmail.com (Finnish tester only) |
+| 2026-04-01 | v1.0.10 (preview build 5) | Remove expo-localization plugin from app.json — second crash fix attempt. Still crashed: package still installed, JS still calling native APIs. | https://expo.dev/artifacts/eas/wd4MkHy6AQwVGcxp1Wnqc7.apk | vattuoula@gmail.com (Finnish tester only) |
+| 2026-04-01 | v1.0.11 (preview build 5) | Remove expo-localization package entirely — correct fix. App defaults to EN on first launch; user switches to DE via picker. No native locale detection at startup. | https://expo.dev/artifacts/eas/451HLSXRSRiqoFAMpfm4sy.apk | vattuoula@gmail.com (Finnish tester only) |
 
 ---
 
@@ -546,12 +549,15 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 - Dark background (#0d0d0d)
 - Duration: 2 seconds minimum
 
-**Text overlays:**
-- Font: Impact
-- Colour: yellow (#FFFF00) with black border, borderwidth 6
-- Large size (90-95px at 1080px wide)
-- Two lines maximum — one top-left, one bottom-left
+**Text overlays (ASS subtitle format for ffmpeg):**
+- Font: Arial Black (Impact-weight, bold -1)
+- Colour: yellow (`&H0000FFFF` in ASS AABBGGRR format = #FFFF00)
+- Outline: black (`&H00000000`), 6px — essential for legibility over bright footage
+- Size: minimum 110px at 720px wide (PlayResX 720, PlayResY 1280 portrait). Do not go smaller — text reads as an afterthought at 78px or below.
+- Alignment: 2 (bottom-centre) unless overriding with `\an` tag
+- Two lines maximum — keep it punchy, not explanatory
 - No time claims for blueprint generation (takes up to 60 seconds in the app)
+- ASS style reference (720p portrait): `Style: Impact,Arial Black,110,&H0000FFFF,&H000000FF,&H00000000,&HA0000000,-1,0,0,0,100,100,0,0,1,6,2,2,30,30,100,1`
 
 **Hook structure:**
 - Frame 1 must be a pattern interrupt — moving train or strongest visual asset
@@ -567,7 +573,7 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 | iOS App Store (v1.0.7) | Live on App Store 2026-03-31. App Store name corrected to "LocoSnap". |
 | Render cold start | Resolved 2026-03-31 — upgraded to Starter ($7/month). Dyno stays live permanently. REACT-NATIVE-1 Sentry issue should stop recurring. |
 | Android APK for testers (v1.0.7) | Build 5 sent to 14 testers 2026-03-29, 2 new testers 2026-03-30 — APK: https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk |
-| Android v1.0.8 build pending | Language picker (EN/DE), camera gallery toggle, DB Class 101 data fixes all committed to main. `app.json` version bumped to 1.0.8. Run: `eas build --platform android --profile preview` from `frontend/`. |
+| Android v1.0.11 — awaiting Finnish tester confirmation | v1.0.11 sent to Finnish tester (vattuoula@gmail.com) 2026-04-01. Removes expo-localization entirely. If confirmed fixed, send to all 18 remaining testers (bilingual EN/DE, mention German language support). |
 | Android auto-submit to Play Store (v1.0.7) | Infrastructure set up (service account, API enabled, eas.json updated). Submit pending service account permission propagation. Retry: eas submit --platform android --profile production --id f040f353-97cf-4804-b1d6-11608f6706f0 --non-interactive. Note: do not commit eas.json with local absolute path to play-store-key.json — it will not exist in EAS Build environment. |
 | Competitor noted: Traintrack (traintrack.app) | iOS/Android, 557 followers TikTok, aggressive paywall, launched 2026. Monitor. |
 | Sentry source maps | Add SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT to EAS secrets |
