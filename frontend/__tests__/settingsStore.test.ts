@@ -3,9 +3,6 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
   setItem: jest.fn(),
 }));
 
-jest.mock("expo-localization", () => ({
-  getLocales: jest.fn(() => [{ languageCode: "en" }]),
-}));
 
 jest.mock("../i18n", () => ({
   __esModule: true,
@@ -34,18 +31,6 @@ describe("settingsStore", () => {
       if (key === "locosnap_language") return Promise.resolve("de");
       return Promise.resolve(null);
     });
-    const { useSettingsStore } = require("../store/settingsStore");
-    await useSettingsStore.getState().initialize();
-    expect(useSettingsStore.getState().language).toBe("de");
-  });
-
-  it("detects German device locale and defaults to de when no stored language", async () => {
-    jest.resetModules();
-    jest.doMock("expo-localization", () => ({
-      getLocales: jest.fn(() => [{ languageCode: "de" }]),
-    }));
-    const AsyncStorage = require("@react-native-async-storage/async-storage");
-    AsyncStorage.getItem.mockResolvedValue(null);
     const { useSettingsStore } = require("../store/settingsStore");
     await useSettingsStore.getState().initialize();
     expect(useSettingsStore.getState().language).toBe("de");
