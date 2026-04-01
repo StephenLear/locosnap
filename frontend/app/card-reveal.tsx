@@ -185,8 +185,13 @@ export default function CardRevealScreen() {
     });
   }, []);
 
+  // Prevent concurrent flips — native-driver animation + re-render can crash
+  const flipInProgress = useRef(false);
+
   // Flip animation
   const handleFlip = () => {
+    if (flipInProgress.current) return;
+    flipInProgress.current = true;
     const toValue = isFlipped ? 0 : 1;
     track("card_flipped");
     Animated.spring(flipAnim, {
@@ -194,7 +199,9 @@ export default function CardRevealScreen() {
       tension: 50,
       friction: 8,
       useNativeDriver: true,
-    }).start();
+    }).start(() => {
+      flipInProgress.current = false;
+    });
     setIsFlipped(!isFlipped);
   };
 
@@ -283,23 +290,26 @@ export default function CardRevealScreen() {
 
   const rarityColor = rarityColors[currentRarity.tier];
 
-  // Interpolations for flip
-  const frontInterpolate = flipAnim.interpolate({
+  // Interpolations for flip — memoised so they are not recreated on every
+  // re-render (e.g. when setIsFlipped fires mid-animation). Recreating
+  // interpolation objects while a native-driver animation is in flight
+  // can cause a crash on Android.
+  const frontInterpolate = useMemo(() => flipAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: ["0deg", "90deg", "180deg"],
-  });
-  const backInterpolate = flipAnim.interpolate({
+  }), []);
+  const backInterpolate = useMemo(() => flipAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: ["180deg", "270deg", "360deg"],
-  });
-  const frontOpacity = flipAnim.interpolate({
+  }), []);
+  const frontOpacity = useMemo(() => flipAnim.interpolate({
     inputRange: [0, 0.5, 0.5, 1],
     outputRange: [1, 1, 0, 0],
-  });
-  const backOpacity = flipAnim.interpolate({
+  }), []);
+  const backOpacity = useMemo(() => flipAnim.interpolate({
     inputRange: [0, 0.5, 0.5, 1],
     outputRange: [0, 0, 1, 1],
-  });
+  }), []);
 
   // Glow interpolation
   const glowRadius = glowAnim.interpolate({
