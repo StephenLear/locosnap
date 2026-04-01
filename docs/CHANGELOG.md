@@ -5,6 +5,31 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-01
+
+### Frontend
+
+#### `frontend/app/(tabs)/_layout.tsx` — Remove key={i18n.language} from Tabs to fix Android 16 launch crash
+- **Fixed** app crashing immediately on launch on Samsung S24 / Android 16 (reported by Finnish tester after installing v1.0.8). Root cause: `key={i18n.language}` was added to the `<Tabs>` component in the previous commit to force the tab navigator to remount on language change. On app startup, `settingsStore.initialize()` calls `i18n.changeLanguage()` which changes `i18n.language`, triggering a full unmount/remount of the gesture handler tree. Android 16 changed how predictive back gestures are handled, and `react-native-gesture-handler` 2.28.0 is not fully compatible with re-initialising the native gesture layer mid-startup, resulting in a native crash before Sentry initialises (explaining why nothing appeared in Sentry). Fixed by removing the `key` prop — `useTranslation()` is reactive and `t()` returns updated strings whenever `i18n.language` changes without requiring a remount, so live language switching still works correctly.
+- **Removed** `i18n` from `useTranslation()` destructuring (was only used for `i18n.language` in the key prop — no longer needed).
+- **Changed** `const { t, i18n } = useTranslation()` → `const { t } = useTranslation()`.
+
+#### `frontend/app.json` — Bump version to 1.0.9
+- **Changed** `version` from `"1.0.8"` to `"1.0.9"` for the hotfix build.
+
+#### `frontend/app/card-reveal.tsx` — Fix intermittent crash when flipping the rarity card
+- **Fixed** intermittent crash on Android when tapping the card to flip it. Two root causes: (1) the four flip interpolations (`frontInterpolate`, `backInterpolate`, `frontOpacity`, `backOpacity`) were derived via `flipAnim.interpolate(...)` in the render body, meaning new interpolation objects were created on every re-render — including the one triggered mid-animation by `setIsFlipped`. Recreating interpolation objects while a `useNativeDriver: true` animation is in flight can cause a native crash on Android. Fixed by wrapping all four interpolations in `useMemo` so they are created once and remain stable. (2) Rapid double-tapping could start two concurrent `Animated.spring` calls on the same value with `useNativeDriver: true`, also a crash vector. Fixed by adding a `flipInProgress` ref that blocks any new flip until the current spring animation completes.
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Add VR Finland fleet disambiguation (Sm3 Pendolino vs Dm12)
+- **Fixed** VR Sm3 (Pendolino) being misidentified as VR Dm12 (reported by Finnish tester). Root cause: no Finnish rolling stock disambiguation existed in the prompt; the AI had limited basis for distinguishing the two. Added a dedicated VR Finland fleet disambiguation rule covering: Sm3 (Pendolino) — Fiat Ferroviaria ETR 460 derivative, electric (pantograph present), tilting aerodynamic nose, white/red/blue livery, 6-car articulated, 220 km/h, in service since 1995; Dm12 — diesel DMU (no pantograph), older boxy design, entirely different body profile. Critical rules: if pantograph is visible it cannot be Dm12; Sm3 and Dm12 are visually very different and must not be confused. Also documents Sm5 (Stadler FLIRT, covered by existing FLIRT rule) and Sr3 (Siemens Vectron electric loco).
+
+#### `backend/src/services/rarity.ts` — Add freight service context to rarity classification
+- **Fixed** freight locomotives being classified as rare purely because they are uncommon on passenger trains (reported by Finnish tester). Root cause: the rarity prompt had no freight/passenger distinction — a Class 66 with 400+ units could be scored as rare because it rarely appears on passenger workings, despite being a common sight in freight service. Added two rules: (1) assess rarity across all service types — a high-fleet freight loco encountered regularly on freight routes should be "common" or "uncommon" regardless of passenger frequency; (2) the inverse also applies — a genuinely rare freight loco (small fleet, withdrawn, limited routes) should still be classified as such even if it never runs on passenger services.
+
+---
+
 ## 2026-03-31
 
 ### Frontend
@@ -75,6 +100,16 @@ Format: newest first within each date block.
 
 #### `backend/src/services/vision.ts` — Add locomotive vs EMU type classification guidance
 - **Fixed** DB Class 101 (and similar single-unit electric locos) being classified as `"EMU"` instead of `"Electric"`. Root cause: the prompt listed valid type values but gave no guidance on how to distinguish a single-unit electric locomotive (hauls separate coaches, Bo-Bo/Co-Co wheel arrangement) from an EMU (self-propelled articulated set with passenger seating inside the powered vehicles). Added three clarifying bullet points under the `"type"` rule: "Electric" for single traction units such as DB Class 101/103/120/185/187 and BR Class 90/91; "EMU" for self-propelled articulated sets such as ICE 3, Desiro, Talent, FLIRT, Velaro, Class 319/387; explicit prohibition against classifying a single-unit electric locomotive as EMU.
+
+#### `backend/src/services/vision.ts` — Add ICE 1/2 and NS ICNG disambiguation rules
+- **Fixed** ICE 1 (BR 401) being misidentified as BR 412 (ICE 4). Root cause: the pre-flight check only framed the decision as "ICE 3 family vs ICE 4" — BR 401/402 were never mentioned, so the model picked between those two options and landed on BR 412. Restructured the pre-flight check into a two-step process: Step 1 determines the ICE generation (rounded elongated bullet-like nose = ICE 1/2; sharp aerodynamic pointed nose = ICE 3 family; wide upright flat-fronted = ICE 4) before any ICE 3/4 sub-classification runs. Added explicit descriptions of BR 401 (14-car, separate power cars, 60 trainsets, blunt rounded tip, built 1991–1996) and BR 402 (half-set, one power car + Steuerwagen, 7 cars) with the critical rule: if the nose is a rounded bullet with a blunt tip and separate power cars are visible, it is ICE 1/2 — not ICE 3 and not BR 412.
+- **Fixed** NS ICNG (Intercity Nieuwe Generatie) being misidentified as VIRM and BR 186. Root cause: no Dutch NS EMU disambiguation existed in the prompt. The ICNG only entered service April 2023 and has limited AI training data. Added a dedicated disambiguation rule covering four NS EMU families: ICNG (single-deck, sharp V-shaped aerodynamic nose, Alstom Coradia Stream, in service from 2023), VIRM (double-deck — two stacked rows of windows, flat-fronted cab, 160 km/h), SLT (Sprinter Lighttrain, single-deck commuter), SGM (older Sprinter, boxy cab). Added critical rules: double-deck = VIRM; sharp modern angular nose = ICNG; BR 186 (Bombardier TRAXX freight/passenger loco) cannot be an NS passenger EMU under any circumstances.
+
+#### `backend/src/services/vision.ts` — Strengthen NS ICNG identification: NS pre-flight check + VT 650 exclusion
+- **Fixed** NS ICNG still being returned as VT 650 after initial disambiguation rule was added. Root cause: the VT 650 rule described "compact modern low-floor DMU with rounded modern cab" without any exclusion for Dutch NS trains — the model pattern-matched "modern rounded cab + yellow" to VT 650. Fixed by (1) adding a dedicated NS Yellow Train pre-flight check at the top of the prompt that fires on NS logo, Dutch station signage, or sharp V-nose on a yellow formation, mapping directly to ICNG / VIRM / SLT; (2) adding CRITICAL EXCLUSION to the VT 650 rule stating a long yellow NS-branded intercity formation can never be a VT 650; (3) expanding the ICNG disambiguation with the "Wesp" black/yellow nose pattern, 8-car formation context, and fleet number range (31xx).
+
+#### `backend/src/services/vision.ts` — Rewrite NS pre-flight check to use cab nose shape as primary ICNG discriminator
+- **Fixed** NS ICNG still returning as VIRM after pre-flight check was added. Root cause: the pre-flight check used side-window count (single vs double-deck) to distinguish ICNG from VIRM, but front-on photos do not show the coach sides — the model could not apply the rule. Rewrote Step A of the NS pre-flight to use cab front shape: ICNG has a pointed aerodynamic V-nose with a BLACK lower section (the "wasp" pattern), fleet numbers 31xx, year built ~2019; VIRM has a flat rectangular cab face, fleet numbers 86xx, year built 1994. Added explicit critical default rule: if the nose is clearly aerodynamic and pointed rather than flat and rectangular, return ICNG not VIRM — prevents the model defaulting to the historically better-known VIRM simply because the ICNG has less training data.
 
 ### Infrastructure
 
