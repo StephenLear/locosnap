@@ -184,6 +184,10 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // Class 810 Aurora — correct power and unit count
   "class 810": { power: "2,940 kW", numberBuilt: 33 },
   "br 810": { power: "2,940 kW", numberBuilt: 33 },
+  // BR Class 55 Deltic — Wikidata returns "Stadler Rail" (wrong — modern Swiss company)
+  "class 55": { builder: "English Electric / Vulcan Foundry" },
+  "class 55 deltic": { builder: "English Electric / Vulcan Foundry" },
+  "br class 55": { builder: "English Electric / Vulcan Foundry" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
