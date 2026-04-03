@@ -85,9 +85,9 @@ const PRO_FEATURES = [
     desc: "Detailed engineering diagrams for your collection",
   },
   {
-    icon: "heart",
-    label: "Support indie development",
-    desc: "Help keep LocoSnap running and improving",
+    icon: "albums",
+    label: "Full collection access",
+    desc: "Every train you've ever spotted, always accessible",
   },
 ];
 
@@ -174,10 +174,10 @@ export default function PaywallScreen() {
     const offerings = await getOfferings();
 
     if (offerings?.current?.availablePackages) {
-      // Sort: monthly first, then annual
+      // Sort: annual first (anchor effect — makes monthly look like a downgrade)
       const sorted = [...offerings.current.availablePackages].sort((a, b) => {
-        if (a.packageType === "MONTHLY") return -1;
-        if (b.packageType === "MONTHLY") return 1;
+        if (a.packageType === "ANNUAL" || a.identifier.includes("annual")) return -1;
+        if (b.packageType === "ANNUAL" || b.identifier.includes("annual")) return 1;
         return 0;
       });
       setPackages(sorted);
@@ -517,6 +517,19 @@ export default function PaywallScreen() {
             </>
           )}
         </TouchableOpacity>
+
+        {/* ── Safety triggers ───────────────────────────────── */}
+        <View style={styles.safetyRow}>
+          <View style={styles.safetyItem}>
+            <Ionicons name="close-circle-outline" size={14} color={colors.textMuted} />
+            <Text style={styles.safetyText}>Cancel anytime</Text>
+          </View>
+          <View style={styles.safetyDot} />
+          <View style={styles.safetyItem}>
+            <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} />
+            <Text style={styles.safetyText}>No commitment</Text>
+          </View>
+        </View>
 
         {/* ── Restore ───────────────────────────────────────── */}
         <TouchableOpacity
@@ -1006,6 +1019,30 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold,
     color: "#fff",
     letterSpacing: 0.3,
+  },
+
+  // Safety triggers
+  safetyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  safetyItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  safetyText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textMuted,
+  },
+  safetyDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: colors.textMuted,
   },
 
   // Restore

@@ -21,9 +21,13 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTrainStore } from "../../store/trainStore";
+import { useAuthStore } from "../../store/authStore";
 import { HistoryItem, RarityTier } from "../../types";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track } from "../../services/analytics";
+
+// Free users see this many collection cards before the upgrade prompt
+const FREE_COLLECTION_LIMIT = 3;
 
 // ── Rarity colour map ─────────────────────────────────────────
 
@@ -279,12 +283,58 @@ function HistoryCard({
   );
 }
 
+// ── Locked Collection Banner ──────────────────────────────────
+// Shown inline in the FlatList after FREE_COLLECTION_LIMIT items
+// for non-Pro users. Shows the count of locked trains to create
+// a loss-aversion trigger at the point of maximum collection size.
+
+function LockedCollectionBanner({
+  lockedCount,
+  onUpgrade,
+}: {
+  lockedCount: number;
+  onUpgrade: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={styles.lockedBanner}
+      onPress={onUpgrade}
+      activeOpacity={0.85}
+    >
+      {/* Stacked locked cards visual */}
+      <View style={styles.lockedCardStack}>
+        <View style={[styles.lockedCardBehind, { top: 8, left: 8 }]} />
+        <View style={[styles.lockedCardBehind, { top: 4, left: 4 }]} />
+        <View style={styles.lockedCardFront}>
+          <Ionicons name="lock-closed" size={22} color="#fff" />
+        </View>
+      </View>
+
+      <View style={styles.lockedTextBlock}>
+        <Text style={styles.lockedTitle}>
+          {lockedCount} train{lockedCount !== 1 ? "s" : ""} locked
+        </Text>
+        <Text style={styles.lockedSubtitle}>
+          Upgrade to Pro to access your full collection
+        </Text>
+      </View>
+
+      <View style={styles.lockedCta}>
+        <Text style={styles.lockedCtaText}>Continue</Text>
+        <Ionicons name="chevron-forward" size={14} color="#fff" />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 // ── Main Screen ───────────────────────────────────────────────
 
 export default function HistoryScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { history, removeFromHistory, viewHistoryItem, setCompareItems } = useTrainStore();
+  const { profile } = useAuthStore();
+  const isPro = profile?.is_pro ?? false;
 
   // Filter state
   const [activeRarityFilter, setActiveRarityFilter] =
@@ -766,8 +816,21 @@ export default function HistoryScreen() {
         </View>
       ) : (
         <FlatList
-          data={filteredHistory}
+          data={isPro ? filteredHistory : filteredHistory.slice(0, FREE_COLLECTION_LIMIT)}
           keyExtractor={(item) => item.id}
+          ListFooterComponent={
+            !isPro && filteredHistory.length > FREE_COLLECTION_LIMIT ? (
+              <LockedCollectionBanner
+                lockedCount={filteredHistory.length - FREE_COLLECTION_LIMIT}
+                onUpgrade={() => {
+                  track("collection_lock_tapped", {
+                    locked_count: filteredHistory.length - FREE_COLLECTION_LIMIT,
+                  });
+                  router.push("/paywall");
+                }}
+              />
+            ) : null
+          }
           renderItem={({ item }) => {
             const key = `${item.train.class}::${item.train.operator}`;
             const isCompareSelected = compareSelected.some((i) => i.id === item.id);
@@ -1205,5 +1268,78 @@ const styles = StyleSheet.create({
     top: spacing.sm,
     right: spacing.sm,
     padding: spacing.xs,
+  },
+
+  // Locked collection banner
+  lockedBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1a1f2e",
+    borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: "rgba(0, 212, 170, 0.3)",
+    padding: spacing.lg,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xl,
+    gap: spacing.md,
+  },
+  lockedCardStack: {
+    width: 52,
+    height: 52,
+    position: "relative",
+    flexShrink: 0,
+  },
+  lockedCardBehind: {
+    position: "absolute",
+    width: 40,
+    height: 44,
+    borderRadius: borderRadius.md,
+    backgroundColor: "rgba(0, 212, 170, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 212, 170, 0.2)",
+  },
+  lockedCardFront: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: 40,
+    height: 44,
+    borderRadius: borderRadius.md,
+    backgroundColor: "rgba(0, 212, 170, 0.18)",
+    borderWidth: 1.5,
+    borderColor: "rgba(0, 212, 170, 0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lockedTextBlock: {
+    flex: 1,
+  },
+  lockedTitle: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.bold,
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  lockedSubtitle: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+    lineHeight: 16,
+  },
+  lockedCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    backgroundColor: "rgba(0, 212, 170, 0.15)",
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: "rgba(0, 212, 170, 0.3)",
+  },
+  lockedCtaText: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
+    color: "#00D4AA",
   },
 });
