@@ -13,6 +13,7 @@
 
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 import { identifyTrainFromImage } from "../services/vision";
 import { getTrainSpecs } from "../services/trainSpecs";
 import { getTrainFacts } from "../services/trainFacts";
@@ -31,6 +32,21 @@ const VALID_LANGUAGES = ["en", "de"] as const;
 type Language = typeof VALID_LANGUAGES[number];
 
 const router = Router();
+
+// ── Rate limiting ───────────────────────────────────────────
+// 20 requests per IP per hour — enough for legitimate use,
+// blocks runaway abuse that burns Vision API credits.
+const identifyRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: "Too many scan requests. Please wait before trying again.",
+    data: null,
+  },
+});
 
 // Configure multer for image uploads (max 10MB)
 const upload = multer({
@@ -61,6 +77,7 @@ const upload = multer({
 
 router.post(
   "/",
+  identifyRateLimit,
   upload.single("image"),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const startTime = Date.now();
