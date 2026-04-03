@@ -17,11 +17,28 @@ jest.mock("../../store/settingsStore", () => ({
   },
 }));
 
-// Mock axios
+// Mock Supabase client — prevents "supabaseUrl is required" error in tests
+// and provides a no-session stub for the auth token interceptor
+jest.mock("../../config/supabase", () => ({
+  supabase: {
+    auth: {
+      getSession: jest.fn(() =>
+        Promise.resolve({ data: { session: null }, error: null })
+      ),
+    },
+  },
+}));
+
+// Mock axios — includes interceptors stub so api.ts can call
+// api.interceptors.request.use() without throwing
 jest.mock("axios", () => {
   const mockAxiosInstance = {
     post: jest.fn(),
     get: jest.fn(),
+    interceptors: {
+      request: { use: jest.fn() },
+      response: { use: jest.fn() },
+    },
   };
   return {
     create: jest.fn(() => mockAxiosInstance),
