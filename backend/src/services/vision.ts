@@ -204,6 +204,13 @@ async function identifyWithClaude(
         429
       );
     }
+
+    // Billing limit hit — silently fall back to OpenAI if available
+    if (status === 402 && config.hasOpenAI) {
+      console.warn("[VISION] Anthropic billing limit reached — falling back to OpenAI");
+      return identifyWithOpenAI(imageBuffer, mimeType);
+    }
+
     throw error;
   }
 }
