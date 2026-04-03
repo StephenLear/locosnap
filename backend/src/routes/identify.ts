@@ -26,10 +26,72 @@ import {
 } from "../services/trainCache";
 import { AppError } from "../middleware/errorHandler";
 import { trackServerEvent } from "../services/analytics";
+import { getSupabase } from "../config/supabase";
 import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo, BlueprintStyle } from "../types";
 
 const VALID_LANGUAGES = ["en", "de"] as const;
 type Language = typeof VALID_LANGUAGES[number];
+
+// Free users get 10 scans per calendar month (matches frontend MAX_MONTHLY_SCANS)
+const MAX_FREE_MONTHLY_SCANS = 10;
+
+// ── Server-side scan gate ───────────────────────────────────
+// Verifies the bearer token (if present) and checks the user's
+// monthly scan count against their plan. Fails open — any error
+// (Supabase down, invalid token, missing profile) allows the scan
+// through so legitimate users are never incorrectly blocked.
+// Unauthenticated requests (no token) are allowed here; the IP
+// rate limiter above handles trial-user abuse.
+async function checkScanAllowed(
+  req: Request
+): Promise<{ allowed: boolean; reason?: string }> {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { allowed: true }; // unauthenticated — rate limiter handles abuse
+  }
+
+  const token = authHeader.substring(7);
+  const supabase = getSupabase();
+  if (!supabase) return { allowed: true }; // Supabase not configured — allow
+
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
+
+    if (userError || !user) return { allowed: true }; // invalid token — allow
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_pro, daily_scans_used, daily_scans_reset_at")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile) return { allowed: true }; // no profile yet — allow
+    if (profile.is_pro) return { allowed: true }; // Pro = unlimited
+
+    // Check if we're in a new calendar month (reset resets the counter)
+    const resetAt = new Date(profile.daily_scans_reset_at);
+    const now = new Date();
+    const isNewMonth =
+      now.getMonth() !== resetAt.getMonth() ||
+      now.getFullYear() !== resetAt.getFullYear();
+    if (isNewMonth) return { allowed: true };
+
+    if (profile.daily_scans_used >= MAX_FREE_MONTHLY_SCANS) {
+      return {
+        allowed: false,
+        reason:
+          "Monthly scan limit reached. Upgrade to Pro for unlimited scans.",
+      };
+    }
+
+    return { allowed: true };
+  } catch {
+    return { allowed: true }; // fail open — never block on unexpected errors
+  }
+}
 
 const router = Router();
 
@@ -99,6 +161,19 @@ router.post(
         requestedLanguage && (VALID_LANGUAGES as readonly string[]).includes(requestedLanguage)
           ? (requestedLanguage as Language)
           : "en";
+
+      // ── Scan gate (server-side limit check) ───────────
+      const scanAllowed = await checkScanAllowed(req);
+      if (!scanAllowed.allowed) {
+        const response: IdentifyResponse = {
+          success: false,
+          data: null,
+          error: scanAllowed.reason || "Scan limit reached.",
+          processingTimeMs: Date.now() - startTime,
+        };
+        res.status(429).json(response);
+        return;
+      }
 
       // ── Step 1: Vision AI (always runs) ────────────────
       console.log("[IDENTIFY] Step 1: Identifying train via Vision AI...");

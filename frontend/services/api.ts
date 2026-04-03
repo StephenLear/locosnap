@@ -13,6 +13,7 @@ import {
 } from "../constants/api";
 import { IdentifyResponse, BlueprintStatus, BlueprintStyle } from "../types";
 import { useSettingsStore } from "../store/settingsStore";
+import { supabase } from "../config/supabase";
 
 // Max longest-edge dimension before we resize (keeps detail, cuts file size)
 const MAX_IMAGE_DIMENSION = 1920;
@@ -44,6 +45,16 @@ async function compressImageForUpload(uri: string): Promise<string> {
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 60000, // 60s for train identification (Claude can be slow)
+});
+
+// Inject Supabase access token on every request when a session exists.
+// This lets the backend enforce per-user scan limits server-side.
+api.interceptors.request.use(async (config) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    config.headers.Authorization = `Bearer ${session.access_token}`;
+  }
+  return config;
 });
 
 /**
@@ -106,9 +117,17 @@ async function identifyTrainWeb(
     formData.append("generateBlueprint", String(generateBlueprint));
     formData.append("language", language);
 
+    // Attach auth token if session exists
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {};
+    if (session?.access_token) {
+      headers.Authorization = `Bearer ${session.access_token}`;
+    }
+
     // Use native fetch — do NOT set Content-Type (browser adds boundary)
     const response = await fetch(`${API_BASE_URL}/api/identify`, {
       method: "POST",
+      headers,
       body: formData,
     });
 
