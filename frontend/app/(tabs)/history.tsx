@@ -26,8 +26,10 @@ import { HistoryItem, RarityTier } from "../../types";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track } from "../../services/analytics";
 
-// Free users see this many collection cards before the upgrade prompt
-const FREE_COLLECTION_LIMIT = 3;
+// Free users see this many collection cards before the upgrade prompt.
+// 5 is the research-backed optimum — enough to form a habit before the
+// lock triggers, without letting users feel satisfied indefinitely.
+const FREE_COLLECTION_LIMIT = 5;
 
 // ── Rarity colour map ─────────────────────────────────────────
 
