@@ -205,7 +205,7 @@ curl -X PATCH "https://vfzudbnmtwgirlrfoxpq.supabase.co/rest/v1/profiles?id=eq.<
 
 **Important:** After any signup wave (e.g. following a Pro access email to testers), re-run the bulk grant for all tester emails — new sign-ups will not have Pro until this is done. The service role key is in Render → locosnap-backend → Environment Variables → `SUPABASE_SERVICE_KEY`.
 
-**Automated monitor (active as of 2026-03-31):** A local scheduled task runs every 4 hours, checks whether any of the 9 outstanding testers have signed up, grants Pro automatically, and emails a summary to unsunghistories@proton.me. Task file: `/Users/StephenLear/.claude/scheduled-tasks/locosnap-tester-pro-monitor/SKILL.md`. Manage via the Scheduled tab in Claude Code sidebar. The monitor can be disabled once all 9 outstanding testers have signed up — it will notify when this happens.
+**Automated monitor (active as of 2026-03-31):** A local scheduled task runs every 4 hours, checks whether any outstanding testers have signed up, grants Pro automatically, and emails a summary to unsunghistories@proton.me. Task file: `/Users/StephenLear/.claude/scheduled-tasks/locosnap-tester-pro-monitor/SKILL.md`. Manage via the Scheduled tab in Claude Code sidebar. New testers added 2026-04-04: christian.grama@outlook.com and jannabywaniec@gmail.com — monitor will auto-grant Pro when they sign up in-app.
 
 ### Scan Limits (as of 2026-03-22)
 
@@ -350,6 +350,7 @@ Every APK shipped to testers must be recorded here on the day it is sent.
 | 2026-04-01 | v1.0.9 (preview build 5) | Remove key={i18n.language} from Tabs — attempted crash fix for Finnish tester (Samsung S24). Did not resolve crash. | https://expo.dev/artifacts/eas/bgSBn4vfGRTDzvdgubz3zy.apk | vattuoula@gmail.com (Finnish tester only) |
 | 2026-04-01 | v1.0.10 (preview build 5) | Remove expo-localization plugin from app.json — second crash fix attempt. Still crashed: package still installed, JS still calling native APIs. | https://expo.dev/artifacts/eas/wd4MkHy6AQwVGcxp1Wnqc7.apk | vattuoula@gmail.com (Finnish tester only) |
 | 2026-04-01 | v1.0.11 (preview build 5) | Remove expo-localization package entirely — correct fix. App defaults to EN on first launch; user switches to DE via picker. No native locale detection at startup. | https://expo.dev/artifacts/eas/451HLSXRSRiqoFAMpfm4sy.apk | vattuoula@gmail.com (Finnish tester only) |
+| 2026-04-03 | v1.0.11 (preview — notification crash fix) | Notification launch crash fix: wrapped entire registerForPushNotifications() in top-level try/catch — getExpoPushTokenAsync and setNotificationChannelAsync now isolated so native exceptions on Samsung/Android 12+ devices cannot crash the app. Also includes: collection lock gate (free users see 5 scans), paywall improvements (annual first, Continue CTA, safety triggers, Full collection access copy), server-side scan gate auth token injection, IP rate limit (20/hour). | https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/9e803686-c11a-4285-bbbc-5b1253cc9ba6 | vattuoula@gmail.com (Finnish tester only — awaiting confirmation) |
 
 ---
 
@@ -449,12 +450,14 @@ FRONTEND_URL=https://locosnap.app
 
 ## 19. Beta Testers
 
-### Android Testers (19) — notified by email
+### Android Testers (21) — notified by email
 - aylojasimir@gmail.com
+- christian.grama@outlook.com (Christian-Gabriel — German, recruited via EU07 TikTok 2026-04-04 — added to Play Console closed testing, awaiting opt-in and in-app signup for Pro)
 - dieterbrandes6@gmail.com (locosnapwerbung — organic TikTok promoter, recruited 2026-03-30)
 - esseresser07@gmail.com
 - gazthomas@hotmail.com
 - gerlachr70@gmail.com (Nero — German ICE enthusiast, recruited via Frankfurt TikTok/Instagram ad 2026-03-26)
+- jannabywaniec@gmail.com (Jan — Polish, recruited via TikTok 2026-04-04 — added to Play Console closed testing, awaiting opt-in and in-app signup for Pro)
 - jlison1154@gmail.com
 - joshimosh2607@gmail.com (recruited 2026-03-30)
 - krawiec.jr69@gmail.com (recruited 2026-03-30)
