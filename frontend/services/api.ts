@@ -17,6 +17,9 @@ import { supabase } from "../config/supabase";
 
 // Max longest-edge dimension before we resize (keeps detail, cuts file size)
 const MAX_IMAGE_DIMENSION = 1920;
+
+/** Wait ms milliseconds — used for connection retry backoff */
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // JPEG quality for upload (0.0–1.0)
 const UPLOAD_QUALITY = 0.75;
 
@@ -124,22 +127,37 @@ async function identifyTrainWeb(
       headers.Authorization = `Bearer ${session.access_token}`;
     }
 
-    // Use native fetch — do NOT set Content-Type (browser adds boundary)
-    const response = await fetch(`${API_BASE_URL}/api/identify`, {
-      method: "POST",
-      headers,
-      body: formData,
-    });
+    const attemptFetch = async () => {
+      // Use native fetch — do NOT set Content-Type (browser adds boundary)
+      const response = await fetch(`${API_BASE_URL}/api/identify`, {
+        method: "POST",
+        headers,
+        body: formData,
+      });
 
-    const data: IdentifyResponse = await response.json();
+      const data: IdentifyResponse = await response.json();
 
-    if (!response.ok) {
-      throw new Error(
-        (data as any).error || `Request failed with status ${response.status}`
-      );
+      if (!response.ok) {
+        throw new Error(
+          (data as any).error || `Request failed with status ${response.status}`
+        );
+      }
+
+      return data;
+    };
+
+    try {
+      return await attemptFetch();
+    } catch (error) {
+      // If the error has a message already set (server error, scan limit, etc.)
+      // re-throw immediately without retrying
+      if (error instanceof Error && error.message !== "Failed to fetch") {
+        throw error;
+      }
+      // Connection error — silent retry after 3s
+      await sleep(3000);
+      return await attemptFetch();
     }
-
-    return data;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -180,7 +198,7 @@ async function identifyTrainNative(
   formData.append("generateBlueprint", String(generateBlueprint));
   formData.append("language", language);
 
-  try {
+  const attemptRequest = async () => {
     const response = await api.post<IdentifyResponse>(
       "/api/identify",
       formData,
@@ -189,22 +207,39 @@ async function identifyTrainNative(
       }
     );
     return response.data;
+  };
+
+  try {
+    return await attemptRequest();
   } catch (error) {
     const axiosError = error as AxiosError<{ error: string }>;
 
+    // Server responded with an error — don't retry, surface immediately
     if (axiosError.response?.data?.error) {
       throw new Error(axiosError.response.data.error);
     }
 
+    // Timeout — don't retry, surface immediately
     if (axiosError.code === "ECONNABORTED") {
       throw new Error(
         "Request timed out. Please check your connection and try again."
       );
     }
 
-    throw new Error(
-      "Could not connect to LocoSnap servers. Please try again later."
-    );
+    // Connection error (no response at all) — silent retry after 3s.
+    // Covers the Render restart window during deploys.
+    try {
+      await sleep(3000);
+      return await attemptRequest();
+    } catch (retryError) {
+      const retryAxiosError = retryError as AxiosError<{ error: string }>;
+      if (retryAxiosError.response?.data?.error) {
+        throw new Error(retryAxiosError.response.data.error);
+      }
+      throw new Error(
+        "Could not connect to LocoSnap servers. Please try again later."
+      );
+    }
   }
 }
 
