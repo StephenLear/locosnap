@@ -7,6 +7,20 @@ Format: newest first within each date block.
 
 ## 2026-04-04
 
+### Backend
+
+#### `backend/src/services/vision.ts` — EU07 family production types fully disambiguated
+- **Changed** EU07 rule now distinguishes two separate manufacturing runs: Pafawag type 4E (1965–1977, fleet numbers 001–251) and HCP Poznan type 303E (1983–1992, fleet numbers 301+). Previously treated as one undifferentiated class. Fleet number range is now the primary sub-type identifier.
+- **Changed** EU07A clarified as 303E units with further traction upgrades (3.2 MW, 160 km/h) — not retrofits of 4E units.
+- **Changed** EP07 clarified as a designation reclassification only (universal → passenger-only service), not a physical rebuild. Same locomotive, same specs, different official designation.
+- **Added** CRITICAL RULE using fleet number ranges: 001–251 = Pafawag 4E, 301+ = HCP 303E, EU07A-0XX = 303E modernised with upgraded specs.
+- **Root cause** Polish rail enthusiast TikTok commenter provided authoritative production history — the two factory runs differ in appearance, weight, and manufacturer and must be treated as distinct sub-types.
+
+#### `backend/src/services/vision.ts` — EU07A type 303e (HCP Poznan modernisation) specs added
+- **Added** EU07A-001 / type 303e detail to the EU07/EP07/EP09 disambiguation rule — the 303e modernisation by HCP Poznan gives substantially upgraded specs: 3.2 MW continuous power and 160 km/h max speed, both significantly higher than the standard EU07 (~2.0 MW, 125 km/h). Revised pantograph equipment also noted as a visual identifier.
+- **Added** CRITICAL RULE (5) to EU07 block — if fleet number begins "EU07A-", classify as EU07A; if identifiable as 303e type, apply upgraded specs rather than standard EU07 figures.
+- **Root cause** Polish TikTok commenter on the ET22/EU07 video correctly identified that EU07A-001 is a different category — HCP modernisation, 3.2 MW, 160 km/h. Without this rule the AI would return standard EU07 specs for all EU07A variants.
+
 ### Frontend
 
 #### `frontend/i18n/index.ts` — Deferred i18n initialisation to prevent startup crash on Android 16

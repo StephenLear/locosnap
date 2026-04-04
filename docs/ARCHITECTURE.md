@@ -333,8 +333,8 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | Local dev build | Not yet built. Run `eas build --profile development --platform ios` once to install it. After that, `npx expo start --dev-client` pushes code changes instantly without rebuilding. **Build this before the next debugging session to avoid wasting TestFlight builds.** |
 | Expo Go limitations | Two errors appear when testing via Expo Go — these are NOT code bugs and do NOT appear in TestFlight: (1) RevenueCat "invalid API key" — Expo Go has no native store access; (2) Worklets mismatch 0.7.4 vs 0.5.1 — Expo Go bundles an older version. Both are resolved in any real build. |
 | Latest iOS Build | Build 36 (v1.0.7) — Submitted to TestFlight 2026-03-29 — IPA: https://expo.dev/artifacts/eas/8nVgpTxYmZhoRKosrpxybn.ipa |
-| Latest Android Production Build | Build 4 (v1.0.6) AAB — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/f040f353-97cf-4804-b1d6-11608f6706f0 — submit to internal track pending service account permission propagation |
-| Latest Android Preview Build | Build 4 (v1.0.6) APK — https://expo.dev/artifacts/eas/uiYbj1NQVidPWUR3JhuQqW.apk |
+| Latest Android Production Build | v1.0.12 AAB — built 2026-04-04 — https://expo.dev/artifacts/eas/b7vibXRj4gF4d987m9u25o.aab — NOT yet pushed to Play Store (awaiting Finnish tester crash confirmation) |
+| Latest Android Preview Build | v1.0.12 APK — https://expo.dev/artifacts/eas/8HWy5JKVxfNta337fvb1M7.apk — sent to vattuoula 2026-04-05 for crash fix confirmation. Not sent to all testers yet. |
 
 ### Android APK Build History
 
@@ -351,6 +351,7 @@ Every APK shipped to testers must be recorded here on the day it is sent.
 | 2026-04-01 | v1.0.10 (preview build 5) | Remove expo-localization plugin from app.json — second crash fix attempt. Still crashed: package still installed, JS still calling native APIs. | https://expo.dev/artifacts/eas/wd4MkHy6AQwVGcxp1Wnqc7.apk | vattuoula@gmail.com (Finnish tester only) |
 | 2026-04-01 | v1.0.11 (preview build 5) | Remove expo-localization package entirely — correct fix. App defaults to EN on first launch; user switches to DE via picker. No native locale detection at startup. | https://expo.dev/artifacts/eas/451HLSXRSRiqoFAMpfm4sy.apk | vattuoula@gmail.com (Finnish tester only) |
 | 2026-04-03 | v1.0.11 (preview — notification crash fix) | Notification launch crash fix: wrapped entire registerForPushNotifications() in top-level try/catch — getExpoPushTokenAsync and setNotificationChannelAsync now isolated so native exceptions on Samsung/Android 12+ devices cannot crash the app. Also includes: collection lock gate (free users see 5 scans), paywall improvements (annual first, Continue CTA, safety triggers, Full collection access copy), server-side scan gate auth token injection, IP rate limit (20/hour). | https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/9e803686-c11a-4285-bbbc-5b1253cc9ba6 | vattuoula@gmail.com (Finnish tester only — awaiting confirmation) |
+| 2026-04-04 | v1.0.12 (preview — Android 16 crash fix) | Android 16 startup crash fix: i18n init moved from module-level side effect into useEffect so it no longer runs during JS bundle evaluation in interpreted mode (confirmed Samsung S24 crash pattern). registerForPushNotifications() further hardened. Remove captureWarning for failed identifications (Sentry noise). EU07A type 303e specs (3.2 MW, 160 km/h) added to vision prompt. | https://expo.dev/artifacts/eas/8HWy5JKVxfNta337fvb1M7.apk | vattuoula@gmail.com (Finnish tester only — crash fix confirmation required before wider release) |
 
 ---
 
