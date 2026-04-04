@@ -25,7 +25,7 @@ import {
   wrap,
 } from "../services/analytics";
 import { initPurchases } from "../services/purchases";
-import "../i18n";
+import { initI18n } from "../i18n";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -75,8 +75,13 @@ function RootLayout() {
   const languageChosen = useSettingsStore((state) => state.languageChosen);
   const settingsLoading = useSettingsStore((state) => state.isLoading);
 
-  // Initialise settings store (language preference + chosen flag) on mount
+  // Initialise i18n then settings store on mount.
+  // initI18n() must run before initializeSettings() because settingsStore.initialize()
+  // calls i18n.changeLanguage() — which requires i18n to already be initialised.
+  // Previously `import "../i18n"` ran init as a module-level side effect, which could
+  // crash on Android 16 (Samsung) where the JS bundle is evaluated in interpreted mode.
   useEffect(() => {
+    initI18n();
     initializeSettings();
   }, [initializeSettings]);
 

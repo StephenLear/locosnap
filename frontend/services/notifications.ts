@@ -14,64 +14,78 @@ import { supabase } from "../config/supabase";
 export async function registerForPushNotifications(
   userId?: string
 ): Promise<string | null> {
-  // Only real devices can receive push notifications
-  if (!Device.isDevice) {
-    console.log("[NOTIFICATIONS] Must use physical device for push");
-    return null;
-  }
-
-  // Configure notification handling (must be inside lifecycle, not module scope)
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
-  });
-
-  // Check existing permissions
-  const { status: existingStatus } =
-    await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-
-  // Request if not already granted
-  if (existingStatus !== "granted") {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (finalStatus !== "granted") {
-    console.log("[NOTIFICATIONS] Permission not granted");
-    return null;
-  }
-
-  // Android notification channel
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "LocoSnap",
-      importance: Notifications.AndroidImportance.DEFAULT,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#FF6B00",
-    });
-  }
-
-  // Get the push token
+  // Wrap the entire function — notification setup must never crash the app.
+  // On some Samsung/Android devices getExpoPushTokenAsync throws a native error
+  // that bypasses JS catch blocks if not wrapped at the top level.
   try {
-    const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: "84584853-524a-44eb-bdad-3d57e1e4ea28",
-    });
-    const token = tokenData.data;
-
-    // Save token to user's profile (for future server-sent notifications)
-    if (userId) {
-      await savePushToken(userId, token);
+    // Only real devices can receive push notifications
+    if (!Device.isDevice) {
+      console.log("[NOTIFICATIONS] Must use physical device for push");
+      return null;
     }
 
-    return token;
+    // Configure notification handling (must be inside lifecycle, not module scope)
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+
+    // Check existing permissions
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    // Request if not already granted
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== "granted") {
+      console.log("[NOTIFICATIONS] Permission not granted");
+      return null;
+    }
+
+    // Android notification channel
+    if (Platform.OS === "android") {
+      try {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "LocoSnap",
+          importance: Notifications.AndroidImportance.DEFAULT,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: "#FF6B00",
+        });
+      } catch (channelError) {
+        console.warn("[NOTIFICATIONS] Failed to set Android channel:", channelError);
+        // Non-fatal — continue without channel
+      }
+    }
+
+    // Get the push token
+    try {
+      const tokenData = await Notifications.getExpoPushTokenAsync({
+        projectId: "84584853-524a-44eb-bdad-3d57e1e4ea28",
+      });
+      const token = tokenData.data;
+
+      // Save token to user's profile (for future server-sent notifications)
+      if (userId) {
+        await savePushToken(userId, token);
+      }
+
+      return token;
+    } catch (tokenError) {
+      console.warn("[NOTIFICATIONS] Failed to get push token:", tokenError);
+      return null;
+    }
   } catch (error) {
-    console.warn("[NOTIFICATIONS] Failed to get push token:", error);
+    // Top-level catch — ensures notification failures can never crash the app
+    console.warn("[NOTIFICATIONS] registerForPushNotifications failed silently:", error);
     return null;
   }
 }

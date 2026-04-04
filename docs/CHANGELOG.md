@@ -5,6 +5,117 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-04
+
+### Frontend
+
+#### `frontend/i18n/index.ts` — Deferred i18n initialisation to prevent startup crash on Android 16
+- **Changed** `i18n.use(initReactI18next).init({...})` was running as a module-level side effect (executed at JS bundle evaluation time, before any component mounts or any native bridge call completes). Moved into an exported `initI18n()` function that is called explicitly at runtime.
+- **Added** `initImmediate: false` option — makes the init synchronous so `i18n.changeLanguage()` (called immediately after by `settingsStore.initialize()`) can run without awaiting a promise.
+- **Added** `if (i18n.isInitialized) return` guard — prevents double-init if `initI18n()` is ever called more than once.
+- **Root cause** Finnish tester (Samsung S24, Android 16) experienced a repeating startup crash (<0.3 s, crash loop, no error dialog) on every build from v1.0.8 onwards. Samsung bug report confirmed `data_app_crash` (Java managed exception) and artd logs showed the app running in interpreted mode (`filter 'verify' executable 'false'`). Native module set is identical to stable v1.0.7 — the only new code is `i18next` + `react-i18next`. Module-level JS init during interpreted bundle evaluation on Android 16 was the prime suspect. Moving init out of module scope and into a useEffect eliminates this.
+
+#### `frontend/app/_layout.tsx` — Wire deferred i18n init into settings useEffect
+- **Changed** `import "../i18n"` (module-level side-effect import that triggered init at bundle load) replaced with `import { initI18n } from "../i18n"` (named import only, no side effects).
+- **Changed** Settings useEffect now calls `initI18n()` before `initializeSettings()` — order is critical because `settingsStore.initialize()` calls `i18n.changeLanguage()`, which requires i18n to already be initialised.
+
+#### `backend/src/services/vision.ts` — Class 197 and Class 805/807 disambiguation added
+- **Added** Class 197 vs Class 158 rule — the CAF Class 197 (TfW diesel Civity DMU, 2022+) was being returned as Class 158 (BR-era Sprinter DMU). Rule covers TfW red livery, modern CAF Civity nose, and absence of pantograph as the key identifiers distinguishing 197 from the older flat-fronted 158.
+- **Added** Class 802 vs Class 805/807 rule — Avanti West Coast Hitachi AT300 variants (805 = 5-car bi-mode, 807 = 9-car electric) were being returned as Class 802 (GWR AT300). All share the same Hitachi platform; livery is the primary identifier — Avanti blue vs GWR green. Reported by UK tester (ProposedLines).
+
+#### `backend/src/services/vision.ts` — CAF Class 756 disambiguation added
+- **Added** Class 756 vs Class 700 vs Class 117 disambiguation rule — the CAF Class 756 (TfW bi-mode, 2022+, red livery) was being misidentified as Class 700 (Siemens Thameslink EMU, blue/white, England only) and Class 117 (1960s Pressed Steel DMU, completely different era). Rule covers TfW red livery, squared CAF Civity nose, and Welsh operation as key identifying signals. Explicitly blocks both incorrect classes. Reported by UK tester (ProposedLines).
+
+#### `frontend/services/api.ts` — Silent 3s retry on connection errors
+- **Added** `sleep()` helper for retry backoff.
+- **Changed** `identifyTrainNative()` — on connection failure (no response from server), waits 3 seconds and retries once silently before surfacing the error to the user. Server errors, timeouts, and scan limit 429s still fail immediately without retry.
+- **Changed** `identifyTrainWeb()` — same retry logic for the fetch-based web path. Retries only on "Failed to fetch" (connection refused); all other errors re-throw immediately.
+- **Root cause** REACT-NATIVE-1 "Could not connect" errors spike after every backend deploy because Render has a ~15–30s restart window. The retry covers this window silently.
+
+#### `backend/src/services/vision.ts` — ET22 specs corrected
+- **Changed** ET22 disambiguation rule — added correct technical specs: max speed 125 km/h, continuous power 3000 kW. Confirmed by Polish TikTok commenter (previous prompt had no speed figure; 125 km/h is the correct ET22 figure, not 120 as tentatively noted in a previous session).
+
+#### `backend/src/services/vision.ts` — Class 97/3 and track maintenance vehicle disambiguation
+- **Added** Class 37 vs Class 97/3 disambiguation rule — the 4 Class 97/3 locos (97301–97304) are Network Rail rebuilds of Class 37s used for ERTMS trials on the Cambrian line; mechanically identical to Class 37 but identified by fleet number (97/3xx) and plain NR yellow livery. If Colas, DRS, or heritage livery is visible it is a standard Class 37.
+- **Added** Track maintenance vehicle rule — tampers (Plasser & Theurer, Matisa), ballast regulators, stoneblowers, and rail grinders should be identified as their actual type (e.g. "Plasser & Theurer Tamper") not guessed as a TOPS locomotive class. Triggered by visible working machinery dominating the upper body profile. Root cause: UK tester (ProposedLines) submitted a Tamper photo that was returned as "Class 20", and a Class 97/3 that was returned as "Class 37".
+
+#### `frontend/app/(tabs)/index.tsx` — Remove Sentry captureWarning for failed identifications
+- **Removed** `captureWarning(message, { context: "handleScan" })` call when scan returns "Could not identify a train" — this is expected product behaviour (unclear photo, not a train), not an error. Was generating Sentry issues REACT-NATIVE-5 and REACT-NATIVE-7 as persistent noise that regressed every time a legitimate failed scan occurred.
+- **Removed** `captureWarning` from the analytics import — no longer used anywhere in the file.
+- **Changed** Condition inverted — `captureError` now fires for all errors that are NOT "Could not identify" messages. Real errors (network failures, server errors) still reported to Sentry.
+
+---
+
+## 2026-04-03
+
+### Frontend
+
+#### `frontend/services/notifications.ts` — Prevent launch crash on Samsung/Android devices
+- **Fixed** App crashing at launch on Samsung Android (confirmed Finnish tester, Samsung device) — root cause was `getExpoPushTokenAsync` and `setNotificationChannelAsync` throwing native errors on certain Samsung/Android configurations that bypass JS catch blocks when not wrapped at the top level.
+- **Changed** Wrapped entire `registerForPushNotifications()` body in a top-level try/catch — notification failures now log a warning and return `null` silently. The app continues loading regardless of notification setup outcome.
+- **Added** Inner try/catch around `setNotificationChannelAsync` specifically — Android channel creation is now independently isolated so a channel failure does not prevent the permission request or token fetch from running.
+- **Root cause** The outer `.catch(() => {})` in `_layout.tsx` only catches JS-level promise rejections. On some Samsung devices running Android 12+, the Expo notifications native module throws before the JS bridge can catch it, causing an unhandled native exception that Android reports as "LocoSnap pysähtyy toistuvasti" (keeps stopping). The fix wraps at the function level so any error path returns null safely.
+
+### Frontend
+
+#### `frontend/app/(tabs)/history.tsx` — Raise FREE_COLLECTION_LIMIT from 3 to 5
+- **Changed** `FREE_COLLECTION_LIMIT` from `3` to `5` — research (Greg/Planta case study) shows 3 feels punitive before the user has understood the app's value. 5 gives enough scans to form a habit and feel invested before the lock triggers.
+
+#### `frontend/app/(tabs)/history.tsx` — Collection lock gate for free users
+- **Added** `FREE_COLLECTION_LIMIT = 3` constant — free users see only their 3 most recent scans.
+- **Added** `LockedCollectionBanner` component — shown inline as FlatList footer when free user has more than 3 scans. Displays a stacked locked-card visual, the count of inaccessible trains ("X trains locked"), and a "Continue" CTA that routes to the paywall.
+- **Changed** FlatList `data` prop — sliced to `FREE_COLLECTION_LIMIT` for non-Pro users, full array for Pro. `ListFooterComponent` conditionally renders the locked banner.
+- **Added** `collection_lock_tapped` analytics event — fires with `locked_count` when banner is tapped.
+- **Root cause** Free users had no in-app reason to upgrade — the collection is the core long-term value and locking it creates loss-aversion at the point of maximum engagement.
+
+#### `frontend/app/paywall.tsx` — Paywall conversion improvements
+- **Changed** Plan sort order — annual now sorts first (anchor effect makes monthly look like a downgrade). Previously monthly sorted first.
+- **Changed** "Support indie development" feature item → "Full collection access" with desc "Every train you've ever spotted, always accessible". Removes charity framing, replaces with user-benefit framing.
+- **Added** Safety triggers row between CTA and Restore button — "Cancel anytime" and "No commitment" with icons, reduces hesitation at point of purchase.
+
+#### `frontend/locales/en.json` + `frontend/locales/de.json` — CTA copy change
+- **Changed** `paywall.subscribe` from "Subscribe" → "Continue" (EN) and "Abonnieren" → "Weiter" (DE). "Continue" implies mid-flow completion rather than a buying commitment — removes psychological friction at the CTA.
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Fall back to OpenAI when Anthropic billing limit is hit
+- **Added** Catch for HTTP 402 in `identifyWithClaude()` — if Anthropic returns a billing error and `OPENAI_API_KEY` is configured, the request is retried silently with `identifyWithOpenAI()`. Users see no error.
+- **Root cause** The existing multi-provider support was a startup-time selection only (use whichever key is configured). A 402 from Anthropic previously propagated as a server error to the user. This closes the gap so a depleted Anthropic balance never causes visible failures as long as an OpenAI key is present on Render.
+
+### Frontend
+
+#### `frontend/__tests__/services/api.test.ts` — Fix CI test failure caused by new supabase import
+- **Added** `jest.mock("../../config/supabase", ...)` — stubs the Supabase client with a no-session `getSession()` mock. Prevents "supabaseUrl is required" error when the test suite imports `api.ts`, which now imports the Supabase client for the auth token interceptor.
+- **Added** `interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } }` to the axios mock instance — `api.ts` now calls `api.interceptors.request.use()` on module load; without this stub the test suite threw on import.
+- **Root cause** The server-side scan gate changes added a Supabase import and an axios interceptor to `api.ts`. The test file had no mocks for either, causing the entire test suite to fail to run (not individual test failures — module load error).
+
+### Backend
+
+#### `backend/src/routes/identify.ts` — Add server-side monthly scan gate for free users
+- **Added** `checkScanAllowed()` function — verifies the bearer token via Supabase, fetches the user profile, and blocks free users who have used all 10 monthly scans before the Vision API is called. Returns HTTP 429 with `"Monthly scan limit reached. Upgrade to Pro for unlimited scans."` Fails open on any error (Supabase down, invalid token, missing profile) so legitimate users are never incorrectly blocked.
+- **Changed** Free user abuse vector closed — previously the 10-scan monthly limit existed only in frontend `canScan()` and could be bypassed by calling the Render URL directly. The gate now runs server-side before Vision is invoked.
+
+#### `frontend/services/api.ts` — Send Supabase auth token with every identify request
+- **Added** Axios interceptor that reads the current Supabase session and injects `Authorization: Bearer <access_token>` on every request when a session exists. Applied to the axios instance (native iOS/Android path).
+- **Added** Same token injection to the `identifyTrainWeb()` function (web path uses native fetch, not axios). Token is added to the fetch `headers` object when session exists.
+- **Changed** Previously the backend received no auth information — all identify requests were anonymous regardless of whether the user was signed in or not.
+
+#### `backend/src/routes/identify.ts` — Add IP-based rate limiting to scan endpoint
+- **Added** `express-rate-limit` middleware applied to `POST /api/identify` — 20 requests per IP per hour. Returns HTTP 429 with `{ success: false, error: "Too many scan requests. Please wait before trying again." }` when exceeded.
+- **Root cause** Anthropic API balance was exhausted because the `/api/identify` endpoint had no server-side protection. Vision fires on every scan regardless of cache, and with no rate limit any client (or anyone with the Render URL) could trigger unlimited Vision API calls. Client-side scan limits (3 trial / 10 monthly) could be bypassed entirely by calling the endpoint directly.
+
+#### `backend/package.json` + `backend/package-lock.json` — Add express-rate-limit dependency
+- **Added** `express-rate-limit` package (2 packages total added).
+
+#### `backend/src/services/vision.ts` — Expand Polish electric locomotive coverage in vision prompt
+- **Changed** EU07/EU07A disambiguation rule — expanded to cover the full EU07 family (EU07, EU07A, EP07, EP09) in a single consolidated rule. Previous rule only covered EU07 and EU07A.
+- **Added** Rail Polska livery context — explicitly documents that Rail Polska is a private Polish freight operator using EU07-class locos in a distinctive bright red body with yellow horizontal stripe and "RAIL POLSKA" text. Fixes identification failures where the model could not associate this unusual livery with the EU07 class.
+- **Added** EP09 disambiguation — Bo'Bo' electric passenger loco built 1986–1994, identified by a prominent row of oval porthole windows along the upper bodyside. Critical rule added: if oval porthole windows are visible in a row, classify as EP09, not EU07. Previously missing from the prompt entirely.
+- **Added** ET22 disambiguation — Co-Co heavy freight electric loco built 1969–1990, one of Poland's most numerous classes. Distinguished from the EU07 family by its six-axle Co-Co wheel arrangement vs the EU07's four-axle Bo-Bo. Previously missing from the prompt entirely.
+- **Root cause** Tester (Foxiar) submitted a Rail Polska-liveried electric loco and received no identification result. Model was returning null because the red/yellow Rail Polska livery did not match any known EU07 operator context in the prompt, and EP09/ET22 had no rules at all. Polish audience represents 9–22% of video viewers across multiple videos, making Polish loco accuracy a priority.
+
+---
+
 ## 2026-04-01
 
 ### Frontend (v1.0.11)
