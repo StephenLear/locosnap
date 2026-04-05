@@ -5,6 +5,27 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-05
+
+### Frontend
+
+#### `frontend/services/notifications.ts` — Skip FCM token fetch on Android (v1.0.13)
+- **Fixed** Native crash on Android when user grants notification permission. Root cause: `getExpoPushTokenAsync()` triggers a Firebase Cloud Messaging (FCM) JNI native call that throws an unrecoverable exception on Android 16, killing the process before JS error handling can run. Confirmed by tester vattuoula (Samsung S24, Android 16) — crash occurred immediately after tapping "Allow" on the notification permission dialog.
+- **Changed** `getExpoPushTokenAsync()` is now skipped entirely on Android (`Platform.OS === 'android'`) and returns `null`. The function returns early after requesting permission without attempting the FCM token fetch. This is safe because push notifications are not yet live in the backend — no tokens are consumed anywhere.
+- **Changed** Version bumped to v1.0.13 in `app.json`.
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Newag 48WE Elf 2 disambiguation added
+- **Added** Identification rule for the Newag 48WE Elf 2 Polish EMU. Without this rule the AI was returning ÖBB Class 814 (Czech/Austrian Regionova DMU) for the 48WE — a completely wrong class, wrong country, wrong traction type. Rule covers the 48WE's distinctive Newag nose profile, green/white PKP Intercity or regional liveries, and EMU (electric) traction as primary identifiers distinguishing it from the visually dissimilar Class 814.
+- **Root cause** Polish tester submitted a photo of the 48WE Elf 2; app returned ÖBB Class 814. No Polish EMU coverage existed in the prompt for Newag products.
+
+#### `backend/src/services/vision.ts` — BR Standard Class 5MT vs 4MT fleet number disambiguation added
+- **Added** Fleet number range rule for BR Standard tender locomotives: 73xxx (73000–73171) = Class 5MT, 75xxx (75000–75079) = Class 4MT. These two classes share similar external appearance (both Riddles-designed BR Standard steam, both 4-6-0 wheel arrangement) but are distinct classes with different power ratings and driving wheel diameters. Fleet number is definitive and must take priority over visual identification.
+- **Root cause** UK heritage railway tester reported the app identified loco 73156 as Class 4MT. Fleet number 73156 is unambiguously Class 5MT. No fleet number disambiguation existed for the BR Standard family.
+
+---
+
 ## 2026-04-04
 
 ### Backend

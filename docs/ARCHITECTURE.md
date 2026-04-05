@@ -74,6 +74,10 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 - DB/DR Class 156 — maxSpeed 120 km/h, power 6,360 kW, weight 123 t, builder LEW Hennigsdorf, 186 built, Electric (15kV 16.7Hz AC), status Withdrawn
 - BR 412 (ICE 4) — maxSpeed 250 km/h, power 7,440 kW, 108 built
 
+**Vision prompt disambiguation rules added 2026-04-05:**
+- **Newag 48WE Elf 2** — Polish EMU (green/white PKP liveries, Newag nose profile, electric traction). Was being returned as ÖBB Class 814 (Czech/Austrian Regionova DMU — wrong country, wrong traction). Fleet number range 48WE-xxx is definitive.
+- **BR Standard 5MT vs 4MT** — Fleet number range is definitive: 73xxx (73000–73171) = Class 5MT, 75xxx (75000–75079) = Class 4MT. Both are Riddles-designed 4-6-0 tender steam locos with similar appearance; fleet number must take priority over visual identification.
+
 **Wikidata data quality guards:** Quantity fields (e.g. P2067 mass) can return a value of 0 from Wikidata. Guards check `amount > 0` and `tonnes > 0` before accepting any Wikidata quantity — zero values are skipped and treated as missing data.
 
 **maxSpeed conflict resolution:** When Wikidata and AI disagree on maxSpeed by more than 20%, Wikidata is trusted (changed 2026-03-26 — previously AI was overriding correct Wikidata values for well-documented trains).
@@ -334,7 +338,7 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | Expo Go limitations | Two errors appear when testing via Expo Go — these are NOT code bugs and do NOT appear in TestFlight: (1) RevenueCat "invalid API key" — Expo Go has no native store access; (2) Worklets mismatch 0.7.4 vs 0.5.1 — Expo Go bundles an older version. Both are resolved in any real build. |
 | Latest iOS Build | Build 36 (v1.0.7) — Submitted to TestFlight 2026-03-29 — IPA: https://expo.dev/artifacts/eas/8nVgpTxYmZhoRKosrpxybn.ipa |
 | Latest Android Production Build | v1.0.12 AAB — built 2026-04-04 — https://expo.dev/artifacts/eas/b7vibXRj4gF4d987m9u25o.aab — NOT yet pushed to Play Store (awaiting Finnish tester crash confirmation) |
-| Latest Android Preview Build | v1.0.12 APK — https://expo.dev/artifacts/eas/8HWy5JKVxfNta337fvb1M7.apk — sent to vattuoula 2026-04-05 for crash fix confirmation. Not sent to all testers yet. |
+| Latest Android Preview Build | v1.0.13 APK — https://expo.dev/artifacts/eas/kmynXVcXb3gXuGwuYNYAfe.apk — sent to vattuoula 2026-04-05. Skips FCM token fetch on Android to fix native crash. |
 
 ### Android APK Build History
 
@@ -352,6 +356,7 @@ Every APK shipped to testers must be recorded here on the day it is sent.
 | 2026-04-01 | v1.0.11 (preview build 5) | Remove expo-localization package entirely — correct fix. App defaults to EN on first launch; user switches to DE via picker. No native locale detection at startup. | https://expo.dev/artifacts/eas/451HLSXRSRiqoFAMpfm4sy.apk | vattuoula@gmail.com (Finnish tester only) |
 | 2026-04-03 | v1.0.11 (preview — notification crash fix) | Notification launch crash fix: wrapped entire registerForPushNotifications() in top-level try/catch — getExpoPushTokenAsync and setNotificationChannelAsync now isolated so native exceptions on Samsung/Android 12+ devices cannot crash the app. Also includes: collection lock gate (free users see 5 scans), paywall improvements (annual first, Continue CTA, safety triggers, Full collection access copy), server-side scan gate auth token injection, IP rate limit (20/hour). | https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/9e803686-c11a-4285-bbbc-5b1253cc9ba6 | vattuoula@gmail.com (Finnish tester only — awaiting confirmation) |
 | 2026-04-04 | v1.0.12 (preview — Android 16 crash fix) | Android 16 startup crash fix: i18n init moved from module-level side effect into useEffect so it no longer runs during JS bundle evaluation in interpreted mode (confirmed Samsung S24 crash pattern). registerForPushNotifications() further hardened. Remove captureWarning for failed identifications (Sentry noise). EU07A type 303e specs (3.2 MW, 160 km/h) added to vision prompt. | https://expo.dev/artifacts/eas/8HWy5JKVxfNta337fvb1M7.apk | vattuoula@gmail.com (Finnish tester only — crash fix confirmation required before wider release) |
+| 2026-04-05 | v1.0.13 (preview — Android FCM crash fix) | Skip FCM token fetch entirely on Android: `getExpoPushTokenAsync()` was triggering a native JNI crash on Android 16 (Samsung S24) when user tapped Allow on notification permission dialog. Confirmed by vattuoula screen recording — app reached notification dialog (i18n fix worked) but crashed immediately on Allow. Fix: return null early on Android before attempting FCM fetch. Safe because push notifications not yet live. | https://expo.dev/artifacts/eas/kmynXVcXb3gXuGwuYNYAfe.apk | vattuoula@gmail.com (Finnish tester — awaiting confirmation) |
 
 ---
 
@@ -452,6 +457,8 @@ FRONTEND_URL=https://locosnap.app
 ## 19. Beta Testers
 
 ### Android Testers (21) — notified by email
+
+**Google Play closed testing opt-in status: 11 of 12 required (as of 2026-04-05). One more opt-in needed before the 14-day clock can start.**
 - aylojasimir@gmail.com
 - christian.grama@outlook.com (Christian-Gabriel — German, recruited via EU07 TikTok 2026-04-04 — added to Play Console closed testing, awaiting opt-in and in-app signup for Pro)
 - dieterbrandes6@gmail.com (locosnapwerbung — organic TikTok promoter, recruited 2026-03-30)
@@ -459,6 +466,8 @@ FRONTEND_URL=https://locosnap.app
 - gazthomas@hotmail.com
 - gerlachr70@gmail.com (Nero — German ICE enthusiast, recruited via Frankfurt TikTok/Instagram ad 2026-03-26)
 - jannabywaniec@gmail.com (Jan — Polish, recruited via TikTok 2026-04-04 — added to Play Console closed testing, awaiting opt-in and in-app signup for Pro)
+- jakubek.rolnik@gmail.com (Jakub — Polish, recruited via TikTok 2026-04-05 — added to Play Console closed testing, opt-in link sent 2026-04-05, awaiting opt-in)
+- mf.bruch@gmail.com (Max — German, Stephen's nephew — added to Play Console closed testing, full welcome + opt-in email sent 2026-04-05, awaiting opt-in)
 - jlison1154@gmail.com
 - joshimosh2607@gmail.com (recruited 2026-03-30)
 - krawiec.jr69@gmail.com (recruited 2026-03-30)
@@ -477,6 +486,8 @@ FRONTEND_URL=https://locosnap.app
 **Email format:** Bilingual EN/DE. Logo (https://locosnap.app/images/icon.png) at top. No emojis. Include APK download link from EAS.
 
 **MANDATORY: Always draft the email and present it to Stephen for approval before sending. Never send tester emails without explicit sign-off.**
+
+**MANDATORY: When drafting emails in any language other than English, always include a full English translation in the same response so Stephen can review what is being sent. This applies to Polish, German, Finnish, and any other language. Never present a non-English draft without the English translation alongside it.**
 
 ### iOS TestFlight Testers (1) — notified by email
 - rheintalbahnerneo@gmail.com (@Rheintalbahner_Neo)
