@@ -67,6 +67,13 @@ export async function registerForPushNotifications(
     }
 
     // Get the push token
+    // Android: skip FCM token fetch — getExpoPushTokenAsync triggers a native
+    // crash on Android 16 (Samsung) via FCM JNI. Push tokens are not yet used
+    // server-side, so this is safe to skip until Expo SDK is upgraded.
+    if (Platform.OS === "android") {
+      return null;
+    }
+
     try {
       const tokenData = await Notifications.getExpoPushTokenAsync({
         projectId: "84584853-524a-44eb-bdad-3d57e1e4ea28",
