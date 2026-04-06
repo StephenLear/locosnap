@@ -6,7 +6,7 @@
 import React, { useEffect } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Stack, Redirect, useRouter, useSegments, usePathname } from "expo-router";
+import { Stack, useRouter, useSegments, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
 import { useTrainStore } from "../store/trainStore";
@@ -74,6 +74,7 @@ function CrashFallback() {
 }
 
 function RootLayout() {
+  const router = useRouter();
   const loadHistory = useTrainStore((state) => state.loadHistory);
   const initialize = useAuthStore((state) => state.initialize);
   const user = useAuthStore((state) => state.user);
@@ -95,6 +96,23 @@ function RootLayout() {
     initI18n();
     useSettingsStore.getState().initialize();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Navigate to language picker when settings are ready and no language has been chosen.
+  //
+  // CRITICAL: Do NOT use expo-router's <Redirect> component for this. On Android 16
+  // (Samsung, Hermes interpreter mode), <Redirect> mounts as a new component instance
+  // on every RootLayout re-render. Each mount fires its internal useEffect which calls
+  // router.replace(), which triggers a navigation event, which fires the settingsStore
+  // useSyncExternalStore subscriber, which calls forceStoreRerender, which re-renders
+  // RootLayout, which returns a new <Redirect> instance — infinite loop.
+  //
+  // A useEffect with stable deps fires exactly once per dep change and does not remount,
+  // so the loop cannot occur.
+  useEffect(() => {
+    if (!settingsLoading && !languageChosen) {
+      router.replace("/language-picker");
+    }
+  }, [settingsLoading, languageChosen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle magic link deep link callbacks (locosnap://auth/callback)
   useEffect(() => {
@@ -178,9 +196,11 @@ function RootLayout() {
     return <View style={{ flex: 1, backgroundColor: colors.background }} />;
   }
 
-  // First-launch user — language not yet chosen: gate before auth
+  // First-launch user — language not yet chosen.
+  // Hold on a blank screen while the useEffect above navigates to /language-picker.
+  // Do NOT return <Redirect> here — see the useEffect comment above for why.
   if (!languageChosen) {
-    return <Redirect href="/language-picker" />;
+    return <View style={{ flex: 1, backgroundColor: colors.background }} />;
   }
 
   return (
