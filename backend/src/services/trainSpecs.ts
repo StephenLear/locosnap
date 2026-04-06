@@ -191,6 +191,9 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // PKP SU46 — AI and/or Wikidata returns 160 km/h; correct vmax is 120 km/h
   "su46": { maxSpeed: "120 km/h" },
   "pkp su46": { maxSpeed: "120 km/h" },
+  // PKP EP09 — AI and/or Wikidata returns 200 km/h; correct vmax is 160 km/h
+  "ep09": { maxSpeed: "160 km/h" },
+  "pkp ep09": { maxSpeed: "160 km/h" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
