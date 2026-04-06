@@ -30,12 +30,20 @@ import { initI18n } from "../i18n";
 function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
-  const { session, isLoading } = useAuthStore();
+
+  // Use selectors — subscribing to the whole store causes AuthGate to re-render
+  // on every authStore.set() call (session, profile, preSignupScansUsed, etc.),
+  // which on Android 16 compounds into a "Maximum update depth exceeded" crash.
+  const session = useAuthStore((state) => state.session);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  // Derive a stable primitive from segments so the effect only re-runs when
+  // the route actually changes, not just because useSegments() returned a new
+  // array reference (which happens on every AuthGate re-render).
+  const isOnSignIn = segments[0] === "sign-in";
 
   useEffect(() => {
     if (isLoading) return;
-
-    const isOnSignIn = segments[0] === "sign-in";
 
     // If signed in and on sign-in screen, go home
     if (session !== null && isOnSignIn) {
@@ -43,7 +51,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
     // Unauthenticated users can access the main app —
     // the scan screen handles the 3-trial-scan gate itself
-  }, [session, isLoading, segments]);
+  }, [session, isLoading, isOnSignIn]);
 
   if (isLoading) {
     return (
@@ -71,19 +79,22 @@ function RootLayout() {
   const user = useAuthStore((state) => state.user);
   const pathname = usePathname();
 
-  const initializeSettings = useSettingsStore((state) => state.initialize);
   const languageChosen = useSettingsStore((state) => state.languageChosen);
   const settingsLoading = useSettingsStore((state) => state.isLoading);
 
   // Initialise i18n then settings store on mount.
-  // initI18n() must run before initializeSettings() because settingsStore.initialize()
+  // initI18n() must run before initialize() because settingsStore.initialize()
   // calls i18n.changeLanguage() — which requires i18n to already be initialised.
   // Previously `import "../i18n"` ran init as a module-level side effect, which could
   // crash on Android 16 (Samsung) where the JS bundle is evaluated in interpreted mode.
+  //
+  // We call initialize() via getState() rather than a useStore selector to avoid
+  // adding a subscription to the render cycle. The function reference is stable
+  // (Zustand actions never change), so [] deps is correct here.
   useEffect(() => {
     initI18n();
-    initializeSettings();
-  }, [initializeSettings]);
+    useSettingsStore.getState().initialize();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle magic link deep link callbacks (locosnap://auth/callback)
   useEffect(() => {
