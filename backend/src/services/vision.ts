@@ -155,7 +155,24 @@ function parseTrainResponse(text: string): TrainIdentification | null {
   try {
     const cleaned = text.replace(/\`\`\`json\n?/g, "").replace(/\`\`\`\n?/g, "").trim();
     console.log("[VISION] AI response:", cleaned.substring(0, 200));
-    const parsed = JSON.parse(cleaned);
+
+    // Try direct JSON parse first (normal case)
+    let parsed: any;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      // Direct parse failed — Claude may have added explanatory text around the JSON.
+      // This happens when the prompt's disambiguation rules cause Claude to "think out loud"
+      // before or after the JSON object (e.g. after the ICE pre-flight check).
+      // Extract the first {...} block from the response as a fallback.
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error("[VISION] No JSON found in response:", cleaned.substring(0, 300));
+        return null;
+      }
+      console.log("[VISION] Extracted JSON from surrounding text");
+      parsed = JSON.parse(jsonMatch[0]);
+    }
 
     if (parsed.error === "not_a_train") {
       console.log("[VISION] AI says: not a train");
@@ -174,7 +191,7 @@ function parseTrainResponse(text: string): TrainIdentification | null {
       description: parsed.description || "",
     };
   } catch {
-    console.error("Failed to parse vision response:", text);
+    console.error("[VISION] Failed to parse response:", text.substring(0, 300));
     return null;
   }
 }
