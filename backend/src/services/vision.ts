@@ -64,6 +64,19 @@ STEP B — CONFIRM WITH SIDE VIEW (if visible):
 CRITICAL DEFAULT RULE: If you are looking at a yellow NS train with a POINTED, AERODYNAMIC, BLACK-AND-YELLOW V-NOSE — even if you are uncertain — return ICNG, NOT VIRM. The ICNG has been in service since April 2023 and is the current NS intercity on the high-speed line. Do NOT default to VIRM simply because VIRM is more familiar — if the nose is clearly aerodynamic and pointed rather than flat and rectangular, it is the ICNG.
 A yellow Dutch NS train is NEVER a German regional DMU (VT 650, VT 628, LINT) and NEVER a freight locomotive (BR 186).
 
+ABSOLUTE COLOUR GUARD — ICNG: The NS ICNG is ALWAYS yellow/ochre. It is physically impossible for an ICNG to be white, silver, or grey. If the train in front of you has a pointed aerodynamic nose but is WHITE or SILVER rather than yellow, it is NOT an ICNG under any circumstances. Do not let nose shape override colour — a white pointed-nose EMU is a German, Austrian, Swiss, or other European train, not a Dutch NS train.
+
+SIEMENS MIREO FAMILY PRE-FLIGHT CHECK:
+If the train is WHITE or SILVER with a sharply angular, pointed, aerodynamic nose and a dark (black or dark grey) lower skirt/underbelly section, and is photographed in Germany, Austria, Switzerland, or Central Europe — you are likely looking at a Siemens Mireo family train. Apply the following before any other identification.
+
+The Siemens Mireo family is a modern German regional/suburban EMU platform with a very angular, aggressive pointed nose that superficially resembles the NS ICNG. The key distinctions:
+- COLOUR: Mireo trains are WHITE, SILVER, or in the livery of German/Austrian/Swiss regional operators. They are NEVER yellow.
+- FLEET NUMBERS: German numbering — "463 xxx" (Mireo for S-Bahn Stuttgart/other German S-Bahn), "3427 xxx" or regional operator fleet numbers. If "463 306" or similar German UIC numbering is visible, this is definitely a Mireo family train.
+- OPERATOR: Deutsche Bahn (DB Regio), Go-Ahead Bavaria, Trans Regio, Transdev, Abellio, or other German/Austrian regional operators.
+- MIREO SMART: A newer lightweight variant deployed from 2024–2025 on German regional routes — e.g. the Ahr Valley RB 32 (Trans Regio / Smart Train Lease). Fleet number series may include "463 306" type numbering. White livery with black/dark lower section, 160 km/h, 3-car formation.
+- MIREO PLUS B: Battery/bi-mode variant, similar external appearance.
+CRITICAL RULE: A white or silver angular-nosed modern EMU photographed in Germany with German-format fleet numbers is a Siemens Mireo (or similar German regional EMU such as Stadler FLIRT, Alstom Coradia Continental, Bombardier Talent 2) — it is NEVER an NS ICNG.
+
 Rules:
 - "class" should be the official class designation. UK: use TOPS class numbers (e.g. "Class 56", "Class 89", "Class 37"). Pre-TOPS: use named classes (e.g. "A4 Pacific", "Britannia"). European: use local designation (e.g. "BR 101", "SNCF Class BB 22200", "DB Class 612"). Nordic: e.g. "NSB Di 4", "SJ Rc", "DSB IC3", "VR Sr2". Japanese: e.g. "N700 Series", "KiHa 40". North American: e.g. "EMD GP38-2", "GE ES44AC".
 - "name" should be the individual locomotive name if it has one (e.g. "Flying Scotsman", "Mallard", "Tornado"). Use null if unnamed.
