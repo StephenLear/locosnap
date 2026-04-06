@@ -188,6 +188,9 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "class 55": { builder: "English Electric / Vulcan Foundry" },
   "class 55 deltic": { builder: "English Electric / Vulcan Foundry" },
   "br class 55": { builder: "English Electric / Vulcan Foundry" },
+  // PKP SU46 — AI and/or Wikidata returns 160 km/h; correct vmax is 120 km/h
+  "su46": { maxSpeed: "120 km/h" },
+  "pkp su46": { maxSpeed: "120 km/h" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
