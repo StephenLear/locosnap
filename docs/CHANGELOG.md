@@ -5,6 +5,27 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-06
+
+### Frontend
+
+#### `frontend/app/_layout.tsx` — Replace `<Redirect>` with useEffect for language-picker navigation (v1.0.16)
+- **Fixed** "Maximum update depth exceeded" infinite loop crash on Android 16 (Samsung S24, Hermes interpreter mode). Root cause: expo-router's `<Redirect>` component mounts as a new React component instance on every RootLayout re-render. On Android 16, each mount fires the component's internal useEffect which calls `router.replace()`, which triggers a navigation event, which fires the settingsStore `useSyncExternalStore` subscriber, which calls `forceStoreRerender`, which re-renders RootLayout, which returns a new `<Redirect>` instance — infinite loop. Confirmed by crash stack frame `anonymous@1:874412` present in every vattuoula v1.0.15 crash and absent from all v1.0.13 crashes.
+- **Removed** `Redirect` import from expo-router. `<Redirect href="/language-picker" />` early return removed entirely.
+- **Added** `useEffect([settingsLoading, languageChosen])` that calls `router.replace("/language-picker")` when `!settingsLoading && !languageChosen`. A useEffect fires at most once per deps change and does not remount — the forceStoreRerender re-render leaves deps unchanged, so the effect cannot re-fire. Loop is impossible.
+- **Changed** The `!languageChosen` early return now renders a blank `<View>` while the useEffect above handles navigation, rather than returning `<Redirect>`.
+
+#### `frontend/app.json` — Version bump to v1.0.16
+- **Changed** Version from `1.0.15` to `1.0.16`.
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Class 14 "Teddy Bear" disambiguation rule added
+- **Added** Identification rule for the BR Class 14 diesel-hydraulic shunter (D9500–D9555). Without this rule the app returned Class 31 (A1A-A1A mainline loco, completely different size category) on first scan and Class 09 (diesel-electric shunter) on second scan for D9529. Rule covers: D9500–D9555 fleet number range as definitive identifier; size distinction from Class 31 (Class 14 is 0-6-0 with no bogies, roughly half the length of a Class 31); fleet number distinction from Class 08/09 (D3xxx/D4xxx vs D9xxx); heritage railway context (entire surviving fleet is preserved).
+- **Root cause** UK tester reported D9529 (Class 14 "Teddy Bear") misidentified as Class 31 then Class 09. No Class 14 disambiguation existed in the prompt.
+
+---
+
 ## 2026-04-05
 
 ### Frontend
