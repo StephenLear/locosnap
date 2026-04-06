@@ -18,6 +18,17 @@ export async function registerForPushNotifications(
   // On some Samsung/Android devices getExpoPushTokenAsync throws a native error
   // that bypasses JS catch blocks if not wrapped at the top level.
   try {
+    // Android: skip all notification setup entirely.
+    // On Android 16 (tested: Samsung S24) the Expo notifications module triggers
+    // native FCM/JNI calls during requestPermissionsAsync and setNotificationChannelAsync
+    // that cause unrecoverable native crashes which bypass JS try/catch.
+    // Push notifications are not yet implemented server-side, so this is safe to skip.
+    // Re-enable once Expo SDK provides a stable Android 16 fix.
+    if (Platform.OS === "android") {
+      console.log("[NOTIFICATIONS] Android: skipping all notification setup (Android 16 crash prevention)");
+      return null;
+    }
+
     // Only real devices can receive push notifications
     if (!Device.isDevice) {
       console.log("[NOTIFICATIONS] Must use physical device for push");
@@ -67,13 +78,6 @@ export async function registerForPushNotifications(
     }
 
     // Get the push token
-    // Android: skip FCM token fetch — getExpoPushTokenAsync triggers a native
-    // crash on Android 16 (Samsung) via FCM JNI. Push tokens are not yet used
-    // server-side, so this is safe to skip until Expo SDK is upgraded.
-    if (Platform.OS === "android") {
-      return null;
-    }
-
     try {
       const tokenData = await Notifications.getExpoPushTokenAsync({
         projectId: "84584853-524a-44eb-bdad-3d57e1e4ea28",
