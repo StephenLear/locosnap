@@ -337,7 +337,7 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | Local dev build | Not yet built. Run `eas build --profile development --platform ios` once to install it. After that, `npx expo start --dev-client` pushes code changes instantly without rebuilding. **Build this before the next debugging session to avoid wasting TestFlight builds.** |
 | Expo Go limitations | Two errors appear when testing via Expo Go — these are NOT code bugs and do NOT appear in TestFlight: (1) RevenueCat "invalid API key" — Expo Go has no native store access; (2) Worklets mismatch 0.7.4 vs 0.5.1 — Expo Go bundles an older version. Both are resolved in any real build. |
 | Latest iOS Build | Build 36 (v1.0.7) — Submitted to TestFlight 2026-03-29 — IPA: https://expo.dev/artifacts/eas/8nVgpTxYmZhoRKosrpxybn.ipa |
-| Latest Android Production Build | v1.0.17 AAB (versionCode 8) — built 2026-04-07 — https://expo.dev/artifacts/eas/9iNjvH7L9AFjeVq8KB1uhp.aab — NOT yet pushed to Play Store closed testing track |
+| Latest Android Production Build | v1.0.17 AAB (versionCode 8) — built 2026-04-07 — https://expo.dev/artifacts/eas/9iNjvH7L9AFjeVq8KB1uhp.aab — Submitted to Play Store closed testing track 2026-04-07, in review by Google |
 | Latest Android Preview Build | v1.0.17 APK — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/be527909-08eb-4ef9-b95e-d6ba89180f6f — sent to vattuoula 2026-04-07. Wraps router.replace() in setTimeout(0) to prevent synchronous React commit cascade crash on Android 16 (Hermes). Also adds authIsLoading guard to prevent navigation before Stack is mounted. |
 
 ### Android APK Build History
