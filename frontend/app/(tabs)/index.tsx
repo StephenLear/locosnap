@@ -537,13 +537,12 @@ export default function HomeScreen() {
         ) : (
           /* ── Default State: scanner ready ── */
           <View style={styles.readyState}>
-            {/* Ambient glow behind the viewfinder */}
-            <Animated.View
-              style={[styles.ambientGlow, { opacity: glowAnim }]}
-            />
-
             {/* Viewfinder frame */}
             <View style={styles.viewfinderReady}>
+              {/* Ambient glow — inside frame so it centres with the corners */}
+              <Animated.View
+                style={[styles.ambientGlow, { opacity: glowAnim }]}
+              />
               <View style={[styles.readyCorner, styles.rcTopLeft]} />
               <View style={[styles.readyCorner, styles.rcTopRight]} />
               <View style={[styles.readyCorner, styles.rcBottomLeft]} />
@@ -699,6 +698,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: FRAME_SIZE + 80,
     height: FRAME_SIZE + 80,
+    top: -40,
+    left: -40,
     borderRadius: (FRAME_SIZE + 80) / 2,
     backgroundColor: SCANNER.teal,
   },
