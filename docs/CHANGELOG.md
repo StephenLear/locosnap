@@ -9,6 +9,14 @@ Format: newest first within each date block.
 
 ### Frontend
 
+#### `frontend/app/(tabs)/index.tsx` — Fix ambient glow circle off-centre relative to viewfinder corner brackets
+- **Fixed** Green circle on scan screen was visually offset from the L-shaped corner brackets. Root cause: `ambientGlow` was `position: absolute` inside `readyState`, which has no fixed height — the circle centred itself in `readyState` without accounting for `viewfinderReady`'s `marginBottom`. Moved `ambientGlow` inside `viewfinderReady` so it is positioned relative to the frame. Added `top: -40, left: -40` to account for the glow being 80px larger than the frame. Reported by vattuoula 2026-04-07.
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Add VR Sr1/Sr2/Sr3 disambiguation rule
+- **Fixed** All Finnish VR electric locomotives being returned as Sr2. No disambiguation rule existed — "VR Sr2" used as a class format example was biasing the model. Added full rule: Sr1 (Co'Co', Strömberg, 1973–1995, boxy Soviet-influenced cab), Sr2 (Bo'Bo', ABB/Adtranz, 1995–2003, modern rounded cab), Sr3 (Siemens Vectron AC, 2017+, distinctive large wrap-around windscreen). Critical rules: never default to Sr2; if Co'Co' bogies visible it is Sr1; if Vectron cab styling visible it is Sr3. Reported by vattuoula 2026-04-07.
+
 #### `frontend/app/_layout.tsx` — Definitive Android 16 crash fix: defer router.replace via setTimeout(0) (v1.0.17)
 - **Fixed** "Maximum update depth exceeded" crash persisting in v1.0.16 on vattuoula's Samsung S24 (Android 16, Hermes). Confirmed via bug report dumpstate.txt: crash stack bottom is `flushPassiveEffects → performSyncWorkOnRoot → flushLayoutEffects → forceStoreRerender`. Root cause: `router.replace()` called directly inside a passive `useEffect` triggers `performSyncWorkOnRoot` (synchronous React commit). During that commit's `flushLayoutEffects` phase, expo-router's internal layout effects fire, which call Zustand's `forceStoreRerender`, which attempts to schedule a new render inside an active commit — crashes on Android 16/Hermes with "Maximum update depth exceeded".
 - **Fixed** wrapped `router.replace("/language-picker")` in `setTimeout(0)` to defer navigation to a new macrotask, completely outside any React commit cycle.
