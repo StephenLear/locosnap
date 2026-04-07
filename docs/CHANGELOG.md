@@ -5,6 +5,20 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-07
+
+### Frontend
+
+#### `frontend/app/_layout.tsx` — Definitive Android 16 crash fix: defer router.replace via setTimeout(0) (v1.0.17)
+- **Fixed** "Maximum update depth exceeded" crash persisting in v1.0.16 on vattuoula's Samsung S24 (Android 16, Hermes). Confirmed via bug report dumpstate.txt: crash stack bottom is `flushPassiveEffects → performSyncWorkOnRoot → flushLayoutEffects → forceStoreRerender`. Root cause: `router.replace()` called directly inside a passive `useEffect` triggers `performSyncWorkOnRoot` (synchronous React commit). During that commit's `flushLayoutEffects` phase, expo-router's internal layout effects fire, which call Zustand's `forceStoreRerender`, which attempts to schedule a new render inside an active commit — crashes on Android 16/Hermes with "Maximum update depth exceeded".
+- **Fixed** wrapped `router.replace("/language-picker")` in `setTimeout(0)` to defer navigation to a new macrotask, completely outside any React commit cycle.
+- **Fixed** added `authIsLoading` to `useAuthStore` selector and to navigation useEffect deps. Settings resolves before Supabase `getSession()` completes; without this guard, `router.replace` fires while AuthGate still renders its spinner (Stack not yet mounted) — second crash window on Android 16/Hermes.
+- **Removed** early return that checked `!languageChosen` before rendering the Stack. Stack must be mounted before any `router.replace` call.
+
+#### `frontend/app.json` — Version bump to 1.0.17
+
+---
+
 ## 2026-04-06
 
 ### Frontend

@@ -78,6 +78,7 @@ function RootLayout() {
   const loadHistory = useTrainStore((state) => state.loadHistory);
   const initialize = useAuthStore((state) => state.initialize);
   const user = useAuthStore((state) => state.user);
+  const authIsLoading = useAuthStore((state) => state.isLoading);
   const pathname = usePathname();
 
   const languageChosen = useSettingsStore((state) => state.languageChosen);
@@ -108,11 +109,26 @@ function RootLayout() {
   //
   // A useEffect with stable deps fires exactly once per dep change and does not remount,
   // so the loop cannot occur.
+  //
+  // ALSO CRITICAL: We must also wait for authIsLoading=false before navigating.
+  // AuthGate returns <ActivityIndicator> (not the Stack) while auth is loading. If
+  // router.replace fires before auth resolves, the Stack is not yet mounted and the
+  // navigation call crashes on Android 16 (Hermes). Settings loads faster than the
+  // Supabase getSession() call, so this race is real and reproducible.
+  //
+  // ALSO CRITICAL: router.replace must be deferred via setTimeout(0).
+  // Calling router.replace() directly inside a passive useEffect causes
+  // performSyncWorkOnRoot to run synchronously. During that synchronous commit,
+  // expo-router's layout effects trigger Zustand's forceStoreRerender, which
+  // tries to schedule a new render inside an active commit — crashing on
+  // Android 16 (Hermes) with "Maximum update depth exceeded". Deferring to a
+  // new macrotask ensures we are completely outside any React commit cycle.
   useEffect(() => {
-    if (!settingsLoading && !languageChosen) {
-      router.replace("/language-picker");
+    if (!settingsLoading && !languageChosen && !authIsLoading) {
+      const id = setTimeout(() => router.replace("/language-picker"), 0);
+      return () => clearTimeout(id);
     }
-  }, [settingsLoading, languageChosen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [settingsLoading, languageChosen, authIsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle magic link deep link callbacks (locosnap://auth/callback)
   useEffect(() => {
@@ -197,11 +213,11 @@ function RootLayout() {
   }
 
   // First-launch user — language not yet chosen.
-  // Hold on a blank screen while the useEffect above navigates to /language-picker.
-  // Do NOT return <Redirect> here — see the useEffect comment above for why.
-  if (!languageChosen) {
-    return <View style={{ flex: 1, backgroundColor: colors.background }} />;
-  }
+  // Do NOT return early here. The Stack must be mounted before router.replace()
+  // is called from the useEffect above — calling router.replace() without a
+  // mounted Stack crashes on Android 16 (Hermes). The useEffect navigates to
+  // /language-picker once both settingsLoading and authIsLoading are false,
+  // at which point AuthGate has unblocked and the Stack is mounted.
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
