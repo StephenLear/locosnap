@@ -194,6 +194,9 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // PKP EP09 — AI and/or Wikidata returns 200 km/h; correct vmax is 160 km/h
   "ep09": { maxSpeed: "160 km/h" },
   "pkp ep09": { maxSpeed: "160 km/h" },
+  // BR Class 14 "Teddy Bear" — AI returns "BRCW Smethwick"; all 56 built at Swindon Works
+  "class 14": { builder: "Swindon Works" },
+  "br class 14": { builder: "Swindon Works" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
