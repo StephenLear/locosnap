@@ -197,6 +197,11 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // BR Class 14 "Teddy Bear" — AI returns "BRCW Smethwick"; all 56 built at Swindon Works
   "class 14": { builder: "Swindon Works" },
   "br class 14": { builder: "Swindon Works" },
+  // ICE L (Talgo 230 / ECx) — built by Talgo (Spain), not Siemens. Max speed 230 km/h.
+  "ice l": { builder: "Talgo", maxSpeed: "230 km/h" },
+  "icel": { builder: "Talgo", maxSpeed: "230 km/h" },
+  "ecx": { builder: "Talgo", maxSpeed: "230 km/h" },
+  "talgo 230": { builder: "Talgo", maxSpeed: "230 km/h" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
