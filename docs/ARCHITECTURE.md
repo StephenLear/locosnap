@@ -17,7 +17,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.7 build 36 — **Live on App Store** 2026-03-31. Shareable train card (Save to Photos + Share sheet). translateX fix for iOS GPU rendering of off-screen captureRef view. App Store name corrected to "LocoSnap" in this release. Build 36 is the definitive v1.0.7 — builds 32-35 were earlier v1.0.7 attempts. |
+| iOS Version | 1.0.17 build 38 — **Live on App Store** 2026-04-09. Includes all changes from v1.0.8–v1.0.17: language picker (EN/DE), deferred i18n init, Android 16 crash fix (setTimeout(0)), viewfinder glow alignment, FCM token skip, all train ID disambiguation improvements. Previous App Store release: v1.0.7 build 36 (2026-03-31). IPA: https://expo.dev/artifacts/eas/kWHhX6gcrPpUBYT9Ky1AZg.ipa |
 | Android Version | 1.0.11 build 5 — sent to Finnish tester 2026-04-01. Crash fix: removed expo-localization entirely. v1.0.8 introduced expo-localization native plugin which crashed at startup on devices with non-EN/DE device locales (Finnish tester confirmed). v1.0.9 (wrong fix — removed key prop from Tabs), v1.0.10 (partial fix — removed plugin from app.json but not package), v1.0.11 (correct fix — removed package and import entirely; app defaults to EN, user can switch to DE via picker). APK: https://expo.dev/artifacts/eas/451HLSXRSRiqoFAMpfm4sy.apk |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
@@ -77,6 +77,10 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 **Vision prompt disambiguation rules added 2026-04-05:**
 - **Newag 48WE Elf 2** — Polish EMU (green/white PKP liveries, Newag nose profile, electric traction). Was being returned as ÖBB Class 814 (Czech/Austrian Regionova DMU — wrong country, wrong traction). Fleet number range 48WE-xxx is definitive.
 - **BR Standard 5MT vs 4MT** — Fleet number range is definitive: 73xxx (73000–73171) = Class 5MT, 75xxx (75000–75079) = Class 4MT. Both are Riddles-designed 4-6-0 tender steam locos with similar appearance; fleet number must take priority over visual identification.
+
+**Vision prompt structure changes 2026-04-11:**
+- **German Regional EMU Family PRE-FLIGHT CHECK added** — Covers BR 423, 425, 426, 440, 442, 445, and 463 as a named decision tree block positioned prominently before the rules section. Structure: mandatory fleet number scan first (definitive, overrides all other cues) → double-deck check (BR 445) → nose profile (BR 463 Mireo = angular pointed; BR 442 Talent 2 = wrap-around curved windscreen; BR 440 Coradia Continental = wide owl-face headlights; flat-ish upright = 423/425 pair) → S-Bahn vs Regio context to separate 423 from 425/426. Confidence fallback: below 70% returns class "DB Regional EMU". Previously, a single disambiguation bullet for BR 423 vs BR 425 at the end of the prompt was being ignored — model returned BR 425 even when "423" was visible in the image.
+- **ICE PRE-FLIGHT CHECK consolidated** — Removed three redundant bullets (ICE 3 family detail, ICE 4 vs ICE 3, ICE T vs ICE 3) that repeated logic already in the pre-flight check. Rewrote as a clean 3-step tree: Step 1 nose shape (rounded=401/402, chin=412, pointed=ICE 3), Step 2 ICE 3 sub-variant inline, Step 3 ICE T and ICE L. Fixed structural error: BR 412 was listed inside "Step 2 — IF ICE 3 FAMILY" despite not being an ICE 3 variant. Default for unidentifiable ICE 3 sub-variant changed from BR 407 (17 units, rare) to BR 408 (newest and most numerous ICE 3 variant now entering service).
 
 **Wikidata data quality guards:** Quantity fields (e.g. P2067 mass) can return a value of 0 from Wikidata. Guards check `amount > 0` and `tonnes > 0` before accepting any Wikidata quantity — zero values are skipped and treated as missing data.
 
@@ -336,7 +340,7 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | Build command | `eas build --platform [ios/android/all] --profile [production/preview]` |
 | Local dev build | Not yet built. Run `eas build --profile development --platform ios` once to install it. After that, `npx expo start --dev-client` pushes code changes instantly without rebuilding. **Build this before the next debugging session to avoid wasting TestFlight builds.** |
 | Expo Go limitations | Two errors appear when testing via Expo Go — these are NOT code bugs and do NOT appear in TestFlight: (1) RevenueCat "invalid API key" — Expo Go has no native store access; (2) Worklets mismatch 0.7.4 vs 0.5.1 — Expo Go bundles an older version. Both are resolved in any real build. |
-| Latest iOS Build | Build 36 (v1.0.7) — Submitted to TestFlight 2026-03-29 — IPA: https://expo.dev/artifacts/eas/8nVgpTxYmZhoRKosrpxybn.ipa |
+| Latest iOS Build | Build 38 (v1.0.17) — **Live on App Store** 2026-04-09. Submitted to TestFlight 2026-04-08, approved 2026-04-09. IPA: https://expo.dev/artifacts/eas/kWHhX6gcrPpUBYT9Ky1AZg.ipa |
 | Latest Android Production Build | v1.0.17 AAB (versionCode 8) — built 2026-04-07 — https://expo.dev/artifacts/eas/9iNjvH7L9AFjeVq8KB1uhp.aab — Submitted to Play Store closed testing track 2026-04-07, in review by Google |
 | Latest Android Preview Build | v1.0.17 APK — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/be527909-08eb-4ef9-b95e-d6ba89180f6f — sent to vattuoula 2026-04-07. Wraps router.replace() in setTimeout(0) to prevent synchronous React commit cascade crash on Android 16 (Hermes). Also adds authIsLoading guard to prevent navigation before Stack is mounted. |
 
@@ -561,8 +565,8 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 **End screen — mandatory elements:**
 - LocoSnap app icon (`frontend/assets/icon-512.png`) centred above the app name — always present, no exceptions
 - "LOCOSNAP" in large white Impact text below the icon
-- "Free on App Store" in yellow Impact text
-- "Coming soon to Android" in white Impact text
+- "Free on App Store" in yellow (#FFFF00) Impact text
+- "Coming soon to Android" in yellow (#FFFF00) Impact text
 - Dark background (#0d0d0d)
 - Duration: 2 seconds minimum
 
@@ -587,7 +591,7 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 
 | Item | Status |
 |------|--------|
-| iOS App Store (v1.0.7) | Live on App Store 2026-03-31. App Store name corrected to "LocoSnap". |
+| iOS App Store (v1.0.17) | **v1.0.17 live on App Store since 2026-04-09.** Language picker (EN/DE), all disambiguation improvements, Android 16 crash fix. Previous: v1.0.7 (2026-03-31). |
 | Render cold start | Resolved 2026-03-31 — upgraded to Starter ($7/month). Dyno stays live permanently. REACT-NATIVE-1 Sentry issue should stop recurring. |
 | Android APK for testers (v1.0.7) | Build 5 sent to 14 testers 2026-03-29, 2 new testers 2026-03-30 — APK: https://expo.dev/artifacts/eas/ibpfRqcwWrjvvGuYB1M6y9.apk |
 | Android v1.0.11 — awaiting Finnish tester confirmation | v1.0.11 sent to Finnish tester (vattuoula@gmail.com) 2026-04-01. Removes expo-localization entirely. If confirmed fixed, send to all 18 remaining testers (bilingual EN/DE, mention German language support). |

@@ -5,6 +5,99 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-11
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Rewrite German regional EMU identification as structured decision tree
+- **Removed** buried BR 423 vs BR 425 disambiguation bullet from the bottom of the prompt rules list (line ~199). It was the last item in a 160-line prompt and was being under-weighted by the model, causing BR 425 to be returned even when "423" was clearly visible in the image.
+- **Added** German Regional EMU Family PRE-FLIGHT CHECK block positioned immediately before the rules section. Covers BR 423, 425, 426, 440, 442, 445, and 463 as a family. Structure: Step 1 mandatory fleet number scan (definitive, overrides everything), Step 2 double-deck check (→ BR 445 Twindexx), Step 3 nose profile discriminator (BR 463 Mireo = angular pointed; BR 442 Talent 2 = wrap-around curved; BR 440 Coradia Continental = owl-face wide headlights; flat-ish upright = 423/425 family), Step 4 S-Bahn vs Regio context to distinguish 423 from 425/426. Confidence fallback: below 70%, return class "DB Regional EMU" rather than a wrong specific number.
+- **Deployed** to Render (commit d5730d0, pushed to main 2026-04-11).
+
+#### `backend/src/services/vision.ts` — Consolidate ICE disambiguation into single structured pre-flight check
+- **Removed** three redundant bullet rules from the long disambiguation list: (1) ICE 3 family (BR 403/406/407/408) detail bullet — repeated the pre-flight check Step 2; (2) ICE 4 vs ICE 3 bullet — repeated the pre-flight check Step 1 description of BR 412; (3) ICE T vs ICE 3 bullet — folded into new Step 3.
+- **Rewritten** ICE PRE-FLIGHT CHECK as a clean 3-step decision tree. Step 1: nose shape (rounded bullet → 401/402; wide upright chin → 412; pointed EMU → ICE 3 family). Step 2: ICE 3 sub-variant inline with location check first (Netherlands → 406), then nose profile (sharpest → 408; crease lines → 407; fleet 462; softer → 403/406). Step 3: ICE T (tilt fairings) and ICE L pointer.
+- **Fixed** BR 412 was incorrectly listed inside "Step 2 — IF ICE 3 FAMILY" in the old structure. ICE 4 is not an ICE 3 variant — it is now correctly resolved in Step 1 only.
+- **Changed** Default for unidentifiable ICE 3 sub-variant changed from BR 407 to BR 408. BR 408 is the newest and most numerous ICE 3 variant now entering service; BR 407 (only 17 units) should never be the default.
+- **Deployed** to Render (commit 3522bfe, pushed to main 2026-04-11).
+
+---
+
+## 2026-04-10
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Add BR 423 vs BR 425 disambiguation rule
+- **Fixed** BR 423 (S-Bahn Frankfurt/Munich/Stuttgart) was being misidentified as BR 425 (DB Regio regional EMU). Added disambiguation rule: if fleet number visible and starts with 423, classify as BR 423. Context rule: S-Bahn network context (double S symbol, S-line destinations like "Bad Homburg", "Darmstadt", "Erding") = BR 423. Regional/intercity context without S-Bahn markings = BR 425.
+- **Deployed** to Render (commit 7d4b798, pushed to main 2026-04-10).
+
+#### `backend/src/services/trainSpecs.ts` — Fix BR 423/425/426 builder attribution
+- **Fixed** BR 425 and BR 426 were returning "Derby Works" as build location (hallucination). Correct builder: Bombardier consortium (LHB Salzgitter + Bombardier Hennigsdorf/Bautzen), built 1999–2006. Added hardcoded spec corrections for BR 423, 425, and 426 covering maxSpeed (160 km/h), power (4,200 kW for 423/425; 2,000 kW for 426), builder, and year range.
+- **Deployed** to Render (commit 231b2c8, pushed to main 2026-04-10).
+
+### Social / Video
+
+#### `~/Desktop/locosnap_frankfurt_de.mp4` and `locosnap_frankfurt_en.mp4` — Frankfurt S-Bahn quiz videos
+- **Created** Two 10s TikTok/Reels quiz videos using Frankfurt West BR 423/425 footage. Structure: hook (FW 7–9s, skyline visible) → card reveal (screen recording 9.5–11.5s, card-only) → train continuing (9–13s) → end screen. DE version: "JEDEN TAG / WAS IST DAS?" + "BAUREIHE 425". EN version: "EVERY DAY / WHAT IS IT?" + "BR 425". 720x1280, 30fps, no audio.
+
+---
+
+## 2026-04-09
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Add LMS Stanier fleet number disambiguation
+- **Fixed** Loco 45407 (LMS Black Five) was misidentified as "LMS Princess Coronation / Duchess of Sutherland". Added LMS Stanier family disambiguation rule with definitive fleet number ranges: 44658-45499 = Black Five, 46200-46212 = Princess Royal, 46220-46257 = Princess Coronation. Includes wheel arrangement fallback (4-6-0 vs 4-6-2) when no number visible.
+- **Deployed** to Render (commit e4441b8, pushed to main 2026-04-09).
+
+### Video Assets
+
+#### `docs/assets/locosnap_end_screen.mp4` — Rebuild end screen to spec
+- **Fixed** End screen had wrong text ("Now on the App Store" in green, missing "Coming soon to Android"). Rebuilt with correct spec: "LOCOSNAP" white Impact 130, "Free on App Store" yellow #FFFF00 Impact 70, "Coming soon to Android" yellow #FFFF00 Impact 55. Dark background #0d0d0d. Icon 280x280 centred.
+- **Updated** Architecture doc and video-editing skill to reflect both lines yellow (previously "Coming soon to Android" was white).
+
+#### `~/Desktop/steam/earl_tunnel_final.mp4` — Full rebuild
+- **Fixed** Video structure was wrong — opened on 2s of empty tunnel. Rebuilt with correct structure: 2s train emerging from tunnel (hook) -> 1.6s card reveal (BR Standard Class, RARE) -> 3s train and coaches passing -> 2s end screen. Total 8.6s.
+
+#### `~/Desktop/steam/duchess_of_sutherland_final.mp4` — End screen only
+- **Fixed** End screen replaced with corrected version. Footage content unchanged — still needs new screen recording after Black Five disambiguation fix is deployed (loco 45407 was misidentified as Princess Coronation).
+
+#### `backend/src/services/vision.ts` — Add ICE L (Talgo) disambiguation rule
+- **Added** ICE L identification rule. ICE L is loco-hauled by Vectron BR 193 in ICE white livery + Talgo coaches. Key visual: height step-down between tall Vectron and low Talgo coaches. Initial rule (commit a93e125) incorrectly described a Talgo cab nose. Rewritten (commit 471779e) after reviewing actual footage — train is loco-hauled, not self-propelled.
+- **Deployed** to Render (commits a93e125 and 471779e).
+
+#### `backend/src/services/trainSpecs.ts` — Add ICE L specs corrections
+- **Added** Wikidata corrections for ICE L: builder "Talgo", maxSpeed "230 km/h". Keys: "ice l", "icel", "ecx", "talgo 230".
+
+#### ICE L videos built (German + English)
+- **Built** `~/Desktop/ICE L Talgo/icel_guterlok_final.mp4` — German version, 9s. Hook: "NEUER ICE" / "GUTERLOK" text overlay with Vectron visible. Card reveal: BR 193, COMMON, 272 left. Coaches passing. End screen.
+- **Built** `~/Desktop/ICE L Talgo/icel_freight_loco_en_final.mp4` — English version, 9s. Same structure, "NEW ICE TRAIN" / "FREIGHT LOCO" text.
+
+### App Store
+
+#### iOS v1.0.17 — Approved and live on App Store
+- **Approved** by Apple 2026-04-09. v1.0.17 build 38 now live on App Store. Includes language picker (EN/DE), all disambiguation improvements, Android 16 crash fix. Previous release was v1.0.7 (2026-03-31).
+
+---
+
+## 2026-04-08
+
+### Backend
+
+#### `backend/src/services/trainSpecs.ts` — Add BR Class 14 builder correction
+- **Fixed** Specs card showing "BRCW Smethwick" as builder for the BR Class 14 "Teddy Bear" — all 56 were built at Swindon Works. Added to WIKIDATA_CORRECTIONS map with keys "class 14" and "br class 14". Reported by UK tester.
+
+#### `backend/src/services/vision.ts` — Correct ET22 max speed from 125 km/h to 120 km/h
+- **Fixed** PKP ET22 heavy freight electric max speed in disambiguation prompt was 125 km/h, correct value is 120 km/h.
+
+### Build
+
+#### iOS v1.0.17 (build 38) — Submitted to TestFlight
+- **Built** iOS production build via EAS. Version 1.0.17, buildNumber 38. Includes all changes from v1.0.8 through v1.0.17 that were previously Android-only: language picker, i18n deferred init, Android 16 crash fix (setTimeout(0) deferred navigation), viewfinder glow alignment, FCM token skip on Android, all train ID disambiguation improvements.
+- **Submitted** to App Store Connect via `eas submit`. IPA: https://expo.dev/artifacts/eas/kWHhX6gcrPpUBYT9Ky1AZg.ipa
+
+---
+
 ## 2026-04-07
 
 ### Frontend
