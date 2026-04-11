@@ -35,6 +35,14 @@ If you are looking at a white DB ICE high-speed train, work through these steps 
 STEP 1 — NOSE SHAPE:
 
 ROUNDED, ELONGATED, BULLET-SHAPED NOSE (blunt rounded tip, dolphin-like profile, no aerodynamic point) → ICE 1 or ICE 2. These are LOCOMOTIVE-HAULED — separate power cars pull unpowered coaches. A rounded blunt-tipped nose cannot belong to any ICE 3 variant or ICE 4.
+
+To distinguish ICE 1 (BR 401) from ICE 2 (BR 402) from a front-on shot — the most reliable visual feature is the SCHARFENBERG COUPLER FLAP (Schaku-Abdeckung) on the lower nose:
+- BR 401 (ICE 1): SMALL emergency flap below the two lower headlights. The flap is narrow, limited to the emergency coupler area only, and opens upward. The ICE 1 coupler is "Notkupplung" — emergency towing only, NOT used in regular passenger service. The lower nose appears mostly smooth with only a small rectangular emergency panel visible.
+- BR 402 (ICE 2): FULL-WIDTH front flap covering the entire lower nose. The flap is large, runs across most of the nose width, and unlocks centrally to swing halfway inward. The ICE 2 Scharfenberg coupler IS designed for routine passenger-service coupling (two half-sets join for Berlin/Hamburg-style routes and split en route). If the lower nose shows a prominent wide panel line or a full-width front flap, it is BR 402.
+
+This Schaku flap size/design is the DEFINITIVE visual discriminator from a front shot where formation length is not visible. Never classify a rounded-nose ICE with a visible full-width front flap as BR 401 — that wide flap belongs only to BR 402.
+
+Formation length as a secondary cue:
 - Two power cars (one each end) + intermediate coaches → BR 401 (ICE 1). 14-car, fleet "401 xxx", built 1991–1996, 60 trainsets.
 - One power car + coaches + flat-fronted Steuerwagen at the other end → BR 402 (ICE 2). 7-car, fleet "402 xxx".
 
@@ -57,7 +65,11 @@ Default: if you cannot confidently identify the ICE 3 sub-variant, return BR 408
 
 STEP 3 — ICE T AND ICE L:
 - TILTING train with visible TILT MECHANISM FAIRINGS on the bogies (streamlined covers over the bogie area) and a rounder, bulbous nose → ICE T. BR 411 (7-car) or BR 415 (5-car). Never classify a tilting ICE as any ICE 3 variant.
-- Vectron locomotive in ICE WHITE livery hauling coaches that are NOTICEABLY SHORTER IN HEIGHT than the loco, with a clear roofline step-down → ICE L. Class "ICE L", builder "Talgo", max speed 230 km/h. See ICE L rule below for full detail.
+- The ICE L has TWO DIFFERENT visual ends — both must resolve to "ICE L", never to BR 193:
+  1. **Vectron BR 193 end**: Vectron locomotive in DB ICE WHITE livery (not grey/black freight livery) hauling coaches that are NOTICEABLY SHORTER IN HEIGHT than the loco, with a clear roofline step-down. BR 193 here is an INTERIM loco — DB is renting Vectrons from the DB rental fleet until the BR 105 (Talgo Travca) is certified. Do NOT return "BR 193" for this — classify as "ICE L".
+  2. **Talgo Steuerwagen end**: low-profile unpowered driving trailer (control car) at the OPPOSITE end of the formation. The Steuerwagen has a cab front with windscreen and headlights but is NOT a locomotive — it has no pantograph, sits low to the rail like the rest of the Talgo coaches, and visually matches the future BR 105 design (deliberate design symmetry). The Steuerwagen cab front looks similar to a short locomotive but the roofline is LOWER than a true loco and the profile is continuous with the Talgo coach body. If you see a low-height white ICE-liveried control car with a cab window but no pantograph, leading or trailing a formation of low Talgo coaches, it is the ICE L Steuerwagen end. Classify as "ICE L", NOT as BR 193 or any loco class. Note: as of early 2026 the Steuerwagen is not yet approved for push-pull operation, so in service the train is always hauled by a Vectron at one end, with the Steuerwagen at the other end carried along but not controlling.
+  3. **Future BR 105**: Talgo Travca locomotive, currently in certification, will replace the interim BR 193 once approved. Visually resembles the Steuerwagen (matched bookend design). When BR 105 enters service, the combination "BR 105 + Talgo coaches + Steuerwagen" is still classified as "ICE L".
+Class "ICE L", builder "Talgo", max speed 230 km/h. See ICE L rule below for full detail.
 
 FORBIDDEN: The string "ICE 3" is NEVER an acceptable class value. Return BR 401, BR 402, BR 403, BR 406, BR 407, BR 408, BR 411, BR 412, BR 415, BR 462, or "ICE L" as appropriate. "ICE 3" is a family name, not a class.
 
