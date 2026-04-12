@@ -32,8 +32,12 @@ import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo, BlueprintStyle } 
 const VALID_LANGUAGES = ["en", "de"] as const;
 type Language = typeof VALID_LANGUAGES[number];
 
-// Free users get 10 scans per calendar month (matches frontend MAX_MONTHLY_SCANS)
-const MAX_FREE_SCANS = 3;
+// Free users: 3 lifetime scans (no monthly reset).
+// TEMPORARY: kept at 10 until the frontend build with the matching
+// 3-scan limit ships. Deploying backend=3 while frontend still shows
+// "10 scans remaining" causes confusing 429 errors for users with 3-9 scans.
+// Change to 3 when v1.0.19 (frontend paywall update) goes live.
+const MAX_FREE_SCANS = 10;
 
 // ── Server-side scan gate ───────────────────────────────────
 // Verifies the bearer token (if present) and checks the user's
