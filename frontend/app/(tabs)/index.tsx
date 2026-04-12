@@ -24,7 +24,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../../store/trainStore";
-import { useAuthStore, PRE_SIGNUP_FREE_SCANS, MAX_MONTHLY_SCANS } from "../../store/authStore";
+import { useAuthStore, PRE_SIGNUP_FREE_SCANS, MAX_FREE_SCANS } from "../../store/authStore";
 import { identifyTrain, pollBlueprintStatus, healthCheck } from "../../services/api";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track, captureError, addBreadcrumb } from "../../services/analytics";
@@ -79,12 +79,12 @@ export default function HomeScreen() {
 
   const { canScan, profile, session, preSignupScansUsed, incrementPreSignupScans } = useAuthStore();
 
-  // Badge shows trial scans remaining (unauthenticated) or monthly remaining (free users)
+  // Badge shows trial scans remaining (unauthenticated) or lifetime remaining (free users)
   const scansRemaining = !session
     ? PRE_SIGNUP_FREE_SCANS - preSignupScansUsed        // Trial: 3 - used
     : profile?.is_pro
       ? null                                             // Pro: no limit badge
-      : MAX_MONTHLY_SCANS - (profile?.daily_scans_used ?? 0); // Free: monthly remaining
+      : MAX_FREE_SCANS - (profile?.daily_scans_used ?? 0); // Free: lifetime remaining
 
   // ── Pre-warm the backend on mount (prevents Render cold-start timeouts) ──
   useEffect(() => {
@@ -202,21 +202,21 @@ export default function HomeScreen() {
         track("trial_limit_hit");
         Alert.alert(
           "Create Your Free Account",
-          `You've used your ${PRE_SIGNUP_FREE_SCANS} free trial scans!\n\nSign up free to get 10 scans per month, save your collection, and appear on the leaderboard.`,
+          `You've used your ${PRE_SIGNUP_FREE_SCANS} free trial scans!\n\nSign up to continue scanning, build your collection, and appear on the leaderboard.`,
           [
             { text: "Maybe Later", style: "cancel" },
             { text: "Create Free Account", onPress: () => router.push("/sign-in") },
           ]
         );
       } else {
-        // Authenticated free user has hit monthly limit
-        track("monthly_limit_hit");
+        // Authenticated free user has used all lifetime free scans
+        track("free_limit_hit");
         Alert.alert(
-          "Monthly Limit Reached",
-          `You've used all ${MAX_MONTHLY_SCANS} free scans this month. Upgrade to Pro for unlimited scans!`,
+          "Grow Your Collection",
+          "You've used your free scans. Upgrade to Pro for unlimited scans, cards, and blueprints.",
           [
             { text: "Maybe Later", style: "cancel" },
-            { text: "Upgrade to Pro", onPress: () => router.push("/paywall?source=monthly_limit") },
+            { text: "Continue", onPress: () => router.push("/paywall?source=scan_limit") },
           ]
         );
       }

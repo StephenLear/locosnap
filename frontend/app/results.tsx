@@ -252,6 +252,28 @@ export default function ResultsScreen() {
         )}
       </View>
 
+      {/* ── Pro Upsell Banner (non-Pro only) ──────────── */}
+      {!isPro && (
+        <TouchableOpacity
+          style={styles.upsellBanner}
+          onPress={() => router.push("/paywall?source=results_banner")}
+          activeOpacity={0.8}
+        >
+          <View style={styles.upsellContent}>
+            <View style={styles.upsellIcon}>
+              <Ionicons name="sparkles" size={20} color="#FFFF00" />
+            </View>
+            <View style={styles.upsellText}>
+              <Text style={styles.upsellTitle}>Grow your collection</Text>
+              <Text style={styles.upsellSubtitle}>
+                Unlimited scans, cards, and blueprints
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </View>
+        </TouchableOpacity>
+      )}
+
       {/* ── Blueprint Style Picker (Pro only) ─────────── */}
       {isPro && (
         <View style={styles.styleSection}>
@@ -591,6 +613,42 @@ const styles = StyleSheet.create({
   emptyLink: {
     fontSize: fonts.sizes.md,
     color: colors.primary,
+  },
+
+  // Pro upsell banner
+  upsellBanner: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  upsellContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  upsellIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(0, 212, 170, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  upsellText: {
+    flex: 1,
+  },
+  upsellTitle: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.bold,
+    color: colors.textPrimary,
+  },
+  upsellSubtitle: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 
   // Rarity badge

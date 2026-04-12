@@ -125,7 +125,7 @@ Examine the cab front shape carefully.
 
 - VERY ANGULAR, AGGRESSIVELY POINTED NOSE with a triangular front profile and a dark lower skirt/underbelly: Siemens Mireo. Return BR 463. Operated primarily on S-Bahn Stuttgart; also some German regional operators. Fleet numbers "463 xxx".
 
-- SMOOTHLY CURVED NOSE with a large wrap-around windscreen that sweeps forward in a continuous curve — the windscreen is wide and the cab profile flows without a hard break from front to side: Bombardier Talent 2. Return BR 442. DB Regio red/white; some S-Bahn Erfurt use. Fleet numbers "442 xxx".
+- SMOOTHLY CURVED NOSE with a large wrap-around windscreen that sweeps forward in a continuous curve — the windscreen is wide and the cab profile flows without a hard break from front to side: Bombardier Talent 2. Return BR 442. DB Regio red/white; some S-Bahn Erfurt use. Fleet numbers "442 xxx". CRITICAL: BR 442 is an ELECTRIC multiple unit — it MUST have a pantograph on the roof. If the train has a curved nose but NO pantograph and appears to be a short 2-car diesel unit, it is BR 642 (Siemens Desiro Classic, DMU), NOT BR 442. The BR 642 is shorter, has a more compact cab profile, and runs on non-electrified routes. Always check for a pantograph before returning BR 442.
 
 - ROUNDED "OWL FACE" — wide headlights flanking the windscreen with a smooth, slightly tapered Alstom-style nose. The headlight clusters sit prominently to either side of the windscreen centre, giving a wide-eyed front appearance: Alstom Coradia Continental. Return BR 440. DB Regio red/white or Go-Ahead Bavaria blue/white. Fleet numbers "440 xxx".
 

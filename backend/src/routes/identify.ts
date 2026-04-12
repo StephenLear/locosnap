@@ -33,7 +33,7 @@ const VALID_LANGUAGES = ["en", "de"] as const;
 type Language = typeof VALID_LANGUAGES[number];
 
 // Free users get 10 scans per calendar month (matches frontend MAX_MONTHLY_SCANS)
-const MAX_FREE_MONTHLY_SCANS = 10;
+const MAX_FREE_SCANS = 3;
 
 // ── Server-side scan gate ───────────────────────────────────
 // Verifies the bearer token (if present) and checks the user's
@@ -71,19 +71,12 @@ async function checkScanAllowed(
     if (!profile) return { allowed: true }; // no profile yet — allow
     if (profile.is_pro) return { allowed: true }; // Pro = unlimited
 
-    // Check if we're in a new calendar month (reset resets the counter)
-    const resetAt = new Date(profile.daily_scans_reset_at);
-    const now = new Date();
-    const isNewMonth =
-      now.getMonth() !== resetAt.getMonth() ||
-      now.getFullYear() !== resetAt.getFullYear();
-    if (isNewMonth) return { allowed: true };
-
-    if (profile.daily_scans_used >= MAX_FREE_MONTHLY_SCANS) {
+    // Lifetime scan limit — no monthly reset
+    if (profile.daily_scans_used >= MAX_FREE_SCANS) {
       return {
         allowed: false,
         reason:
-          "Monthly scan limit reached. Upgrade to Pro for unlimited scans.",
+          "Free scan limit reached. Upgrade to Pro for unlimited scans and your full collection.",
       };
     }
 

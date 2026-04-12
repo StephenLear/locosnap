@@ -50,8 +50,8 @@ interface AuthState {
 
 // Unauthenticated users get 3 trial scans before sign-up is required
 export const PRE_SIGNUP_FREE_SCANS = 3;
-// Free accounts get 10 scans per month
-export const MAX_MONTHLY_SCANS = 10;
+// Free accounts get 3 lifetime scans (not monthly — no reset)
+export const MAX_FREE_SCANS = 3;
 const PRE_SIGNUP_SCANS_KEY = "locosnap_presignup_scans";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -198,28 +198,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           region: data.region,
         });
 
-        // Check if monthly scans need reset (new calendar month)
-        const resetAt = new Date(data.daily_scans_reset_at);
-        const now = new Date();
-        const isNewMonth =
-          now.getMonth() !== resetAt.getMonth() ||
-          now.getFullYear() !== resetAt.getFullYear();
-        if (isNewMonth) {
-          // New month — reset scan count
-          const { data: updated } = await supabase
-            .from("profiles")
-            .update({
-              daily_scans_used: 0,
-              daily_scans_reset_at: now.toISOString(),
-            })
-            .eq("id", user.id)
-            .select()
-            .single();
-
-          set({ profile: updated || data });
-        } else {
-          set({ profile: data });
-        }
+        // Lifetime scan limit — no monthly reset. daily_scans_used is now
+        // a lifetime counter despite the legacy column name.
+        set({ profile: data });
 
         // Sync Pro status with RevenueCat entitlements
         // Only upgrade to Pro if RevenueCat confirms it — never downgrade a manually-granted Pro
@@ -286,8 +267,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!session) return preSignupScansUsed < PRE_SIGNUP_FREE_SCANS;
     // Pro users have unlimited scans
     if (profile?.is_pro) return true;
-    // Free users: check monthly limit
-    return (profile?.daily_scans_used ?? 0) < MAX_MONTHLY_SCANS;
+    // Free users: 3 lifetime scans (no monthly reset)
+    return (profile?.daily_scans_used ?? 0) < MAX_FREE_SCANS;
   },
 
   deductBlueprintCredit: async () => {
