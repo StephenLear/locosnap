@@ -5,6 +5,21 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-12
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Add DSB Danish train pre-flight check to prevent Class ME/ER confusion
+- **Added** DSB DANISH TRAIN PRE-FLIGHT CHECK block positioned before the rules section. Covers four DSB classes with a mandatory fleet number scan as Step 1 and a visual type fallback as Step 2.
+- **Fixed** DSB Class ME was being returned for fleet number 2143, which is a Class ER S-tog EMU. Root cause: no DSB-specific disambiguation existed in the prompt, so the model defaulted to the most familiar DSB loco class (ME). The ME class is a diesel locomotive (Bo'Bo', built 1981–1984, 42 units numbered 1501–1542) that hauls separate coaches — completely different from the Class ER EMU (Copenhagen S-bane urban network, fleet numbers 2xxx range, third-rail 1650V DC). Fleet number alone is sufficient to rule out ME for any 2xxx number.
+- **Added** Fleet number rules: 15xx range → Class ME (diesel loco); 2xxx range → Class ER (S-tog EMU, operator "DSB S-tog", type "EMU").
+- **Added** Visual fallback rules for when no fleet number is readable: large diesel loco cab = ME; rubber flexible nose/bellows = IC3 (DMU); rounded dark EMU on urban service = ER; modern silver/white with pantograph on Oresund corridor = Class ET.
+- **Added** Critical rule: a DSB 2xxx fleet number is always Class ER — never Class ME.
+- **Triggered** by TikTok comment on the BR 101 video from user confirming the app returned "DSB Class ME" for a Class ER (DSB S-tog number 2143).
+- **Deployed** to Render (commit 1949f35, pushed to main 2026-04-12).
+
+---
+
 ## 2026-04-11
 
 ### Backend
