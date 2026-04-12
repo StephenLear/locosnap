@@ -277,23 +277,12 @@ export default function CardRevealScreen() {
     }
   };
 
-  if (!currentTrain || !currentRarity) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No train data</Text>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.emptyLink}>Go back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  const rarityColor = rarityColors[currentRarity.tier];
-
   // Interpolations for flip — memoised so they are not recreated on every
   // re-render (e.g. when setIsFlipped fires mid-animation). Recreating
   // interpolation objects while a native-driver animation is in flight
   // can cause a crash on Android.
+  // IMPORTANT: these must stay above the early return below — hooks cannot
+  // be called conditionally or after an early return (Rules of Hooks).
   const frontInterpolate = useMemo(() => flipAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: ["0deg", "90deg", "180deg"],
@@ -310,6 +299,19 @@ export default function CardRevealScreen() {
     inputRange: [0, 0.5, 0.5, 1],
     outputRange: [0, 0, 1, 1],
   }), []);
+
+  if (!currentTrain || !currentRarity) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No train data</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.emptyLink}>Go back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const rarityColor = rarityColors[currentRarity.tier];
 
   // Glow interpolation
   const glowRadius = glowAnim.interpolate({
