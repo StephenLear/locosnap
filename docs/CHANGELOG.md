@@ -12,7 +12,40 @@ Format: newest first within each date block.
 #### `frontend/app/card-reveal.tsx` — Fix Rules of Hooks violation causing ErrorBoundary crash
 - **Fixed** React ErrorBoundary crash ("Rendered fewer hooks than expected") triggered when `currentTrain` or `currentRarity` is null. Root cause: four `useMemo` hooks (`frontInterpolate`, `backInterpolate`, `frontOpacity`, `backOpacity`) were declared after the early return guard at line 280. When the guard fired, React counted fewer hooks than on a normal render and threw. Fix: moved all four `useMemo` calls above the early return. Added inline comment explaining the Rules of Hooks constraint so the order is not accidentally reversed in future. Caught via Sentry issue REACT-NATIVE-C in production release 1.0.17 (build 38), 1 event, 1 user, iPhone 14 iOS 26.3.1.
 
+#### `frontend/store/authStore.ts` — Change free scan limit from 10/month to 3 lifetime
+- **Changed** `MAX_MONTHLY_SCANS = 10` to `MAX_FREE_SCANS = 3`. Free accounts now get 3 lifetime scans with no monthly reset, not 10 per calendar month.
+- **Removed** Monthly reset logic in `fetchProfile()` that checked `getMonth()` + `getFullYear()` and reset `daily_scans_used` to 0 on new month. The `daily_scans_used` column is now a lifetime counter despite the legacy name.
+- **Changed** `canScan()` now checks against `MAX_FREE_SCANS` (lifetime) instead of `MAX_MONTHLY_SCANS` (monthly).
+- **Why:** Zero conversions to Pro — 10 scans/month was too generous. Most users scan 3-5 times and never see the paywall. PictureThis (closest comparable, $60M/yr revenue) uses 3-5 free scans. Reducing to 3 lifetime ensures active users hit the paywall within their first session.
+- **Not yet in a build** — will ship with v1.0.19.
+
+#### `frontend/app/(tabs)/index.tsx` — Update scan badge and paywall alert for lifetime limit
+- **Changed** Import from `MAX_MONTHLY_SCANS` to `MAX_FREE_SCANS`.
+- **Changed** Scan badge comment from "monthly remaining" to "lifetime remaining".
+- **Changed** Paywall alert title from "Monthly Limit Reached" to "Grow Your Collection".
+- **Changed** Paywall alert body to "You've used your free scans. Upgrade to Pro for unlimited scans, cards, and blueprints."
+- **Changed** CTA button text from "Upgrade to Pro" to "Continue" (proven conversion uplift per RevenueCat data).
+- **Changed** Paywall source param from `monthly_limit` to `scan_limit`.
+- **Changed** Analytics event from `monthly_limit_hit` to `free_limit_hit`.
+- **Changed** Pre-signup alert body removed "10 scans per month" claim, now says "continue scanning, build your collection".
+- **Not yet in a build** — will ship with v1.0.19.
+
+#### `frontend/app/results.tsx` — Add Pro upsell banner on results screen
+- **Added** Upsell banner visible to all non-Pro users after every scan result. Positioned between the train identity card and the blueprint section. Shows "Grow your collection / Unlimited scans, cards, and blueprints" with a sparkles icon and chevron. Taps through to paywall with `source=results_banner`.
+- **Added** Styles: `upsellBanner`, `upsellContent`, `upsellIcon`, `upsellText`, `upsellTitle`, `upsellSubtitle`. Uses accent border colour and subtle background.
+- **Why:** The paywall was entirely reactive — users only saw it when hitting the scan limit. Most users never reached the limit. The banner ensures every user sees a Pro prompt on every scan result, regardless of how many scans they have remaining.
+- **Not yet in a build** — will ship with v1.0.19.
+
 ### Backend
+
+#### `backend/src/services/vision.ts` — Add BR 442/642 pantograph disambiguation
+- **Added** Mandatory pantograph check to the BR 442 (Bombardier Talent 2) rule in the German Regional EMU PRE-FLIGHT CHECK. BR 442 is an EMU and MUST have a pantograph on the roof. If a train has a curved nose but no pantograph and appears to be a short 2-car diesel unit, it is BR 642 (Siemens Desiro Classic, DMU), not BR 442.
+- **Triggered** by TikTok comment: "Also ein 442 als 642 erkennen? Die App funktioniert gut"
+- **Deployed** to Render (commit ba7dd21, pushed to main 2026-04-12).
+
+#### `backend/src/routes/identify.ts` — Scan limit changes reverted (held for v1.0.19)
+- **Changed** then **reverted** scan limit from 10/month to 3 lifetime. Initially deployed with `MAX_FREE_SCANS = 3` and monthly reset removed, but this caused 31 Sentry events / 19 users hitting confusing 429 errors because the live frontend (v1.0.17/1.0.18) still showed 10/month. Reverted to `MAX_FREE_MONTHLY_SCANS = 10` with monthly reset restored. Backend limit will be flipped to 3 lifetime when v1.0.19 frontend ships.
+- **Lesson:** Frontend and backend paywall/limit changes must ship together. Never deploy a backend limit change ahead of the matching frontend.
 
 #### `backend/src/services/vision.ts` — Add DSB Danish train pre-flight check to prevent Class ME/ER confusion
 - **Added** DSB DANISH TRAIN PRE-FLIGHT CHECK block positioned before the rules section. Covers four DSB classes with a mandatory fleet number scan as Step 1 and a visual type fallback as Step 2.

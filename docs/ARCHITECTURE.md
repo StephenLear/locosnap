@@ -85,6 +85,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 - **ICE L Steuerwagen end recognition added** — Previously the rule only covered the Vectron BR 193 hauling end (tall loco + roofline step-down to low Talgo coaches). Added the Talgo Steuerwagen end: low-profile unpowered control car with cab front and windscreen but no pantograph, visually continuous with the Talgo coach body, roofline lower than any true locomotive. Both ends must classify as "ICE L", never as BR 193 or any loco class. Rule also notes that as of early 2026 the Steuerwagen is not yet approved for push-pull operation (so the train is always hauled by a Vectron at one end, Steuerwagen at the other end carried along but not controlling) and that BR 105 (Talgo Travca, currently in certification) will replace the interim Vectrons. Verified via Wikipedia ICE L, heise.de background piece, and bahnblogstelle Steuerwagen certification delay reporting.
 
 **Vision prompt structure changes 2026-04-12:**
+- **BR 442 vs BR 642 pantograph disambiguation added** — The BR 442 (Bombardier Talent 2) rule in the German Regional EMU PRE-FLIGHT CHECK now includes a mandatory pantograph check. BR 442 is an EMU and must have a pantograph on the roof. If a train has a curved nose but no pantograph and appears to be a short 2-car diesel unit, it is BR 642 (Siemens Desiro Classic, DMU). Triggered by TikTok comment: "Also ein 442 als 642 erkennen?"
 - **DSB Danish Train PRE-FLIGHT CHECK added** — Covers DSB Class ME, ER, IC3, and ET as a named decision tree block positioned before the rules section. Step 1 is a mandatory fleet number scan: 15xx range (1501–1542) = Class ME (diesel loco, Bo'Bo', built 1981–1984, hauls coaches); 2xxx range (e.g. 2001–2240) = Class ER (Copenhagen S-tog EMU, third-rail 1650V DC, operator "DSB S-tog"). Step 2 is a visual type fallback when no number is readable: large diesel loco cab = ME; rubber flexible nose/bellows = IC3 (DMU); rounded dark EMU on urban service = ER; modern silver/white EMU on Oresund corridor = Class ET. Critical rule: a DSB 2xxx fleet number is always Class ER — never Class ME. Triggered by a TikTok comment on the BR 101 video confirming the app returned "DSB Class ME" for fleet number 2143 (a Class ER S-tog EMU).
 
 **Wikidata data quality guards:** Quantity fields (e.g. P2067 mass) can return a value of 0 from Wikidata. Guards check `amount > 0` and `tonnes > 0` before accepting any Wikidata quantity — zero values are skipped and treated as missing data.
@@ -225,12 +226,14 @@ curl -X PATCH "https://vfzudbnmtwgirlrfoxpq.supabase.co/rest/v1/profiles?id=eq.<
 | User State | Scan Allowance |
 |-----------|---------------|
 | Unauthenticated (trial) | 3 total — tracked in AsyncStorage (`locosnap_presignup_scans`) |
-| Free account | 10 per calendar month — resets on new month (`daily_scans_used` / `daily_scans_reset_at`) |
+| Free account | 3 lifetime (no monthly reset) — tracked in `daily_scans_used` (legacy column name) |
 | Pro | Unlimited |
 
-**Important:** Guest mode was removed in 2026-03-22 because `canScan()` returned `true` unconditionally for guests (a loophole giving unlimited free scans). The sign-in screen no longer shows "Continue as Guest". Unauthenticated users can scan 3 times before being prompted to create a free account.
+**Scan limit change 2026-04-12:** Free account limit changed from 10 per calendar month to 3 lifetime scans with no monthly reset. The monthly reset logic was removed from both frontend (`authStore.ts fetchProfile`) and backend (`identify.ts checkScanAllowed`). The DB columns `daily_scans_used` / `daily_scans_reset_at` retain their legacy names but `daily_scans_used` is now a lifetime counter and `daily_scans_reset_at` is no longer checked. Reason: zero Pro conversions — 10/month was too generous, most users never hit the paywall. Frontend changes committed but not yet built (will ship with v1.0.19). Backend reverted to 10/month temporarily to avoid frontend/backend mismatch — will be flipped to 3 lifetime when v1.0.19 goes live.
 
-The DB columns are named `daily_scans_used` / `daily_scans_reset_at` (legacy names) but are now used as **monthly** counters. The reset logic checks `getMonth()` + `getFullYear()` rather than `toDateString()`.
+**Results screen upsell banner (2026-04-12):** Added a Pro upsell banner to `results.tsx` visible to all non-Pro users after every scan. Shows "Grow your collection / Unlimited scans, cards, and blueprints" with link to paywall (`source=results_banner`). Previously the paywall was entirely reactive — only shown when a limit was hit. The banner ensures every active user sees a Pro prompt regardless of remaining scans. Will ship with v1.0.19.
+
+**Important:** Guest mode was removed in 2026-03-22 because `canScan()` returned `true` unconditionally for guests (a loophole giving unlimited free scans). The sign-in screen no longer shows "Continue as Guest". Unauthenticated users can scan 3 times before being prompted to create a free account.
 
 ---
 
