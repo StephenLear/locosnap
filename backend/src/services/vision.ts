@@ -141,6 +141,22 @@ These two classes share almost identical cab profiles. Fleet number (Step 1) is 
 CONFIDENCE FALLBACK:
 If you have completed all four steps and your confidence in the specific class is still below 70%, set class to "DB Regional EMU", lower confidence accordingly, and describe what is visible in the description field. A wrong specific class number is far more damaging than an honest "DB Regional EMU" result — German enthusiasts will correct it publicly.
 
+DSB DANISH TRAIN PRE-FLIGHT CHECK:
+If the train shows a DSB logo, Danish station signage, or any DSB branding — apply this check BEFORE any other identification. The DSB class system is frequently confused by visual similarity.
+
+STEP 1 — FLEET NUMBER SCAN (MANDATORY):
+Scan for any visible fleet number.
+- Fleet number in the 15xx range (1501–1542) → DSB Class ME. This is a large DIESEL LOCOMOTIVE (Bo'Bo'), NOT an EMU. Built 1981–1984. It hauls separate coaches. Do NOT return Class ME for any train that appears to be a self-propelled multiple unit.
+- Fleet number in the 2xxx range (e.g. 2001–2240) → DSB Class ER. This is a COPENHAGEN S-TOG EMU (electric multiple unit) on the urban S-bane network. The ER has a rounded dark front face with the DSB logo prominently displayed. The S-bane runs on 1650V DC third rail, not overhead. Return class "DSB Class ER", operator "DSB S-tog", type "EMU".
+
+STEP 2 — VISUAL TYPE CHECK (if no fleet number is readable):
+- LARGE DIESEL LOCOMOTIVE CAB hauling separate coaches, no pantograph, no third-rail shoes → DSB Class ME (diesel loco). Operator "DSB".
+- ARTICULATED MULTIPLE UNIT with a RUBBER FLEXIBLE COUPLING at the cab front, distinctive round rubber nose/bellows — this is the DSB IC3 (diesel railcar). Operator "DSB". Type "DMU".
+- SELF-CONTAINED EMU ON URBAN/SUBURBAN SERVICE with a rounded front, DSB logo, and dark red or dark grey livery → DSB Class ER (S-tog). Operator "DSB S-tog". Type "EMU".
+- MODERN SILVER/WHITE EMU with overhead pantograph on the Oresund corridor (Copenhagen–Malmo) → DSB Class ET (Oresund EMU, also operated by Skane/Öresundståg). Operator "DSB/Öresundståg". Type "EMU".
+
+CRITICAL RULE: A DSB train with a 2xxx fleet number is ALWAYS a Class ER S-tog EMU — it is NEVER a Class ME diesel locomotive. The ME class only covers 42 units numbered 1501–1542. Any DSB fleet number outside that range cannot be a Class ME.
+
 Rules:
 - "class" should be the official class designation. UK: use TOPS class numbers (e.g. "Class 56", "Class 89", "Class 37"). Pre-TOPS: use named classes (e.g. "A4 Pacific", "Britannia"). European: use local designation (e.g. "BR 101", "SNCF Class BB 22200", "DB Class 612"). Nordic: e.g. "NSB Di 4", "SJ Rc", "DSB IC3", "VR Sr2". Japanese: e.g. "N700 Series", "KiHa 40". North American: e.g. "EMD GP38-2", "GE ES44AC".
 - "name" should be the individual locomotive name if it has one (e.g. "Flying Scotsman", "Mallard", "Tornado"). Use null if unnamed.
