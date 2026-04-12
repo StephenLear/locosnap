@@ -32,12 +32,7 @@ import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo, BlueprintStyle } 
 const VALID_LANGUAGES = ["en", "de"] as const;
 type Language = typeof VALID_LANGUAGES[number];
 
-// Free users: 3 lifetime scans (no monthly reset).
-// TEMPORARY: kept at 10 until the frontend build with the matching
-// 3-scan limit ships. Deploying backend=3 while frontend still shows
-// "10 scans remaining" causes confusing 429 errors for users with 3-9 scans.
-// Change to 3 when v1.0.19 (frontend paywall update) goes live.
-const MAX_FREE_SCANS = 10;
+const MAX_FREE_MONTHLY_SCANS = 10;
 
 // ── Server-side scan gate ───────────────────────────────────
 // Verifies the bearer token (if present) and checks the user's
@@ -75,12 +70,19 @@ async function checkScanAllowed(
     if (!profile) return { allowed: true }; // no profile yet — allow
     if (profile.is_pro) return { allowed: true }; // Pro = unlimited
 
-    // Lifetime scan limit — no monthly reset
-    if (profile.daily_scans_used >= MAX_FREE_SCANS) {
+    // Check if we're in a new calendar month (reset resets the counter)
+    const resetAt = new Date(profile.daily_scans_reset_at);
+    const now = new Date();
+    const isNewMonth =
+      now.getMonth() !== resetAt.getMonth() ||
+      now.getFullYear() !== resetAt.getFullYear();
+    if (isNewMonth) return { allowed: true };
+
+    if (profile.daily_scans_used >= MAX_FREE_MONTHLY_SCANS) {
       return {
         allowed: false,
         reason:
-          "Free scan limit reached. Upgrade to Pro for unlimited scans and your full collection.",
+          "Monthly scan limit reached. Upgrade to Pro for unlimited scans.",
       };
     }
 
