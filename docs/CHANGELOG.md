@@ -7,6 +7,11 @@ Format: newest first within each date block.
 
 ## 2026-04-12
 
+### Frontend
+
+#### `frontend/app/card-reveal.tsx` — Fix Rules of Hooks violation causing ErrorBoundary crash
+- **Fixed** React ErrorBoundary crash ("Rendered fewer hooks than expected") triggered when `currentTrain` or `currentRarity` is null. Root cause: four `useMemo` hooks (`frontInterpolate`, `backInterpolate`, `frontOpacity`, `backOpacity`) were declared after the early return guard at line 280. When the guard fired, React counted fewer hooks than on a normal render and threw. Fix: moved all four `useMemo` calls above the early return. Added inline comment explaining the Rules of Hooks constraint so the order is not accidentally reversed in future. Caught via Sentry issue REACT-NATIVE-C in production release 1.0.17 (build 38), 1 event, 1 user, iPhone 14 iOS 26.3.1.
+
 ### Backend
 
 #### `backend/src/services/vision.ts` — Add DSB Danish train pre-flight check to prevent Class ME/ER confusion
