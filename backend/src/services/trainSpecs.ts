@@ -194,6 +194,26 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "br class 91": { maxSpeed: "125 mph", power: "4,700 kW", builder: "BREL Crewe", numberBuilt: 31, fuelType: "Electric (25 kV AC overhead)" },
   "intercity 225": { maxSpeed: "125 mph", power: "4,700 kW", builder: "BREL Crewe", numberBuilt: 31, fuelType: "Electric (25 kV AC overhead)" },
   "ic225": { maxSpeed: "125 mph", power: "4,700 kW", builder: "BREL Crewe", numberBuilt: 31, fuelType: "Electric (25 kV AC overhead)" },
+  // British Rail Class 201 / 202 / 203 "Hastings Thumper" — BR Eastleigh 1957-1958.
+  // Narrow-profile (8ft 6.5in) 6-car DEMU for the Hastings line. English Electric
+  // 4SRKT diesels mounted underfloor — the "thump" sound. 21 built total (7 each
+  // sub-class). Withdrawn 1986 when line electrified. Only 2 preserved:
+  // 1001 (Class 201 6S, sole survivor) and 1013 (Class 202 6L) — Hastings Diesels Ltd.
+  "class 201": { maxSpeed: "75 mph", builder: "BR Eastleigh Works", numberBuilt: 7, fuelType: "Diesel-Electric (English Electric 4SRKT)" },
+  "class 202": { maxSpeed: "75 mph", builder: "BR Eastleigh Works", numberBuilt: 7, fuelType: "Diesel-Electric (English Electric 4SRKT)" },
+  "class 203": { maxSpeed: "75 mph", builder: "BR Eastleigh Works", numberBuilt: 7, fuelType: "Diesel-Electric (English Electric 4SRKT)" },
+  "hastings thumper": { maxSpeed: "75 mph", builder: "BR Eastleigh Works", fuelType: "Diesel-Electric (English Electric 4SRKT)" },
+  "hastings demu": { maxSpeed: "75 mph", builder: "BR Eastleigh Works", fuelType: "Diesel-Electric (English Electric 4SRKT)" },
+  "thumper": { maxSpeed: "75 mph", builder: "BR Eastleigh Works", fuelType: "Diesel-Electric (English Electric 4SRKT)" },
+  // British Rail Class 88 — Stadler Rail Valencia (Vossloh España) 2015-2017,
+  // 10 units (88001-88010), Direct Rail Services (DRS). Bi-mode electric/diesel,
+  // Bo-Bo, 5,400 hp electric / 950 hp diesel, max 100 mph. Based on Siemens Vectron
+  // platform with added Caterpillar C27 diesel engine. Named after gods/goddesses.
+  "class 88": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
+  "br 88": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
+  "br class 88": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
+  "88005": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
+  "88005 minerva": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
   // BR Class 55 Deltic — Wikidata returns "Stadler Rail" (wrong — modern Swiss company)
   "class 55": { builder: "English Electric / Vulcan Foundry" },
   "class 55 deltic": { builder: "English Electric / Vulcan Foundry" },
