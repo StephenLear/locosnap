@@ -211,6 +211,32 @@ Always verify umlaut characters are correct before outputting. Use the proper Un
 ### After any backend commit — push-or-hold decision required
 After committing any backend change, explicitly state: "Not yet deployed — needs a push to go live on Render." Then ask: push now or hold? Never leave a backend commit sitting without a clear decision on deployment.
 
+### Git commit messages — default to -F file for anything non-trivial
+Heredoc commit messages (`git commit -m "$(cat <<'EOF' ... EOF)"`) break on single quotes, backticks, dollar signs, and some Unicode characters inside the heredoc content. For any commit message containing:
+- Single quotes (e.g. "Bo'ness", "don't", "user's")
+- Complex multi-line structure (>10 lines)
+- Special characters (backticks, dollar signs, em-dashes in some terminals)
+- Umlauts or non-ASCII characters
+
+**Use the file-based approach:**
+
+1. Write the commit message to `/tmp/commit_msg.txt` using the Write tool (no shell escaping issues)
+2. `git add <specific files>`
+3. `git commit -F /tmp/commit_msg.txt`
+4. `git push origin main` (if pushing)
+5. `rm /tmp/commit_msg.txt`
+
+**Why:** Heredoc-based commits failed twice in the 2026-04-14 session — once on "Bo'ness" in a Class 91 commit message, once on another apostrophe. Each failure wasted a tool call and a retry. The file approach is robust — use it by default for anything non-trivial.
+
+### Git index.lock error — one-line recovery
+On "Unable to create '.git/index.lock': File exists" error:
+
+1. Run `rm -f .git/index.lock` immediately — do NOT check processes or ls the file first
+2. Retry the git command
+3. If it fails again, THEN investigate (check for mid-rebase, pgrep git, etc.)
+
+**Why:** This error hit twice in the 2026-04-14 session. Both times I wasted a tool call running `ls -la .git/index.lock` to check if the file existed (it reported "no such file" but git still refused until `rm -f` was run). One-line recovery saves the diagnostic round-trip. If there's a real concurrent git process, the `rm -f` will fail or the retry will fail harmlessly.
+
 ### After triggering an EAS build — confirm monitoring method
 After any `eas build` command, confirm how the build will be monitored and how the APK/IPA link will be retrieved and distributed. Never ask the user to supply the link — handle it directly.
 
