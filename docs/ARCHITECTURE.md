@@ -1,6 +1,6 @@
 # LocoSnap — Full Architecture Reference
 
-> Last updated: 2026-03-31
+> Last updated: 2026-04-13
 
 ---
 
@@ -17,7 +17,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | Framework | React Native + Expo (TypeScript) |
 | Navigation | Expo Router (file-based) |
 | State Management | Zustand + AsyncStorage |
-| iOS Version | 1.0.17 build 38 — **Live on App Store** 2026-04-09. Includes all changes from v1.0.8–v1.0.17: language picker (EN/DE), deferred i18n init, Android 16 crash fix (setTimeout(0)), viewfinder glow alignment, FCM token skip, all train ID disambiguation improvements. Previous App Store release: v1.0.7 build 36 (2026-03-31). IPA: https://expo.dev/artifacts/eas/kWHhX6gcrPpUBYT9Ky1AZg.ipa |
+| iOS Version | 1.0.19 build 41 — **In App Store review** (submitted 2026-04-13). Contains: 3 lifetime scans paywall (down from 10/month), Pro upsell banner on results screen, updated badge/alert text. Previous live release: v1.0.18 build 40 — **Live on App Store** 2026-04-12 (card-reveal Rules of Hooks crash fix only). v1.0.17 build 38 — Live on App Store 2026-04-09. IPA v1.0.17: https://expo.dev/artifacts/eas/kWHhX6gcrPpUBYT9Ky1AZg.ipa |
 | Android Version | 1.0.11 build 5 — sent to Finnish tester 2026-04-01. Crash fix: removed expo-localization entirely. v1.0.8 introduced expo-localization native plugin which crashed at startup on devices with non-EN/DE device locales (Finnish tester confirmed). v1.0.9 (wrong fix — removed key prop from Tabs), v1.0.10 (partial fix — removed plugin from app.json but not package), v1.0.11 (correct fix — removed package and import entirely; app defaults to EN, user can switch to DE via picker). APK: https://expo.dev/artifacts/eas/451HLSXRSRiqoFAMpfm4sy.apk |
 | App Store ID | 6759280267 |
 | App Store URL | https://apps.apple.com/app/locosnap/id6759280267 |
@@ -229,9 +229,9 @@ curl -X PATCH "https://vfzudbnmtwgirlrfoxpq.supabase.co/rest/v1/profiles?id=eq.<
 | Free account | 3 lifetime (no monthly reset) — tracked in `daily_scans_used` (legacy column name) |
 | Pro | Unlimited |
 
-**Scan limit change 2026-04-12:** Free account limit changed from 10 per calendar month to 3 lifetime scans with no monthly reset. The monthly reset logic was removed from both frontend (`authStore.ts fetchProfile`) and backend (`identify.ts checkScanAllowed`). The DB columns `daily_scans_used` / `daily_scans_reset_at` retain their legacy names but `daily_scans_used` is now a lifetime counter and `daily_scans_reset_at` is no longer checked. Reason: zero Pro conversions — 10/month was too generous, most users never hit the paywall. Frontend changes committed but not yet built (will ship with v1.0.19). Backend reverted to 10/month temporarily to avoid frontend/backend mismatch — will be flipped to 3 lifetime when v1.0.19 goes live.
+**Scan limit change 2026-04-12:** Free account limit changed from 10 per calendar month to 3 lifetime scans with no monthly reset. The monthly reset logic was removed from both frontend (`authStore.ts fetchProfile`) and backend (`identify.ts checkScanAllowed`). The DB columns `daily_scans_used` / `daily_scans_reset_at` retain their legacy names but `daily_scans_used` is now a lifetime counter and `daily_scans_reset_at` is no longer checked. Reason: zero Pro conversions — 10/month was too generous, most users never hit the paywall. Frontend changes submitted to Apple in v1.0.19 build 41 (2026-04-13), pending review. Backend remains at 10/month until v1.0.19 goes live — must be flipped simultaneously with App Store release (see deployment sequence in handover).
 
-**Results screen upsell banner (2026-04-12):** Added a Pro upsell banner to `results.tsx` visible to all non-Pro users after every scan. Shows "Grow your collection / Unlimited scans, cards, and blueprints" with link to paywall (`source=results_banner`). Previously the paywall was entirely reactive — only shown when a limit was hit. The banner ensures every active user sees a Pro prompt regardless of remaining scans. Will ship with v1.0.19.
+**Results screen upsell banner (2026-04-12):** Added a Pro upsell banner to `results.tsx` visible to all non-Pro users after every scan. Shows "Grow your collection / Unlimited scans, cards, and blueprints" with link to paywall (`source=results_banner`). Previously the paywall was entirely reactive — only shown when a limit was hit. The banner ensures every active user sees a Pro prompt regardless of remaining scans. Submitted to Apple in v1.0.19 build 41 (2026-04-13), pending review.
 
 **Important:** Guest mode was removed in 2026-03-22 because `canScan()` returned `true` unconditionally for guests (a loophole giving unlimited free scans). The sign-in screen no longer shows "Continue as Guest". Unauthenticated users can scan 3 times before being prompted to create a free account.
 
@@ -285,6 +285,19 @@ curl -X PATCH "https://vfzudbnmtwgirlrfoxpq.supabase.co/rest/v1/profiles?id=eq.<
 | Auth email | noreply@locosnap.app (Supabase auth) |
 | API Key | re_XU3bJw3A_FeZwjrnRpiKQ7tz3GTQVcTi8 (Resend dashboard → API Keys) |
 | Dashboard | https://resend.com |
+| Mandatory CC | unsunghistories@proton.me on every outbound email — no exceptions (enforced by email-send-guard skill rule 12) |
+| API endpoint | `POST https://api.resend.com/emails` |
+
+**Resend API gotcha — Cloudflare User-Agent block (discovered 2026-04-11):** The Resend API now sits behind Cloudflare and rejects requests with the default `Python-urllib/3.x` User-Agent with `403 Forbidden` and Cloudflare error code `1010` ("the owner of this website has banned your access based on your browser's signature"). Any script calling the Resend API MUST include a custom `User-Agent` header. Working header set used 2026-04-11 to send 5 tester check-in emails:
+
+```
+Authorization: Bearer <RESEND_API_KEY>
+Content-Type: application/json
+User-Agent: LocoSnap-TesterMailer/1.0 (curl-equivalent)
+Accept: application/json
+```
+
+Without the User-Agent override, all 5 emails returned `403 / error 1010` and 0 sent. With the override, all 5 sent successfully on the next attempt. Apply the same pattern to any future Python/urllib-based Resend calls. `curl` and Node SDKs are not affected because they send their own non-empty User-Agent by default.
 
 ### Receiving / Forwarding (ImprovMX)
 | Property | Value |
@@ -348,7 +361,7 @@ eas secret:create --scope project --name SENTRY_PROJECT --value "react-native"
 | Build command | `eas build --platform [ios/android/all] --profile [production/preview]` |
 | Local dev build | Not yet built. Run `eas build --profile development --platform ios` once to install it. After that, `npx expo start --dev-client` pushes code changes instantly without rebuilding. **Build this before the next debugging session to avoid wasting TestFlight builds.** |
 | Expo Go limitations | Two errors appear when testing via Expo Go — these are NOT code bugs and do NOT appear in TestFlight: (1) RevenueCat "invalid API key" — Expo Go has no native store access; (2) Worklets mismatch 0.7.4 vs 0.5.1 — Expo Go bundles an older version. Both are resolved in any real build. |
-| Latest iOS Build | Build 38 (v1.0.17) — **Live on App Store** 2026-04-09. Submitted to TestFlight 2026-04-08, approved 2026-04-09. IPA: https://expo.dev/artifacts/eas/kWHhX6gcrPpUBYT9Ky1AZg.ipa |
+| Latest iOS Build | Build 41 (v1.0.19) — **In App Store review** (submitted 2026-04-13). Contains: 3 lifetime scans, Pro upsell banner on results screen, updated badge/alert text. Previous: Build 40 (v1.0.18) — Live on App Store 2026-04-12, card-reveal Rules of Hooks crash fix only. Build 38 (v1.0.17) — Live on App Store 2026-04-09. IPA v1.0.17: https://expo.dev/artifacts/eas/kWHhX6gcrPpUBYT9Ky1AZg.ipa |
 | Latest Android Production Build | v1.0.17 AAB (versionCode 8) — built 2026-04-07 — https://expo.dev/artifacts/eas/9iNjvH7L9AFjeVq8KB1uhp.aab — Submitted to Play Store closed testing track 2026-04-07, in review by Google |
 | Latest Android Preview Build | v1.0.17 APK — https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/be527909-08eb-4ef9-b95e-d6ba89180f6f — sent to vattuoula 2026-04-07. Wraps router.replace() in setTimeout(0) to prevent synchronous React commit cascade crash on Android 16 (Hermes). Also adds authIsLoading guard to prevent navigation before Stack is mounted. |
 
@@ -435,13 +448,13 @@ FRONTEND_URL=https://locosnap.app
 2. Trial banner shows: "3 free scans to try — sign up to save your collection"
 3. User scans (up to 3 times, counted in AsyncStorage)
 4. On scan 4: "Create Your Free Account" prompt — sign-up gate
-5. User creates free account → 10 scans/month, cloud sync, leaderboard
+5. User creates free account → 3 lifetime scans, cloud sync, leaderboard
 6. User upgrades to Pro → unlimited scans, all blueprint styles
 ```
 
-**Key constants** (`authStore.ts`):
+**Key constants** (`authStore.ts`) — as of v1.0.19 (pending review):
 - `PRE_SIGNUP_FREE_SCANS = 3` — trial scans before sign-up required
-- `MAX_MONTHLY_SCANS = 10` — monthly limit for free accounts
+- `MAX_FREE_SCANS = 3` — lifetime limit for free accounts (changed from `MAX_MONTHLY_SCANS = 10` in v1.0.19)
 - `PRE_SIGNUP_SCANS_KEY = "locosnap_presignup_scans"` — AsyncStorage key
 
 ---
