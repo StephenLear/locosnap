@@ -5,6 +5,25 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-13
+
+### Frontend
+
+#### `frontend/app.json` — Version bump to 1.0.19
+- **Changed** version from `1.0.18` to `1.0.19` before triggering EAS production build.
+- **Why:** v1.0.18 build 40 was already live on App Store. Apple rejects submissions where the version matches a previously approved build (ITMS-90186 / ITMS-90062).
+
+### Build
+
+#### iOS v1.0.19 build 41 — Submitted to App Store Connect (2026-04-13)
+- **Submitted** to Apple App Store Connect for review. In review as of 2026-04-13.
+- **Contains:** 3 lifetime scans for free accounts (down from 10/month), Pro upsell banner on results screen, updated scan badge and paywall alert text. All changes committed 2026-04-12 — see that date's changelog entries for full detail.
+- **App Store release notes (EN):** "Bug fixes and performance improvements. Free scan limit updated to 3 lifetime scans. Pro banner added to results screen."
+- **App Store release notes (DE):** "Fehlerbehebungen und Leistungsverbesserungen. Kostenlose Scan-Grenze auf 3 Scans insgesamt reduziert. Pro-Banner auf dem Ergebnisscreen hinzugefuegt."
+- **Backend note:** Backend (`identify.ts`) remains at `MAX_FREE_MONTHLY_SCANS=10` until this build clears review and goes live. Backend flip and frontend release must happen simultaneously.
+
+---
+
 ## 2026-04-12
 
 ### Frontend

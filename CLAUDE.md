@@ -214,6 +214,16 @@ After committing any backend change, explicitly state: "Not yet deployed — nee
 ### After triggering an EAS build — confirm monitoring method
 After any `eas build` command, confirm how the build will be monitored and how the APK/IPA link will be retrieved and distributed. Never ask the user to supply the link — handle it directly.
 
+### Before every session ends — update changelog and architecture docs
+Before closing any session, both `docs/CHANGELOG.md` and `docs/ARCHITECTURE.md` must be current. This is non-negotiable and applies to every session without exception — even sessions with no code changes (build submissions, stat logging, content work, and decisions still affect build status, scan limits, and distribution state in the architecture doc).
+
+**Checklist before session close:**
+1. `docs/CHANGELOG.md` — all frontend/backend file edits recorded with date, file, what changed, and why
+2. `docs/ARCHITECTURE.md` — build versions, scan limits, distribution status, and any other changed state updated; last updated date bumped
+3. Run `/handover` to capture session context
+
+Do not treat this as optional when the session feels short or non-technical. A session that submits a build, changes a stat, or makes a product decision has architecture-doc-worthy state changes.
+
 ---
 
 ## Key Design Decisions
