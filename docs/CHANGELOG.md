@@ -7,6 +7,23 @@ Format: newest first within each date block.
 
 ## 2026-04-14
 
+### Backend — vision prompt fixes (evening batch, commit `badd747`)
+
+#### `backend/src/services/vision.ts` — Added Class 201 Hastings Thumper rule, Class 88 DRS rule, tightened Mireo pre-flight gate
+
+- **Added** Class 201 / 202 / 203 Hastings "Thumper" DEMU disambiguation rule. Discovered via tester Steph the Spotter on 2026-04-12: scanned the preserved Class 201 1001 on "THE NORFOLK NAVIGATOR" railtour and LocoSnap returned "Class 421" (4CIG EMU, completely wrong class and traction type). Root cause: zero Class 201/202/203 coverage in vision.ts. New rule identifies the class by its narrow-profile 8 ft 6½ in body (Hastings line loading gauge restriction), BR Southern green livery with small yellow warning panel, rounded cab ends, 6-car DEMU formation, underfloor English Electric 4SRKT diesel engines (the "thumper" sound), and preserved units 1001 / 1013 owned by Hastings Diesels Ltd at St Leonards-on-Sea. Anti-anchor against Class 421, Class 411 (4CEP), Class 423 (4VEP), Class 438 (4TC) — all of which are slam-door EMUs from a completely different era and traction type. Type must be "DMU" (the app type enum has no DEMU option).
+- **Added** Class 88 Direct Rail Services Stadler Euro Dual rule. Discovered via tester Steph the Spotter on 2026-04-14: scanned 88005 "Minerva" with the fleet number clearly visible on the cab front, and LocoSnap returned "Class 385" (Hitachi AT200 ScotRail EMU, completely different operator and train type). Root cause: zero Class 88 coverage in vision.ts. New rule covers: 10-unit fleet (88001–88010), Stadler Rail Valencia build 2015–2017, dual-mode Siemens Vectron-derived platform with added Caterpillar C27 diesel, 4,000 kW electric + 708 kW diesel, 100 mph max, DRS dark blue/green livery, Bo-Bo, god/goddess unit naming convention. Anti-anchor against Class 385, Class 90, Class 68 (same DRS operator but diesel-only), and Hitachi AT300 multi-units (800/801/802/805/807/810).
+- **Tightened** Siemens Mireo PRE-FLIGHT CHECK gate. Discovered via BR 111 video comment 2026-04-14: commenter reported "every third scan returns a Mireo". Investigation showed the Mireo pre-flight was too broad — it fired on any white/silver German EMU with a dark underbelly, causing false positives on BR 442 (Talent 2), BR 440 (Coradia Continental), BR 462 (ICE 3neo Velaro MS), and other non-Mireo German regional EMUs. Added a CRITICAL GATE: before returning "Mireo" or "BR 463", at least one of three conditions must be true — (a) a fleet number starting "463" is readable in the image, OR (b) explicit "Mireo" / "Mireo Smart" / "Mireo Plus B" / "Mireo Plus H" branding is visible, OR (c) it is a clearly short 3-car formation with the Mireo-specific angular cab profile AND no other German Regional EMU rule matches. If none are true, fall through to the German Regional EMU Family pre-flight check or return "DB Regional EMU".
+
+#### `backend/src/services/trainSpecs.ts` — Added hardcoded corrections for Class 201 and Class 88
+
+- **Added** Class 201 / 202 / 203 hardcoded overrides keyed as `class 201`, `class 202`, `class 203`, `hastings thumper`, `hastings demu`, `thumper`: maxSpeed 75 mph, builder BR Eastleigh Works, numberBuilt 7 per sub-class, fuelType "Diesel-Electric (English Electric 4SRKT)".
+- **Added** Class 88 hardcoded overrides keyed as `class 88`, `br 88`, `br class 88`, `88005`, `88005 minerva`: maxSpeed 100 mph, power "4,000 kW (electric) / 708 kW (diesel)", builder "Stadler Rail Valencia (Vossloh España)", numberBuilt 10, fuelType "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)".
+
+- **Tests:** All 93 backend tests pass.
+- **Deployed** to Render (commit `badd747`, pushed to main 2026-04-14).
+- **Public responses posted** on the BR 111 video comment thread acknowledging the Mireo over-match (fix already deployed) and accepting the "NUR NOCH 4" clarification that the "4 remaining" count specifically refers to RB 6 München-Garmisch in DB Regio Bayern, while other Verwaltungsbereiche still operate additional BR 111s. Video left live per strategic decision — the public correction is itself a trust-building signal.
+
 ### App Store
 
 #### iOS v1.0.19 build 41 — **Apple approved — live on App Store**
