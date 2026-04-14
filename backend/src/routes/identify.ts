@@ -32,15 +32,17 @@ import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo, BlueprintStyle } 
 const VALID_LANGUAGES = ["en", "de"] as const;
 type Language = typeof VALID_LANGUAGES[number];
 
-const MAX_FREE_MONTHLY_SCANS = 10;
+const MAX_FREE_SCANS = 3;
 
 // ── Server-side scan gate ───────────────────────────────────
 // Verifies the bearer token (if present) and checks the user's
-// monthly scan count against their plan. Fails open — any error
-// (Supabase down, invalid token, missing profile) allows the scan
-// through so legitimate users are never incorrectly blocked.
-// Unauthenticated requests (no token) are allowed here; the IP
-// rate limiter above handles trial-user abuse.
+// LIFETIME scan count against their plan (3 free scans per user,
+// no monthly reset — v1.0.19 frontend and backend synchronised
+// 2026-04-14 after Apple approval of iOS v1.0.19 build 41).
+// Fails open — any error (Supabase down, invalid token, missing
+// profile) allows the scan through so legitimate users are never
+// incorrectly blocked. Unauthenticated requests (no token) are
+// allowed here; the IP rate limiter above handles trial-user abuse.
 async function checkScanAllowed(
   req: Request
 ): Promise<{ allowed: boolean; reason?: string }> {
@@ -63,26 +65,21 @@ async function checkScanAllowed(
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("is_pro, daily_scans_used, daily_scans_reset_at")
+      .select("is_pro, daily_scans_used")
       .eq("id", user.id)
       .single();
 
     if (!profile) return { allowed: true }; // no profile yet — allow
     if (profile.is_pro) return { allowed: true }; // Pro = unlimited
 
-    // Check if we're in a new calendar month (reset resets the counter)
-    const resetAt = new Date(profile.daily_scans_reset_at);
-    const now = new Date();
-    const isNewMonth =
-      now.getMonth() !== resetAt.getMonth() ||
-      now.getFullYear() !== resetAt.getFullYear();
-    if (isNewMonth) return { allowed: true };
-
-    if (profile.daily_scans_used >= MAX_FREE_MONTHLY_SCANS) {
+    // v1.0.19 change: 3 lifetime scans, no monthly reset.
+    // The `daily_scans_used` column now accumulates without reset
+    // for non-Pro users. Frontend and backend both show "3 lifetime".
+    if (profile.daily_scans_used >= MAX_FREE_SCANS) {
       return {
         allowed: false,
         reason:
-          "Monthly scan limit reached. Upgrade to Pro for unlimited scans.",
+          "Free scan limit reached. Upgrade to Pro for unlimited scans.",
       };
     }
 
