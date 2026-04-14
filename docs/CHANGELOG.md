@@ -5,6 +5,64 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-14
+
+### Build
+
+#### v1.0.19 Android APK — EAS preview build completed
+- **Built** v1.0.19 Android preview APK via EAS to match iOS v1.0.19 build 41 state (currently in Apple review). Build id `8d5b2ad3-937d-46eb-b4ed-bc076413ae62`, versionCode 8, SDK 54.0.0, 10m 58s build duration, git commit `872dd58`.
+- **APK URL:** https://expo.dev/artifacts/eas/ispu2yQ9ZFMWc8x2Wq6Hwb.apk
+- **Contains:** `MAX_FREE_SCANS=3` lifetime (down from 10/month), Pro upsell banner on results screen linking to `paywall?source=results_banner`, `free_limit_hit` analytics event rename, BR 442/642 disambiguation fix, all prior v1.0.18 card-reveal Rules of Hooks fix.
+- **Held — not yet distributed.** Backend still at `MAX_FREE_MONTHLY_SCANS=10` intentionally. Distribution waits until iOS v1.0.19 is approved by Apple and the backend is flipped to `MAX_FREE_SCANS=3` in the same synchronised action.
+- **EAS cost:** pay-as-you-go (100% of April monthly credits used). One build triggered, one build completed, no re-trigger — acceptable spend.
+- **Why now:** Android has been one version behind iOS since 2026-04-07 (v1.0.17 was the last Android build). Needed to match iOS v1.0.19 state so that when Apple approves, Android testers can be moved to the new paywall at the same time as iOS users and the backend flip. Building now before Apple approval means the APK is ready to ship the moment the coordinated flip happens.
+
+### Tester Outreach
+
+#### 5 tester check-in emails sent via Resend
+- **Sent** bilingual EN/DE chase emails to 4 inactive testers who had received Pro grants but never signed up in-app: krawiec.jr69@gmail.com (Resend id `c9ddf59e`), mike.j.harvey@gmail.com (`ee962798`), muz.campanet@gmail.com (`7c423bc5`), qwertylikestrains@gmail.com (`6e93bd2e`).
+- **Sent** a separate chase email to scr.trainmad@gmail.com (Tom Guy — Resend id `12d00c4f`) following up on the 2026-04-02 version query and asking about `scrtrainmadother@gmail.com` active status.
+- **Structure:** "Three replies that work — Still in / Switch / Not anymore" pattern to make the reply effortless. All 5 emails CC'd `unsunghistories@proton.me` per the mandatory rule.
+- **Why:** Pro grant slots were sitting unused for up to 2 weeks. Needed to confirm which email addresses are live before continuing to hold slots, so we can free them for waitlist testers if any accounts have moved on.
+
+#### Jan Kaczorkowski (krawiec.jr69@gmail.com) — reply + v1.0.17 APK sent
+- **Received** "yes" reply 2026-04-14 confirming he's still in on krawiec.jr69@gmail.com.
+- **Sent** bilingual EN/PL install email (Resend id `2c6ea6c2`) with the v1.0.17 Android APK download link. Chose v1.0.17 over v1.0.19 because v1.0.19 Android APK had not yet been built at the time of reply, and v1.0.17 is a known-good tester build (vattuoula confirmed it working 2026-04-07).
+- **Polish translation:** the email body included a full Polish section alongside the English (Jan is Polish). Special characters verified: `ą`, `ć`, `ę`, `ł`, `ó`, `ś`, `ź`, `ż` all present and correct in `Cześć`, `dzięki`, `załóż`, `dostęp`, `się`, `Być`, `może`, `zezwolić`, `instalację`, `źródeł`, `problemów`, `instalacją`, `chętnie`, `pomogę`.
+- **Next for Jan:** install v1.0.17, sign up in-app with krawiec.jr69@gmail.com, Pro grant activates automatically via the 4-hourly Pro monitor. Will be offered v1.0.19 as part of the coordinated Apple-approved rollout.
+
+### Infrastructure
+
+#### Resend API — Cloudflare User-Agent block discovered and documented
+- **Fixed** Resend API `POST /emails` now rejects requests with the default `Python-urllib/3.x` User-Agent header, returning `403 Forbidden` and Cloudflare error code `1010`. First attempt to send the 5 tester chase emails failed entirely (0/5 sent). Added `User-Agent: LocoSnap-TesterMailer/1.0 (curl-equivalent)` and `Accept: application/json` headers — second attempt sent 5/5 successfully.
+- **Documented** in `docs/ARCHITECTURE.md` Section 10 Sending (Resend) with the working header set so future Python/urllib-based Resend calls don't re-discover this. Also added the mandatory CC rule (`unsunghistories@proton.me` on every outbound) to the Resend property table for discoverability.
+
+#### `docs/ARCHITECTURE.md` — Android APK build history and latest-build row updated
+- **Added** 2026-04-14 row for v1.0.17 distribution to Jan Kaczorkowski (krawiec.jr69@gmail.com), and a second 2026-04-14 row for the new v1.0.19 Android preview build.
+- **Updated** "Latest Android Preview Build" row in Section 13 from v1.0.17 to v1.0.19, with the direct APK URL and full feature list.
+
+#### Git repo cleanup — multiple catchup commits
+- **Committed** files that had been on disk but untracked for several sessions:
+  - `CLAUDE.md` + `docs/CHANGELOG.md` from the 2026-04-13 Session 3 (end-of-session docs rule addition + v1.0.19 submission entry)
+  - Play Store assets: `frontend/assets/feature-graphic.png`, `feature-graphic-gen.py`, `icon-512.png`, `screenshots/` (4 screenshots)
+  - Video assets: `docs/assets/locosnap_end_screen.mp4` (2-second end screen used in every TikTok/Reels build)
+  - Handover files: 17 files from `HANDOVER-2026-03-31-3.md` through `HANDOVER-2026-04-13-3.md`
+  - Plan files: `docs/plans/2026-04-12-br218-allgau-end-of-era.md`, `docs/plans/2026-04-12-paywall-deep-assessment.md`
+  - Website: `website/index.html`, `website/vercel.json`, `website/.gitignore`, `website/images/`
+  - Root-level marketing docs: `locosnap-ugc-teaser-scripts.md`, `ugc-campaigns-three-apps.md`
+- **Why:** Pre-build cleanup before the v1.0.19 Android EAS build. EAS clones from git at build time — any files that are only on disk but not committed do not exist in the build. Cleaning the tree first ensures the build sees everything the developer sees.
+- **Not committed:** `.claude/` directory remains correctly untracked (local Claude Code settings, should not be in the repo).
+
+### Tester Contacts Memory
+
+#### `~/.claude/projects/.../memory/tester_contacts.md` — chase dates and open threads updated
+- **Updated** 5 tester entries with chase email send dates (2026-04-11) and Resend IDs for audit trail.
+- **Updated** Jan's entry to include his real name (Jan Kaczorkowski), "yes" reply from 2026-04-11, and install email Resend ID (`2c6ea6c2`).
+- **Added** cool-off rule: "Do not re-chase the 2026-04-11 cohort before 2026-04-18" — week-long window prevents double-chase on the same free grant.
+- **Updated** Open Threads table to 2026-04-11 baseline with all 5 chase threads listed, waiting state for each.
+
+---
+
 ## 2026-04-13
 
 ### Frontend
