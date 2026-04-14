@@ -7,6 +7,24 @@ Format: newest first within each date block.
 
 ## 2026-04-14
 
+### App Store
+
+#### iOS v1.0.19 build 41 — **Apple approved — live on App Store**
+- **Approved** by Apple 2026-04-14. v1.0.19 build 41 now live on App Store, replacing v1.0.18 build 40 which had been live since 2026-04-12.
+- **Contains:** 3 lifetime scans paywall (down from 10/month), Pro upsell banner on results screen with source tracking `paywall?source=results_banner`, `free_limit_hit` analytics event rename, BR 442/642 disambiguation fix, card-reveal Rules of Hooks fix (from v1.0.18).
+- **Impact:** Frontend paywall is now 3 lifetime scans for all iOS users. Existing free users with previous scans retained counted against the new limit on first launch.
+- **Triggered next action:** Backend `identify.ts` scan limit flip (see Backend section below) — coordinated with App Store approval per the hold plan in HANDOVER-2026-04-13-3.md.
+
+### Backend
+
+#### `backend/src/routes/identify.ts` — Flipped to 3 lifetime scans, removed monthly reset
+- **Changed** `const MAX_FREE_MONTHLY_SCANS = 10` to `const MAX_FREE_SCANS = 3`. Free-tier users now have 3 lifetime scans, no monthly reset.
+- **Removed** the `isNewMonth` check and `daily_scans_reset_at` column from the profile SELECT. The column remains in the Supabase schema but is no longer used by the backend — the `daily_scans_used` counter now accumulates without reset for non-Pro users, matching the frontend behaviour introduced in v1.0.19 build 41.
+- **Updated** error message from "Monthly scan limit reached. Upgrade to Pro for unlimited scans." to "Free scan limit reached. Upgrade to Pro for unlimited scans."
+- **Why now:** Apple approved iOS v1.0.19 build 41 earlier on 2026-04-14, making the new frontend live on App Store. Per the hold plan in HANDOVER-2026-04-13-3.md, the backend flip must happen in the same session as the App Store release to keep frontend and backend in sync. Holding the flip any longer would leave iOS users on a 3-lifetime-scan frontend while the backend allowed 10/month — a divergent state.
+- **Tests:** All 93 backend tests pass.
+- **Deployed** to Render (commit `8c4cb7c`, pushed to main 2026-04-14).
+
 ### Build
 
 #### v1.0.19 Android APK — EAS preview build completed
