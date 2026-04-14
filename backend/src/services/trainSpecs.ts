@@ -184,6 +184,16 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // Class 810 Aurora — correct power and unit count
   "class 810": { power: "2,940 kW", numberBuilt: 33 },
   "br 810": { power: "2,940 kW", numberBuilt: 33 },
+  // British Rail Class 91 (InterCity 225) — BREL Crewe 1988-1991, 31 units.
+  // Still in LNER service Dec 2025 (12 active). Withdrawal end of 2028 due to
+  // ETCS signalling incompatibility on southern ECML. 91010 holds UK rail speed
+  // record 161.7 mph (17 Sep 1989). Operational max 125 mph (140 mph capable).
+  // 91131 preserved at Museum of Scottish Railways, Bo'ness & Kinneil.
+  "class 91": { maxSpeed: "125 mph", power: "4,700 kW", builder: "BREL Crewe", numberBuilt: 31, fuelType: "Electric (25 kV AC overhead)" },
+  "br 91": { maxSpeed: "125 mph", power: "4,700 kW", builder: "BREL Crewe", numberBuilt: 31, fuelType: "Electric (25 kV AC overhead)" },
+  "br class 91": { maxSpeed: "125 mph", power: "4,700 kW", builder: "BREL Crewe", numberBuilt: 31, fuelType: "Electric (25 kV AC overhead)" },
+  "intercity 225": { maxSpeed: "125 mph", power: "4,700 kW", builder: "BREL Crewe", numberBuilt: 31, fuelType: "Electric (25 kV AC overhead)" },
+  "ic225": { maxSpeed: "125 mph", power: "4,700 kW", builder: "BREL Crewe", numberBuilt: 31, fuelType: "Electric (25 kV AC overhead)" },
   // BR Class 55 Deltic — Wikidata returns "Stadler Rail" (wrong — modern Swiss company)
   "class 55": { builder: "English Electric / Vulcan Foundry" },
   "class 55 deltic": { builder: "English Electric / Vulcan Foundry" },
