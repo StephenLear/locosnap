@@ -618,6 +618,7 @@ Use as overlay text on future ad content. Do not attribute — let it stand alon
 - Two lines maximum — keep it punchy, not explanatory
 - No time claims for blueprint generation (takes up to 60 seconds in the app)
 - ASS style reference (720p portrait): `Style: Impact,Arial Black,110,&H0000FFFF,&H000000FF,&H00000000,&HA0000000,-1,0,0,0,100,100,0,0,1,6,2,2,30,30,100,1`
+- **Character limit per line (tested 2026-04-15 on BR 143 build)**: At 110px Arial Black width 720px with 6px black outline, the safe maximum is **10 characters comfortably, 11 tight but OK, 12 or more overflows the frame edges**. Tested fits: "DIE BR 143" (10) ✓, "646 GEBAUT" (10) ✓, "FAST WEG" (8) ✓, "STIRBT AUS" (10) ✓, "DAS DR-ERBE" (11) tight but OK. Tested overflows: "VERSCHWINDET" (12) ✗, "IS VANISHING" (12) ✗ — both had to be replaced during the BR 143 build cycle. Always count characters before finalising overlay text; plan shorter alternatives for long German compound words. Earlier handover notes claimed a "9-char safe limit" which is outdated — actual tested limit is 10–11.
 
 **Hook structure:**
 - Frame 1 must be a pattern interrupt — moving train or strongest visual asset

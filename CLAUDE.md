@@ -196,6 +196,12 @@ Update `docs/ARCHITECTURE.md` whenever any of the following change:
 ### Changelog location
 `docs/CHANGELOG.md` — all frontend and backend code changes recorded here with date, file, what changed, and why.
 
+### "ad" / "advert" in this project means short-form organic video
+When the user says "ad" or "advert" in the LocoSnap context, default to interpreting this as a short-form organic video produced for TikTok and Instagram (the Frankfurt / BR 101 / BR 218 / BR 111 / Class 91 / BR 143 template — 720×1280 portrait, 10 seconds, hero-beat concat with ASS subtitle overlays, scheduled post to TikTok + Instagram). The Eurostar "ad v3" entry in `tiktok_stats.md` is the canonical historical example of this organic usage. Do NOT interpret as paid advertising unless the user explicitly mentions a budget, Meta Ads Manager, TikTok Promote, Instagram boost, or "ad spend". Discovered 2026-04-15 when "another German ad" was misread as a paid-ad question.
+
+### Tester pronouns — default to they/them unless confirmed
+Never assume or write he/she/him/her for a tester (or any other user) whose pronouns haven't been explicitly confirmed. Default to they/them regardless of name origin, account history, or name-gender-statistics. A Finnish first name like "Oula", a Polish surname like "Kaczorkowski", a Czech nickname, or any other cross-cultural name is NOT a pronoun signal. Apply corrections silently if the user provides the actual pronouns mid-session. Discovered 2026-04-15 when I wrote "she/her" about a Finnish tester based on nothing, and the user had to correct twice.
+
 ### No emojis — ever
 Never use emojis in any response, output, file, caption, script, email, or message in this project. This applies everywhere without exception. No emoji characters of any kind.
 
