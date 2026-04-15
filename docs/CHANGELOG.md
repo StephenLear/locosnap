@@ -7,6 +7,43 @@ Format: newest first within each date block.
 
 ## 2026-04-15
 
+### Content — BR 143 "AM ENDE" / "IS DYING" video produced (DE + EN, scheduled for 2026-04-16 AM post)
+
+Produced a 10-second TikTok/Instagram short-form video for the DB Class 143, telling the story that the class is almost extinct in DB Regio service after 646 units originally built by LEW Hennigsdorf. Built in parallel as `~/Desktop/locosnap_br143_de.mp4` (primary) and `~/Desktop/locosnap_br143_en.mp4` (secondary). Scheduled for tomorrow morning: DE first to TikTok + Instagram, EN ~1 hour later to both platforms.
+
+**Source footage:** Five BR 143 clips provided by the user in `~/Desktop/BR143/`. Reviewed all five for resolution, framerate, bitrate, loco visibility, and narrative fit. Picked three as the hero beats:
+
+- **Beat 1 (hook 0.0–2.0s):** `BR 143 mit Bauzug #trainspotting #br143 #großköris #lokführer2008.mp4` timestamps 20.0–22.0s. DB Regio red/white BR 143 passing through pine forest, 3/4 angle. First 10s of clip skipped to avoid the "Groß Köris" burned-in text overlay from the original creator.
+- **Beat 2 (scarcity 2.0–4.0s):** `Weinrot BR143 am Dresden Hbf #train #vintage #eisenbahn #germany.mp4` timestamps 11.0–13.0s. Orientrot BR 143 (fleet `143 250-9` readable on cab) in Dresden Hbf's iconic arched roof. First 9s of clip skipped because the clip opens on the Doppelstock Steuerwagen (wrong end of the push-pull set) which would have triggered a German rail-fan correction in the comments.
+- **Beat 4 (closer 6.0–8.0s):** `Einfahrt Br 143 (S-Bahn Dresden), Kurort Rathen.mp4` timestamps 10.5–12.5s. Night arrival at Kurort Rathen station with headlights on, DB logo and fleet number `143 68x` visible.
+
+**Beat 3 (card reveal 4.0–6.0s):** Screen recording `~/Desktop/BR143/ScreenRecording_04-15-2026 21-18-57_1.mp4` timestamps 23.3–25.3s. User scanned the extracted Weinrot 12.0s still (`~/Desktop/BR143/stills/weinrot_12.0s.jpg`) in LocoSnap on device. Backend returned `DB Class 143` / `DB · Electric` / `120 km/h` / `3,720 kW` / RARE badge — all three hardcoded trainSpecs values from today's backend fix flowed through correctly, and the new rarity classification showing RARE (instead of Common) is the main narrative payoff of the video. Screen recording cropped `1206:2144:0:239` then scaled to 720×1280.
+
+**Beat 5 (end screen 8.0–10.0s):** Built fresh as `/tmp/br143_build/endscreen.mp4` matching architecture doc §19 spec: LocoSnap icon (`frontend/assets/icon-512.png`) centred, "LOCOSNAP" in large white Arial Black, "Free on App Store" and "Coming soon to Android" in yellow `#FFFF00` on `#0d0d0d` background, 2.0s duration.
+
+**Text overlays:** ASS subtitle files built separately for DE and EN, both using architecture doc §19 style (Arial Black 110px yellow `#FFFF00`, 6px black outline, bottom-centre alignment, MarginV 250 to clear TikTok UI chrome). First pass had "VERSCHWINDET" (12 chars, DE beat 1) and "IS VANISHING" (12 chars, EN beat 1) overflowing the frame edges. Confirmed from rendered output that 10-11 chars is the actual safe max at 110px, not 9. Replaced with "AM ENDE" (DE) and "IS DYING" (EN) — punchier and fits cleanly.
+
+**Text beats (matching pairs):**
+| Beat | DE | EN |
+|---|---|---|
+| 1 | DIE BR 143 → AM ENDE | THE BR 143 → IS DYING |
+| 2 | 646 GEBAUT → FAST WEG | 646 BUILT → ALMOST GONE |
+| 4 | DAS DR-ERBE → STIRBT AUS | THE DR ERA → IS ENDING |
+
+**Technical spec:** 720×1280, 30fps, H.264 yuv420p, CRF 18, `+faststart` flag for fast TikTok/IG upload, silent (music added at posting time). Both outputs ~5.3 MB / 10.03s.
+
+**Concat filter:** ffmpeg with `filter_complex` chaining five inputs, scaling/padding 1080×1920 clips down to 720×1280, cropping+scaling the 1206×2622 screen recording, normalising all inputs to 30fps, concat filter with n=5:v=1:a=0. Build command documented in session notes.
+
+### Tester feedback — Oula (vattuoula@gmail.com) confirmed v1.0.19 working + green-circle fix
+
+Oula (Finnish tester, Samsung S24, Android 16) replied to the v1.0.19 APK mass distribution from 2026-04-14 with two pieces of very good news:
+1. **App doesn't crash, opens fast, runs smoothly, no lag** on Samsung S24 Android 16 — this closes the book on the long crash saga from v1.0.8 through v1.0.11 through the notification-fix build. v1.0.19 is the first build confirmed working on this device configuration.
+2. **Green-circle-off-centre scan screen UI bug is fixed and Oula noticed it** — Oula originally reported this on 2026-04-07. The fix shipped in a subsequent build and Oula spotted it in v1.0.19, thanking me in the same message.
+
+Oula also reported two new open items: **Dr18 locomotive not identified** (Oula acknowledged "not an easy one") and **Dv12 locomotive has trouble identifying**. Both Finnish VR classes. Dv12 is already covered in vision.ts (line 229 Sm3/Dv12 rule) but the coverage may need deepening. Dr18 is NOT currently covered in vision.ts — requires research because the standard Finnish VR class list goes Dr12/Dr13/Dr14/Dr16/Dr19/Dr20 and I need to verify whether Dr18 is a current designation. Queued for next Finnish-rule session.
+
+**Pro status verification:** Ran SQL lookup in Supabase to verify Oula's Pro status — `is_pro = true` confirmed on profile id `d07a9528-9942-4ab5-8142-336019324848` (created 2026-03-22, 13 scans used, blueprint_credits 0). Oula already had complimentary Pro from the 2026-03-31 beta tester batch — the question about the 3-scan limit was pre-emptive clarification after reading the v1.0.19 release notes, not an actual paywall hit. Replied with a clear explanation that the 3-scan limit does not apply to Oula's account and a thank-you for the Finnish-class bug reports.
+
 ### Backend — vision prompt fixes + specs/rarity overrides (Lxcx_241 feedback batch)
 
 Tester Lxcx_241 sent six misidentification screenshots for review. All six issues fixed in this session across `vision.ts`, `trainSpecs.ts`, and `rarity.ts`.
