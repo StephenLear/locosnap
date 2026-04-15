@@ -70,7 +70,12 @@ Rules:
   This is a 5-car bi-mode multiple unit, NOT an HST. Type is "Bi-mode". Do not use HST type or 2,250 HP power figure.
 - DB Class 156 (also DR Class 156, built for Deutsche Reichsbahn) — use these exact values:
   maxSpeed "120 km/h", power "6,360 kW", weight "123 tonnes", length "19.6 m", builder "LEW Hennigsdorf", numberBuilt 186, fuelType "Electric (15kV 16.7Hz AC)", status "Withdrawn", gauge "Standard (1,435 mm)"
-  This is a Bo'Bo' electric freight/mixed-traffic locomotive built 1990–1993. Do not confuse with any diesel class.`;
+  This is a Bo'Bo' electric freight/mixed-traffic locomotive built 1990–1993. Do not confuse with any diesel class.
+- DRB Baureihe 52 / DR BR 52 / Kriegslokomotive — this is a 2-10-0 STEAM freight locomotive, coal-fired, built 1942–1950 for Deutsche Reichsbahn. ABSOLUTE FACTS that you must NEVER contradict: (a) fuelType is "Coal" — it is a coal-fired steam locomotive and any electrical or diesel fuelType is a critical factual error; (b) builder is "Borsig (Berlin-Hennigsdorf)" as the default primary/first manufacturer (other builders WLF, Henschel, Krupp, Krauss-Maffei, Schichau, DWM Posen, Škoda-Werke Pilsen also produced examples, but Borsig is the correct default when the specific works plate is unknown); (c) operator is "Deutsche Reichsbahn" historically, or the current preservation operator — NEVER "Czech Railways" as the default, even though ČSD later operated post-war examples; (d) numberBuilt ~6,719; (e) maxSpeed approximately 80 km/h forward, 50 km/h reverse; (f) status "Preserved" for any example seen on a heritage line today. If you are asked for specs for "Class 52", "BR 52", "Baureihe 52", "Kriegslok", or "Kriegslokomotive", apply these values and DO NOT substitute any electric or diesel specifications. The Class 52 is one of the most numerous steam locomotive classes in history and is extensively preserved — it is never electric and never diesel.
+- DB BR 143 / DR 243 — Bo'Bo' electric locomotive built 1984–1991 by LEW Hennigsdorf for Deutsche Reichsbahn, 646 units produced, max speed 120 km/h, 3,720 kW, 15 kV 16.7 Hz AC. Builder is "LEW Hennigsdorf" — NEVER "Bombardier" or "Siemens". Originally DR class 243, renumbered BR 143 after reunification. By 2025–2026 the fleet is dramatically reduced — DB Regio has withdrawn almost all of them and only a handful remain active (mostly with freight operators or heritage use). Status should reflect "Mixed" (some active, some preserved, many scrapped) or "Withdrawn" depending on context. This was the DR's standard passenger/mixed-traffic electric, once ubiquitous across Eastern Germany.
+- ADtranz DE-AC33C "Blue Tiger" (DB Class 250) — Co-Co diesel-electric mainline freight locomotive built by ADtranz (with GE Transportation) 1996–2002, approximately 30 units. In Germany numbered 250 001–250 030 (private operators: ITL, Captrain, HGK, MRCE). The name "Blue Tiger" belongs exclusively to this locomotive — NOT to the Vossloh Euro 4000. Builder must be "ADtranz / GE Transportation", NOT "Vossloh España" or "Stadler Valencia" (those are the different and separate Euro 4000). Max speed 120 km/h, power ~2,500 kW, fuelType "Diesel".
+- DR BR 120 / Soviet M62 "Taigatrommel" — Co-Co Soviet-built diesel locomotive by Voroshilovgrad Locomotive Works (Luhansk, Ukrainian SSR), 1966–1975, 378 delivered to Deutsche Reichsbahn as class V200 / BR 120 (then DB BR 220 after 1992). Max speed 100 km/h, power ~1,470 kW, fuelType "Diesel". This is a completely different locomotive from the modern DB BR 120 electric (1979, Krauss-Maffei/Henschel/Krupp, 250 km/h). When asked about "BR 120" in the context of the Taigatrommel / preserved red diesel with a central cab, return these diesel values, NOT the modern DB BR 120 electric specifications.
+- Tatra KT4 / KT4D — articulated two-section high-floor tram built by ČKD Tatra Smíchov (Prague) 1974–1997, widely used in East Germany (BVG Berlin, Potsdam ViP, Cottbus, Erfurt, Gera, Frankfurt Oder, etc.) and other Eastern Bloc cities. Builder is "ČKD Tatra Smíchov (Prague)", max speed ~65 km/h, fuelType "Electric (600 V DC)", type "Tram". Many variants exist (KT4DM, KT4DC, KT4Dt) with modernised electrical gear but the same bodyshell. The KT4 is NOT a Siemens Combino — the Combino is a 3+ section smooth low-floor modern tram, completely different in every way.`;
 
 const FALLBACK_SPECS: TrainSpecs = {
   maxSpeed: null,
@@ -247,6 +252,73 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "br 426": { builder: "LHB / Alstom / Bombardier (Salzgitter)", maxSpeed: "160 km/h" },
   "426": { builder: "LHB / Alstom / Bombardier (Salzgitter)", maxSpeed: "160 km/h" },
   "class 426": { builder: "LHB / Alstom / Bombardier (Salzgitter)", maxSpeed: "160 km/h" },
+  // DRB Baureihe 52 / Kriegslokomotive — 2-10-0 STEAM freight locomotive, coal-fired.
+  // Built 1942-1950 by Borsig (first/lead manufacturer) and others. ~6,719 built.
+  // CRITICAL: Must NEVER show as Electric/Diesel — it is a STEAM locomotive.
+  // Discovered 2026-04-15 when specs layer returned fuelType "Electric (3 kV DC)"
+  // and builder "Škoda Plzeň" for a preserved Class 52 — both wrong.
+  "class 52": { maxSpeed: "80 km/h", builder: "Borsig (Berlin-Hennigsdorf)", numberBuilt: 6719, fuelType: "Coal (Steam)" },
+  "br 52": { maxSpeed: "80 km/h", builder: "Borsig (Berlin-Hennigsdorf)", numberBuilt: 6719, fuelType: "Coal (Steam)" },
+  "baureihe 52": { maxSpeed: "80 km/h", builder: "Borsig (Berlin-Hennigsdorf)", numberBuilt: 6719, fuelType: "Coal (Steam)" },
+  "drb 52": { maxSpeed: "80 km/h", builder: "Borsig (Berlin-Hennigsdorf)", numberBuilt: 6719, fuelType: "Coal (Steam)" },
+  "drb class 52": { maxSpeed: "80 km/h", builder: "Borsig (Berlin-Hennigsdorf)", numberBuilt: 6719, fuelType: "Coal (Steam)" },
+  "dr 52": { maxSpeed: "80 km/h", builder: "Borsig (Berlin-Hennigsdorf)", numberBuilt: 6719, fuelType: "Coal (Steam)" },
+  "kriegslokomotive": { maxSpeed: "80 km/h", builder: "Borsig (Berlin-Hennigsdorf)", numberBuilt: 6719, fuelType: "Coal (Steam)" },
+  "kriegslok": { maxSpeed: "80 km/h", builder: "Borsig (Berlin-Hennigsdorf)", numberBuilt: 6719, fuelType: "Coal (Steam)" },
+  // DB BR 143 (ex-DR BR 243) — LEW Hennigsdorf 1984-1991, 646 units built.
+  // Main East German Bo'Bo' passenger/mixed-traffic electric. Being rapidly phased
+  // out by DB Regio — only a handful still active in 2025-2026 (rest withdrawn or
+  // transferred to freight operators). Builder was LEW, not "Bombardier" or "Siemens".
+  "br 143": { maxSpeed: "120 km/h", power: "3,720 kW", builder: "LEW Hennigsdorf", numberBuilt: 646, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "class 143": { maxSpeed: "120 km/h", power: "3,720 kW", builder: "LEW Hennigsdorf", numberBuilt: 646, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db class 143": { maxSpeed: "120 km/h", power: "3,720 kW", builder: "LEW Hennigsdorf", numberBuilt: 646, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "baureihe 143": { maxSpeed: "120 km/h", power: "3,720 kW", builder: "LEW Hennigsdorf", numberBuilt: 646, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "dr 243": { maxSpeed: "120 km/h", power: "3,720 kW", builder: "LEW Hennigsdorf", numberBuilt: 646, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "dr class 243": { maxSpeed: "120 km/h", power: "3,720 kW", builder: "LEW Hennigsdorf", numberBuilt: 646, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "br 243": { maxSpeed: "120 km/h", power: "3,720 kW", builder: "LEW Hennigsdorf", numberBuilt: 646, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // ADtranz DE-AC33C "Blue Tiger" / DB Class 250 — Co-Co diesel-electric, ADtranz
+  // + GE Transportation 1996-2002, ~30 built. THE real Blue Tiger — NOT the Vossloh
+  // Euro 4000. In Germany numbered 250 001-250 030 (private operators: ITL, Captrain,
+  // HGK, MRCE). Also Pakistan Railways and Malaysian Railways. Discovered 2026-04-15
+  // when Captrain 250 007-2 was misidentified as Vossloh Euro 4000.
+  "class 250": { maxSpeed: "120 km/h", power: "2,500 kW", builder: "ADtranz / GE Transportation", numberBuilt: 30, fuelType: "Diesel" },
+  "br 250": { maxSpeed: "120 km/h", power: "2,500 kW", builder: "ADtranz / GE Transportation", numberBuilt: 30, fuelType: "Diesel" },
+  "baureihe 250": { maxSpeed: "120 km/h", power: "2,500 kW", builder: "ADtranz / GE Transportation", numberBuilt: 30, fuelType: "Diesel" },
+  "adtranz de-ac33c": { maxSpeed: "120 km/h", power: "2,500 kW", builder: "ADtranz / GE Transportation", numberBuilt: 30, fuelType: "Diesel" },
+  "de-ac33c": { maxSpeed: "120 km/h", power: "2,500 kW", builder: "ADtranz / GE Transportation", numberBuilt: 30, fuelType: "Diesel" },
+  "blue tiger": { maxSpeed: "120 km/h", power: "2,500 kW", builder: "ADtranz / GE Transportation", numberBuilt: 30, fuelType: "Diesel" },
+  // DR BR 120 / M62 "Taigatrommel" — Soviet-built diesel freight loco by
+  // Voroshilovgrad (Luhansk) 1966-1975, 378 delivered to DR. Renumbered
+  // BR 220 after 1992, mostly withdrawn. DO NOT confuse with the DB BR 120
+  // electric (1979) which is a totally different locomotive.
+  "dr br 120": { maxSpeed: "100 km/h", power: "1,470 kW", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 378, fuelType: "Diesel" },
+  "dr 120": { maxSpeed: "100 km/h", power: "1,470 kW", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 378, fuelType: "Diesel" },
+  "dr class 120": { maxSpeed: "100 km/h", power: "1,470 kW", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 378, fuelType: "Diesel" },
+  "db br 220": { maxSpeed: "100 km/h", power: "1,470 kW", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 378, fuelType: "Diesel" },
+  "db 220": { maxSpeed: "100 km/h", power: "1,470 kW", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 378, fuelType: "Diesel" },
+  "taigatrommel": { maxSpeed: "100 km/h", power: "1,470 kW", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 378, fuelType: "Diesel" },
+  "m62": { maxSpeed: "100 km/h", power: "1,470 kW", builder: "Voroshilovgrad Locomotive Works (Luhansk)", fuelType: "Diesel" },
+  // Tatra KT4 / KT4D — ČKD Tatra Smíchov articulated tram, 1974-1997. Two-section
+  // high-floor tram. Widely used across East Germany (BVG Berlin, Potsdam ViP,
+  // Cottbus, Erfurt, Gera, etc.). Many modernised to KT4DM/KT4Dt variants but same
+  // bodyshell. Discovered 2026-04-15 when a Potsdam/Cottbus-style KT4D was
+  // misidentified as a Siemens Combino.
+  "tatra kt4d": { maxSpeed: "65 km/h", power: "4 × 40 kW", builder: "ČKD Tatra Smíchov (Prague)", fuelType: "Electric (600 V DC)" },
+  "kt4d": { maxSpeed: "65 km/h", power: "4 × 40 kW", builder: "ČKD Tatra Smíchov (Prague)", fuelType: "Electric (600 V DC)" },
+  "tatra kt4": { maxSpeed: "65 km/h", power: "4 × 40 kW", builder: "ČKD Tatra Smíchov (Prague)", fuelType: "Electric (600 V DC)" },
+  "kt4dm": { maxSpeed: "65 km/h", power: "4 × 40 kW", builder: "ČKD Tatra Smíchov (Prague)", fuelType: "Electric (600 V DC)" },
+  "kt4dc": { maxSpeed: "65 km/h", power: "4 × 40 kW", builder: "ČKD Tatra Smíchov (Prague)", fuelType: "Electric (600 V DC)" },
+  "kt4dt": { maxSpeed: "65 km/h", power: "4 × 40 kW", builder: "ČKD Tatra Smíchov (Prague)", fuelType: "Electric (600 V DC)" },
+  // DB BR 485 / ex-DR 270 — LEW Hennigsdorf 1987-1992, 166 half-sets for DR Berlin
+  // S-Bahn. 750 V DC third-rail. Still in partial service 2025-2026 on S8/S85/S9/
+  // S75/S47/S46 but being phased out. NOT an unpowered trailer of BR 480 — it is
+  // a completely separate self-contained class. Discovered 2026-04-15 when a
+  // BR 485 on S85 Pankow was misidentified as BR 481.
+  "br 485": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
+  "class 485": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
+  "baureihe 485": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
+  "dr 270": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
+  "dr class 270": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
