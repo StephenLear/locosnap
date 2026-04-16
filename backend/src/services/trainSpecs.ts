@@ -75,7 +75,10 @@ Rules:
 - DB BR 143 / DR 243 — Bo'Bo' electric locomotive built 1984–1991 by LEW Hennigsdorf for Deutsche Reichsbahn, 646 units produced, max speed 120 km/h, 3,720 kW, 15 kV 16.7 Hz AC. Builder is "LEW Hennigsdorf" — NEVER "Bombardier" or "Siemens". Originally DR class 243, renumbered BR 143 after reunification. By 2025–2026 the fleet is dramatically reduced — DB Regio has withdrawn almost all of them and only a handful remain active (mostly with freight operators or heritage use). Status should reflect "Mixed" (some active, some preserved, many scrapped) or "Withdrawn" depending on context. This was the DR's standard passenger/mixed-traffic electric, once ubiquitous across Eastern Germany.
 - ADtranz DE-AC33C "Blue Tiger" (DB Class 250) — Co-Co diesel-electric mainline freight locomotive built by ADtranz (with GE Transportation) 1996–2002, approximately 30 units. In Germany numbered 250 001–250 030 (private operators: ITL, Captrain, HGK, MRCE). The name "Blue Tiger" belongs exclusively to this locomotive — NOT to the Vossloh Euro 4000. Builder must be "ADtranz / GE Transportation", NOT "Vossloh España" or "Stadler Valencia" (those are the different and separate Euro 4000). Max speed 120 km/h, power ~2,500 kW, fuelType "Diesel".
 - DR BR 120 / Soviet M62 "Taigatrommel" — Co-Co Soviet-built diesel locomotive by Voroshilovgrad Locomotive Works (Luhansk, Ukrainian SSR), 1966–1975, 378 delivered to Deutsche Reichsbahn as class V200 / BR 120 (then DB BR 220 after 1992). Max speed 100 km/h, power ~1,470 kW, fuelType "Diesel". This is a completely different locomotive from the modern DB BR 120 electric (1979, Krauss-Maffei/Henschel/Krupp, 250 km/h). When asked about "BR 120" in the context of the Taigatrommel / preserved red diesel with a central cab, return these diesel values, NOT the modern DB BR 120 electric specifications.
-- Tatra KT4 / KT4D — articulated two-section high-floor tram built by ČKD Tatra Smíchov (Prague) 1974–1997, widely used in East Germany (BVG Berlin, Potsdam ViP, Cottbus, Erfurt, Gera, Frankfurt Oder, etc.) and other Eastern Bloc cities. Builder is "ČKD Tatra Smíchov (Prague)", max speed ~65 km/h, fuelType "Electric (600 V DC)", type "Tram". Many variants exist (KT4DM, KT4DC, KT4Dt) with modernised electrical gear but the same bodyshell. The KT4 is NOT a Siemens Combino — the Combino is a 3+ section smooth low-floor modern tram, completely different in every way.`;
+- Tatra KT4 / KT4D — articulated two-section high-floor tram built by ČKD Tatra Smíchov (Prague) 1974–1997, widely used in East Germany (BVG Berlin, Potsdam ViP, Cottbus, Erfurt, Gera, Frankfurt Oder, etc.) and other Eastern Bloc cities. Builder is "ČKD Tatra Smíchov (Prague)", max speed ~65 km/h, fuelType "Electric (600 V DC)", type "Tram". Many variants exist (KT4DM, KT4DC, KT4Dt) with modernised electrical gear but the same bodyshell. The KT4 is NOT a Siemens Combino — the Combino is a 3+ section smooth low-floor modern tram, completely different in every way.
+- Berlin S-Bahn BR 483/484 — the NEWEST S-Bahn Berlin fleet, built by a Stadler/Siemens consortium from 2020 onwards. CRITICAL FACTS: builder is "Stadler / Siemens" (NOT "Crewe Works" — that is a Wikidata hallucination from an entirely wrong entity), entered service 2020–2021, fuelType "Electric (750 V DC third rail)" (Berlin S-Bahn standard — NOT 15kV 16.7Hz AC), max speed 100 km/h, approximately 106 half-trains ordered. The BR 483 is the powered car and BR 484 is the intermediate/trailer car — together they form the new S-Bahn Berlin fleet replacing the older BR 480 and BR 485 classes. These are modern trains with a contemporary angular cab design, NOT wartime-era stock.
+- OBB 1116 / OBB 1016 "Taurus" (Siemens ES64U2) — Austrian Federal Railways high-performance Bo'Bo' electric locomotive, built by Siemens 1999–2006, ~382 units (1016 + 1116 series combined). Max speed 230 km/h, power 6,400 kW, fuelType "Electric (15 kV 16.7 Hz AC)". The Taurus is a DIFFERENT generation from the Siemens Vectron (BR 193) — the Taurus (Eurosprinter ES64U2 platform) predates the Vectron (ES64F4 platform) by a full design generation. The Taurus has a characteristic ROUNDED, smooth cab nose with a large curved windscreen, while the Vectron has a more angular, squared-off cab front. Do NOT confuse these two — they are different locomotives despite both being Siemens single-unit electrics.
+- DRG Class E 77 — pre-war German electric locomotive built 1924–1926 by BMAG (Berliner Maschinenbau), Krauss, and LHW for the Deutsche Reichsbahn-Gesellschaft. 56 units built. Max speed 65 km/h, power 1,880 kW, fuelType "Electric (15 kV 16.7 Hz AC)". This is a 1920s GERMAN locomotive — NOT Czech, NOT built by Skoda. E 77 10 is preserved at the Dresden Transport Museum. Do NOT confuse with the CSD E 669.1 (a completely different 1960s Czech Skoda-built Co'Co' freight electric running on 3 kV DC).`;
 
 const FALLBACK_SPECS: TrainSpecs = {
   maxSpeed: null,
@@ -319,6 +322,36 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "baureihe 485": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
   "dr 270": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
   "dr class 270": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
+  // Berlin S-Bahn BR 483/484 — the NEWEST S-Bahn Berlin fleet, built by Stadler/Siemens
+  // consortium from 2020 onwards. 750 V DC third rail (Berlin S-Bahn standard).
+  // CRITICAL: NOT built by "Crewe Works" and NOT from 1943 — those are hallucinated values
+  // from a completely wrong Wikidata entity. Discovered 2026-04-16 when tester reported
+  // specs card showing "Crewe Works", "1943", and "15kV 16.7Hz" — all wrong.
+  "br 483": { maxSpeed: "100 km/h", power: "2,400 kW", builder: "Stadler / Siemens", numberBuilt: 106, fuelType: "Electric (750 V DC third rail)" },
+  "class 483": { maxSpeed: "100 km/h", power: "2,400 kW", builder: "Stadler / Siemens", numberBuilt: 106, fuelType: "Electric (750 V DC third rail)" },
+  "baureihe 483": { maxSpeed: "100 km/h", power: "2,400 kW", builder: "Stadler / Siemens", numberBuilt: 106, fuelType: "Electric (750 V DC third rail)" },
+  "br 484": { maxSpeed: "100 km/h", power: "2,400 kW", builder: "Stadler / Siemens", numberBuilt: 106, fuelType: "Electric (750 V DC third rail)" },
+  "class 484": { maxSpeed: "100 km/h", power: "2,400 kW", builder: "Stadler / Siemens", numberBuilt: 106, fuelType: "Electric (750 V DC third rail)" },
+  "baureihe 484": { maxSpeed: "100 km/h", power: "2,400 kW", builder: "Stadler / Siemens", numberBuilt: 106, fuelType: "Electric (750 V DC third rail)" },
+  // OBB 1116 Taurus (Siemens ES64U2) — Austrian Federal Railways (OBB) high-performance
+  // electric locomotive. Bo'Bo', 230 km/h, 6,400 kW, 15kV 16.7Hz AC. Built by Siemens
+  // 1999–2006, ~382 units (1016 + 1116 combined). NOT a Vectron — the Taurus predates
+  // the Vectron by a full generation. Discovered 2026-04-16 when tester reported an
+  // OBB 1116 being misidentified as BR 193 Vectron.
+  "1116": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 382, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "obb 1116": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 382, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "obb 1016": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 382, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "taurus": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 382, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "es64u2": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 382, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // DRG E 77 — pre-war German electric locomotive, built 1924–1926 by BMAG/Krauss/LHW.
+  // 56 units built for Deutsche Reichsbahn-Gesellschaft. 15kV 16.7Hz AC, 65 km/h.
+  // E 77 10 preserved at Dresden Transport Museum. NOT a Czech locomotive — NOT built
+  // by Skoda, NOT 3kV DC. Discovered 2026-04-16 when a preserved E 77 was misidentified
+  // as Skoda E 669.1 (which is a completely different 1960s Czech Co'Co' freight electric).
+  "e 77": { maxSpeed: "65 km/h", power: "1,880 kW", builder: "BMAG (Berliner Maschinenbau)", numberBuilt: 56, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "e77": { maxSpeed: "65 km/h", power: "1,880 kW", builder: "BMAG (Berliner Maschinenbau)", numberBuilt: 56, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "drg e 77": { maxSpeed: "65 km/h", power: "1,880 kW", builder: "BMAG (Berliner Maschinenbau)", numberBuilt: 56, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "drg class e 77": { maxSpeed: "65 km/h", power: "1,880 kW", builder: "BMAG (Berliner Maschinenbau)", numberBuilt: 56, fuelType: "Electric (15 kV 16.7 Hz AC)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
