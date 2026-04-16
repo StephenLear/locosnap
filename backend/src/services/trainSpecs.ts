@@ -322,6 +322,16 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "baureihe 485": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
   "dr 270": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
   "dr class 270": { maxSpeed: "100 km/h", builder: "LEW Hennigsdorf", numberBuilt: 166, fuelType: "Electric (750 V DC third rail)" },
+  // British Rail Class 37 — English Electric, Vulcan Foundry (Newton-le-Willows) 1960–1965.
+  // 309 built. Co-Co diesel-electric. Max speed 90 mph (some sub-classes 80 mph).
+  // Wikidata returns "ALSTOM Transportation Germany" as builder — WRONG. English Electric
+  // built them at Vulcan Foundry in Lancashire. Alstom inherited some maintenance contracts
+  // decades later but did not build the class. Discovered 2026-04-16 when screen recording
+  // for Class 37 video showed "ALSTOM Transportation Germany" on the specs card.
+  "class 37": { maxSpeed: "90 mph", power: "1,750 HP", builder: "English Electric (Vulcan Foundry)", numberBuilt: 309, fuelType: "Diesel" },
+  "br class 37": { maxSpeed: "90 mph", power: "1,750 HP", builder: "English Electric (Vulcan Foundry)", numberBuilt: 309, fuelType: "Diesel" },
+  "br 37": { maxSpeed: "90 mph", power: "1,750 HP", builder: "English Electric (Vulcan Foundry)", numberBuilt: 309, fuelType: "Diesel" },
+  "37": { maxSpeed: "90 mph", power: "1,750 HP", builder: "English Electric (Vulcan Foundry)", numberBuilt: 309, fuelType: "Diesel" },
   // Berlin S-Bahn BR 483/484 — the NEWEST S-Bahn Berlin fleet, built by Stadler/Siemens
   // consortium from 2020 onwards. 750 V DC third rail (Berlin S-Bahn standard).
   // CRITICAL: NOT built by "Crewe Works" and NOT from 1943 — those are hallucinated values
