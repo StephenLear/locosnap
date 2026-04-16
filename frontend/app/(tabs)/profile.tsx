@@ -11,6 +11,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Modal,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -30,6 +33,7 @@ import {
   UK_REGIONS,
 } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
+import { isValidUsername } from "../../utils/profanityFilter";
 
 // ── Level system ────────────────────────────────────────────
 
@@ -78,7 +82,38 @@ export default function ProfileScreen() {
     }
   };
   const router = useRouter();
-  const { profile, user, signOut, updateRegion } = useAuthStore();
+  const { profile, user, signOut, updateRegion, updateUsername } = useAuthStore();
+
+  // ── Username edit modal state ────────────────────────────
+  const [usernameModalVisible, setUsernameModalVisible] = useState(false);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [usernameSaving, setUsernameSaving] = useState(false);
+
+  const handleOpenUsernameModal = () => {
+    setUsernameInput(profile?.username || "");
+    setUsernameError("");
+    setUsernameModalVisible(true);
+  };
+
+  const handleSaveUsername = async () => {
+    const validation = isValidUsername(usernameInput);
+    if (!validation.valid) {
+      setUsernameError(validation.reason || "Invalid username");
+      return;
+    }
+
+    setUsernameSaving(true);
+    setUsernameError("");
+    const result = await updateUsername(usernameInput);
+    setUsernameSaving(false);
+
+    if (result.success) {
+      setUsernameModalVisible(false);
+    } else {
+      setUsernameError(result.error || "Failed to update username");
+    }
+  };
   const { history } = useTrainStore();
   const { language, setLanguage } = useSettingsStore();
 
@@ -230,6 +265,7 @@ export default function ProfileScreen() {
   };
 
   return (
+    <>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -244,9 +280,14 @@ export default function ProfileScreen() {
           />
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.username}>
-            {profile?.username || user?.email?.split("@")[0] || "Guest Spotter"}
-          </Text>
+          <View style={styles.usernameRow}>
+            <Text style={styles.username}>
+              {profile?.username || user?.email?.split("@")[0] || "Guest Spotter"}
+            </Text>
+            <TouchableOpacity onPress={handleOpenUsernameModal} style={styles.editUsernameBtn}>
+              <Ionicons name="pencil" size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
           <Text style={styles.userEmail}>
             {user?.email || ""}
           </Text>
@@ -531,6 +572,59 @@ export default function ProfileScreen() {
         <Text style={styles.appInfoText}>AI-powered train identification</Text>
       </View>
     </ScrollView>
+
+    {/* ── Username edit modal ──────────────────────────── */}
+    <Modal
+      visible={usernameModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setUsernameModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Change Username</Text>
+          <Text style={styles.modalSubtitle}>
+            Letters, numbers, and underscores. 3-20 characters.
+          </Text>
+          <TextInput
+            style={[styles.modalInput, usernameError ? styles.modalInputError : null]}
+            value={usernameInput}
+            onChangeText={(text) => {
+              setUsernameInput(text);
+              setUsernameError("");
+            }}
+            placeholder="Your username"
+            placeholderTextColor={colors.textSecondary}
+            autoCapitalize="none"
+            autoCorrect={false}
+            maxLength={20}
+          />
+          {usernameError ? (
+            <Text style={styles.modalError}>{usernameError}</Text>
+          ) : null}
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={styles.modalCancelBtn}
+              onPress={() => setUsernameModalVisible(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalSaveBtn, usernameSaving && styles.modalSaveBtnDisabled]}
+              onPress={handleSaveUsername}
+              disabled={usernameSaving}
+            >
+              {usernameSaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.modalSaveText}>Save</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+    </>
   );
 }
 
@@ -592,10 +686,18 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: spacing.lg,
   },
+  usernameRow: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+  },
   username: {
     fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold,
     color: colors.textPrimary,
+  },
+  editUsernameBtn: {
+    marginLeft: 8,
+    padding: 4,
   },
   userEmail: {
     fontSize: fonts.sizes.sm,
@@ -931,5 +1033,81 @@ const styles = StyleSheet.create({
   appInfoText: {
     fontSize: fonts.sizes.xs,
     color: colors.textMuted,
+  },
+
+  // Username edit modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing.xl,
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    width: "100%",
+    maxWidth: 340,
+  },
+  modalTitle: {
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.bold,
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
+  modalInput: {
+    backgroundColor: colors.surfaceLight,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
+    fontSize: fonts.sizes.md,
+    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: colors.surfaceLight,
+  },
+  modalInputError: {
+    borderColor: "#ef4444",
+  },
+  modalError: {
+    fontSize: fonts.sizes.sm,
+    color: "#ef4444",
+    marginTop: 6,
+  },
+  modalButtons: {
+    flexDirection: "row" as const,
+    justifyContent: "flex-end",
+    marginTop: spacing.lg,
+    gap: spacing.md,
+  },
+  modalCancelBtn: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 10,
+    borderRadius: borderRadius.md,
+  },
+  modalCancelText: {
+    fontSize: fonts.sizes.md,
+    color: colors.textSecondary,
+  },
+  modalSaveBtn: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: 10,
+    borderRadius: borderRadius.md,
+    minWidth: 80,
+    alignItems: "center" as const,
+  },
+  modalSaveBtnDisabled: {
+    opacity: 0.6,
+  },
+  modalSaveText: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.bold,
+    color: "#fff",
   },
 });

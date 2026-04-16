@@ -43,6 +43,7 @@ interface AuthState {
   incrementDailyScans: () => Promise<void>;
   incrementPreSignupScans: () => Promise<void>;
   updateRegion: (region: string | null) => Promise<void>;
+  updateUsername: (username: string) => Promise<{ success: boolean; error?: string }>;
   canScan: () => boolean;
   deductBlueprintCredit: () => Promise<boolean>;
   addBlueprintCredits: (amount: number) => Promise<void>;
@@ -249,6 +250,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .single();
 
     if (data) set({ profile: data });
+  },
+
+  updateUsername: async (username: string): Promise<{ success: boolean; error?: string }> => {
+    const { user, profile } = get();
+    if (!user || !profile) return { success: false, error: "Not signed in" };
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ username: username.trim() })
+      .eq("id", user.id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === "23505") {
+        return { success: false, error: "Username already taken" };
+      }
+      return { success: false, error: error.message };
+    }
+
+    if (data) set({ profile: data });
+    return { success: true };
   },
 
   incrementPreSignupScans: async () => {
