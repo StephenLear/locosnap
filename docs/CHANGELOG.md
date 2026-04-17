@@ -5,6 +5,31 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-17
+
+### Content — Class 345 "THE QUEEN OPENED THIS" video produced (EN only, UK-targeted)
+
+Built `~/Desktop/locosnap_class345_en.mp4` — 10.0s, 720×1280, 30fps, H.264, CRF 18, silent, 4.43 MB. Scheduled for 2026-04-18 morning post. TikTok AM first, Instagram ~1 hour later (cross-post decision corrected mid-session from initial "TikTok only" call after reviewing data: Class 91 IG pulled 37.3% UK, Class 37 IG got 189 free views at flat skip rate — cross-posting delivers ~150+ free views with zero marginal effort).
+
+**Concept:** Queen Elizabeth II's last major rail opening — she opened the Elizabeth Line on 17 May 2022 and died just under four months later on 8 September 2022. The line now carries her name. This is the hardest viral hook available for Elizabeth Line content because it ties the train to the most-viewed British news event of the decade. Continues the UK-audience build after Class 91 (Apr 15) and Class 37 (Apr 17).
+
+**Source footage:** Four Class 345 clips in `~/Desktop/Class 345/` (Slough front-on, Stratford daylight side-pass, Stratford night arrival at 60fps, horn compilation — last one unused) plus LocoSnap scan screen recording (`ScreenRecording_04-17-2026 17-12-29_1.MP4`, 1206×2622 HEVC). App identified Class 345 "Aventra" as UNCOMMON with 95% match; 90 mph, 2,250 kW, "70 left".
+
+**Beat structure:**
+- Beat 1 (0.0-2.0s): Slough front approach. Text: "THE QUEEN" / "OPENED THIS"
+- Beat 2 (2.0-4.0s): Stratford daylight side-pass. Text: "70 TRAINS" / "HER NAME"
+- Beat 3 (4.0-5.5s): Screen recording card reveal (UNCOMMON + Aventra)
+- Beat 4 (5.5-8.0s): Stratford night arrival (60fps, saturated purple). Text: "NEWEST LINE" / "IN LONDON"
+- Beat 5 (8.0-10.0s): End screen reused from Class 37 video
+
+**Text overlay style:** ASS subtitles, Arial Black 96px yellow `#FFFF00`, 7px black outline, bottom-centre, MarginV 160. All strings within 11-char safe zone.
+
+**Caption:** "The Queen opened this line. Four months later, she was gone. Now 70 purple trains — all built in Britain at Bombardier's Derby works — carry her name under London every day."
+
+**Hashtags (20):** #elizabethline #class345 #crossrail #tfl #londontransport #london #britishrail #uktrain #trainspotter #trainspotting #aventra #bombardier #purpletrain #queenelizabeth #queenelizabethii #railway #train #trains #locosnap #railfans
+
+---
+
 ## 2026-04-16
 
 ### Backend
