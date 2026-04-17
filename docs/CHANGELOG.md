@@ -5,6 +5,58 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-16
+
+### Backend
+
+#### `backend/src/services/rarity.ts` — BR 485 and Class 143 rarity upgrades
+- **Changed** BR 143 rarity classification from "rare" to "epic" -- near-extinct in DB Regio service, tester confirmed class is functionally gone
+- **Added** BR 485 "Coladose" rarity rule: must classify as "epic" -- only 3 surviving units out of 166 originally built, all others scrapped
+
+#### `backend/src/services/trainSpecs.ts` — 8 new hardcoded overrides
+- **Added** BR 483/484 overrides: builder "Stadler / Siemens", 2020, 750V DC third rail. Fixes Wikidata hallucination that returned "Crewe Works", "1943", and "15kV 16.7Hz AC" for a modern Berlin S-Bahn train
+- **Added** OBB 1116 Taurus overrides: Siemens, 230 km/h, 6,400 kW, 382 units
+- **Added** DRG E 77 overrides: BMAG 1924-1926, 65 km/h, 56 units built
+- **Added** Class 37 overrides: English Electric (Vulcan Foundry), 90 mph, 1,750 HP, 309 built. Fixes Wikidata returning "ALSTOM Transportation Germany" as builder
+- **Added** SPECS_PROMPT bullets for BR 483/484, OBB 1116 Taurus, DRG E 77, Class 37
+
+#### `backend/src/services/vision.ts` — 4 new disambiguation rules
+- **Added** OBB 1116 Taurus vs BR 193 Vectron disambiguation: rounded smooth cab (Taurus) vs angular squared-off cab (Vectron), different Siemens generations
+- **Added** DRG E 77 vs CSD E 669.1 disambiguation: 1920s German BMAG electric vs 1960s Czech Skoda electric, completely different eras and countries
+- **Added** BR 483/484 S-Bahn Berlin rule: newest fleet, Stadler/Siemens 2020, 750V DC, angular contemporary cab
+- **Added** BR 412 vs BR 408 reinforced disambiguation: wide flat front (ICE 4) vs narrow pointed nose (ICE 3neo)
+
+### Frontend
+
+#### `frontend/utils/profanityFilter.ts` — New username validation utility
+- **Added** `containsProfanity()` function with ~65-word blocklist (case-insensitive substring match)
+- **Added** `isValidUsername()` function: 3-20 chars, alphanumeric + underscores, no profanity
+
+#### `frontend/store/authStore.ts` — Username update method
+- **Added** `updateUsername()` method to AuthState interface and store implementation
+- **Added** Postgres unique constraint error handling (code 23505 -> "Username already taken")
+
+#### `frontend/app/(tabs)/profile.tsx` — Username edit UI
+- **Added** pencil edit icon next to username display on profile header
+- **Added** modal with TextInput for changing username, pre-filled with current value
+- **Added** validation feedback (profanity, length, characters), loading state, error display
+- **Added** "Username already taken" error handling from Supabase unique constraint
+- **Changed** username display wrapped in `usernameRow` flex container to accommodate edit icon
+
+### Infrastructure
+
+#### `supabase/migrations/007_auto_generate_usernames.sql` — Auto-generate leaderboard usernames
+- **Added** `generate_trainfan_username()` function: produces "TrainFan_XXXX" with retry loop for uniqueness collisions
+- **Changed** `handle_new_user()` trigger to auto-assign a TrainFan_XXXX username on signup instead of leaving it NULL
+- **Added** backfill: updates all existing profiles with NULL usernames to TrainFan_XXXX names
+- **Why:** Leaderboard has been dead since launch because all views filter `WHERE username IS NOT NULL`, but profiles were created with NULL usernames and there was no UI to set one. Migration must be run manually on Supabase to take effect.
+
+### Content — Class 37 "BUILT IN 1960" video produced (EN only, UK-targeted)
+
+Built `~/Desktop/locosnap_class37_en.mp4` -- 10.0s, 720x1280, 30fps, H.264, CRF 18, silent, 2.96 MB. Scheduled for 2026-04-17 morning post. TikTok only, English, UK-targeted to compound the UK audience that Class 91 started building.
+
+---
+
 ## 2026-04-15
 
 ### Content — BR 143 "AM ENDE" / "IS DYING" video produced (DE + EN, scheduled for 2026-04-16 AM post)
