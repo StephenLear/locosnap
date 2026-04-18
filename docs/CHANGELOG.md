@@ -5,6 +5,45 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-18
+
+### Backend — Finnish diesel vision rules + dead-column cleanup
+
+Three ordered tasks per the 2026-04-17 handover plan: lowest-risk migration first, then vision-rule additions.
+
+#### `supabase/migrations/008_drop_daily_scans_reset_at.sql` — NEW migration, cleanup
+- **Added** migration 008. Drops `daily_scans_reset_at` from `public.profiles`. The column has been dead code since 2026-04-14 when the scan-gate flipped from `MAX_FREE_MONTHLY_SCANS=10` (monthly reset) to lifetime `MAX_FREE_SCANS=3` (no reset). Uses `drop column if exists` so re-running is safe.
+- **Why:** backend stopped reading the column in commit 8c4cb7c (2026-04-14). Queued as backlog item 10 on 2026-04-17, executed now.
+
+#### `supabase/migration.sql` — schema bundle sync
+- **Removed** `daily_scans_reset_at` column from the all-in-one setup bundle so new installs don't re-add the dead column.
+
+#### `frontend/store/authStore.ts` — Profile type cleanup
+- **Removed** `daily_scans_reset_at: string` from the `Profile` interface. No runtime code read it — the store always deferred to `daily_scans_used` for gating. Frontend behaviour unchanged.
+
+#### `docs/PRODUCT-SPEC.md` — spec doc accuracy
+- **Removed** `daily_scans_reset_at` row from the Profile schema block. Added note that `daily_scans_used` is a lifetime counter despite the legacy name.
+
+#### `backend/src/services/vision.ts` — Dr18 (Fenniarail) + Dv12 deepening
+- **Corrected** the existing VR Finland fleet rule: Dv12 is built by Valmet (Tampere) and Lokomo (Rauma-Repola), 192 units 1963–1984 — NOT "Valmet/ABB, 262 units" as previously written. The diesel transmission is hydraulic, not diesel-electric.
+- **Added** dedicated Fenniarail Dr18 disambiguation rule. Key points: operator MUST be "Fenniarail" (never VR); builder is CZ Loko (Czech Republic), based on the 774.7 EffiShunter 1600 platform; only 6 units exist (Dr18 101–106) built 2015–2020; Co'Co' hood-unit silhouette; dark-green + yellow Fenniarail livery; 90 km/h, 1,550 kW; Finnish broad gauge 1,524 mm. Explicit "NOT a VR class" framing addresses the root-cause misidentification: our Finnish Dr-series rules historically framed all Dr-classes as VR-owned.
+- **Added** dedicated VR Dv12 deepening rule. Key points: CRITICAL livery correction — historic classic is **red-with-light-grey**, NOT "orange/white" (that was a prior-memory error); later schemes are green-and-white (1990s) and modern white-with-green-stripe (current); fleet numbers "Dv12 2xxx" in ranges 2501–2568 / 2601–2664 / 2701–2760; hood-unit with asymmetric long+short hood, cab roughly centred; disambiguation vs Dr19 (full-width boxcab at both ends), Dr16 (Co'Co' six-axle — count the axles), Dr14 (centre-cab full-width); sub-variants Sr12 (60 heavier 2700-series), Sv1 (unit 2501 briefly 3-phase AC 1978–80), pre-1976 designation Sv12.
+
+#### `backend/src/services/trainSpecs.ts` — hardcoded overrides
+- **Added** Fenniarail Dr18 spec override: 90 km/h, 1,550 kW, 120 tonnes, builder "CZ Loko", 6 built, 6 surviving, In service, Diesel, Finnish broad gauge 1,524 mm, operator MUST be Fenniarail. Explicit "NOT a VR class" framing and "NEVER attribute to Valmet/Lokomo/Strömberg/ABB/Siemens".
+- **Added** VR Dv12 spec override: 125 km/h, 1,000 kW, 62.2 tonnes, 14.4 m, builder "Valmet / Lokomo", 192 built, Mixed status, Diesel (hydraulic transmission noted), Finnish broad gauge. LIVERY correction explicitly documented — any colour/livery field must use red-with-light-grey (historic) / green-and-white / white-with-green-stripe, NEVER "orange/white".
+
+#### `backend/src/services/rarity.ts` — Dr18 rarity override
+- **Added** Fenniarail Dr18 rarity rule: classify as **legendary**. Global fleet of 6 (Dr18 101–106) puts it alongside DR Class 156 as one of the smallest mainline locomotive fleets in existence. Explicit "operator must be recorded as Fenniarail, not VR".
+
+#### Tests
+- **93 backend tests pass** (12 suites, ~7.2s). No regressions from the rule additions or migration.
+
+#### Deployment state
+- Backend changes NOT YET DEPLOYED — needs a push to Render to go live. Migration 008 also needs to be run against the production Supabase instance separately.
+
+---
+
 ## 2026-04-17
 
 ### Content — Class 345 "THE QUEEN OPENED THIS" video produced (EN only, UK-targeted)

@@ -234,8 +234,7 @@ xp: int (default 0)
 streak_current: int (default 0)
 streak_best: int (default 0)
 last_spot_date: date?
-daily_scans_used: int (default 0)
-daily_scans_reset_at: timestamp
+daily_scans_used: int (default 0)   # lifetime counter despite legacy name
 is_pro: boolean (default false)
 created_at: timestamp
 ```

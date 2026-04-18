@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   streak_best   integer NOT NULL DEFAULT 0,
   last_spot_date date,
   daily_scans_used integer NOT NULL DEFAULT 0,
-  daily_scans_reset_at timestamptz NOT NULL DEFAULT now(),
   is_pro        boolean NOT NULL DEFAULT false,
   region        text,
   created_at    timestamptz NOT NULL DEFAULT now(),
