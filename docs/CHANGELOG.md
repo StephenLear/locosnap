@@ -7,6 +7,24 @@ Format: newest first within each date block.
 
 ## 2026-04-18
 
+### Backend — Sr1/Sr2/Sr3 disambiguation reinforcement (Oula feedback)
+
+Oula (vattuoula) tested more Finnish locomotives after the AM Dr18/Dv12 deploy and reported all three Sr electric classes being returned as Sr3. Screenshots showed Sr1 fleet 3041 (classic red-green-yellow Finnish tricolor livery) and Sr2 fleet 3227 (modern white/green) both misidentified as Sr3. Fix shipped same evening.
+
+#### `backend/src/services/vision.ts` — Sr rule rewrite
+- **Replaced** the existing Sr1/Sr2/Sr3 rule with a three-tier cue hierarchy: fleet number ranges as definitive (30xx=Sr1, 32xx=Sr2, 33xx=Sr3), then livery (red+yellow stripe = Sr1 ALWAYS), then axle count + cab silhouette as fallback. Explicit "NEVER default to Sr3" guidance added.
+- **Clarified** builder lineage: Sr1 = Novocherkassk (NEVZ) + Strömberg electrics, Sr2 = SLM Winterthur / ABB (Re 460 family — Swiss rounded cab), Sr3 = Siemens Vectron.
+
+#### `backend/src/services/trainSpecs.ts` — Sr1 + Sr2 prompt rules and hardcoded overrides
+- **Added** SPECS_PROMPT guidance for Sr1 (Co'Co' 110 units 1973–1985, 160 km/h, 3,100 kW) and Sr2 (Bo'Bo' 46 units 1995–2003, 210 km/h, 6,100 kW).
+- **Added** WIKIDATA_CORRECTIONS entries for `sr1`/`vr sr1` (builder "Novocherkassk (NEVZ) / Strömberg"), `sr2`/`vr sr2` (builder "SLM Winterthur / ABB"), `sr3`/`vr sr3` (builder "Siemens", 200 km/h, 6,400 kW, 80 units).
+
+#### `backend/src/services/rarity.ts` — Sr-class rarity tiers
+- **Extended** the Finnish fleet-awareness paragraph with Sr1 = rare (fleet shrinking, classic tricolor livery leans epic), Sr2 = rare (only 46 units ever built, all active), Sr3 = uncommon (80-unit modern backbone).
+
+#### Deployment
+- Commit `0e28169` pushed to Render 2026-04-18 evening. All 93 backend tests pass, TypeScript clean. Awaiting Oula retest feedback.
+
 ### Frontend — v1.0.20 build: leaderboard username edit UI + DE localisation
 
 #### `frontend/app.json` — version bump
