@@ -50,7 +50,24 @@
     "streak": "Day streak",
     "upgradeToPro": "Upgrade to Pro",
     "language": "Language",
-    "settings": "Settings"
+    "settings": "Settings",
+    "usernameModal": {
+      "title": "Change Username",
+      "subtitle": "Letters, numbers, and underscores. 3-20 characters.",
+      "placeholder": "Your username",
+      "cancel": "Cancel",
+      "save": "Save",
+      "errors": {
+        "empty": "Username cannot be empty",
+        "tooShort": "Username must be at least 3 characters",
+        "tooLong": "Username must be 20 characters or less",
+        "invalidChars": "Letters, numbers, and underscores only",
+        "notAllowed": "That username is not allowed",
+        "alreadyTaken": "Username already taken",
+        "notSignedIn": "Not signed in",
+        "generic": "Could not update username. Please try again."
+      }
+    }
   },
   "history": {
     "title": "Collection",

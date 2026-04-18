@@ -99,7 +99,7 @@ export default function ProfileScreen() {
   const handleSaveUsername = async () => {
     const validation = isValidUsername(usernameInput);
     if (!validation.valid) {
-      setUsernameError(validation.reason || "Invalid username");
+      setUsernameError(t(validation.reasonKey || "profile.usernameModal.errors.generic"));
       return;
     }
 
@@ -111,7 +111,7 @@ export default function ProfileScreen() {
     if (result.success) {
       setUsernameModalVisible(false);
     } else {
-      setUsernameError(result.error || "Failed to update username");
+      setUsernameError(t(result.errorKey || "profile.usernameModal.errors.generic"));
     }
   };
   const { history } = useTrainStore();
@@ -582,9 +582,9 @@ export default function ProfileScreen() {
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Change Username</Text>
+          <Text style={styles.modalTitle}>{t("profile.usernameModal.title")}</Text>
           <Text style={styles.modalSubtitle}>
-            Letters, numbers, and underscores. 3-20 characters.
+            {t("profile.usernameModal.subtitle")}
           </Text>
           <TextInput
             style={[styles.modalInput, usernameError ? styles.modalInputError : null]}
@@ -593,7 +593,7 @@ export default function ProfileScreen() {
               setUsernameInput(text);
               setUsernameError("");
             }}
-            placeholder="Your username"
+            placeholder={t("profile.usernameModal.placeholder")}
             placeholderTextColor={colors.textSecondary}
             autoCapitalize="none"
             autoCorrect={false}
@@ -607,7 +607,7 @@ export default function ProfileScreen() {
               style={styles.modalCancelBtn}
               onPress={() => setUsernameModalVisible(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={styles.modalCancelText}>{t("profile.usernameModal.cancel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalSaveBtn, usernameSaving && styles.modalSaveBtnDisabled]}
@@ -617,7 +617,7 @@ export default function ProfileScreen() {
               {usernameSaving ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.modalSaveText}>Save</Text>
+                <Text style={styles.modalSaveText}>{t("profile.usernameModal.save")}</Text>
               )}
             </TouchableOpacity>
           </View>

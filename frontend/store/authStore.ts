@@ -42,7 +42,7 @@ interface AuthState {
   incrementDailyScans: () => Promise<void>;
   incrementPreSignupScans: () => Promise<void>;
   updateRegion: (region: string | null) => Promise<void>;
-  updateUsername: (username: string) => Promise<{ success: boolean; error?: string }>;
+  updateUsername: (username: string) => Promise<{ success: boolean; errorKey?: string }>;
   canScan: () => boolean;
   deductBlueprintCredit: () => Promise<boolean>;
   addBlueprintCredits: (amount: number) => Promise<void>;
@@ -251,9 +251,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (data) set({ profile: data });
   },
 
-  updateUsername: async (username: string): Promise<{ success: boolean; error?: string }> => {
+  updateUsername: async (username: string): Promise<{ success: boolean; errorKey?: string }> => {
     const { user, profile } = get();
-    if (!user || !profile) return { success: false, error: "Not signed in" };
+    if (!user || !profile) {
+      return { success: false, errorKey: "profile.usernameModal.errors.notSignedIn" };
+    }
 
     const { data, error } = await supabase
       .from("profiles")
@@ -264,9 +266,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     if (error) {
       if (error.code === "23505") {
-        return { success: false, error: "Username already taken" };
+        return { success: false, errorKey: "profile.usernameModal.errors.alreadyTaken" };
       }
-      return { success: false, error: error.message };
+      return { success: false, errorKey: "profile.usernameModal.errors.generic" };
     }
 
     if (data) set({ profile: data });

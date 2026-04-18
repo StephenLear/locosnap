@@ -50,7 +50,24 @@
     "streak": "Tage-Streak",
     "upgradeToPro": "Auf Pro upgraden",
     "language": "Sprache",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "usernameModal": {
+      "title": "Benutzername ändern",
+      "subtitle": "Buchstaben, Zahlen und Unterstriche. 3–20 Zeichen.",
+      "placeholder": "Dein Benutzername",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "errors": {
+        "empty": "Benutzername darf nicht leer sein",
+        "tooShort": "Benutzername muss mindestens 3 Zeichen lang sein",
+        "tooLong": "Benutzername darf höchstens 20 Zeichen haben",
+        "invalidChars": "Nur Buchstaben, Zahlen und Unterstriche",
+        "notAllowed": "Dieser Benutzername ist nicht erlaubt",
+        "alreadyTaken": "Benutzername ist bereits vergeben",
+        "notSignedIn": "Nicht angemeldet",
+        "generic": "Benutzername konnte nicht geändert werden. Bitte erneut versuchen."
+      }
+    }
   },
   "history": {
     "title": "Sammlung",

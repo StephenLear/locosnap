@@ -7,6 +7,32 @@ Format: newest first within each date block.
 
 ## 2026-04-18
 
+### Frontend — v1.0.20 build: leaderboard username edit UI + DE localisation
+
+#### `frontend/app.json` — version bump
+- **Changed** `"version": "1.0.19"` to `"version": "1.0.20"`. EAS production profile uses `autoIncrement: true` for iOS build number.
+
+#### `frontend/locales/en.json` + `frontend/locales/de.json` — new `profile.usernameModal` section
+- **Added** modal strings: `title`, `subtitle`, `placeholder`, `cancel`, `save`.
+- **Added** `errors` subsection: `empty`, `tooShort`, `tooLong`, `invalidChars`, `notAllowed`, `alreadyTaken`, `notSignedIn`, `generic`.
+- German translations verified for correct umlauts (ä, ü) and en-dash in the "3–20 Zeichen" copy.
+
+#### `frontend/utils/profanityFilter.ts` — return i18n keys
+- **Changed** `ValidationResult` shape from `{ valid, reason }` to `{ valid, reasonKey }`. The caller now translates via `t(reasonKey)` instead of embedding English strings in the utility. Profanity blocklist (~65 words) unchanged.
+
+#### `frontend/store/authStore.ts` — `updateUsername` returns i18n keys
+- **Changed** return shape from `{ success, error }` to `{ success, errorKey }`. Maps Supabase unique-constraint (23505) to `alreadyTaken`, not-signed-in to `notSignedIn`, anything else to `generic`.
+
+#### `frontend/app/(tabs)/profile.tsx` — modal UI translated
+- **Replaced** hardcoded English strings (title "Change Username", subtitle, placeholder, Cancel/Save button labels) with `t("profile.usernameModal.*")` calls.
+- **Updated** `handleSaveUsername` to translate validation `reasonKey` and authStore `errorKey` before displaying.
+
+#### Tests
+- **55 frontend tests pass** (7 suites, ~8s). No new test failures.
+
+#### Build state
+- Version bumped; ready to queue EAS iOS production build. Current live: iOS v1.0.19 build 41 (2026-04-14), Android v1.0.11 build 5 (2026-04-01 — pre-v1.0.19 code). v1.0.20 brings the leaderboard edit feature to production for the first time.
+
 ### Backend — Finnish diesel vision rules + dead-column cleanup
 
 Three ordered tasks per the 2026-04-17 handover plan: lowest-risk migration first, then vision-rule additions.

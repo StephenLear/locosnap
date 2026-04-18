@@ -15,9 +15,6 @@ const BLOCKED_WORDS: string[] = [
   "turd", "twat", "vagina", "wank", "whore", "wtf",
 ];
 
-/**
- * Check if a string contains profanity (case-insensitive substring match).
- */
 export function containsProfanity(text: string): boolean {
   const lower = text.toLowerCase();
   return BLOCKED_WORDS.some((word) => lower.includes(word));
@@ -25,38 +22,31 @@ export function containsProfanity(text: string): boolean {
 
 export interface ValidationResult {
   valid: boolean;
-  reason?: string;
+  // i18n key (under profile.usernameModal.errors) — translated by the caller.
+  reasonKey?: string;
 }
 
-/**
- * Validate a username for the leaderboard.
- * Rules:
- * - 3-20 characters
- * - Alphanumeric and underscores only
- * - No profanity
- * - Not empty/whitespace
- */
 export function isValidUsername(username: string): ValidationResult {
   const trimmed = username.trim();
 
   if (trimmed.length === 0) {
-    return { valid: false, reason: "Username cannot be empty" };
+    return { valid: false, reasonKey: "profile.usernameModal.errors.empty" };
   }
 
   if (trimmed.length < 3) {
-    return { valid: false, reason: "Username must be at least 3 characters" };
+    return { valid: false, reasonKey: "profile.usernameModal.errors.tooShort" };
   }
 
   if (trimmed.length > 20) {
-    return { valid: false, reason: "Username must be 20 characters or less" };
+    return { valid: false, reasonKey: "profile.usernameModal.errors.tooLong" };
   }
 
   if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
-    return { valid: false, reason: "Letters, numbers, and underscores only" };
+    return { valid: false, reasonKey: "profile.usernameModal.errors.invalidChars" };
   }
 
   if (containsProfanity(trimmed)) {
-    return { valid: false, reason: "That username is not allowed" };
+    return { valid: false, reasonKey: "profile.usernameModal.errors.notAllowed" };
   }
 
   return { valid: true };
