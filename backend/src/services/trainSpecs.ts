@@ -84,7 +84,13 @@ Rules:
   Operator MUST be "Fenniarail" (or "Fenniarail Oy"), NEVER "VR". Type is "Diesel" (a single-unit Co'Co' hood-unit freight locomotive that hauls separate wagons — NOT an EMU/DMU). Fleet is Dr18 101–106, built 2015–2020, based on the CZ Loko 774.7 "EffiShunter 1600" platform. Do NOT attribute to Valmet, Lokomo, Strömberg, ABB, or Siemens.
 - VR Dv12 — use these exact values, overriding any prior "orange/white" or "262 units" claim:
   maxSpeed "125 km/h", power "1,000 kW", weight "62.2 tonnes", length "14.4 m", builder "Valmet / Lokomo", numberBuilt 192, status "Mixed", fuelType "Diesel", gauge "Finnish broad gauge (1,524 mm)", route "VR branch lines, shunting, light freight across Finland"
-  Bo'Bo' diesel-HYDRAULIC (Voith L 216 rs transmission, Tampella-SACM MGO V16 BSHR engine), built 1963–1984 under Nohab licence. Operator is "VR" (Finnish State Railways). Fleet numbers "Dv12 2xxx" in the ranges 2501–2568 / 2601–2664 / 2701–2760. CRITICAL LIVERY CORRECTION: the classic historic livery is **red with a light-grey band** (NOT "orange/white" — that is a factual error from prior notes). Later schemes are green-and-white (1990s) and modern white-with-green-stripe (current VR corporate). If a colour/livery field is populated, use one of these three, NEVER "orange/white". Pre-1976 designation was "Sv12"; sub-variant "Sr12" covers 60 heavier 2700-series units built 1965–1972.`;
+  Bo'Bo' diesel-HYDRAULIC (Voith L 216 rs transmission, Tampella-SACM MGO V16 BSHR engine), built 1963–1984 under Nohab licence. Operator is "VR" (Finnish State Railways). Fleet numbers "Dv12 2xxx" in the ranges 2501–2568 / 2601–2664 / 2701–2760. CRITICAL LIVERY CORRECTION: the classic historic livery is **red with a light-grey band** (NOT "orange/white" — that is a factual error from prior notes). Later schemes are green-and-white (1990s) and modern white-with-green-stripe (current VR corporate). If a colour/livery field is populated, use one of these three, NEVER "orange/white". Pre-1976 designation was "Sv12"; sub-variant "Sr12" covers 60 heavier 2700-series units built 1965–1972.
+- VR Sr1 — use these exact values; Co'Co' 1970s Soviet-Finnish electric:
+  maxSpeed "160 km/h", power "3,100 kW", weight "84 tonnes", builder "Novocherkassk (NEVZ) / Strömberg", numberBuilt 110, status "Mixed", fuelType "Electric (25 kV 50 Hz AC)", gauge "Finnish broad gauge (1,524 mm)", route "VR passenger and mixed-traffic across Finland"
+  Bo'Bo' is WRONG for Sr1 — wheel arrangement is **Co'Co' (six axles)**. Built 1973–1985 at Novocherkassk (NEVZ) in the Soviet Union with electrical equipment from Oy Strömberg Ab (Finland). Fleet numbers "3001"–"3110" range (approx). Operator is "VR" (Finnish State Railways). Classic historic livery is **red body with green lower band and a yellow stripe between them** — the iconic Finnish tricolor scheme. Refurbished examples are in the modern VR white/green scheme but still have the older angular 1970s cab. Do NOT attribute to Siemens, ABB/Adtranz, SLM, or Vectron — Sr1 predates the Vectron platform by 40+ years.
+- VR Sr2 — use these exact values; Bo'Bo' Swiss-built Re 460 family:
+  maxSpeed "210 km/h", power "6,100 kW", weight "84 tonnes", builder "SLM Winterthur / ABB", numberBuilt 46, status "In service", fuelType "Electric (25 kV 50 Hz AC)", gauge "Finnish broad gauge (1,524 mm)", route "VR intercity and long-distance across Finland"
+  Bo'Bo' electric locomotive built 1995–2003 by SLM (Swiss Locomotive & Machine Works, Winterthur) and ABB — the Finnish member of the Re 460 "Lok 2000" family. Fleet numbers "Sr2 3201"–"Sr2 3246". Operator is "VR" (Finnish State Railways). Cab is the characteristic ROUNDED SWISS profile with a smooth curved nose, NOT the angular Siemens Vectron cab (Sr3) and NOT the boxy 1970s Sr1 cab. Modern VR livery: white body with thick green stripe along the lower half. Do NOT attribute to Siemens or Vectron — Sr2 is a different generation from Sr3 by a full design era.`;
 
 const FALLBACK_SPECS: TrainSpecs = {
   maxSpeed: null,
@@ -368,6 +374,21 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "e77": { maxSpeed: "65 km/h", power: "1,880 kW", builder: "BMAG (Berliner Maschinenbau)", numberBuilt: 56, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "drg e 77": { maxSpeed: "65 km/h", power: "1,880 kW", builder: "BMAG (Berliner Maschinenbau)", numberBuilt: 56, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "drg class e 77": { maxSpeed: "65 km/h", power: "1,880 kW", builder: "BMAG (Berliner Maschinenbau)", numberBuilt: 56, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // VR Sr1 — Novocherkassk (NEVZ) + Strömberg 1973-1985, 110 units. Co'Co' electric,
+  // 25 kV 50 Hz AC. Classic red-green-yellow "Finnish tricolor" livery. Fleet 3001-3110.
+  // Discovered 2026-04-18 when tester Oula reported Sr1 (fleet 3041) being called Sr3.
+  "sr1": { maxSpeed: "160 km/h", power: "3,100 kW", builder: "Novocherkassk (NEVZ) / Strömberg", numberBuilt: 110, fuelType: "Electric (25 kV 50 Hz AC)" },
+  "vr sr1": { maxSpeed: "160 km/h", power: "3,100 kW", builder: "Novocherkassk (NEVZ) / Strömberg", numberBuilt: 110, fuelType: "Electric (25 kV 50 Hz AC)" },
+  // VR Sr2 — SLM Winterthur / ABB 1995-2003, 46 units. Bo'Bo' electric, Swiss-built
+  // Re 460 family. 25 kV 50 Hz AC. Fleet Sr2 3201-3246. Rounded Swiss cab profile.
+  // Discovered 2026-04-18 when tester Oula reported Sr2 (fleet 3227) being called Sr3.
+  "sr2": { maxSpeed: "210 km/h", power: "6,100 kW", builder: "SLM Winterthur / ABB", numberBuilt: 46, fuelType: "Electric (25 kV 50 Hz AC)" },
+  "vr sr2": { maxSpeed: "210 km/h", power: "6,100 kW", builder: "SLM Winterthur / ABB", numberBuilt: 46, fuelType: "Electric (25 kV 50 Hz AC)" },
+  // VR Sr3 — Siemens Vectron AC, 2017 onwards. Bo'Bo', 25 kV 50 Hz AC. 80 units
+  // ordered/delivered. Fleet Sr3 3301+. Lock in the Siemens builder so AI doesn't
+  // mis-attribute it to ABB/SLM (Sr2) or Strömberg (Sr1).
+  "sr3": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 80, fuelType: "Electric (25 kV 50 Hz AC)" },
+  "vr sr3": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 80, fuelType: "Electric (25 kV 50 Hz AC)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
