@@ -7,6 +7,23 @@ Format: newest first within each date block.
 
 ## 2026-04-19
 
+### Release — iOS v1.0.20 build 42 APPROVED by Apple and LIVE on App Store (evening)
+
+Apple approved v1.0.20 build 42 on the evening of 2026-04-19. Now live on the App Store under app ID 6759280267 at https://apps.apple.com/app/locosnap/id6759280267.
+
+**User-visible change in v1.0.20:** leaderboard username edit UI. Auto-generated TrainFan names (e.g. "TrainFan4821") can now be personalised from the Profile tab — tap the username, edit modal appears, save a custom name (letters / numbers / underscores, 3–20 chars). Modal copy localised to EN + DE.
+
+**Server-side improvements active for v1.0.20 users without requiring an app update:**
+- Finnish VR rules — Dr18 (Fenniarail, not VR), Dv12 (correct livery + 192 units), Sr1/Sr2/Sr3 (distinct classes, not all Sr3)
+- BR 140 / E 40 factual override (879 built West German, not 186 East German)
+- BR 30506 → LSWR Urie S15 (4-6-0, 1920 Eastleigh, not Schools 4-4-0 1914)
+- VR Sm2 / Sm4 / Sm5 commuter EMU disambiguation (+ HSL operator for Sm5)
+- Siemens Mireo vs Desiro HC disambiguation (deck count as single discriminator)
+
+**Previous live:** v1.0.19 build 41 (approved 2026-04-14).
+
+**Next:** Android v1.0.20 APK build + distribution to tester cohort. Currently distributed Android is v1.0.19 (versionCode 8, preview) from 2026-04-14 — covers the 3-lifetime-scan paywall but not the username edit feature. Android public release target remains "within the next week" as communicated in tester emails and TikTok comment threads.
+
 ### fix(vision): Siemens Mireo vs Desiro HC disambiguation (evening hotfix)
 
 Public reply commitment made on TikTok BR 111 video ("Fix ist heute Abend live"). Shipped within 2 hours.
