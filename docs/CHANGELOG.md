@@ -7,6 +7,22 @@ Format: newest first within each date block.
 
 ## 2026-04-19
 
+### fix(vision): Siemens Mireo vs Desiro HC disambiguation (evening hotfix)
+
+Public reply commitment made on TikTok BR 111 video ("Fix ist heute Abend live"). Shipped within 2 hours.
+
+**Bug:** German TikTok commenter reported the app returning "Mireo" for roughly 1 in 3 regional EMU scans, including obviously bilevel Desiro HC units. Second comment from the same person on the BR 111 video confirmed the pattern ("sagt bei jedem dritten es sei ein mireo"). Root cause: vision.ts had a full Siemens Mireo PRE-FLIGHT CHECK block but **no Desiro HC rule at all** — model had nowhere to route a double-deck angular-nosed Siemens EMU, so it defaulted to Mireo every time.
+
+**Files changed:**
+- `backend/src/services/vision.ts` — added dedicated "Siemens Mireo vs Siemens Desiro HC disambiguation" block immediately before the Finnish Sm2/Sm4/Sm5 block. Hard single-discriminator rule (deck count): single-deck throughout = Mireo; double-deck middle cars with stepped roofline = Desiro HC. Block names NRW RRX (Rhein-Ruhr-Express, National Express / Abellio) as the primary operator, describes the aqua/teal RRX livery stripe, and explicitly blocks two wrong defaults ("if two rows of windows stacked, NEVER Mireo"; "if RRX aqua stripe visible, NEVER Mireo"). Also explicitly distinguishes from BR 462 ICE 3neo (single-deck high-speed, different platform entirely).
+- `backend/src/services/trainSpecs.ts` — added "Siemens Desiro HC" factual-override prompt block (160 km/h, ~3,100 kW, ~230 t 4-car, Siemens Mobility Krefeld, 25 kV 50 Hz AC, push-pull 2+2 config) with critical-facts guard (double-deck middle not all single-deck, Krefeld builder not Bombardier/Alstom/Stadler, "Desiro HC" not "Mireo", not ICE 3neo). Added two `WIKIDATA_CORRECTIONS` entries (`desiro hc`, `siemens desiro hc`).
+
+**Scope discipline:** Did NOT modify the existing Mireo PRE-FLIGHT CHECK block — the rule itself is fine, the gap was simply that Desiro HC had no competing rule. Adding Desiro HC as a sibling option gives the model the right routing decision.
+
+**Tests:** `npm run build` clean, `npm test` 93/93 pass across 12 suites.
+
+**Deployment:** Committed and pushed to `main` same evening to honour the public "heute Abend live" commitment on TikTok.
+
 ### fix(vision): BR 30506 → LSWR Urie S15 + VR Sm2/Sm4/Sm5 commuter EMU disambiguation
 
 Two tester bugs fixed in one pass.

@@ -94,6 +94,9 @@ Rules:
 - VR Sr2 — use these exact values; Bo'Bo' Swiss-built Re 460 family:
   maxSpeed "210 km/h", power "6,100 kW", weight "84 tonnes", builder "SLM Winterthur / ABB", numberBuilt 46, status "In service", fuelType "Electric (25 kV 50 Hz AC)", gauge "Finnish broad gauge (1,524 mm)", route "VR intercity and long-distance across Finland"
   Bo'Bo' electric locomotive built 1995–2003 by SLM (Swiss Locomotive & Machine Works, Winterthur) and ABB — the Finnish member of the Re 460 "Lok 2000" family. Fleet numbers "Sr2 3201"–"Sr2 3246". Operator is "VR" (Finnish State Railways). Cab is the characteristic ROUNDED SWISS profile with a smooth curved nose, NOT the angular Siemens Vectron cab (Sr3) and NOT the boxy 1970s Sr1 cab. Modern VR livery: white body with thick green stripe along the lower half. Do NOT attribute to Siemens or Vectron — Sr2 is a different generation from Sr3 by a full design era.
+- Siemens Desiro HC — use these exact values; this is a DOUBLE-DECK regional EMU, NOT a Mireo and NOT an ICE 3neo (BR 462):
+  maxSpeed "160 km/h", power "approx 3,100 kW", weight "approx 230 tonnes (4-car set)", length "105 m (4-car set)", builder "Siemens Mobility Krefeld", fuelType "Electric (25 kV 50 Hz AC)", gauge "Standard (1,435 mm)", route "German regional intercity (RRX Rhein-Ruhr-Express, NRW) — RE 1, RE 4, RE 5, RE 6, RE 11; also Israel Railways and other German regional operators"
+  Four-car push-pull EMU with TWO single-deck driving cars at the ends and TWO double-deck trailers in the middle — distinctive stepped roofline where the centre cars are visibly taller than the cab cars. Entered service 2018+. Main operator is **National Express / Abellio** on the NRW Rhein-Ruhr-Express (RRX) network. Livery: white body with black lower skirt and a bright **aqua/teal RRX stripe** along the middle-car bodyside. CRITICAL FACTS the AI must never contradict: (a) it is DOUBLE-DECK in the middle cars, NEVER all single-deck; (b) builder is "Siemens Mobility Krefeld", NEVER Bombardier / Alstom / Stadler; (c) class is "Siemens Desiro HC" or "Desiro HC", NEVER "Mireo" (Mireo is single-deck only, a different Siemens platform); (d) NOT an ICE 3neo — the BR 462 ICE 3neo is a single-deck high-speed Velaro MS, totally different. "HC" = High Capacity (referring to the bilevel middle section).
 - LSWR Urie S15 Class (BR 30506) — use these exact values; this is NOT the Schools class and NOT built in 1914:
   maxSpeed "70 mph (113 km/h)", power "approx 1,700 ihp (1,268 kW)", weight "79.9 long tons (engine)", length "65 ft 0 in over buffers (engine + tender)", builder "Eastleigh Works (LSWR)", numberBuilt 20, status "Preserved / operational", fuelType "Coal (steam)", gauge "Standard (1,435 mm)", route "Heritage — Mid-Hants Railway (Watercress Line)"
   4-6-0 mixed-traffic / fast-freight steam locomotive designed by **Robert Urie** for the London & South Western Railway, built at Eastleigh Works 1920–1921 (first batch of 20 engines, LSWR/SR 496–515). 30506 was built **October 1920** as LSWR 506. Operator for preservation is "Urie Locomotive Society" (based at Mid-Hants Railway / Watercress Line). CRITICAL FACTS the AI must never contradict: (a) wheel arrangement is 4-6-0, NEVER 4-4-0; (b) built 1920, NEVER 1914; (c) designer is Robert Urie, NEVER Richard Maunsell; (d) class is "LSWR Urie S15" / "Urie S15", NEVER "Schools Class" / "V Class"; (e) it is NOT "Class 30506" — that is a BR running number, not a class name. The Schools (V) class is a completely different 4-4-0 express passenger design built 1930–1935 under Maunsell.
@@ -425,6 +428,13 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // by Junakalusto Oy — operator MUST be "HSL" or "HSL / VR", NOT "VR" alone.
   "sm5": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
   "vr sm5": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
+  // Siemens Desiro HC — double-deck regional EMU for NRW RRX and others.
+  // 4-car push-pull: 2 single-deck driving cars + 2 double-deck trailers.
+  // Siemens Mobility Krefeld, 2018+, 160 km/h, 25 kV 50 Hz AC. Discovered
+  // 2026-04-19 when a German TikTok commenter reported the app returning
+  // "Mireo" for ~1 in 3 scans including obvious Desiro HC units.
+  "desiro hc": { maxSpeed: "160 km/h", power: "3,100 kW", builder: "Siemens Mobility Krefeld", fuelType: "Electric (25 kV 50 Hz AC)" },
+  "siemens desiro hc": { maxSpeed: "160 km/h", power: "3,100 kW", builder: "Siemens Mobility Krefeld", fuelType: "Electric (25 kV 50 Hz AC)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
