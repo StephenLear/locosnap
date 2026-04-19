@@ -93,7 +93,19 @@ Rules:
   Bo'Bo' is WRONG for Sr1 — wheel arrangement is **Co'Co' (six axles)**. Built 1973–1985 at Novocherkassk (NEVZ) in the Soviet Union with electrical equipment from Oy Strömberg Ab (Finland). Fleet numbers "3001"–"3110" range (approx). Operator is "VR" (Finnish State Railways). Classic historic livery is **red body with green lower band and a yellow stripe between them** — the iconic Finnish tricolor scheme. Refurbished examples are in the modern VR white/green scheme but still have the older angular 1970s cab. Do NOT attribute to Siemens, ABB/Adtranz, SLM, or Vectron — Sr1 predates the Vectron platform by 40+ years.
 - VR Sr2 — use these exact values; Bo'Bo' Swiss-built Re 460 family:
   maxSpeed "210 km/h", power "6,100 kW", weight "84 tonnes", builder "SLM Winterthur / ABB", numberBuilt 46, status "In service", fuelType "Electric (25 kV 50 Hz AC)", gauge "Finnish broad gauge (1,524 mm)", route "VR intercity and long-distance across Finland"
-  Bo'Bo' electric locomotive built 1995–2003 by SLM (Swiss Locomotive & Machine Works, Winterthur) and ABB — the Finnish member of the Re 460 "Lok 2000" family. Fleet numbers "Sr2 3201"–"Sr2 3246". Operator is "VR" (Finnish State Railways). Cab is the characteristic ROUNDED SWISS profile with a smooth curved nose, NOT the angular Siemens Vectron cab (Sr3) and NOT the boxy 1970s Sr1 cab. Modern VR livery: white body with thick green stripe along the lower half. Do NOT attribute to Siemens or Vectron — Sr2 is a different generation from Sr3 by a full design era.`;
+  Bo'Bo' electric locomotive built 1995–2003 by SLM (Swiss Locomotive & Machine Works, Winterthur) and ABB — the Finnish member of the Re 460 "Lok 2000" family. Fleet numbers "Sr2 3201"–"Sr2 3246". Operator is "VR" (Finnish State Railways). Cab is the characteristic ROUNDED SWISS profile with a smooth curved nose, NOT the angular Siemens Vectron cab (Sr3) and NOT the boxy 1970s Sr1 cab. Modern VR livery: white body with thick green stripe along the lower half. Do NOT attribute to Siemens or Vectron — Sr2 is a different generation from Sr3 by a full design era.
+- LSWR Urie S15 Class (BR 30506) — use these exact values; this is NOT the Schools class and NOT built in 1914:
+  maxSpeed "70 mph (113 km/h)", power "approx 1,700 ihp (1,268 kW)", weight "79.9 long tons (engine)", length "65 ft 0 in over buffers (engine + tender)", builder "Eastleigh Works (LSWR)", numberBuilt 20, status "Preserved / operational", fuelType "Coal (steam)", gauge "Standard (1,435 mm)", route "Heritage — Mid-Hants Railway (Watercress Line)"
+  4-6-0 mixed-traffic / fast-freight steam locomotive designed by **Robert Urie** for the London & South Western Railway, built at Eastleigh Works 1920–1921 (first batch of 20 engines, LSWR/SR 496–515). 30506 was built **October 1920** as LSWR 506. Operator for preservation is "Urie Locomotive Society" (based at Mid-Hants Railway / Watercress Line). CRITICAL FACTS the AI must never contradict: (a) wheel arrangement is 4-6-0, NEVER 4-4-0; (b) built 1920, NEVER 1914; (c) designer is Robert Urie, NEVER Richard Maunsell; (d) class is "LSWR Urie S15" / "Urie S15", NEVER "Schools Class" / "V Class"; (e) it is NOT "Class 30506" — that is a BR running number, not a class name. The Schools (V) class is a completely different 4-4-0 express passenger design built 1930–1935 under Maunsell.
+- VR Sm2 (Finnish commuter EMU — Valmet/Strömberg 1975–1981) — use these exact values; this is NOT a FLIRT and NOT Sm5:
+  maxSpeed "120 km/h", power "900 kW", weight "97 tonnes (2-car set)", builder "Valmet / Strömberg", numberBuilt 50, status "In service (declining)", fuelType "Electric (25 kV 50 Hz AC)", gauge "Finnish broad gauge (1,524 mm)", route "Helsinki-region commuter services (HSL), VR regional"
+  Two-car articulated commuter EMU, boxy 1970s cab with flat vertical windscreen. Fleet numbers "Sm2 6xxx". Operator is "HSL / VR" (HSL for Helsinki commuter, VR for other regional). NOT a Stadler FLIRT, NOT Sm5, NOT CAF-built.
+- VR Sm4 (Finnish commuter EMU — CAF 1999–2005) — use these exact values; this is NOT a FLIRT and NOT Sm5:
+  maxSpeed "160 km/h", power "1,500 kW", weight "107 tonnes (2-car set)", builder "CAF (Beasain, Spain) / Transtech Oy", numberBuilt 30, status "In service", fuelType "Electric (25 kV 50 Hz AC)", gauge "Finnish broad gauge (1,524 mm)", route "Helsinki-region regional (HSL), VR regional to Riihimäki/Lahti"
+  Two-car commuter/regional EMU with a rounded single-curve cab nose and a large one-piece wraparound windscreen. Fleet numbers "Sm4 6301–6330". Operator is "HSL / VR". Builder is CAF in Spain under a technology-transfer agreement — NOT Valmet, NOT Stadler, NOT Fiat directly. NOT a Stadler FLIRT, NOT Sm5.
+- VR Sm5 (Stadler FLIRT Finland, 2008+) — use these exact values; operator is HSL, NOT VR alone:
+  maxSpeed "160 km/h", power "4,200 kW", weight "130 tonnes (4-car set)", builder "Stadler Rail (Bussnang)", numberBuilt 81, status "In service", fuelType "Electric (25 kV 50 Hz AC)", gauge "Finnish broad gauge (1,524 mm)", route "HSL commuter services across the Helsinki region"
+  Four-car Stadler FLIRT variant for Finnish broad gauge, sharp angular FLIRT nose, HSL white/green livery. Fleet numbers "Sm5 64xx". Owned by **Pääkaupunkiseudun Junakalusto Oy** and operated under contract for HSL (Helsingin seudun liikenne). Operator field MUST be "HSL" or "HSL / VR", NEVER "VR" alone — VR only operates the trains on HSL's behalf. Only classify as Sm5 if the train has the unmistakable sharp angular Stadler FLIRT nose; a boxy 1970s cab is Sm2, a rounded single-curve nose is Sm4.`;
 
 const FALLBACK_SPECS: TrainSpecs = {
   maxSpeed: null,
@@ -392,6 +404,27 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // mis-attribute it to ABB/SLM (Sr2) or Strömberg (Sr1).
   "sr3": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 80, fuelType: "Electric (25 kV 50 Hz AC)" },
   "vr sr3": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 80, fuelType: "Electric (25 kV 50 Hz AC)" },
+  // LSWR Urie S15 (BR 30506) — Robert Urie 4-6-0, Eastleigh 1920-1921, 20 units
+  // in the Urie batch. Preserved 30506 based at Watercress Line / Mid-Hants Railway.
+  // NOT Schools class, NOT 4-4-0, NOT 1914. Discovered 2026-04-19 when a UK tester
+  // scanned 30506 and got "Class 30506 Schools 4-4-0 built 1914" back.
+  "urie s15": { maxSpeed: "70 mph (113 km/h)", power: "1,268 kW", builder: "Eastleigh Works (LSWR)", numberBuilt: 20, fuelType: "Coal (steam)" },
+  "lswr urie s15": { maxSpeed: "70 mph (113 km/h)", power: "1,268 kW", builder: "Eastleigh Works (LSWR)", numberBuilt: 20, fuelType: "Coal (steam)" },
+  "lswr urie s15 class": { maxSpeed: "70 mph (113 km/h)", power: "1,268 kW", builder: "Eastleigh Works (LSWR)", numberBuilt: 20, fuelType: "Coal (steam)" },
+  "s15": { maxSpeed: "70 mph (113 km/h)", power: "1,268 kW", builder: "Eastleigh Works (LSWR)", numberBuilt: 20, fuelType: "Coal (steam)" },
+  // VR Sm2 — Valmet/Strömberg 1975-1981, 50 two-car units. Boxy 1970s cab, flat
+  // windscreen. 120 km/h. NOT a FLIRT. Discovered 2026-04-19 when tester Oula
+  // reported every VR commuter EMU being returned as Sm5.
+  "sm2": { maxSpeed: "120 km/h", power: "900 kW", builder: "Valmet / Strömberg", numberBuilt: 50, fuelType: "Electric (25 kV 50 Hz AC)" },
+  "vr sm2": { maxSpeed: "120 km/h", power: "900 kW", builder: "Valmet / Strömberg", numberBuilt: 50, fuelType: "Electric (25 kV 50 Hz AC)" },
+  // VR Sm4 — CAF Beasain / Transtech Oy 1999-2005, 30 two-car units. Rounded
+  // single-curve cab nose, 160 km/h. NOT a FLIRT, NOT Sm5, NOT Valmet-built.
+  "sm4": { maxSpeed: "160 km/h", power: "1,500 kW", builder: "CAF (Beasain, Spain) / Transtech Oy", numberBuilt: 30, fuelType: "Electric (25 kV 50 Hz AC)" },
+  "vr sm4": { maxSpeed: "160 km/h", power: "1,500 kW", builder: "CAF (Beasain, Spain) / Transtech Oy", numberBuilt: 30, fuelType: "Electric (25 kV 50 Hz AC)" },
+  // VR Sm5 — Stadler FLIRT Finland, 2008+, 81 four-car units. Operated for HSL
+  // by Junakalusto Oy — operator MUST be "HSL" or "HSL / VR", NOT "VR" alone.
+  "sm5": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
+  "vr sm5": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {

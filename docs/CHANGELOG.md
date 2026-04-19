@@ -5,7 +5,127 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-19
+
+### fix(vision): BR 30506 → LSWR Urie S15 + VR Sm2/Sm4/Sm5 commuter EMU disambiguation
+
+Two tester bugs fixed in one pass.
+
+**Bug 1 — UK tester, BR 30506 misidentified as "Schools Class 4-4-0 built 1914" (Legendary).** Correct answer: **LSWR Urie S15 Class, 4-6-0, built October 1920 at Eastleigh Works** (LSWR 506 → SR 506 → BR 30506), designed by Robert Urie, preserved and operational at the Mid-Hants Railway (Watercress Line) by the Urie Locomotive Society. Model invented a fake "Class 30506" and attributed it to Maunsell's Schools (V) class, which is a completely different 4-4-0 express passenger design built 1930–1935.
+
+**Bug 2 — Finnish tester Oula, every VR commuter EMU collapsed to "Sm5 FLIRT".** Correct answers: older boxy units = **VR Sm2** (Valmet/Strömberg 1975–1981, 50 two-car sets, flat windscreen, 120 km/h); mid-generation rounded-nose = **VR Sm4** (CAF Beasain / Transtech 1999–2005, 30 two-car sets, 160 km/h); sharp angular FLIRT-nose = **VR Sm5** (Stadler FLIRT Finland, 2008+, 81 four-car sets, operator is HSL not VR alone — Pääkaupunkiseudun Junakalusto Oy owns the fleet).
+
+**Files changed:**
+- `backend/src/services/vision.ts` — added three new disambiguation blocks to the vision prompt: (a) "UK BR 30xxx number block" rule forbidding the model from returning a BR running number as a class name, with explicit 30506 → Urie S15 resolution; (b) full "LSWR Urie S15 Class (BR 30506 and siblings)" rule with critical facts (4-6-0 not 4-4-0, built 1920 not 1914, Urie not Maunsell, class name "LSWR Urie S15" not "Class 30506" not "Schools Class"), visual cues (Urie stovepipe chimney, double-window cab, 8-wheel Urie bogie tender), and explicit contrast with Schools class; (c) "Finnish VR commuter EMU disambiguation (Sm2 vs Sm4 vs Sm5)" covering the three distinct visual families and the HSL vs VR operator distinction for Sm5.
+- `backend/src/services/trainSpecs.ts` — added four new factual-override blocks to the specs prompt (Urie S15, Sm2, Sm4, Sm5) with exact maxSpeed/power/weight/builder/numberBuilt values, plus eight new entries to the `WIKIDATA_CORRECTIONS` map (`urie s15`, `lswr urie s15`, `lswr urie s15 class`, `s15`, `sm2`, `vr sm2`, `sm4`, `vr sm4`, `sm5`, `vr sm5`) so Wikidata hallucinations get corrected even if the vision layer returns a class name variant.
+
+**Why this structure:** Vision layer (class name + design era) and specs layer (builder/power/year) are independent failure points. BR 140 and Sr1/Sr2/Sr3 bugs showed that fixing only one layer leaves the other lying. Both layers now carry the correction, and the Wikidata corrections map catches any residual drift.
+
+**Scope discipline:** Did NOT add a broad "stadler flirt" correction because the FLIRT platform is worldwide (Norway, Germany, Switzerland, Italy, etc.) — applying Finnish Sm5 specs to every FLIRT scan would break those. Correction is keyed on "sm5" / "vr sm5" only.
+
+**Tests:** Backend `npm test` — all 93 tests pass across 12 suites. No test changes needed (existing tests don't assert specific class-name overrides, but the compile + test pass confirms no regression).
+
+**Deployment:** Not yet deployed — needs a push to go live on Render.
+
+### Content — BR 140 "DB HAT SIE AUFGEGEBEN" DE video produced
+
+Built `~/Desktop/locosnap_br140_de.mp4` — 10.0s, 720×1280, 30fps, H.264, silent, 4.9 MB. Ready for post tomorrow AM (TikTok first, Instagram Reel ~1h later, music added at post time).
+
+**Concept:** "Killed by DB, kept alive by the sensible people." Narrative frames DB Cargo's 2020 retirement of BR 140 vs. the private freight operators (PRESS, Lokomotion, Railsystems RP, RailAdventure, EBM Cargo) who bought the survivors and kept them running. Chosen as next DE class after BR 103 based on: (a) 7-day TikTok data confirming DE videos outperform UK on retention, full-watch rate, AND follower conversion (BR 103 landed 9 followers vs Class 345's 2 — 4.5×); (b) BR 140 has a strong "end of era / they wouldn't die" hook that matches the proven template.
+
+**Beat structure (yellow subs — first time using #FFFF00 not white):**
+- Beat 1 (0.0–1.5s): Radebeul Ost 2024 red DB-era 140 approaching at distance. Text: "DB HAT SIE" / "AUFGEGEBEN." (14-char safe limit respected)
+- Beat 2 (1.5–4.0s): PRESS 140 050-3 in blue livery, hero arrival at Radbruch. Text: "DIE SCHLAUEN" / "RETTETEN SIE."
+- Beat 3 (4.0–6.5s): Radebeul Ost 2024 red 140 side pass. Text: "BR 140." / "879 GEBAUT."
+- Beat 4 (6.5–10.0s): App screen recording card reveal (Legendary, 110 km/h, 3,700 kW, 100 left, DB Class 140) letterboxed into 720×980 on black padding. Text: "NICHT" (top black band) / "TOTZUKRIEGEN." (bottom black band) at 64px to fit in bands.
+
+**Source footage:** `~/Desktop/BR140/`
+- `Vorbeifahrt einer wunderschönen Br.140 in Radebeul Ost am 13.2.24.mp4` (22.3s, 720×1280, 30fps) — used 11.0–12.5s for Beat 1, 13.5–16.0s for Beat 3 (user confirmed is BR 140)
+- `Br 140 050 (140 833) von PRESS in Radbruch.mp4` (32.5s, 1080×1920, 60fps) — used 2.5–5.0s for Beat 2. Earlier window 3.5–6.0s was rejected — too much carriage footage, loco out of frame. New window captures PRESS 140 050-3 as hero
+- `ScreenRecording_04-19-2026 19-45-29_1.MP4` (32.1s, 1206×2622, 60fps HEVC) — used 19.5–23.0s for Beat 4 card reveal
+- **DB Museum Koblenz clip REJECTED** — YouTube uploader tagged #BR140 but the loco is actually an E 50 (DB Class 150). Fleet plate "E 50 0591" visible on side. Would have drawn savage German railfan comments. Flagged early in QA, not used.
+
+**Subtitle iterations (2 rebuilds):**
+1. First build: white subs, all 4 beats top-positioned. Rejected — Beat 4 subs covered the LEGENDARY badge at the top of the app card.
+2. Second build: yellow subs, Beat 4 moved to bottom with alignment=2. Rejected — subs overlapped the Save/Share/Details buttons.
+3. Final build: Beat 4 footage letterboxed (720×980 in 720×1280 with black top/bottom bands), subs placed on black bands using RevealTop (alignment=8, MarginV 40) and RevealBot (alignment=2, MarginV 40) styles. Clean card centered, subs legible on solid black.
+
+**Caption + 20 hashtags drafted** ready to post. Caption mirrors video narrative: "DB hat sie 2020 aufgegeben. Die Schlauen nicht. BR 140 – 879 gebaut, nicht totzukriegen. Heute fährt sie noch jeden Tag Güterzüge bei PRESS, Lokomotion, Railsystems RP und Co." Hashtags favour private-operator names (`#press #lokomotion #dbcargo`) to reward engaged viewers and prime the railfan crowd.
+
+---
+
+### Backend — BR 140 factual overrides (trainSpecs + rarity), commit 6d18bbf
+
+Deploy triggered by the BR 140 video build: the app card was returning hallucinated facts — "186 built, East German, virtually no survivors, withdrawn since 1957". 186 built is the exact number for DB Class 156 (a different LEW Hennigsdorf prototype), and the "East German / withdrawn 1957" framing was pure text-generator hallucination. Would have been a catastrophic error to ship in a DE video targeting the very audience that would spot "186" and "East German" inside 5 seconds.
+
+Added to `backend/src/services/trainSpecs.ts`:
+- BR 140 / E 40 hardcoded override with authoritative values:
+  - numberBuilt 879 (explicit "NEVER 186" guard against the Class 156 hallucination)
+  - West German DB Bundesbahn origin — explicit "NEVER Deutsche Reichsbahn" guard
+  - Built 1957–1973 by Krauss-Maffei / Krupp / Henschel / SSW
+  - Status "Mixed (withdrawn from DB Cargo 2020, active with private freight operators)" — named: PRESS, Lokomotion, Railsystems RP, RailAdventure, EBM Cargo
+  - ~100 units still operational in 2026 — explicit "NOT extinct" guard
+  - Specs: 110 km/h, 3,700 kW, 83 tonnes, 16.49 m, Bo'Bo', 15 kV 16.7 Hz AC, standard gauge
+
+Added to `backend/src/services/rarity.ts`:
+- BR 140 legendary-tier rule. Forces `legendary` tier despite the large historical fleet, on the grounds that BR 140 is now one of the last classic Bundesbahn first-generation electric freight locos still in commercial freight service
+- Reason-field guard mandates West German framing + 879 units origin, blocks "extinct / virtually no survivors / completely withdrawn" language
+
+`vision.ts` unchanged — the classifier correctly returned "DB Class 140", the hallucination was purely downstream in specs/rarity.
+
+**Deployment:** committed `6d18bbf`, pushed to `main`, Render auto-deploy landed within 90 seconds. Rescan in app confirmed card now shows correct LEGENDARY / DB Class 140 / 110 km/h / 3,700 kW / 100 left / PRESS 140 050-3 photo / West German private-operator framing. Fresh screen recording used for video Beat 4.
+
+**TypeScript clean, no test regressions.** This is the same pattern as the Dr18, Sr-class, BR 485, BR 143 fixes shipped earlier in the month — vision correct, specs+rarity need reinforcement for the downstream text generation.
+
+---
+
+### Tester Outreach — mass "please update" nudge email sent (23/23)
+
+Bilingual EN/DE email sent via Resend to 23 active testers asking them to install the latest v1.0.19 APK. Triggered by a regressed Sentry alert (REACT-NATIVE-6 "Could not connect to LocoSnap servers") surfacing a cluster of 5 users / 11 events over 30 days on release 1.0.7 (versionCode 5) — all from users who never updated past early APKs. Email frames the ask around "older builds are hitting connection errors" and teases public launch within the next week.
+
+All 23 sends successful. Resend IDs audit-trailed in `~/.claude/projects/-Users-StephenLear-Projects-locosnap/memory/tester_contacts.md`. CC'd to `unsunghistories@proton.me` per mandatory rule. Cloudflare UA header set. From: `stephen@locosnap.app`.
+
+Recipients (23): Stephstottor, aylojasimir, christian.grama, dieterbrandes6, esseresser07, gazthomas, gerlachr70, jakubek.rolnik, jannabywaniec, jlison1154, joshimosh2607, krawiec.jr69, kt4d.vip, leander.jakowski, m.j.griffiths.ucl, mf.bruch, mike.j.harvey, muz.campanet, qwertylikestrains, scr.trainmad, scrtrainmadother, trithioacetone, vattuoula.
+
+Excluded: stevelear51 (user's secondary account), unsunghistories (CC).
+
+Sentry alert resolved manually in UI after send decision made — handled error, low severity, stale releases only.
+
+---
+
 ## 2026-04-18
+
+### Content — BR 103 "EINST FUHR SIE DEN RHEINGOLD" DE video produced
+
+Built `~/Desktop/locosnap_br103_de.mp4` — 10.02s, 720×1280, 30fps, H.264, silent, 1.63 MB. Ready for post tomorrow AM (TikTok first, Instagram Reel ~1h later, music added at post time).
+
+**Concept:** German nostalgia angle leveraging the BR 103's association with the Rheingold — one of the most iconic European express trains of the 20th century. Selected from unused German candidates (BR 103, BR 232 Ludmilla, SVT 137 Flying Hamburger) after ICE L was already burned on 2026-04-10 (4 posts that day). Prioritised Germany over UK for tomorrow based on Germany being the only monetising market (100% of $27 proceeds) and the 7-day TikTok audience being 44.2% DE vs 5.9% UK.
+
+**Source footage:** `~/Desktop/br103/` — five clips, three usable.
+- `German Br103 on its way with Rheingold train to Luzern` (16.2s, 720×1280, 60fps) — used 4.0–5.5s window (BR 103 246-7 in full TEE cream/red livery with Rheingold rake trailing). Initial build used 10.0–11.5s which showed only the coaches — caught by user on first preview, rebuilt.
+- `Die legendäre BR 103` (23.2s, 1080×1920, 25fps) — used 9.0–12.0s (BR 103 113-7 nose-on hero shot)
+- `ScreenRecording_04-18-2026 22-10-58_1.MP4` (47.4s, 1206×2622 HEVC) — app card reveal at 27.5–31.0s (EPIC rarity, confetti)
+- `Ex. DB Br103 with its mixed TEE train from Luzern to Koblenz.mp4` — not used
+- `TSW 4 Trainspotting Short BR 103 Gemischtzug.mp4` — rejected (Train Sim World 4 CGI)
+
+**Beat structure:**
+- Beat 1 (0.0–1.5s): Rheingold + BR 103 246-7 side-pass. Text: "EINST FUHR SIE" / "DEN RHEINGOLD" (Arial Bold 70px white with 4px black outline, y=140/y=230 — within 14-char safe limit at 720px)
+- Beat 2 (1.5–4.5s): BR 103 113-7 nose-on hero
+- Beat 3 (4.5–8.0s): Screen recording card reveal (EPIC rarity)
+- Beat 4 (8.0–10.0s): LocoSnap end screen
+
+**Skill rule reinforcement logged:** "Screen recording crop — verify source frames before building" failed here by failing to verify which clip window had the loco visible vs carriages only. Fix required rebuilding seg1 after first render. The `verify in/out timestamps` rule should extend to beat hero footage, not just screen recordings.
+
+### Content — iOS v1.0.20 build 42 release notes drafted (EN + DE)
+
+Drafted App Store release notes via `app-store-release-notes` skill for v1.0.20 build 42. User-facing change: leaderboard username edit UI (auto-generated TrainFan names can be personalised in Profile, letters/numbers/underscores, 3–20 chars). Backend Dr18/Dv12 vision fixes deployed in the morning already live on server — no user-visible change in the app. Notes ready for paste when build is submitted; build not yet queued this session.
+
+### Stats — 2026-04-18 Class 345 + account review
+
+Reviewed 11 stat screenshots in `~/Desktop/stats 18:4/`. Key findings informed BR 103 direction.
+- **Class 345 TikTok:** 397 views, 66.0% UK, 8.9% full-watch rate, 2 new followers.
+- **Class 345 Instagram:** 115 views, 53.9% Germany, 69.5% skip rate, 0 follows.
+- **7-day account TikTok:** 7.0K views (+33.6%), Germany 44.2%, Poland 17.9%, UK 5.9%. Germany overtaking Poland — trajectory validates prioritising German nostalgia content for tomorrow.
 
 ### Backend — Sr1/Sr2/Sr3 disambiguation reinforcement (Oula feedback)
 
