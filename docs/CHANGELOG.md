@@ -5,6 +5,29 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-20
+
+### Backend fix — BR 232 / DR BR 132 "Ludmilla" factual override (Siemens → Voroshilovgrad, 273 → 709, 80t → 116t)
+
+Discovered via on-device screen recording while preparing a BR 232 "Ludmilla" organic ad for TikTok / Instagram. App was returning three structured-specs errors:
+- **Builder: "Siemens"** (wrong — Ludmilla was built at Voroshilovgrad Locomotive Works in Luhansk, Ukrainian SSR, 1973–1982)
+- **Weight: 80 tonnes** (wrong — service weight is ~116 tonnes)
+- **Units built: 273** (wrong — 709 BR 132 units were built and renumbered BR 232 after reunification)
+
+The Fun Facts narrative layer was already correct (mentioned "Voroshilovgrad Works" and the V300 → BR 132 → BR 232 renumbering history) — this was a structured-specs-layer hallucination, same failure mode as BR 140 / LSWR Urie S15 / Sm2/Sm4/Sm5.
+
+**`backend/src/services/trainSpecs.ts`:**
+- Added BR 232 / Ludmilla factual-override prompt block with critical-facts guard. Naming and structure match the existing BR 140 / Urie S15 / Desiro HC blocks.
+- Added 6 `WIKIDATA_CORRECTIONS` entries: `br 232`, `db br 232`, `baureihe 232`, `dr br 132`, `br 132`, `ludmilla` — each pinning maxSpeed 120 km/h / power 2,200 kW / weight 116 tonnes / builder Voroshilovgrad Locomotive Works (Luhansk) / numberBuilt 709 / fuelType Diesel.
+
+Scope discipline: deliberately did NOT add a broad `siemens` correction — Siemens builds plenty of DB locomotives legitimately (Desiro HC, Mireo, Vectron, Taurus). Keyed only on BR 232 / Ludmilla class names.
+
+Build + 93/93 backend tests passing.
+
+Motivation: the app returning "Siemens" as builder would have been the first thing a German commenter screenshot-contested under the Ludmilla ad. Shipping the fix now means the scan result in the ad itself will be factually bulletproof.
+
+---
+
 ## 2026-04-19
 
 ### Release — iOS v1.0.20 build 42 APPROVED by Apple and LIVE on App Store (evening)

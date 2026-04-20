@@ -108,7 +108,10 @@ Rules:
   Two-car commuter/regional EMU with a rounded single-curve cab nose and a large one-piece wraparound windscreen. Fleet numbers "Sm4 6301–6330". Operator is "HSL / VR". Builder is CAF in Spain under a technology-transfer agreement — NOT Valmet, NOT Stadler, NOT Fiat directly. NOT a Stadler FLIRT, NOT Sm5.
 - VR Sm5 (Stadler FLIRT Finland, 2008+) — use these exact values; operator is HSL, NOT VR alone:
   maxSpeed "160 km/h", power "4,200 kW", weight "130 tonnes (4-car set)", builder "Stadler Rail (Bussnang)", numberBuilt 81, status "In service", fuelType "Electric (25 kV 50 Hz AC)", gauge "Finnish broad gauge (1,524 mm)", route "HSL commuter services across the Helsinki region"
-  Four-car Stadler FLIRT variant for Finnish broad gauge, sharp angular FLIRT nose, HSL white/green livery. Fleet numbers "Sm5 64xx". Owned by **Pääkaupunkiseudun Junakalusto Oy** and operated under contract for HSL (Helsingin seudun liikenne). Operator field MUST be "HSL" or "HSL / VR", NEVER "VR" alone — VR only operates the trains on HSL's behalf. Only classify as Sm5 if the train has the unmistakable sharp angular Stadler FLIRT nose; a boxy 1970s cab is Sm2, a rounded single-curve nose is Sm4.`;
+  Four-car Stadler FLIRT variant for Finnish broad gauge, sharp angular FLIRT nose, HSL white/green livery. Fleet numbers "Sm5 64xx". Owned by **Pääkaupunkiseudun Junakalusto Oy** and operated under contract for HSL (Helsingin seudun liikenne). Operator field MUST be "HSL" or "HSL / VR", NEVER "VR" alone — VR only operates the trains on HSL's behalf. Only classify as Sm5 if the train has the unmistakable sharp angular Stadler FLIRT nose; a boxy 1970s cab is Sm2, a rounded single-curve nose is Sm4.
+- DB BR 232 / DR BR 132 "Ludmilla" — Soviet-built Co'Co' diesel-electric, NOT Siemens and NOT built by any German manufacturer. Use these exact values:
+  maxSpeed "120 km/h", power "2,200 kW", weight "116 tonnes", length "20.82 m", builder "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt 709, status "Mixed (declining — DB Cargo phase-out 2023–2026)", fuelType "Diesel", gauge "Standard (1,435 mm)", route "DB Cargo heavy freight across Germany; also private freight operators"
+  Heavy Co'Co' diesel-electric locomotive built at Voroshilovgrad Locomotive Works (now Luhansk, Ukraine) 1973–1982 for Deutsche Reichsbahn. Soviet design class TE109 / DR-designation V300 → DR BR 132 → DB BR 232 after reunification. Powered by a Kolomna 5D49 V16 diesel engine producing 2,200 kW (3,000 hp). Nicknamed "Ludmilla" by German railway enthusiasts, also known as "Russen-Diesel" or "Lugansk-Lok". CRITICAL FACTS the AI must never contradict: (a) builder is "Voroshilovgrad Locomotive Works (Luhansk)" — NEVER "Siemens", NEVER "Krauss-Maffei", NEVER "Henschel", NEVER "LEW Hennigsdorf", NEVER any German manufacturer; (b) numberBuilt is 709 (full BR 132 → BR 232 production run), NEVER 273 or any lower number; (c) weight is approximately 116 tonnes service weight, NEVER 80 tonnes (80t is wildly wrong — Ludmilla is one of the heaviest diesels in DB service); (d) fuelType is "Diesel" (diesel-electric transmission), NEVER electric; (e) operator lineage is DR → DB Cargo, with ongoing transfer to private freight operators as DB retires them 2023–2026. Phase-out is accelerated partly because Russia sanctions block spare parts. The wider Ludmilla family (DR BR 130, 131, 132, 142) totals 873 units from the same works but the BR 232 subclass specifically is the 709 BR 132 units renumbered post-reunification. Distinct from the Taigatrommel (DR BR 120 / DB BR 220) which is the smaller M62 with a central cab — Ludmilla is much larger with twin cabs at each end.`;
 
 const FALLBACK_SPECS: TrainSpecs = {
   maxSpeed: null,
@@ -435,6 +438,16 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // "Mireo" for ~1 in 3 scans including obvious Desiro HC units.
   "desiro hc": { maxSpeed: "160 km/h", power: "3,100 kW", builder: "Siemens Mobility Krefeld", fuelType: "Electric (25 kV 50 Hz AC)" },
   "siemens desiro hc": { maxSpeed: "160 km/h", power: "3,100 kW", builder: "Siemens Mobility Krefeld", fuelType: "Electric (25 kV 50 Hz AC)" },
+  // DB BR 232 / DR BR 132 "Ludmilla" — Soviet-built Co'Co' diesel-electric.
+  // Voroshilovgrad Locomotive Works (Luhansk) 1973-1982, 709 BR 132 units
+  // renumbered BR 232 post-reunification. Discovered 2026-04-20 when the app
+  // returned "Siemens" as builder and 80 tonnes / 273 units — all wrong.
+  "br 232": { maxSpeed: "120 km/h", power: "2,200 kW", weight: "116 tonnes", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 709, fuelType: "Diesel" },
+  "db br 232": { maxSpeed: "120 km/h", power: "2,200 kW", weight: "116 tonnes", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 709, fuelType: "Diesel" },
+  "baureihe 232": { maxSpeed: "120 km/h", power: "2,200 kW", weight: "116 tonnes", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 709, fuelType: "Diesel" },
+  "dr br 132": { maxSpeed: "120 km/h", power: "2,200 kW", weight: "116 tonnes", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 709, fuelType: "Diesel" },
+  "br 132": { maxSpeed: "120 km/h", power: "2,200 kW", weight: "116 tonnes", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 709, fuelType: "Diesel" },
+  "ludmilla": { maxSpeed: "120 km/h", power: "2,200 kW", weight: "116 tonnes", builder: "Voroshilovgrad Locomotive Works (Luhansk)", numberBuilt: 709, fuelType: "Diesel" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
