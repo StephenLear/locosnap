@@ -7,6 +7,40 @@ Format: newest first within each date block.
 
 ## 2026-04-20
 
+### Content — BR 232 "Ludmilla" DE organic ad built and ready for 2026-04-21 AM post
+
+Built `~/Desktop/locosnap_br232_de.mp4` — 11.53s, 720×1280, 30fps, H.264 CRF 18, silent, 5.74 MB. Five-beat structure matching the BR 143 / BR 140 template:
+
+| Beat | Time | Source | Text | Notes |
+|------|------|--------|------|-------|
+| 1 | 0.0–2.5s | Clip 3 (`Br 232 (Ludmilla).mp4`, 1080×1920→720×1280, window 3.0–5.5s) | "1973" (0.0–1.0s) → "LUHANSK / GEBAUT" (1.0–2.5s) | 110px Arial Black |
+| 2 | 2.5–5.0s | Clip 2 (`#ludmilla #bundeswehr #panzer… .mp4`, already 720×1280, window 10.0–12.5s) | "HEUTE" (2.5–3.5s) → "BUNDESWEHR / PANZER" (3.5–5.0s) | 110px / 95px (BUNDESWEHR downsized to fit 720px width) |
+| 3 | 5.0–7.5s | Clip 4 (`Vorbeifahrt Ludmilla in DU Hüttenheim… .mp4`, 1080×1920→720×1280, window 10.0–12.5s — 232 259-2 hero front shot) | "MORGEN" (5.0–6.0s) → "AM ENDE" (6.0–7.5s) | 110px |
+| 4 | 7.5–9.5s | Scan reveal (`ScreenRecording_04-20-2026 20-35-43_1.MP4`, 1206×2622 letterboxed, window 25.0–27.0s) | (no overlay — card speaks for itself per skill rule) | BR 232 / Deutsche Bahn · Diesel / 120 km/h / 2,200 kW / RARE |
+| 5 | 9.5–11.5s | `docs/assets/locosnap_end_screen.mp4` | Top caption "ANDROID / DIESE WOCHE" (85px) + existing end-screen content | Existing asset reused per video-editing skill rule #3 |
+
+Hook copy: **"1973 in Luhansk gebaut. Heute zieht sie Bundeswehr-Panzer. Morgen verschwindet sie. Die Ludmilla."** Three present-tense clauses — historical observation framing, irony does the work implicitly, not a political statement. Matches the proven DE scarcity template while pivoting from "end of era" to the Soviet-Ukrainian origin / Bundeswehr-cargo angle (a direction the account has not used before).
+
+Caption (DE primary): *"1973 in Luhansk gebaut. 709 Stück für die Deutsche Reichsbahn. Heute zieht sie Bundeswehr-Panzer durch Deutschland — und wird ausgemustert. Russland-Sanktionen blockieren die Ersatzteile. Das Ende einer Ära. LocoSnap erkennt jede Lok — Android kommt diese Woche."*
+
+Hashtags: `#ludmilla #br232 #russendiesel #reichsbahn #dbcargo #deutschebahn #eisenbahn #train #zug #trainspotting #trainspotter #locosnap`
+
+**Skill-rule nuance discovered during build:** ARCHITECTURE.md §19 states a "10–11 char safe limit at 110px" for Arial Black drawtext. During this build, **BUNDESWEHR (10 wide letters) overflowed at 110px** because the rule is letter-width-dependent — words with wide letters (W, H, M, N, U, D, B, E) exceed the limit earlier than words with narrow letters (I, 1, 4, 3). Had to downsize to 95px. Same issue on "DIESE WOCHE" (11, downsized to 85px). Updated guidance: for strings where **every character is a wide letter**, 8–9 chars is the safe limit at 110px; for strings with narrow characters, the 10–11 rule from BR 143 still holds.
+
+### Build — Android v1.0.20 AAB built on EAS (versionCode 9) awaiting Play Store submission
+
+Triggered `eas build --platform android --profile production` from `frontend/` to match live iOS v1.0.20 build 42 ahead of Google Play promotion tomorrow (final day of the 14-day tester window, 2026-04-21).
+
+- **Build ID:** `386f0d23-a8a7-49a5-a387-d1c579e10233`
+- **Artifact:** https://expo.dev/artifacts/eas/7YbEaBTzzccMkr6A7gakSt.aab
+- **EAS dashboard:** https://expo.dev/accounts/stephenlear1/projects/locosnap/builds/386f0d23-a8a7-49a5-a387-d1c579e10233
+- **versionCode:** 8 → 9 (autoIncrement)
+- **Status:** FINISHED cleanly in ~21 min, no errors.
+- **Billing note:** user was at 100% of included monthly EAS credits before this build — pay-as-you-go charge applies.
+- **Android v1.0.20 user-facing content:** same as iOS v1.0.20 — leaderboard username edit UI with EN + DE localisation + all backend vision/specs improvements already live server-side (Dr18, Dv12, Sr1/2/3, BR 140, Urie S15, Sm2/4/5, Mireo vs Desiro HC, and tonight's BR 232 Ludmilla).
+- **Next step (tomorrow AM, after 14-day window closes):** upload AAB to Play Console production track, either via `eas submit --platform android --profile production --latest` or manual Play Console upload. Staged rollout recommended (20% initial) for first 48h.
+- **AAB NOT auto-submitted tonight** — holding for user verification before hitting the production track.
+
 ### Backend fix — BR 232 / DR BR 132 "Ludmilla" factual override (Siemens → Voroshilovgrad, 273 → 709, 80t → 116t)
 
 Discovered via on-device screen recording while preparing a BR 232 "Ludmilla" organic ad for TikTok / Instagram. App was returning three structured-specs errors:
