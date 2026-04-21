@@ -7,6 +7,37 @@ Format: newest first within each date block.
 
 ## 2026-04-21
 
+### Content — Play Store launch video built (EN + DE versions)
+
+Built 30-second Play Store launch video in EN and DE versions, targeting the Android production-access approval window. Eight-beat structure, 720×1280 portrait, 24fps, no audio (music to be added in CapCut at post time). Saved to `~/Desktop/launch/launch_video_en.mp4` and `~/Desktop/launch/launch_video_de.mp4`; master draft without captions at `~/Desktop/launch/launch_video_draft.mp4`.
+
+| Beat | Duration | Source | EN caption | DE caption |
+|------|----------|--------|------------|------------|
+| 1 | 0–3s | AI-generated platform scene (person with grey jacket watching train arrive) | SEEN A TRAIN... | ZUG GESEHEN? |
+| 2 | 3–6s | AI-generated phone-lift clip | ...AND WONDERED WHAT? | WAS WAR DAS? |
+| 3 | 6–9s | Real app screen recording (BR 232 scan viewfinder) | POINT. SCAN. | EINFACH SCANNEN |
+| 4 | 9–12s | Real app screen recording (BR 232 identification card + RARE badge reveal) | GET THE ANSWER | ANTWORT IN SEKUNDEN |
+| 5 | 12–17s | Six-blueprint style-variety montage (IMG_3231 / 3232 / 3233 / 3235 / 3242 / 3518, 0.8s each) | WITH AI BLUEPRINTS | MIT KI-BLAUPAUSEN |
+| 6 | 17–23s | Hero variety: Class 91 York / BR 101 Lichtgruß / BR 103 TEE / BR 218 / ICE 1 Eschede (1.2s each) | ANY TRAIN. ANYWHERE. | JEDER ZUG. ÜBERALL. |
+| 7 | 23–26s | Eurostar e300 at Silly 300kph (watermark covered with drawbox) | LOCOSNAP (green) | LOCOSNAP (green) |
+| 8 | 26–29s | Built from scratch: dark-theme end card with icon + LOCOSNAP + NOW LIVE + Play Store & App Store + Download Now CTA, progressive reveal animation | (end card has own text) | (end card has own text) |
+
+**Workflow notes:**
+- AI-generated beats 1 & 2 required upscale + left-aligned crop for beat 1 (centre-crop ate the person); beat 2 was already 360×640 portrait.
+- BR 101 source had "IC 2012" watermark — swapped to cleaner "Br 101 Lichtgruß" clip from backup folder.
+- Eurostar clip had "Beautiful sound" TikTok watermark at top — covered with a 180px-tall black bar at y=100, preserving full train composition.
+- ffmpeg concat filter required fps/pix_fmt normalisation (`fps=24,format=yuv420p,setsar=1`) because source clips mixed 24fps/60fps and yuv420p/yuvj420p.
+- Captions positioned upper-third (y=180) with semi-transparent black box (boxcolor=black@0.55, boxborderw=20) for readability against variable backgrounds.
+- German umlauts verified: ÜBERALL renders correctly in DE build.
+
+**Why:** Play Store production access application expected tomorrow (2026-04-22) once the 14-day closed test completes. Launch video is the primary organic marketing asset for the Android release, posted to TikTok and Instagram simultaneously in both EN and DE versions to reach UK and Germany markets. User will add music in CapCut before posting (specific track TBD).
+
+### Backend — BR 648 factual overrides (rarity, specs, facts)
+
+`backend/src/services/rarity.ts`, `backend/src/services/trainSpecs.ts`, `backend/src/services/trainFacts.ts` — added BR 648 / Alstom Coradia LINT 41 factual-override blocks to all three AI services. Rarity tier forced to "common" (300+ units across BR 648.0/.1/.2/.4/.7 in active daily service across DB Regio, HLB, NAH.SH, erixx, vlexx, Vias, Nordwestbahn). Specs pin builder to "Alstom Transport (formerly LHB Salzgitter)" (never Bombardier/Siemens/Stadler), numberBuilt 300, 630 kW, 120 km/h, 68 t, 41.8 m, Diesel. Facts prompt explicitly forbids "extremely limited production", "only 192 units built" (192 is the VR Dv12 Finnish diesel — cross-contamination guard), "specialized service", "withdrawn", "rare", or "legendary" framing.
+
+**Why:** Vision fix shipped earlier today (commit 0b347df) correctly identifies BR 648, but downstream layers hallucinated "legendary" rarity, "192 units built", "Bombardier" builder, and "extremely limited production" narrative — same pattern as BR 140 / BR 232 / Sr1-Sr2-Sr3 where vision succeeds and specs/facts/rarity drift. Confirmed via 20:09 user screen recording showing correctly-IDed BR 648 tagged legendary with wrong build numbers. All 93 backend tests pass. Not yet deployed — needs a push to go live on Render.
+
 ### Backend — BR 648 / LINT 41 vs Siemens Mireo disambiguation fix
 
 `backend/src/services/vision.ts` — replaced the narrow BR 563 vs LINT 41 rule with a comprehensive BR 648 / Alstom Coradia LINT 41 vs Siemens Mireo family rule. Covers all Mireo variants (BR 463, 463.3, 463.4, 563, 3427) and all LINT variants (BR 648, 622, 623). Adds Nordwestbahn, erixx, vlexx, Vias operator hints. Introduces definitive roof check: pantograph = Mireo, exhaust stacks / radiator grilles = LINT. Also fixed typo at line 218: "LINT 48" → "LINT 41" (LINT 48 is not a real variant; BR 648 = LINT 41).
