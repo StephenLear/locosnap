@@ -5,6 +5,16 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-21
+
+### Backend — BR 648 / LINT 41 vs Siemens Mireo disambiguation fix
+
+`backend/src/services/vision.ts` — replaced the narrow BR 563 vs LINT 41 rule with a comprehensive BR 648 / Alstom Coradia LINT 41 vs Siemens Mireo family rule. Covers all Mireo variants (BR 463, 463.3, 463.4, 563, 3427) and all LINT variants (BR 648, 622, 623). Adds Nordwestbahn, erixx, vlexx, Vias operator hints. Introduces definitive roof check: pantograph = Mireo, exhaust stacks / radiator grilles = LINT. Also fixed typo at line 218: "LINT 48" → "LINT 41" (LINT 48 is not a real variant; BR 648 = LINT 41).
+
+**Why:** A German TikTok commenter reported photographing a BR 648 Nordwestbahn LINT 41 and receiving "Mireo" as the identification. The existing rule only covered one Mireo BR number (BR 563) and was too weak to prevent the model defaulting to "Mireo" for any modern-looking regional unit. Reply already sent to the commenter via TikTok DM stating fix would be live server-side within hours. 93/93 backend tests pass.
+
+---
+
 ## 2026-04-20
 
 ### Content — BR 232 "Ludmilla" DE organic ad built and ready for 2026-04-21 AM post
