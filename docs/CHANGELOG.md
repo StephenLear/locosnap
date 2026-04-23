@@ -5,6 +5,20 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-23
+
+### Frontend — app.json permissions cleanup for Play production review
+
+`frontend/app.json` — removed `android.permission.READ_EXTERNAL_STORAGE` and `android.permission.READ_MEDIA_IMAGES` from the manual `permissions` array. Added `blockedPermissions` array containing `READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` to prevent expo-image-picker and expo-media-library from silently re-adding them during the Gradle build. Only `CAMERA` remains in the manual permissions list.
+
+**Why:** Google Play quick-check rejected the v1.0.20 versionCode 9 AAB with "Invalid use of the photo and video permissions" — Play policy since 2024 forbids `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` for apps that only need one-time or infrequent access to media. LocoSnap's photo-picker use case falls under "infrequent access" (user occasionally taps "Choose from library" to identify a train), so the policy block is correct. Image picking still works on Android 13+ via the Photo Picker API (which does not require READ_MEDIA_IMAGES); photo saving via expo-media-library still works on Android 10+ via scoped MediaStore (no permission needed). Camera flow is untouched.
+
+**Rebuild:** new AAB built on EAS as `98672352-bba7-4a8d-9335-aac6e51e0281` — v1.0.20, versionCode auto-incremented 9 → 10, https://expo.dev/artifacts/eas/jPwjw1yHA3m2Q98Y6aMchv.aab. Build duration 20m 17s (21:57–22:18 BST). Used pay-as-you-go EAS credits (April allowance exhausted).
+
+**Submit + Play review:** AAB re-submitted via `eas submit --platform android --profile production` with releaseStatus=draft (submission id 792443c9-6fd9-422e-8911-d916e0a0c4c5). Play Console quick-checks then passed without the permissions block. Release notes re-entered in EN and DE (did not persist across draft replacement). Four items sent for review together: v1.0.20 versionCode 10 production release at 100% rollout, German de-DE store listing (app name "LocoSnap – Züge erkennen" + short + full description), 176 countries + rest of world, and release notes. Managed publishing is OFF — auto-publishes on Google approval. Status: in review as of 22:41 BST.
+
+---
+
 ## 2026-04-21
 
 ### Content — Play Store launch video built (EN + DE versions)

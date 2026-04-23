@@ -40,7 +40,8 @@
         "ascAppId": "6759280267"
       },
       "android": {
-        "track": "internal",
+        "track": "production",
+        "releaseStatus": "draft",
         "serviceAccountKeyPath": "/Users/StephenLear/locosnap-play-store-key.json"
       }
     }
