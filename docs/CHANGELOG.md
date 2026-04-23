@@ -7,6 +7,12 @@ Format: newest first within each date block.
 
 ## 2026-04-23
 
+### Backend — DB BR 151 disambiguation vs ČD Class 151
+
+`backend/src/services/vision.ts`, `backend/src/services/trainSpecs.ts` — added dedicated DB BR 151 (West German Co'Co' heavy freight electric, 170 units built 1972–1978 by Krupp / Krauss-Maffei / Henschel) disambiguation rule in vision.ts prompt after the Taigatrommel block, and added corresponding hardcoded spec override block in trainSpecs.ts prompt + `WIKIDATA_CORRECTIONS` map (keys `br 151`, `db br 151`, `baureihe 151`). Corrected specs: 120 km/h, 6,000 kW, 118 tonnes, 19.49 m, Krupp/Krauss-Maffei/Henschel builder, 15 kV 16.7 Hz AC, German mainlines.
+
+**Why:** During BR 151 ad prep (ad scheduled for 2026-04-24 AM slot), user scanned a Lokomotion 151 060-1 photo and the app returned ČD (České dráhy / Czech Railways) as operator, Škoda Transportation as builder, 20 units, 160 km/h, 87 tonnes, 3 kV DC / 25 kV 50 Hz AC, Czech mainlines — every spec was the ČD Class 151 (a completely different 6-unit Škoda-rebuilt 1996 Czech passenger loco) instead of the DB BR 151 actually in the photo. Class-number collision bug, same pattern as BR 232 / BR 648 / Class 52 fixes. Commit `fdc431d` pushed to Render for auto-deploy. All 93 backend tests pass. Blocks the BR 151 ad until deploy completes; user can re-scan in the morning for a clean screen recording.
+
 ### Frontend — app.json permissions cleanup for Play production review
 
 `frontend/app.json` — removed `android.permission.READ_EXTERNAL_STORAGE` and `android.permission.READ_MEDIA_IMAGES` from the manual `permissions` array. Added `blockedPermissions` array containing `READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` to prevent expo-image-picker and expo-media-library from silently re-adding them during the Gradle build. Only `CAMERA` remains in the manual permissions list.
