@@ -437,6 +437,13 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // by Junakalusto Oy — operator MUST be "HSL" or "HSL / VR", NOT "VR" alone.
   "sm5": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
   "vr sm5": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
+  // Sm5 platform-name aliases — vision sometimes returns "Stadler FLIRT" as class
+  // when it should be "VR Sm5". Without these keys the HSL operator correction
+  // never fires (class key mismatch). Discovered 2026-04-20 Oula retest.
+  "stadler flirt finland": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
+  "stadler flirt sm5": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
+  "vr flirt": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
+  "flirt finland": { maxSpeed: "160 km/h", power: "4,200 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 81, fuelType: "Electric (25 kV 50 Hz AC)" },
   // Siemens Desiro HC — double-deck regional EMU for NRW RRX and others.
   // 4-car push-pull: 2 single-deck driving cars + 2 double-deck trailers.
   // Siemens Mobility Krefeld, 2018+, 160 km/h, 25 kV 50 Hz AC. Discovered

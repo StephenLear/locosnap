@@ -5,6 +5,28 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-24
+
+### Backend — Sm2/Sm4/Sm5 Finnish commuter EMU deeper fix (Oula 2026-04-20 retest)
+
+`backend/src/services/vision.ts`, `backend/src/services/trainSpecs.ts` — extended the existing Sm2/Sm4/Sm5 disambiguation block in vision.ts with two additional rules: (a) Sm3 Pendolino guard — the Sm3 is a 220 km/h tilting intercity EMU, NOT a commuter set, and must never be returned for short 2-car commuter units (only Sm2/Sm4/Sm5 are valid commuter classes); (b) VR Sm5 class-name enforcement — when the sharp-angular Stadler FLIRT Finland variant is identified, the class field MUST be "VR Sm5" (or "Sm5") and never bare "Stadler FLIRT", because downstream spec and operator lookups key on "Sm5" / "vr sm5". Added four platform-name alias keys to `WIKIDATA_CORRECTIONS` (`stadler flirt finland`, `stadler flirt sm5`, `vr flirt`, `flirt finland`) so the HSL-operator / Stadler-builder / 81-unit correction still fires even if the class string leaks through as "Stadler FLIRT".
+
+**Why:** Oula's 2026-04-20 retest confirmed Sr1/Sr3 working but isolated three residual Sm-family bugs: (1) Sm2 and Sm4 being returned as "Sm3 or Sm5" — the prior 2026-04-19 rule did not explicitly forbid Sm3 for commuter EMUs; (2) true Sm5 scans returning class as "Stadler FLIRT" which fails the `sm5`/`vr sm5` correction keys and drops the HSL operator override; (3) cross-check — when Sm2/Sm4 were misidentified as Sm5, HSL operator was correct (correction fired); when true Sm5 returned "Stadler FLIRT", operator was wrong (no key match). Fix ships both vision-layer enforcement and specs-layer alias keys as belt-and-braces. All 93 backend tests pass.
+
+### Backend — BR 151 facts-layer BR 155 renumbering hallucination fix
+
+`backend/src/services/trainFacts.ts` — added dedicated DB BR 151 factual-override block to the `FACTS_PROMPT` system prompt: explicitly forbids any claim that BR 151 units were "renumbered to BR 155" / "became the BR 155" / "reclassified as 155" (persistent hallucination), frames BR 155 as a separate contemporary class (ex-DR 250, Hennigsdorf-built, East German origin), bans invented nicknames, and pins withdrawal context to BR 193 Vectron takeover with private-operator pickup (Lokomotion, Railpool, RailAdventure).
+
+**Why:** Residual facts-layer bug surfaced during BR 151 backend session 2026-04-23 — the structured specs layer was fixed, but the details screen's narrative card still claimed "renumbered to BR 155 after reunification" (factually wrong — BR 151 is a separate West German class from the East German BR 155 / ex-DR 250). Bug invisible in any ad cut (details-screen-only), so deliberately deferred from the ad-day session and shipped now.
+
+### Backend — BR 101 retirement-date correction (2028 not 2025)
+
+`backend/src/services/trainFacts.ts` — added dedicated DB BR 101 factual-override block to the `FACTS_PROMPT` system prompt: forbids framing the class as "already retired" / "being withdrawn in 2025" / "final runs this year", and pins the correct framing — gradual phase-out as BR 147 TRAXX AC3 takes over IC2 and push-pull IC services, with a significant portion of units expected to remain in service until approximately 2028.
+
+**Why:** TikTok commenter on the BR 101 video corrected the app's withdrawal framing — "Ein paar 101er bleiben noch bis 2028" (a few BR 101s will stay until 2028). Stating an earlier retirement date gets the class wrong and will be flagged by German enthusiasts. Pre-empts a repeat correction on any future BR 101 ad and keeps the facts layer defensible under fact-check.
+
+---
+
 ## 2026-04-23
 
 ### Backend — DB BR 151 disambiguation vs ČD Class 151
