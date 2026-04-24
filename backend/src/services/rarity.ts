@@ -8,11 +8,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import axios from "axios";
 import { config } from "../config/env";
 import { TrainIdentification, TrainSpecs, RarityInfo, RarityTier } from "../types";
-
-const GERMAN_INSTRUCTION = "Respond in German (Deutsch). Use formal register.\n\n";
+import { getLanguageInstruction } from "../config/languageInstructions";
 
 const RARITY_PROMPT = (train: TrainIdentification, specs: TrainSpecs, language: string = "en") =>
-  `${language === "de" ? GERMAN_INSTRUCTION : ""}You are a trainspotting rarity expert. Classify the rarity of spotting a ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
+  `${getLanguageInstruction(language)}You are a trainspotting rarity expert. Classify the rarity of spotting a ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
 
 Known specs:
 - Number built: ${specs.numberBuilt ?? "unknown"}

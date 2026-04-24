@@ -9,11 +9,10 @@ import axios from "axios";
 import { config } from "../config/env";
 import { TrainIdentification, TrainFacts } from "../types";
 import { getWikidataSpecs } from "./wikidataSpecs";
-
-const GERMAN_INSTRUCTION = "Respond in German (Deutsch). Use formal register.\n\n";
+import { getLanguageInstruction } from "../config/languageInstructions";
 
 const FACTS_PROMPT = (train: TrainIdentification, verifiedYear?: string, language: string = "en") =>
-  `${language === "de" ? GERMAN_INSTRUCTION : ""}You are a railway historian and trainspotting enthusiast. Provide fascinating facts and history for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
+  `${getLanguageInstruction(language)}You are a railway historian and trainspotting enthusiast. Provide fascinating facts and history for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
 ${verifiedYear ? `\nVERIFIED FACT — use this exactly, do not contradict it: This class entered service in ${verifiedYear}.\n` : ""}
 Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 {

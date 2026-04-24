@@ -13,11 +13,10 @@ import axios from "axios";
 import { config } from "../config/env";
 import { TrainIdentification, TrainSpecs } from "../types";
 import { getWikidataSpecs } from "./wikidataSpecs";
-
-const GERMAN_INSTRUCTION = "Respond in German (Deutsch). Use formal register.\n\n";
+import { getLanguageInstruction } from "../config/languageInstructions";
 
 const SPECS_PROMPT = (train: TrainIdentification, language: string = "en") =>
-  `${language === "de" ? GERMAN_INSTRUCTION : ""}You are a railway engineering reference database with deep knowledge of UK, European, Scandinavian, Japanese, and North American rolling stock. Provide technical specifications for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
+  `${getLanguageInstruction(language)}You are a railway engineering reference database with deep knowledge of UK, European, Scandinavian, Japanese, and North American rolling stock. Provide technical specifications for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
 
 Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 {

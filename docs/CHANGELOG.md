@@ -7,6 +7,12 @@ Format: newest first within each date block.
 
 ## 2026-04-24
 
+### Backend — i18n refactor (`LANGUAGE_INSTRUCTIONS[lang]` lookup) for future-language headroom
+
+`backend/src/config/languageInstructions.ts` (new), `backend/src/services/trainFacts.ts`, `backend/src/services/trainSpecs.ts`, `backend/src/services/rarity.ts` — replaced the per-file `GERMAN_INSTRUCTION` constant + `language === "de" ? GERMAN_INSTRUCTION : ""` ternary pattern with a centralised `LANGUAGE_INSTRUCTIONS: Record<string, string>` lookup exposed via `getLanguageInstruction(lang)`. Stub instruction strings added for PL / FR / NL / FI / CS (formal register, appropriate per-language vouvoiement/Pan-Pani/vykání phrasing). `VALID_LANGUAGES` in `routes/identify.ts` intentionally left narrow at `["en", "de"]` — stubs are dormant until the matching frontend locale JSONs ship; flipping a new language on end-to-end is now a one-line change in `VALID_LANGUAGES` plus a matching `locales/<lang>.json` on the frontend, no service-file edits required.
+
+**Why:** Phase 0.1 of the card v2 implementation plan (`docs/plans/2026-04-24-card-v2-implementation.md`). With Android launch imminent and Poland / Finland / France / Netherlands / Czech Republic on the expansion roadmap, the existing ternary pattern would have forced three service-file edits per new language. This refactor makes language addition a configuration change, not a code change. Zero user-visible impact; 93/93 backend tests pass; same prompt strings emitted at runtime.
+
 ### Backend — Sm2/Sm4/Sm5 Finnish commuter EMU deeper fix (Oula 2026-04-20 retest)
 
 `backend/src/services/vision.ts`, `backend/src/services/trainSpecs.ts` — extended the existing Sm2/Sm4/Sm5 disambiguation block in vision.ts with two additional rules: (a) Sm3 Pendolino guard — the Sm3 is a 220 km/h tilting intercity EMU, NOT a commuter set, and must never be returned for short 2-car commuter units (only Sm2/Sm4/Sm5 are valid commuter classes); (b) VR Sm5 class-name enforcement — when the sharp-angular Stadler FLIRT Finland variant is identified, the class field MUST be "VR Sm5" (or "Sm5") and never bare "Stadler FLIRT", because downstream spec and operator lookups key on "Sm5" / "vr sm5". Added four platform-name alias keys to `WIKIDATA_CORRECTIONS` (`stadler flirt finland`, `stadler flirt sm5`, `vr flirt`, `flirt finland`) so the HSL-operator / Stadler-builder / 81-unit correction still fires even if the class string leaks through as "Stadler FLIRT".
