@@ -7,6 +7,12 @@ Format: newest first within each date block.
 
 ## 2026-04-24
 
+### Backend — British Rail Class 69 (Progress Rail rebuild) added across vision / specs / rarity
+
+`backend/src/services/vision.ts`, `backend/src/services/trainSpecs.ts`, `backend/src/services/rarity.ts` — added a full Class 69 disambiguation block + spec override + rarity override. Vision rule mandates the modern boxy Class-56-derived bodyshell, GBRf-only operator, fleet numbers 69001–69016, and explicit non-confusion guards against Class 37 (rounded English Electric "tractor" nose), Class 56 (1976–1984 original), Class 60 (Brush flat-front), and Class 66 (sloped EMD nose). Spec override + four `WIKIDATA_CORRECTIONS` keys (`class 69`, `br class 69`, `british rail class 69`, `progress rail class 69`): 75 mph / 3,200 hp (2,386 kW) / 127 t / 21.34 m / Progress Rail Services UK (Longport, Stoke-on-Trent) / 16 units / EMD 710G3B-T2 diesel-electric. Rarity override returns "rare" — 16-unit modern fleet on one operator with multiple distinctive special liveries (BTP yellow/chequered, war-themed, named-loco commemorative).
+
+**Why:** UK Android tester Steph scanned 69016 in the British Transport Police themed yellow-and-black chequered livery and the app returned **"Class 37 / Colas Rail / Diesel / 90 mph / 1,750 hp / 135 left / Uncommon"** — every field wrong. Root cause: no Class 69 rule existed anywhere in the backend (the class is a 2020s creation, post-dates most training data) so the model pattern-matched on "boxy modern UK freight diesel in yellow operator livery" and landed on the closest Colas-yellow heritage diesel it knew. Same failure family as BR 151 / BR 232 / BR 648 — class collision, but in reverse: a *new* class falling through to a similar-looking *older* class because no rule anchored it. Fix follows the now-standard belt-and-braces template (vision disambiguation + trainSpecs prompt block + WIKIDATA_CORRECTIONS keys + rarity override). 113/113 backend tests pass.
+
 ### Shared — Card v2 Phase 0.2 / 0.3 / 0.4a-c groundwork (no user-visible changes)
 
 Staged schema migration + shared provenance + Verified-tier classifier logic, mirrored across backend and frontend. Laid in now as pure-function groundwork so the scan-path edits (Phase 0.4d+) land in a single clean pass. Zero runtime impact today — nothing writes to the new columns yet, nothing reads the new types yet, nothing calls the new function yet.
