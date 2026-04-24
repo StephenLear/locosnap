@@ -90,6 +90,50 @@ export interface HistoryItem {
   spottedAt: string; // ISO date string
   latitude: number | null;
   longitude: number | null;
+  // ── Card v2 provenance (Phase 0.3) ─────────────────────────
+  // Added 2026-04-24. All optional for backwards compatibility
+  // with history items from earlier builds.
+  captureSource?: CaptureSource;
+  exifTimestamp?: string | null;
+  verified?: boolean;
+  verificationTier?: VerificationTier;
+  photoAccuracyM?: number | null;
+  riskFlags?: Record<string, boolean>;
+}
+
+// ── Card v2 provenance types (Phase 0.3) ─────────────────────
+// Mirrors backend/src/types/index.ts — keep in sync.
+// computeVerification() in both frontend/services/verification.ts
+// and backend/src/services/verification.ts consume/emit these.
+
+export type CaptureSource = "camera" | "gallery";
+
+export type VerificationTier =
+  | "verified-live"
+  | "verified-recent-gallery"
+  | "unverified";
+
+export interface ProvenanceInput {
+  captureSource: CaptureSource;
+  exifTimestamp: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  photoAccuracyM: number | null;
+  mockLocationFlag: boolean;
+  capturedAt: string;
+}
+
+export interface VerificationResult {
+  verified: boolean;
+  tier: VerificationTier;
+  riskFlags: {
+    mockLocation?: boolean;
+    strippedExif?: boolean;
+    staleExif?: boolean;
+    lowAccuracy?: boolean;
+    noGps?: boolean;
+    screenshot?: boolean;
+  };
 }
 
 // ── Achievement definitions ──────────────────────────────────

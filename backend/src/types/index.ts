@@ -46,6 +46,43 @@ export interface RarityInfo {
   survivingCount: number | null;
 }
 
+// ── Card v2 provenance (Phase 0.3) ───────────────────────────
+// Mirrors frontend/types/index.ts — keep in sync. The mirror
+// copy lives there and both files share the same shape for
+// HistoryItem extensions. computeVerification() in both
+// backend/services/verification.ts and frontend/services/
+// verification.ts consume/emit these types.
+
+export type CaptureSource = "camera" | "gallery";
+
+export type VerificationTier =
+  | "verified-live"            // live camera + GPS + accuracy < threshold
+  | "verified-recent-gallery"  // gallery <=7d EXIF + GPS + accuracy < threshold
+  | "unverified";              // everything else
+
+export interface ProvenanceInput {
+  captureSource: CaptureSource;
+  exifTimestamp: string | null;   // ISO datetime — from EXIF DateTimeOriginal
+  latitude: number | null;
+  longitude: number | null;
+  photoAccuracyM: number | null;  // GPS horizontal accuracy in metres
+  mockLocationFlag: boolean;      // Android-only; false on iOS
+  capturedAt: string;             // ISO datetime — "now" at scan time
+}
+
+export interface VerificationResult {
+  verified: boolean;
+  tier: VerificationTier;
+  riskFlags: {
+    mockLocation?: boolean;
+    strippedExif?: boolean;
+    staleExif?: boolean;
+    lowAccuracy?: boolean;
+    noGps?: boolean;
+    screenshot?: boolean;  // heuristic — EXIF Software contains "Screenshot"
+  };
+}
+
 export interface BlueprintTask {
   taskId: string;
   status: "queued" | "processing" | "completed" | "failed";

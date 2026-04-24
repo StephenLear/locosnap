@@ -7,6 +7,23 @@ Format: newest first within each date block.
 
 ## 2026-04-24
 
+### Shared — Card v2 Phase 0.2 / 0.3 / 0.4a-c groundwork (no user-visible changes)
+
+Staged schema migration + shared provenance + Verified-tier classifier logic, mirrored across backend and frontend. Laid in now as pure-function groundwork so the scan-path edits (Phase 0.4d+) land in a single clean pass. Zero runtime impact today — nothing writes to the new columns yet, nothing reads the new types yet, nothing calls the new function yet.
+
+- `supabase/migrations/009_card_v2_provenance.sql` (new) — adds `capture_source`, `exif_timestamp`, `verified`, `photo_accuracy_m`, `risk_flags` to `public.spots` with sensible defaults (all existing spots default to Unverified, per product decision #3 no retroactive promotion). Adds `idx_spots_user_verified` for profile/leaderboard filtering, plus a partial `idx_spots_train_verified_created` supporting the future Phase 2 sighting-serial endpoint. **STAGED ONLY — explicitly not to be run against production today.** Will run the session before Phase 1 (v1.0.21) ships, so there's zero schema-drift window between schema-migrated and client-writing.
+- `backend/src/types/index.ts` — new `CaptureSource`, `VerificationTier`, `ProvenanceInput`, `VerificationResult` types.
+- `frontend/types/index.ts` — same types mirrored; `HistoryItem` extended with optional `captureSource`, `exifTimestamp`, `verified`, `verificationTier`, `photoAccuracyM`, `riskFlags` fields (optional for backwards compatibility with older history items).
+- `backend/src/config/verification.ts` (new) — ratified thresholds: `galleryRecencyDays: 7`, `liveCameraMaxAccuracyM: 50`, `galleryMaxAccuracyM: 100`. Single source of truth for the classifier.
+- `frontend/constants/verification.ts` (new) — frontend mirror of the thresholds with a sync comment.
+- `backend/src/services/verification.ts` (new) — canonical `computeVerification(ProvenanceInput) → VerificationResult`. Pure function, no I/O. Called by `/api/identify` on every scan to re-validate whatever tier the client sent (client never trusted).
+- `frontend/services/verification.ts` (new) — frontend mirror of the same function. Used at scan time for optimistic UI (render Verified badge before server round-trip). Server result is authoritative — if it returns a different tier, the local record is updated.
+- `backend/src/__tests__/services/verification.test.ts` (new) — 20 tests covering every edge case from `docs/design/cards-v2-research-brief.md` §2.3: verified-live thresholds, verified-recent-gallery thresholds, iOS share-sheet stripped GPS, DSLR AirDrop no-GPS, indoor museum preserved-loco case, malformed EXIF, clock-skew future EXIF, mock-location flag, risk-flag accumulation. 113/113 backend tests pass (93 existing + 20 new).
+
+**Sync-drift guard:** backend `services/verification.ts` and frontend `services/verification.ts` are direct mirrors. Both files carry a `⚠ KEEP IN SYNC` header comment. The backend test fixture is the shared reference — any logic change must update both implementations and extend the fixture set.
+
+**Why:** Phase 0 of the card v2 plan (`docs/plans/2026-04-24-card-v2-implementation.md`). This lays the pure-logic + type + schema groundwork. The scan-path changes (Phase 0.4d onward) will now be a focused edit of `app/(tabs)/index.tsx` + `services/api.ts` + `routes/identify.ts` with the hard part (classifier logic) already tested in isolation.
+
 ### Backend — i18n refactor (`LANGUAGE_INSTRUCTIONS[lang]` lookup) for future-language headroom
 
 `backend/src/config/languageInstructions.ts` (new), `backend/src/services/trainFacts.ts`, `backend/src/services/trainSpecs.ts`, `backend/src/services/rarity.ts` — replaced the per-file `GERMAN_INSTRUCTION` constant + `language === "de" ? GERMAN_INSTRUCTION : ""` ternary pattern with a centralised `LANGUAGE_INSTRUCTIONS: Record<string, string>` lookup exposed via `getLanguageInstruction(lang)`. Stub instruction strings added for PL / FR / NL / FI / CS (formal register, appropriate per-language vouvoiement/Pan-Pani/vykání phrasing). `VALID_LANGUAGES` in `routes/identify.ts` intentionally left narrow at `["en", "de"]` — stubs are dormant until the matching frontend locale JSONs ship; flipping a new language on end-to-end is now a one-line change in `VALID_LANGUAGES` plus a matching `locales/<lang>.json` on the frontend, no service-file edits required.
