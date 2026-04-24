@@ -246,6 +246,26 @@ On "Unable to create '.git/index.lock': File exists" error:
 ### After triggering an EAS build — confirm monitoring method
 After any `eas build` command, confirm how the build will be monitored and how the APK/IPA link will be retrieved and distributed. Never ask the user to supply the link — handle it directly.
 
+### Walkthrough mode — don't assume the user knows where/how to run a CLI command
+When walking the user through CLI steps (eas, gh, git, npm, python, etc.), the first step is ALWAYS:
+
+1. Open Terminal (Cmd+Space → "Terminal" → Return)
+2. `cd /Users/StephenLear/Projects/locosnap/frontend` (or the right subdirectory)
+3. `pwd` to confirm the prompt is where expected
+
+Never paste a raw command as "step 1" unless the user has explicitly said they're already at a shell prompt.
+
+**Why:** discovered 2026-04-23 during the Play production submit walkthrough. I jumped straight to `eas submit ...` and the user had to stop and ask where to run it. A one-round-trip correction that wastes focus at a high-stakes moment.
+
+### Before proposing a push or deploy based on a memory claim
+When a memory file or prior-session note says "needs push to Render", "not yet deployed", "commit pending", or similar git-state claim:
+
+1. Run `git log origin/main..HEAD --oneline` first
+2. If the output is empty, the memory is stale — correct the memory file silently and do not propose a push
+3. Only propose a push when there are genuinely unpushed commits
+
+**Why:** discovered 2026-04-23 when project_status memory claimed the BR 648 backend commits were unpushed. A quick git check showed they'd been pushed days earlier. Never trust memory about git state cold — it decays fastest of all memory types.
+
 ### Before every session ends — update changelog and architecture docs
 Before closing any session, both `docs/CHANGELOG.md` and `docs/ARCHITECTURE.md` must be current. This is non-negotiable and applies to every session without exception — even sessions with no code changes (build submissions, stat logging, content work, and decisions still affect build status, scan limits, and distribution state in the architecture doc).
 
