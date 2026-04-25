@@ -171,7 +171,7 @@ async function getAISpecs(train: TrainIdentification, language: string = "en"): 
     console.log("[SPECS] Using Claude (Anthropic)");
     const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 1024,
       temperature: 0,
       messages: [{ role: "user", content: prompt }],

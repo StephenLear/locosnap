@@ -94,7 +94,7 @@ export async function classifyRarity(
       console.log("[RARITY] Using Claude (Anthropic)");
       const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-haiku-4-5-20251001",
         max_tokens: 512,
         messages: [{ role: "user", content: prompt }],
       });

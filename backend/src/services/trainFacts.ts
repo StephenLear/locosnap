@@ -78,7 +78,7 @@ export async function getTrainFacts(
       console.log("[FACTS] Using Claude (Anthropic)");
       const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-haiku-4-5-20251001",
         max_tokens: 2048,
         messages: [{ role: "user", content: prompt }],
       });
