@@ -484,6 +484,16 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "br class 69": { maxSpeed: "75 mph (120 km/h)", power: "3,200 hp (2,386 kW)", weight: "127 tonnes", builder: "Progress Rail Services UK (Longport, Stoke-on-Trent)", numberBuilt: 16, fuelType: "Diesel-electric (EMD 710G3B-T2)" },
   "british rail class 69": { maxSpeed: "75 mph (120 km/h)", power: "3,200 hp (2,386 kW)", weight: "127 tonnes", builder: "Progress Rail Services UK (Longport, Stoke-on-Trent)", numberBuilt: 16, fuelType: "Diesel-electric (EMD 710G3B-T2)" },
   "progress rail class 69": { maxSpeed: "75 mph (120 km/h)", power: "3,200 hp (2,386 kW)", weight: "127 tonnes", builder: "Progress Rail Services UK (Longport, Stoke-on-Trent)", numberBuilt: 16, fuelType: "Diesel-electric (EMD 710G3B-T2)" },
+  // British Rail Class 11 — 1945–1952 BR/LMS Derby 0-6-0 diesel-electric
+  // shunter, ~120 units built, fleet 12000–12102. English Electric 6KT engine
+  // 350 hp. Direct ancestor of Class 08. Many preserved. Discovered 2026-04-25
+  // when UK tester Steph scanned a Class 11 at a heritage railway and the app
+  // returned "M62 / Unknown / Diesel / 100 km/h / 1,470 kW" — Soviet mainline
+  // freight diesel instead of small UK 0-6-0 shunter.
+  "class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
+  "br class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
+  "british rail class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
+  "lms class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
