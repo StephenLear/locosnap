@@ -182,20 +182,27 @@ CRITICAL DEFAULT RULE: When the visible cues match a modern GBRf 6-axle diesel (
 FINNISH VR COMMUTER EMU PRE-FLIGHT CHECK (Sm2 / Sm4 / Sm5):
 If you are looking at a Finnish commuter / regional EMU at a Helsinki-region station, on the HSL network, or in HSL white/green livery — apply this check BEFORE any other identification. The model has historically over-defaulted to "Sm5 FLIRT" for every Finnish commuter EMU including units that are clearly Sm2 (boxy 1970s) or Sm4 (rounded single-curve nose). Work through the cues below in strict order; the first matching cue wins.
 
-STEP 1 — FLEET NUMBER (DEFINITIVE when readable):
-- Any "Sm2 6xxx" fleet number (e.g. Sm2 6045) → return class "VR Sm2", operator "HSL / VR", builder "Valmet / Strömberg", type "EMU". Do not proceed.
-- Any "Sm4 63xx" fleet number in the range 6301–6330 (e.g. Sm4 6315) → return class "VR Sm4", operator "HSL / VR", builder "CAF (Beasain, Spain) / Transtech Oy", type "EMU". Do not proceed.
-- Any "Sm5 64xx" fleet number (e.g. Sm5 6438) → return class "VR Sm5", operator "HSL", builder "Stadler Rail (Bussnang)", type "EMU". Do not proceed.
-If a fleet number is visible in any of these ranges, it is DEFINITIVE — use it, do not second-guess with cab profile or livery.
+STEP 1 — FLEET NUMBER (DEFINITIVE when readable) — CRITICAL: AN Sm2 SET HAS TWO DIFFERENT FLEET NUMBERS, ONE PER CARRIAGE:
+An Sm2 set is two carriages — only ONE has the engine, but BOTH have a cab. The powered car is numbered in the **6021–6070** range (e.g. 6045, 6088); the unpowered control trailer is numbered in the **6221–6270** range, which equals "powered-car number + 200" (so the trailer of set 6045 is 6245; the trailer of set 6088 is 6288). BOTH carriages are Sm2 — do not let the trailer-car number push you to Sm4 just because 62xx is numerically close to Sm4's 63xx range.
+
+Use these EXACT bands, not approximate ones:
+- Fleet number in **6021–6070** OR **6221–6270** (any "60xx" or "62xx" four-digit number with a "6" prefix) → return class "VR Sm2", operator "HSL / VR", builder "Valmet / Strömberg", type "EMU". Do not proceed.
+- Fleet number in **6301–6330** ONLY (Sm4 has a strict 30-unit fleet starting at 6301; numbers below 6301 are NOT Sm4) → return class "VR Sm4", operator "HSL / VR", builder "CAF (Beasain, Spain) / Transtech Oy", type "EMU". Do not proceed.
+- Fleet number in **6401 upwards** (any "64xx" four-digit number) → return class "VR Sm5", operator "HSL", builder "Stadler Rail (Bussnang)", type "EMU". Do not proceed.
+If a fleet number is visible in any of these bands, it is DEFINITIVE — use it, do not second-guess with cab profile or livery. CRITICAL NEGATIVE RULE: A fleet number in the 62xx range (6201–6299) is the Sm2 TRAILER CAR — it is NEVER Sm4. The Sm4 range starts strictly at 6301.
 
 STEP 2 — CAB PROFILE (primary cue when no fleet number is readable):
-- BOXY 1970s cab with a FLAT VERTICAL WINDSCREEN (two rectangular panes side-by-side), shallow destination box, stepped bodyside with small square passenger windows, clear "Eastern European industrial" aesthetic → VR Sm2. Always return "VR Sm2", NEVER "Sm5", NEVER "Stadler FLIRT".
-- ROUNDED SINGLE-CURVE cab nose, distinctive large ONE-PIECE WRAPAROUND windscreen (a single curved glass panel, not flat panes), smooth streamlined bodyside with larger passenger windows, continuous underbody skirt → VR Sm4. Always return "VR Sm4", NEVER "Sm5", NEVER "Stadler FLIRT".
+- BOXY 1970s cab with a FLAT VERTICAL WINDSCREEN consisting of TWO RECTANGULAR PANES SIDE-BY-SIDE (not a single curved panel), shallow destination box above the cab, stepped bodyside with small square passenger windows, clear "Eastern European industrial" 1970s aesthetic → VR Sm2. Always return "VR Sm2", NEVER "Sm4", NEVER "Sm5", NEVER "Stadler FLIRT". CRITICAL: the Sm2 trailer car has the SAME boxy 1970s cab as the powered car — both cabs are Sm2-shaped. Do NOT let a slightly different angle, refurbished interior, or HSL white/green livery on the trailer push you to Sm4 — the cab silhouette is the same on both ends and is unmistakably Sm2.
+- ROUNDED SINGLE-CURVE cab nose with a distinctive LARGE ONE-PIECE WRAPAROUND WINDSCREEN (a single curved glass panel, not two flat panes side-by-side), smooth streamlined bodyside with larger passenger windows, continuous underbody skirt, late-1990s/early-2000s aesthetic → VR Sm4. Always return "VR Sm4", NEVER "Sm5", NEVER "Stadler FLIRT". The Sm4 windscreen is the single most reliable cue: ONE curved glass panel = Sm4; TWO flat panes side-by-side = Sm2.
 - SHARP ANGULAR FLIRT nose with an aggressive forward-raked windscreen, narrow pointed cab, large rectangular LED headlight cluster, Jacobs bogies (shared bogies between cars), HSL white body with green lower panel and a distinctive DIAGONAL GREEN FLASH across the cab → VR Sm5. Operator MUST be "HSL", NEVER "VR" alone.
 
+STATISTICAL DEFAULT: When a Finnish commuter EMU has been refurbished into HSL white/green livery and the cab profile is genuinely ambiguous between Sm2 and Sm4, the more likely answer is Sm2 — Sm2 is the more numerous fleet (50 units / 100 carriages including trailers vs Sm4's 30 units / 60 carriages) and is widely operated on the same HSL routes as Sm4. Do NOT default to Sm4 against a flat-windscreen Sm2 cab profile just because Sm4 is the "newer" option.
+
 STEP 3 — ABSOLUTE FORBID LIST:
-- A Finnish commuter EMU with a BOXY 1970s flat windscreen is NEVER Sm5 — Sm5 has the unmistakable sharp angular FLIRT nose. Return Sm2.
+- A Finnish commuter EMU with a BOXY 1970s flat windscreen (two rectangular panes side-by-side) is NEVER Sm5 — Sm5 has the unmistakable sharp angular FLIRT nose. Return Sm2.
+- A Finnish commuter EMU with a BOXY 1970s flat windscreen (two rectangular panes side-by-side) is NEVER Sm4 — Sm4 has a ROUNDED single-curve nose with a one-piece wraparound windscreen, completely different cab shape. Return Sm2.
 - A Finnish commuter EMU with a ROUNDED single-curve nose is NEVER Sm5 — Sm5 has a sharp angular nose, not a rounded curve. Return Sm4.
+- A fleet number in the 6201–6299 range is the Sm2 TRAILER (powered-car-number + 200) — it is NEVER Sm4. Sm4 numbers start at 6301.
 - A short 2-car Finnish commuter unit is NEVER Sm3 — Sm3 is a long 6-car aerodynamic Pendolino intercity train with white/red/blue stripes, not a commuter unit. The only valid Finnish commuter-EMU classes are Sm2, Sm4, and Sm5.
 - The class field for the FLIRT-nosed commuter EMU MUST be "VR Sm5" (or "Sm5") — NEVER "Stadler FLIRT" or "Stadler FLIRT Finland" alone, because "Stadler FLIRT" is a platform name and downstream spec/operator lookups key on "Sm5".
 
