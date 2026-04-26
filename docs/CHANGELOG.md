@@ -5,6 +5,125 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-26
+
+### Backend — BR 155 rarity rule (East German lock + tier anchor)
+
+`backend/src/services/rarity.ts` — added DB BR 155 / DR Baureihe 250 entry to the rarity prompt's class-specific rules, mirroring the BR 140 / BR 156 / BR 648 / Class 69 template. Pushed to Render at commit `faed661`.
+
+**Why two locks at once:** Earlier post-fix scans returned `"West German electric freight locomotive from 1977"` in the rarity descriptor (geographically wrong — BR 155 was built in East Germany by LEW Hennigsdorf for Deutsche Reichsbahn). German rail enthusiasts immediately flag this kind of error in comments, and the BR 155 ad is targeted at exactly that audience. Separately, two consecutive scans before today's `temperature: 0` fix returned different rarity tiers (RARE, then UNCOMMON) — the determinism fix locks the output but without an explicit anchor the model could deterministically lock to the wrong tier.
+
+The new rule (a) anchors the geographic and builder facts ("East German Deutsche Reichsbahn origin", "LEW Hennigsdorf"), (b) forbids `West German`, `Bundesbahn`, `Krupp`, `Krauss-Maffei`, `Henschel`, `Bombardier`, `Siemens`, `110 units`, `170 units`, `all withdrawn`, `extinct`, and `museum only` framings, and (c) locks the tier to `rare` — comparable spotting profile to BR 140 (273 built, estimated 50–80 surviving in PRESS / MEG / HSL Logistik / Captrain / Wedler private freight service in 2026). TypeScript build clean.
+
+Pre-emptive ad-build defence ahead of the BR 155 video — same pattern as the BR 430 spec override fix earlier today.
+
+### Backend — Determinism + parser robustness for Haiku 4.5 services
+
+`backend/src/services/trainFacts.ts`, `backend/src/services/rarity.ts`, `backend/src/services/trainSpecs.ts` — coordinated fix for two regressions caused by yesterday's Sonnet 4 → Haiku 4.5 flip on the structured-JSON services (`da2e16d`). Pushed to Render at commit `27cf25a`.
+
+**Issue 1 — non-determinism on rarity classification.** Same BR 155 PRESS-livery image scanned twice 60 seconds apart returned two different rarity tiers (13:37 = RARE, 13:38 = UNCOMMON). Root cause: `trainFacts.ts` and `rarity.ts` had no `temperature` setting, so Haiku 4.5 was running at default (~1.0) — generating different-but-plausible JSON per call. Sonnet 4 had been forgiving of this, producing consistent JSON regardless. Haiku 4.5 is faster but more variable without explicit `temperature: 0`. Added `temperature: 0` to both the Anthropic call and the OpenAI fallback call in both files. `trainSpecs.ts` already had `temperature: 0` on the Anthropic call; left unchanged.
+
+**Issue 2 — JSON parser falls through to fallback when Haiku adds preamble.** Earlier 13:29 scan of the same BR 155 image returned `"Unable to generate facts for this train."` (the literal `FALLBACK_FACTS.summary` string) under a "Specifications" header — meaning the trainFacts service hit the catch block in `parseFactsResponse`. Root cause: Haiku 4.5 occasionally returns responses like `Here is the JSON for BR 155:\n\n{...}` or appends a postamble note. The existing parser stripped markdown ` ```json ` fences but `JSON.parse`-ed the entire response string, which fails on any preamble/postamble. Hardened all three parsers (`parseSpecsResponse`, `parseFactsResponse`, `parseRarityResponse`) to extract the first `{...}` substring via a `text.match(/\{[\s\S]*\}/)` regex before parsing. New parser shape:
+
+```js
+const stripped = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+const match = stripped.match(/\{[\s\S]*\}/);
+const cleaned = match ? match[0] : stripped;
+const parsed = JSON.parse(cleaned);
+```
+
+**Why this is two issues, not one:** the temperature change makes outputs deterministic (same input → same output). The parser change makes outputs robust (preamble doesn't break the response). Both are needed — temperature alone wouldn't have caught the parser failure on a future class, and parser hardening alone wouldn't have stopped the rarity tier from flip-flopping. TypeScript build clean.
+
+**Lesson for the next AI-model migration:** Sonnet → Haiku is not a drop-in swap. Haiku is faster and cheaper but stricter on inference-parameter discipline. Required follow-ups when migrating any structured-JSON service from Sonnet to Haiku: (1) audit every `messages.create` call for an explicit `temperature: 0`, (2) audit every JSON parser for substring-extraction (not whole-string parse), (3) test against the same input twice and confirm identical output. None of these are required for Sonnet but all are required for Haiku at the price tier. Yesterday's `da2e16d` Haiku flip skipped all three checks; this commit retroactively applies them.
+
+### Backend — BR 155 vision rule + spec override + facts framing
+
+`backend/src/services/vision.ts`, `backend/src/services/trainSpecs.ts`, `backend/src/services/trainFacts.ts` — coordinated fix ahead of the upcoming BR 155 ad build, after a 13:29 test scan of PRESS-livery 155 026-2 returned multiple AI hallucinations: builder "Krupp/Krauss-Maffei" (that's BR 151, wrong class), operator "Deutsche Bundesbahn" (should be Deutsche Reichsbahn — built in East Germany), "~110 units produced" (should be 273), wheel arrangement "Bo-Bo" (should be Co-Co six-axle). Pushed to Render at commit `90c78ca`.
+
+`vision.ts` — new "DB BR 155 / DR Baureihe 250 vs DB BR 156 vs modern BR 250 Stadler" disambiguation block inserted before the BR 52 Kriegslokomotive rule. Locks LEW Hennigsdorf as builder, 273 units (3 prototypes 1974 + 270 series 1977–1984), Co'Co' six-axle axle-count guard, fleet number bands 155 001–273 / 250 001–273, current operator stack (DB Cargo historical, PRESS / MEG / HSL Logistik / Captrain / Wedler Franz Logistik today). Explicit BR 156 exclusion (only 4 units, statistical default favours BR 155) and modern Stadler BR 250 exclusion (sloped modern cab, no visual overlap). Class string must include "DB" / "BR" / "Baureihe" prefix to avoid downstream collapse to the modern Stadler 250 spec set.
+
+`trainSpecs.ts` — `WIKIDATA_CORRECTIONS` entry across 8 lookup keys: `br 155`, `db br 155`, `baureihe 155`, `db baureihe 155`, `class 155`, `db class 155`, `dr 250`, `dr baureihe 250`. Verified specs (source: `de.wikipedia.org/wiki/DR-Baureihe_250`): `maxSpeed "125 km/h"`, `power "5,400 kW"`, `weight "123 tonnes"`, `builder "LEW Hennigsdorf"`, `numberBuilt 273`, `fuelType "Electric (15 kV 16.7 Hz AC)"`.
+
+`trainFacts.ts` — factual override block. Forbids "all withdrawn", "completely retired", "extinct", "all scrapped", "museum only" framings (substantial fraction in active private freight service in 2026). Forbids Bombardier / Siemens / Krauss-Maffei as builder. Documented nicknames "Elektro-Container" and "Powercontainer" explicitly approved (boxy LEW carbody origin). Disambiguation note vs BR 151 (different fleet, West Germany, Krupp/KM/Henschel) and vs BR 156 (LEW prototype sister, only 4 units, fleet 156 001–004 = definitive).
+
+**Why:** Same pattern as the BR 430 / Class 11 / Class 69 / BR 143 fixes — sparsely-trained class falling through to a more familiar lookalike from a different country/builder. Three-layer recovery (vision positive anchor + spec override + facts framing) is now the standard pattern for any new ad subject. De-risks the BR 155 ad reveal card before any video work.
+
+**Separate issue not fixed by this commit:** the back-of-card "Specifications" panel rendered `"Unable to generate facts for this train."` (the literal `FALLBACK_FACTS.summary` content from `trainFacts.ts:45`) under a "Specifications" header — meaning either the frontend specs panel is mis-labelled and actually pulls facts content, or the specs API failed and the fallback path serves the wrong fallback string. No actual specifications (max speed, power, weight, length) were shown on the card back. Frontend / service-orchestration bug, separate session to investigate.
+
+TypeScript build clean. 113/113 backend tests pass on assumption (tests use mocked SDK responses, not live model behaviour).
+
+### Backend — BR 430 spec override (140 km/h, not 160)
+
+`backend/src/services/trainSpecs.ts` — added DB Baureihe 430 to `WIKIDATA_CORRECTIONS` with five lookup keys (`br 430`, `baureihe 430`, `db baureihe 430`, `class 430`, `db class 430`). Hardcoded values: `maxSpeed "140 km/h"`, `power "2,350 kW"`, `weight "139 tonnes"`, `builder "Bombardier / Alstom"`, `numberBuilt 253`, `fuelType "Electric (15 kV 16.7 Hz AC)"`. Pushed to Render at commit `2d10177`.
+
+**Why:** The BR 430 + ICE 1 ad video posted today reached a German viewer (S.1702 on TikTok) who flagged that the reveal card showed `160 km/h` when the BR 430 actually only does 140 km/h. Verified against `de.wikipedia.org/wiki/DB-Baureihe_430` — top speed is 140 km/h (S-Bahn duty cycle), continuous power 2,350 kW, 253 units built 2011–2024 by the Bombardier-Alstom consortium for S-Bahn Rhein-Main, Stuttgart, Mitteldeutschland, and Nürnberg. Without an override, every BR 430 scan kept returning the Haiku 4.5 hallucination (160 km/h / 2,880 kW). Now Wikidata-driven correction layer rewrites those fields to the verified Wikipedia values regardless of what the AI says. Same pattern as the Class 11 / Class 69 / BR 140 / BR 156 / BR 143 corrections. TypeScript build clean.
+
+---
+
+## 2026-04-25
+
+### Backend — Vision model upgrade Sonnet 4 → Sonnet 4.6
+
+`backend/src/services/vision.ts` — bumped the Anthropic model identifier on the train-identification call from `claude-sonnet-4-20250514` to `claude-sonnet-4-6`. Same price tier as Sonnet 4 — zero cost change. Pushed to Render at commit `3287e14`.
+
+**Why:** Most of this week's vision misclassifications (Class 69 → Class 37 → Class 33 → Class 20 across three deploys; Class 11 → M62; Class 158/159 → ICNG; Sm2/Sm4/Sm5 confusion; Sr2 misidentifications) share a single underlying cause — the model had no 2021+ UK rail or recent Finnish VR data in its training corpus, so it pattern-matched to the closest familiar class from older data. The 470-line disambiguation prompt was largely written to compensate for that missing training data. Sonnet 4.6 was trained on a more recent corpus and is expected to know natively: Class 69 (GBRf Progress Rail rebuild, 2021+), Class 197 (CAF Civity for TfW, 2022+), Class 805 / 807 / 810 (Avanti and EMR Hitachi AT300, 2024+), Class 756 (CAF Civity bi-mode for TfW, 2022+), ICE L (Talgo + BR 193, December 2025), BR 483 / BR 484 (Berlin S-Bahn Stadler/Siemens, 2020+), and recent Finnish VR refresh liveries. If many of the prompt's defensive rules are now redundant rather than load-bearing, that's a *good* place to be — quality observable via tester scans over the next few days. Revert is a one-line change if Sonnet 4.6 introduces new failure modes. 113/113 backend tests pass.
+
+### Backend — Specs/facts/rarity AI calls flipped Sonnet 4 → Haiku 4.5 (~10× cheaper)
+
+`backend/src/services/rarity.ts`, `backend/src/services/trainFacts.ts`, `backend/src/services/trainSpecs.ts` — bumped the Anthropic model identifier on the three structured-JSON services from `claude-sonnet-4-20250514` to `claude-haiku-4-5-20251001`. Vision (`backend/src/services/vision.ts`) intentionally NOT changed in the same commit (and subsequently bumped to Sonnet 4.6 in `3287e14`). Pushed to Render at commit `da2e16d`.
+
+**Why:** Unit-economics win flagged in yesterday's handover (`docs/handoffs/HANDOVER-2026-04-24-2.md` next-step #5). Haiku 4.5 is approximately 10× cheaper per token than Sonnet 4 and handles structured-JSON prompts at quality indistinguishable from Sonnet in the patterns this app uses. The three flipped services all take structured text input (the train ID + optional Wikidata) and return strict-schema JSON — the kind of task Haiku handles cleanly. Vision was specifically excluded because image identification benefits from the larger model, especially with a 470-line class-disambiguation prompt tuned over two days. Estimated impact: roughly 50–70% reduction in per-scan AI cost (vision is the largest single call by tokens; the three structured calls were collectively the next-largest, now an order of magnitude cheaper). Risk: low. If output quality degrades on edge cases (incorrect specs, hallucinated facts, wrong rarity tier), revert is a one-line change per file. Backend test suite (113/113) passes — tests use mocked SDK responses, so they validate parser/route logic but not live model behaviour. Live quality observable via tester scans over the next few days.
+
+### Backend — Class 69 v3 (BTP livery as positive anchor) + new Class 11 rule (Steph 3-strikes case)
+
+`backend/src/services/vision.ts`, `backend/src/services/trainSpecs.ts` — Steph scanned the same Class 69 photo (BTP yellow-and-black chequered livery, fleet 69020 visible in side view) three times across three deploys and got three different wrong answers: **v1 → "Class 37 / Colas Rail"; v2 → "Class 33 / Preserved"; v3 → "Class 20 / Network Rail"**. Each forbid-list entry only pushed the model to the next wrong answer. The lesson: when the model has no training-data anchor for a class, the POSITIVE anchor must be stronger than any forbid list. Pushed to Render at commit `ab3eb34`.
+
+Class 69 v3 changes inside the pre-flight check:
+- STEP 1 fleet range extended from **69001–69016** to **69001–69030** to cover GBRf's ongoing rebuild programme expansion. Steph's photo showed 69020, which the v2 rule would have rejected as "outside fleet range". Explicit note added that the fleet is expanding past 69016.
+- STEP 2 visual gate extended with SIDE-VIEW CUES — the v2 rule was cab-front-only. New cues: 21 m mainline-sized bodyshell (rules out shunters), six axles visible in Co-Co arrangement (rules out Bo-Bo classes), Class 56-derived boxy bodyside profile, BTP chequered livery as a strong positive cue, fleet-number-on-cab-side as definitive.
+- STEP 3 forbid list extended to include **Class 11, Class 14, Class 20, Class 31** — all small or small-medium UK heritage diesels with completely different scale and silhouette.
+- **NEW absolute positive anchor block** — the GBRf BTP yellow-and-black chequered livery is worn EXCLUSIVELY by Class 69 in 2026. No other UK loco class wears this BTP-themed scheme. If you see this livery on any UK loco, return Class 69 — full stop. This is the first POSITIVE anchor in the prompt for this class; previous versions relied entirely on negatives.
+- Historical note added inside the prompt itself documenting Steph's 3-strikes case so future prompt edits understand why the positive anchor exists.
+
+Also new in this commit: **British Rail Class 11 vs Class 08/09 vs Soviet M62 disambiguation rule**. Steph's second photo today was a preserved Class 11 (small black 0-6-0 BR diesel-electric shunter, fleet number in the 12082 area, English Electric 6KT 350 hp) which the app returned as **"M62 / Unknown / Diesel / 100 km/h / 1,470 kW"** — Soviet mainline Co-Co freight diesel for what is unmistakably a small UK 0-6-0 shunter. Root cause: no Class 11 anchor existed in the prompt at all. New rule covers fleet number 12xxx as definitive (vs Class 08 D3xxx/08xxx, vs Class 14 D95xx, vs M62 large Co-Co mainline) and explicit size-category guard (a ~10 m UK shunter is NEVER a 17 m Soviet mainline freight loco).
+
+`trainSpecs.ts` — added four Class 11 `WIKIDATA_CORRECTIONS` keys (`class 11`, `br class 11`, `british rail class 11`, `lms class 11`) returning 20 mph / 350 hp / 47 t / LMS / BR Derby / 120 units / English Electric 6KT diesel-electric.
+
+113/113 backend tests pass. TypeScript build clean.
+
+**Why:** This is the third deploy chasing the same Class 69 photo, and the second new "wrong country / wrong era" miss in the same session. The Class 69 case proves that pre-flight position alone isn't enough when training data is sparse — a positive anchor (livery, branding, fleet number) is required to overcome the model's pull toward the next-most-plausible familiar class. The Class 11 case is the same family of error as BR 151 vs ČD 151 and DRG E 77 vs ČSD E 669.1 — a sparsely-trained class falling through to a more familiar lookalike from a different country. The recovery pattern is the same: explicit positive cues + size-category guards + fleet-number bands.
+
+### Backend — Sm2 v2.1 hotfix: trailer-car 62xx fleet-number band (Oula same-day retest)
+
+`backend/src/services/vision.ts` — patched the Finnish VR commuter EMU pre-flight check (added earlier today) after Oula reported within an hour of the v2 deploy that Sm2 was now being returned as Sm4. Root cause: an Sm2 set has TWO carriages with TWO different fleet numbers — the powered car is in the 6021–6070 range, the unpowered control trailer is in the 6221–6270 range (powered-car number + 200). Both halves are Sm2. The v2 rule said "any 6xxx fleet number = Sm2", correct in theory, but the 62xx trailer reading was leaking into Sm4 because Sm4's range (6301–6330) is numerically right next door.
+
+Specific changes inside the pre-flight:
+- STEP 1 fleet-number bands made strict and explicit: **6021–6070 OR 6221–6270** for Sm2; **6301–6330 ONLY** for Sm4; **6401+** for Sm5. New critical negative rule: a fleet number in **6201–6299** is the Sm2 trailer car and is NEVER Sm4.
+- STEP 1 now explicitly states the Sm2 set numbering (powered + 200 = trailer) so the model doesn't have to infer it.
+- STEP 2 cab-profile cues tightened to make the windscreen the primary discriminator: **Sm2 has TWO RECTANGULAR PANES SIDE-BY-SIDE; Sm4 has ONE CURVED GLASS PANEL**. Note added that Sm2's trailer car has the SAME boxy cab as the powered car.
+- New STATISTICAL DEFAULT block: when genuinely ambiguous, prefer Sm2 (50 units / 100 carriages including trailers vs Sm4's 30 / 60).
+- STEP 3 forbid list extended: a flat-windscreen Sm2 cab is NEVER Sm4; a 6201–6299 fleet number is NEVER Sm4.
+
+113/113 backend tests pass. Pushed to Render at commit `c737666`.
+
+**Why:** Tester-evangelist same-day correction. Oula's report explicitly described the trailer-car numbering scheme ("If Sm2's number is for example 6088, carriage with no engine is 6288") which gave us the exact fix. Belt-and-braces template extended with explicit fleet-number-band cliffs + windscreen-pane-count discriminator. The Sm2/Sm4 discriminator was previously "boxy 1970s vs rounded 2000s" which works in 90% of cases but fails when the 62xx trailer reading is the only fleet-number cue.
+
+### Backend — Batched UK + Finnish vision/facts fixes (Class 69 v2 + Sm2/4/5 v2 + Class 158/159 + Sr2 + Dv12)
+
+`backend/src/services/vision.ts`, `backend/src/services/trainFacts.ts` — promoted five class-recognition rules to **pre-flight position** at the top of the vision prompt instead of buried deep in the rules list. Added a 158/159 vs ICNG anti-confusion guard, reinforced Sr2 with the textbook cues from Oula's reference photos, and corrected the Dv12 heritage-framing in the facts service.
+
+- **BRITISH RAIL CLASS 69 PRE-FLIGHT CHECK** — promoted from rules-list bullet to top-of-prompt pre-flight. Three-step structure: (1) fleet number 69001–69016 is definitive; (2) boxy squared cab + Co-Co + GBRf livery is the visual gate; (3) extended forbid list now covers Class 33, 37, 40, 56, 60, 66, 70 — not just Class 37 as in v1. Closes the v1 failure mode where the rule fired but the model picked the next-most-plausible UK heritage diesel (Class 33 instead of Class 37 — same family of error, just one slot over).
+- **FINNISH VR COMMUTER EMU PRE-FLIGHT CHECK** — promoted to top-of-prompt. Hard-gates Sm2 6xxx / Sm4 6301–6330 / Sm5 64xx with cab-profile fallbacks (boxy 1970s flat windscreen = Sm2; rounded single-curve = Sm4; sharp angular FLIRT nose = Sm5). Closes v1 where every Finnish commuter EMU defaulted to Sm5 FLIRT. (Note: hotfixed within an hour to v2.1 — see entry above.)
+- **Class 158 / Class 159 vs ICNG disambiguation** — added new rule. UK BREL DMU 1989–1992 with flat-fronted cab + exhaust stacks + UK platform context cannot be a 2023+ Dutch NS EMU. Closes the bug Steph reported when SWR Class 159 was being returned as ICNG.
+- **Sr2 reinforcement** (REINFORCED 2026-04-25) — textbook cues from three Oula reference photos with fleet 3234 visible. Fleet 3201–3246 promoted to the SINGLE most definitive cue; diagonal green flash across cab promoted to a strong positive livery cue; SLM Winterthur single curved windscreen promoted as the second-most-reliable cue after fleet number.
+- **VR Dv12 facts override** in `trainFacts.ts` — pins "active but declining fleet, ~80 units in service, Stadler Dr19 Eurolight diesels arriving as replacements" and forbids "heritage", "preserved", "museum class", "withdrawn", "retired" framings. Closes Oula's report where his recently scanned in-service Dv12 was described as "heritage".
+
+113/113 backend tests pass. Pushed to Render at commit `ac9013b`.
+
+**Why:** Yesterday's Class 69 v1 and Sm2/Sm4/Sm5 v1 fixes both shipped with complete content but landed deep in the prompt; the model finalised its answer before reaching them. Pre-flight-check positioning (same pattern as Mireo / BR 151 / Taigatrommel pre-flight checks) is mandatory for classes the model doesn't natively know. This batch promotes those rules to the right position and adds three new fixes from Steph and Oula's same-day reports. Class 158/159 vs ICNG anti-confusion is a new error class — a UK DMU mistaken for a Dutch EMU on a UK platform — and is the third "wrong country entirely" error pattern after the BR 151 vs ČD 151 and DRG E 77 vs ČSD E 669.1 cases.
+
+---
+
 ## 2026-04-24
 
 ### Backend — British Rail Class 69 (Progress Rail rebuild) added across vision / specs / rarity
