@@ -494,6 +494,17 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "br class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
   "british rail class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
   "lms class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
+  // DB Baureihe 430 — Bombardier-Alstom Coradia Continental S-Bahn variant,
+  // 4-car EMU built 2011–2024, 253 units. Used by S-Bahn Rhein-Main, Stuttgart,
+  // Mitteldeutschland, Nürnberg. Top speed 140 km/h (NOT 160 — common AI
+  // hallucination). Discovered 2026-04-26 when the BR 430 + ICE 1 ad reveal
+  // card returned "160 km/h / 2,880 kW" and a German viewer corrected it
+  // ("die 430 fährt nur 140kmh keine 160"). Source: de.wikipedia.org/wiki/DB-Baureihe_430.
+  "br 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "baureihe 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db baureihe 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "class 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db class 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
