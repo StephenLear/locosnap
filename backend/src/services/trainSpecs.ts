@@ -505,6 +505,23 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "db baureihe 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "class 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "db class 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // DB BR 155 / DR Baureihe 250 — Co'Co' six-axle heavy freight electric,
+  // East German LEW Hennigsdorf design, 273 built (3 prototypes 1974 + 270
+  // series 1977–1984). DR 250 renumbered DB 155 on 1 January 1992 after
+  // reunification. Withdrawn from DB Cargo by 2019, surviving units active
+  // with private freight operators (PRESS, MEG, HSL Logistik, Captrain,
+  // Wedler Franz Logistik) on heavy freight workings. Nicknames:
+  // "Elektro-Container" / "Powercontainer" (boxy LEW carbody). Source:
+  // de.wikipedia.org/wiki/DR-Baureihe_250. Added 2026-04-26 ahead of the
+  // BR 155 ad build to prevent Haiku spec hallucinations on the reveal card.
+  "br 155": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db br 155": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "baureihe 155": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db baureihe 155": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "class 155": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db class 155": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "dr 250": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "dr baureihe 250": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
