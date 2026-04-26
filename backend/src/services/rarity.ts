@@ -64,7 +64,12 @@ const FALLBACK_RARITY: RarityInfo = {
 
 function parseRarityResponse(text: string): RarityInfo {
   try {
-    const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    // Strip markdown fences first, then extract the first JSON object.
+    // Haiku 4.5 occasionally wraps responses in preamble/postamble text —
+    // grab the {...} substring rather than parsing the whole string.
+    const stripped = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const match = stripped.match(/\{[\s\S]*\}/);
+    const cleaned = match ? match[0] : stripped;
     const parsed = JSON.parse(cleaned);
 
     const validTiers: RarityTier[] = ["common", "uncommon", "rare", "epic", "legendary"];
@@ -96,6 +101,7 @@ export async function classifyRarity(
       const response = await anthropic.messages.create({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 512,
+        temperature: 0,
         messages: [{ role: "user", content: prompt }],
       });
       const content = response.content[0];
@@ -110,6 +116,7 @@ export async function classifyRarity(
         {
           model: "gpt-4o",
           max_tokens: 512,
+          temperature: 0,
           messages: [{ role: "user", content: prompt }],
         },
         {

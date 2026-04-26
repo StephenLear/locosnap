@@ -51,7 +51,12 @@ const FALLBACK_FACTS: TrainFacts = {
 
 function parseFactsResponse(text: string): TrainFacts {
   try {
-    const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    // Strip markdown fences first, then extract the first JSON object.
+    // Haiku 4.5 occasionally wraps responses in preamble/postamble text —
+    // grab the {...} substring rather than parsing the whole string.
+    const stripped = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const match = stripped.match(/\{[\s\S]*\}/);
+    const cleaned = match ? match[0] : stripped;
     const parsed = JSON.parse(cleaned);
     return {
       summary: parsed.summary ?? "No summary available.",
@@ -81,6 +86,7 @@ export async function getTrainFacts(
       const response = await anthropic.messages.create({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 2048,
+        temperature: 0,
         messages: [{ role: "user", content: prompt }],
       });
       const content = response.content[0];
@@ -95,6 +101,7 @@ export async function getTrainFacts(
         {
           model: "gpt-4o",
           max_tokens: 2048,
+          temperature: 0,
           messages: [{ role: "user", content: prompt }],
         },
         {

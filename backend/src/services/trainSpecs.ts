@@ -137,7 +137,12 @@ const FALLBACK_SPECS: TrainSpecs = {
 
 function parseSpecsResponse(text: string): TrainSpecs {
   try {
-    const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    // Strip markdown fences first, then extract the first JSON object.
+    // Haiku 4.5 occasionally wraps responses in preamble/postamble text —
+    // grab the {...} substring rather than parsing the whole string.
+    const stripped = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const match = stripped.match(/\{[\s\S]*\}/);
+    const cleaned = match ? match[0] : stripped;
     const parsed = JSON.parse(cleaned);
     return {
       maxSpeed: parsed.maxSpeed ?? null,
