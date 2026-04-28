@@ -41,11 +41,16 @@ import {
 const VALID_LANGUAGES = ["en", "de"] as const;
 type Language = typeof VALID_LANGUAGES[number];
 
-const MAX_FREE_SCANS = 3;
+const MAX_FREE_SCANS = 6;
 
 // ── Server-side scan gate ───────────────────────────────────
 // Verifies the bearer token (if present) and checks the user's
-// LIFETIME scan count against their plan (3 free scans per user,
+// LIFETIME scan count against their plan (6 free scans per user — bumped
+// from 3 to 6 on 2026-04-28 evening after eight independent user signals
+// (Steph, multiple TikTok commenters across DE/EN, research brief patterns)
+// confirmed 3 lifetime was too tight; today's prompt-caching commit
+// (a3bdaa9) cut per-scan input cost ~80%, providing the cost headroom for
+// the bump,
 // no monthly reset — v1.0.19 frontend and backend synchronised
 // 2026-04-14 after Apple approval of iOS v1.0.19 build 41).
 // Fails open — any error (Supabase down, invalid token, missing

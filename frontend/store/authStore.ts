@@ -48,10 +48,15 @@ interface AuthState {
   addBlueprintCredits: (amount: number) => Promise<void>;
 }
 
-// Unauthenticated users get 3 trial scans before sign-up is required
-export const PRE_SIGNUP_FREE_SCANS = 3;
-// Free accounts get 3 lifetime scans (not monthly — no reset)
-export const MAX_FREE_SCANS = 3;
+// Unauthenticated users get 6 trial scans before sign-up is required.
+// Bumped from 3 to 6 on 2026-04-28 — eight independent user signals
+// (Steph "3 is far too low", multiple TikTok commenters across DE+EN,
+// research brief patterns A/C/D) all confirmed 3 was too tight, and the
+// prompt-caching commit a3bdaa9 cut per-scan input cost ~80% giving
+// the cost headroom for a more generous free tier.
+export const PRE_SIGNUP_FREE_SCANS = 6;
+// Free accounts get 6 lifetime scans (not monthly — no reset).
+export const MAX_FREE_SCANS = 6;
 const PRE_SIGNUP_SCANS_KEY = "locosnap_presignup_scans";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -291,7 +296,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!session) return preSignupScansUsed < PRE_SIGNUP_FREE_SCANS;
     // Pro users have unlimited scans
     if (profile?.is_pro) return true;
-    // Free users: 3 lifetime scans (no monthly reset)
+    // Free users: 6 lifetime scans (no monthly reset)
     return (profile?.daily_scans_used ?? 0) < MAX_FREE_SCANS;
   },
 

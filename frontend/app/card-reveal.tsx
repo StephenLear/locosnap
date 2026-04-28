@@ -76,6 +76,7 @@ export default function CardRevealScreen() {
     currentRarity: scanRarity,
     currentPhotoUri: scanPhotoUri,
     currentLocation: scanLocation,
+    currentVerification: scanVerification,
     history,
   } = useTrainStore();
 
@@ -98,6 +99,17 @@ export default function CardRevealScreen() {
       ? { latitude: historyItem.latitude, longitude: historyItem.longitude }
       : null
     : scanLocation;
+
+  // Card v2 P1.3 + P1.4 — verification tier + spottedAt for badge +
+  // provenance block. History items preserve verificationTier / spottedAt
+  // from when the spot was first scanned (per c289441). Fresh scans pull
+  // from currentVerification; spottedAt = now.
+  const displayVerificationTier = isHistoryMode
+    ? historyItem?.verificationTier ?? null
+    : scanVerification?.tier ?? null;
+  const displaySpottedAt = isHistoryMode
+    ? historyItem?.spottedAt ?? null
+    : null; // Fresh scan — render relative "Just now" instead of a date
 
   const cardRef = useRef<View>(null);
   const cardBackRef = useRef<View>(null);
@@ -485,6 +497,39 @@ export default function CardRevealScreen() {
                     </Text>
                   </View>
                 )}
+
+                {/* Card v2 P1.3 — Verified / Personal badge.
+                    Only renders when displayVerificationTier is non-null
+                    (older clients pre-v1.0.21 get no badge). Positioned
+                    bottom-left of the photo area to balance the rarity
+                    badge top-right. */}
+                {displayVerificationTier && (
+                  <View
+                    style={[
+                      styles.verifiedBadge,
+                      displayVerificationTier === "unverified"
+                        ? styles.verifiedBadgePersonal
+                        : styles.verifiedBadgeVerified,
+                    ]}
+                  >
+                    <Ionicons
+                      name={
+                        displayVerificationTier === "unverified"
+                          ? "image-outline"
+                          : "checkmark-circle"
+                      }
+                      size={12}
+                      color="#fff"
+                    />
+                    <Text style={styles.verifiedBadgeText}>
+                      {displayVerificationTier === "verified-live"
+                        ? "VERIFIED"
+                        : displayVerificationTier === "verified-recent-gallery"
+                        ? "VERIFIED"
+                        : "PERSONAL"}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               {/* Card info area */}
@@ -500,6 +545,27 @@ export default function CardRevealScreen() {
                 <Text style={styles.cardMeta} numberOfLines={1}>
                   {currentTrain.operator} · {currentTrain.type}
                 </Text>
+
+                {/* Card v2 P1.4 — Provenance row.
+                    Renders {locationName ?? "Unknown location"} · {date}
+                    when displaySpottedAt is set (history mode), or "Just now"
+                    on a fresh scan. Reverse-geocoded place name from
+                    locationName state (set in the existing useEffect at the
+                    top of the component); falls back to coords or empty
+                    string. Skipped entirely when neither is available. */}
+                {(displaySpottedAt || locationName || currentLocation) && (
+                  <Text style={styles.cardProvenance} numberOfLines={1}>
+                    {locationName ?? (currentLocation
+                      ? `${currentLocation.latitude.toFixed(2)}, ${currentLocation.longitude.toFixed(2)}`
+                      : null)}
+                    {(locationName || currentLocation) && (displaySpottedAt || !isHistoryMode) ? " · " : ""}
+                    {displaySpottedAt
+                      ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(displaySpottedAt))
+                      : !isHistoryMode
+                      ? "Just now"
+                      : ""}
+                  </Text>
+                )}
 
                 {/* Mini stats row */}
                 <View style={styles.cardStatsRow}>
@@ -845,6 +911,30 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold,
     color: "#fff",
   },
+  // Card v2 P1.3 — Verified / Personal badge styles
+  verifiedBadge: {
+    position: "absolute",
+    bottom: spacing.md,
+    left: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+  },
+  verifiedBadgeVerified: {
+    backgroundColor: colors.success,
+  },
+  verifiedBadgePersonal: {
+    backgroundColor: "rgba(0,0,0,0.55)",
+  },
+  verifiedBadgeText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: "#fff",
+    letterSpacing: 1,
+  },
 
   // Front — Info area
   cardInfoArea: {
@@ -865,6 +955,12 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     color: colors.textSecondary,
     marginTop: 4,
+  },
+  cardProvenance: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textMuted,
+    marginTop: 4,
+    fontStyle: "italic",
   },
   cardStatsRow: {
     flexDirection: "row",
