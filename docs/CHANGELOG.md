@@ -7,6 +7,17 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### Frontend — saveSpot persists Card v2 provenance fields (`c289441`)
+
+Closes the persistence gap left by `b34a40c`. Migration 009 ran against production Supabase 2026-04-28 evening (verified via `information_schema.columns` query — five columns added with correct defaults: `capture_source` text default `'gallery'`, `exif_timestamp` timestamptz nullable, `verified` boolean default false, `photo_accuracy_m` integer nullable, `risk_flags` jsonb default `'{}'`). This commit makes `saveSpot` actually write to those columns so every new authenticated scan persists its verification tier and risk flags.
+
+- `services/supabase.ts` — `saveSpot` params extended with `captureSource`, `exifTimestamp`, `verified`, `photoAccuracyM`, `riskFlags` (all optional). Insert payload built conditionally — only includes the new fields when explicitly supplied; omitting them lets Supabase apply migration-009 defaults, which preserves backwards compatibility for older code paths.
+- `store/trainStore.ts` — `saveToHistory` pulls `currentVerification` through to the HistoryItem and to the `saveSpot` call. The HistoryItem now carries `captureSource` / `exifTimestamp` / `verified` / `verificationTier` / `photoAccuracyM` / `riskFlags` so the verification info survives across local cold starts via AsyncStorage.
+
+**End-to-end now operational:** scan → `captureSource` + EXIF + GPS accuracy collected → backend `computeVerification()` returns canonical tier → `trainStore.currentVerification` holds it → `saveToHistory` writes verification fields to Supabase → row persists with `verified=true/false` + risk flags.
+
+55/55 frontend tests pass. No backend changes (`b34a40c` already shipped that side). Live on the next EAS build.
+
 ### Backend + Frontend — Card v2 P0.4 + P0.5 wiring (`b34a40c`)
 
 Closes the data-flow gap that blocked every visible Card v2 phase 1 feature. Until this commit the migration columns + `computeVerification()` function existed (shipped over the last few weeks) but no scan actually populated `captureSource` / EXIF / GPS accuracy, so every spot landed with defaults and the verification tier was indeterminable. This commit wires the full path end-to-end.
