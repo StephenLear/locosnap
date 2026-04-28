@@ -613,6 +613,42 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "et22": { maxSpeed: "125 km/h", power: "3,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1184, fuelType: "Electric (3 kV DC)" },
   "et22-2000": { maxSpeed: "125 km/h", power: "3,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1184, fuelType: "Electric (3 kV DC)" },
   "pkp et22": { maxSpeed: "125 km/h", power: "3,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1184, fuelType: "Electric (3 kV DC)" },
+  // DB Class 182 / 6190 series (Siemens ES64U2 Eurosprinter, German
+  // private-operator Taurus). Same physical platform as ÖBB 1116 but
+  // operated by Railadventure / MRCE / ELL / Lokomotion / BoxXpress
+  // / Beacon Rail. UIC fleet numbers in the "91 80 6190 xxx-x" range.
+  // 230 km/h, 6,400 kW, 15 kV 16.7 Hz AC. Added 2026-04-28 evening
+  // after a tester sent a photo of Railadventure 190 311 returning
+  // ÖBB 1116 — same loco family, different country/operator, MUST
+  // return DB Class 182 not ÖBB 1116 when in non-ÖBB livery.
+  "db class 182": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "class 182": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db 182": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "br 182": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "baureihe 182": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "6190": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "siemens es64u2": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 382, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // ÖBB 4020 — Vienna S-Bahn 3-car articulated EMU, Bombardier
+  // (formerly SGP / Jenbacher Werke) 1978–1987, ~120 units total.
+  // Max 120 km/h, 15 kV 16.7 Hz AC. THERE IS NO ÖBB 9020 — that's a
+  // hallucination. Added 2026-04-28 evening after a tester reported
+  // an ÖBB 4020 returning class "9020".
+  "öbb 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "Bombardier (formerly SGP / Jenbacher Werke)", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "obb 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "Bombardier (formerly SGP / Jenbacher Werke)", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "Bombardier (formerly SGP / Jenbacher Werke)", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "öbb baureihe 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "Bombardier (formerly SGP / Jenbacher Werke)", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // ÖBB 4010 KISS (Stadler Cityjet Eco) — double-deck EMU, Stadler
+  // Rail (Bussnang) 2018+, ~27 units, 200 km/h, 25 kV 50 Hz AC +
+  // 15 kV 16.7 Hz AC. NOT to be confused with Railjet (which is a
+  // Taurus-hauled push-pull formation of single-deck Siemens
+  // Viaggio Comfort coaches). Added 2026-04-28 evening after a
+  // tester reported an ÖBB 4010 KISS returning "Railjet".
+  "öbb 4010": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 27, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC)" },
+  "obb 4010": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 27, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC)" },
+  "öbb kiss": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 27, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC)" },
+  "obb kiss": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 27, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC)" },
+  "cityjet eco": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 27, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC)" },
+  "stadler kiss öbb": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 27, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
