@@ -7,6 +7,19 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### Frontend — tap history card opens rich card-reveal (card v2 #10/#11)
+
+Closes the long-standing gap reported by Steph and the BR 103 commenter (frontend_backlog #10/#11): tapping a history card was opening the flat `/results` screen instead of the rich post-scan card layout. Now taps push to `/card-reveal?historyId=<id>`, and `card-reveal.tsx` supports a "history mode" that renders the existing spot through the same animated card UI as a fresh scan.
+
+- New `historyId` route param read via `useLocalSearchParams`
+- Display data (train/specs/facts/rarity/photoUri/location) aliased through `useMemo` so the 50+ existing render-side references didn't need to change — clean diff
+- Entrance slide/scale animation and rare+ glow pulse skipped in history mode (already-revealed cards shouldn't replay the intro on every re-open)
+- Analytics fires `history_card_viewed` instead of `card_revealed` so PostHog funnels can distinguish the two paths
+- The persistent share button at the bottom of card-reveal works unchanged in history mode — closes #11 with zero additional code
+- `viewHistoryItem(item)` call retained in `history.tsx` so the legacy `/results` route stays as a fallback
+
+55/55 frontend tests pass. Committed as `63e3709`. **Not live until the next EAS build** — frontend change.
+
 ### Frontend — graceful handling of camera + iCloud picker failures
 
 Addresses two Sentry issues hitting production builds. Both errors were native-side exceptions in the Expo SDKs propagating up as raw exceptions to Sentry. Now caught at the call sites with friendly Alerts + targeted analytics events, so frequency stays visible without raw-exception noise.
