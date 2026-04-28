@@ -473,8 +473,15 @@ export default function HistoryScreen() {
   ].filter(Boolean).length;
 
   const handlePress = (item: HistoryItem) => {
+    // Tap-to-open from history opens the rich card-reveal screen in history
+    // mode (frontend_backlog #10/#11) — same animated card layout as the
+    // post-scan reveal, with the persistent share button. We still call
+    // viewHistoryItem so the legacy /results route remains a valid fallback.
     viewHistoryItem(item);
-    router.push("/results");
+    router.push({
+      pathname: "/card-reveal",
+      params: { historyId: item.id },
+    });
   };
 
   const handleDelete = (item: HistoryItem) => {

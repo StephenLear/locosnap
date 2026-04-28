@@ -18,7 +18,7 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../store/trainStore";
 import { RarityTier } from "../types";
@@ -63,15 +63,41 @@ const rarityEmoji: Record<RarityTier, string> = {
 
 export default function CardRevealScreen() {
   const router = useRouter();
+
+  // History mode: when navigated with a `historyId` param, the card-reveal
+  // screen renders an existing spot instead of the most-recent fresh scan.
+  // Used by the history tab tap-to-open flow (frontend_backlog #10/#11).
+  const { historyId } = useLocalSearchParams<{ historyId?: string }>();
+
   const {
-    currentTrain,
-    currentSpecs,
-    currentFacts,
-    currentRarity,
-    currentPhotoUri,
-    currentLocation,
+    currentTrain: scanTrain,
+    currentSpecs: scanSpecs,
+    currentFacts: scanFacts,
+    currentRarity: scanRarity,
+    currentPhotoUri: scanPhotoUri,
+    currentLocation: scanLocation,
     history,
   } = useTrainStore();
+
+  const historyItem = useMemo(() => {
+    if (!historyId) return null;
+    return history.find((h) => h.id === historyId) ?? null;
+  }, [historyId, history]);
+
+  const isHistoryMode = !!historyItem;
+
+  // Display source: history item if in history mode, fresh scan otherwise.
+  // Aliased to the original names so the existing render code is unchanged.
+  const currentTrain = historyItem?.train ?? scanTrain;
+  const currentSpecs = historyItem?.specs ?? scanSpecs;
+  const currentFacts = historyItem?.facts ?? scanFacts;
+  const currentRarity = historyItem?.rarity ?? scanRarity;
+  const currentPhotoUri = historyItem?.photoUri ?? scanPhotoUri;
+  const currentLocation = isHistoryMode
+    ? historyItem?.latitude != null && historyItem?.longitude != null
+      ? { latitude: historyItem.latitude, longitude: historyItem.longitude }
+      : null
+    : scanLocation;
 
   const cardRef = useRef<View>(null);
   const cardBackRef = useRef<View>(null);
@@ -108,10 +134,10 @@ export default function CardRevealScreen() {
   const [isSharing, setIsSharing] = useState(false);
   const [saveConfirm, setSaveConfirm] = useState<string | null>(null);
 
-  // Track card reveal on mount
+  // Track card reveal on mount — distinct event for fresh scan vs history view.
   useEffect(() => {
     if (currentTrain && currentRarity) {
-      track("card_revealed", {
+      track(isHistoryMode ? "history_card_viewed" : "card_revealed", {
         train_class: currentTrain.class,
         rarity: currentRarity.tier,
         is_new_class: isNewClass,
@@ -142,8 +168,18 @@ export default function CardRevealScreen() {
     return () => clearTimeout(timeout);
   }, []);
 
-  // Entrance animation
+  // Entrance animation — skipped in history mode (the card has already been
+  // revealed once when it was originally scanned; replaying the slide/scale
+  // intro on every re-open would feel repetitive).
   useEffect(() => {
+    if (isHistoryMode) {
+      slideAnim.setValue(0);
+      scaleAnim.setValue(1);
+      setRevealComplete(true);
+      // Skip the rare+ glow pulse too — keep history view static.
+      return;
+    }
+
     // Stage 1: Slide up + scale in
     Animated.parallel([
       Animated.spring(slideAnim, {
