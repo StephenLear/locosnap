@@ -7,6 +7,16 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### Frontend — graceful handling of camera + iCloud picker failures
+
+Addresses two Sentry issues hitting production builds. Both errors were native-side exceptions in the Expo SDKs propagating up as raw exceptions to Sentry. Now caught at the call sites with friendly Alerts + targeted analytics events, so frequency stays visible without raw-exception noise.
+
+**Issue 1 — Galaxy S25 Ultra / Android 16 camera capture failure** (`Failed to capture image`, expo-camera native `ImageCaptureFailed`): Samsung flagship CameraX layer occasionally fails to deliver a captured bitmap on the latest Samsung One UI 8 / Android 16 firmware, particularly with high-MP sensors at high quality settings. Fix in [(tabs)/index.tsx:359](frontend/app/(tabs)/index.tsx:359): lowered `quality` from 0.8 → 0.6 (S25 Ultra's 200MP main sensor encoder runs into buffer pressure at higher quality), wrapped `takePictureAsync` in try/catch with one 250ms retry, then fell back to user-facing Alert + `scan_failed` analytics event with `camera_capture_failed` code.
+
+**Issue 2 — iOS iCloud Photo Library "Failed to read picked image"** (Sentry-regressed, first seen 6 days ago, refiring on iOS 26.5 / iPhone 13 Pro): expo-image-picker native exception wrapping iOS `PHImageManager` "Die Repräsentation des Typs „public.jpeg" kann nicht geladen werden" — fires when a user picks a photo whose full-res JPEG representation lives in iCloud and hasn't been downloaded yet (Optimise iPhone Storage + no Wi-Fi / full storage). Fix in [(tabs)/index.tsx:347](frontend/app/(tabs)/index.tsx:347): wrapped `ImageManipulator.manipulateAsync` in try/catch with iCloud-aware Alert ("It might still be downloading from iCloud") + `scan_failed` analytics event with `picker_read_failed` code.
+
+55/55 frontend tests pass. Committed as `9b24a7a`. **Not live until the next EAS build** — frontend change, no Render deploy involved. Flag for next build window.
+
 ### Backend — Anthropic prompt caching enabled on the vision call (cost reduction)
 
 Wrapped the 32K-token `TRAIN_ID_PROMPT` in a system block with `cache_control: { type: "ephemeral" }` and moved it out of the per-call `user.content` where it was being re-billed at full input rate on every scan. Image content stays in `user.content` as a per-scan variable. Driver: April month-to-date API cost was $105.34 for the LocoSnap workspace at ~330 scans/day (Apr 28 spike), with vision (Sonnet 4.6) accounting for ~95% of the bill — the 32K prompt re-billed on every scan.
@@ -19,7 +29,7 @@ Wrapped the 32K-token `TRAIN_ID_PROMPT` in a system block with `cache_control: {
 
 Also added a `[VISION] tokens —` usage log line that surfaces `cache_read_input_tokens` and `cache_creation_input_tokens` from the response, so cache hit rate can be verified in Render logs immediately after deploy. The log line is optional-chained to keep the existing vision unit tests green (the mock responses don't supply a usage object).
 
-113/113 backend tests pass. Build clean. **Pushed to Render** as `[hash pending]`.
+113/113 backend tests pass. Build clean. **Pushed to Render** as `a3bdaa9`.
 
 ### Backend — four new vision rules covering tester misidentification reports
 
