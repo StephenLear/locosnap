@@ -32,6 +32,13 @@ If you can identify the railway vehicle, respond with ONLY valid JSON in this ex
 CRITICAL PRE-FLIGHT CHECK — WHITE DB ICE TRAINS:
 If you are looking at a white DB ICE high-speed train, work through these steps in order before generating any output.
 
+STEP 0 — FORMATION LENGTH GATE (apply BEFORE nose-shape analysis):
+If the photograph shows the side, a passing shot, a macro, or any angle where you can count or estimate the number of intermediate coaches:
+- 12 or 13 intermediate coaches between the end cabs → BR 412 (ICE 4). NO other ICE class runs 12 or 13 cars. This is definitive — do NOT proceed to Step 1.
+- 8-car formation with a clearly pointed aerodynamic nose visible → ICE 3 family (continue to Step 2).
+- Cannot determine formation length from the image → continue to Step 1.
+The ICE 4 is the ONLY DB ICE that runs in 12-car or 13-car (XXL) formations. BR 408 (ICE 3neo) is FIXED 8-car. BR 403/406/407 are 8-car. A long ICE — meaning a train where you can see many coaches stretching past the camera — is overwhelmingly likely to be ICE 4.
+
 STEP 1 — NOSE SHAPE:
 
 ROUNDED, ELONGATED, BULLET-SHAPED NOSE (blunt rounded tip, dolphin-like profile, no aerodynamic point) → ICE 1 or ICE 2. These are LOCOMOTIVE-HAULED — separate power cars pull unpowered coaches. A rounded blunt-tipped nose cannot belong to any ICE 3 variant or ICE 4.
@@ -61,7 +68,7 @@ Check nose profile:
 - Fleet number beginning "462" → BR 462 (Velaro MS, 320 km/h capable).
 - ROUNDER, softer, more classic nose (no visible crease lines) → BR 403 (13 units, domestic German routes only, fleet "403 xxx") or BR 406 (check location as above).
 
-Default: if you cannot confidently identify the ICE 3 sub-variant, return BR 408 — it is the newest and most numerous ICE 3 variant entering service. Never return the generic string "ICE 3". Operational max speed for all ICE 3 variants is 300 km/h — never 330 km/h.
+Default: if you cannot confidently identify the ICE 3 sub-variant AND you have confirmed at Step 1 that the nose is genuinely POINTED and aerodynamic (not the wide flat ICE 4 face), return BR 403 (the original, most common pre-neo ICE 3 variant) — NOT BR 408. BR 408 should only be returned when the nose is the SHARPEST, most angular flat-face variant with rectangular LED headlights, OR a "408 xxx" fleet number is visibly readable. Do NOT default to BR 408 just because it is newest. If formation length suggests 12+ cars, stop and return BR 412 instead. Never return the generic string "ICE 3". Operational max speed for all ICE 3 variants is 300 km/h — never 330 km/h.
 
 STEP 3 — ICE T AND ICE L:
 - TILTING train with visible TILT MECHANISM FAIRINGS on the bogies (streamlined covers over the bogie area) and a rounder, bulbous nose → ICE T. BR 411 (7-car) or BR 415 (5-car). Never classify a tilting ICE as any ICE 3 variant.
