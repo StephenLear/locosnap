@@ -7,6 +7,20 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### Backend — Anthropic prompt caching enabled on the vision call (cost reduction)
+
+Wrapped the 32K-token `TRAIN_ID_PROMPT` in a system block with `cache_control: { type: "ephemeral" }` and moved it out of the per-call `user.content` where it was being re-billed at full input rate on every scan. Image content stays in `user.content` as a per-scan variable. Driver: April month-to-date API cost was $105.34 for the LocoSnap workspace at ~330 scans/day (Apr 28 spike), with vision (Sonnet 4.6) accounting for ~95% of the bill — the 32K prompt re-billed on every scan.
+
+**Pricing math:**
+- Cache write (first call after 5-min TTL expiry): 25% of input rate
+- Cache hit (every call within 5 min): 10% of input rate
+- Per-scan input cost: $0.096 → $0.010 (~86% input, ~80% total)
+- At Apr 28 scan velocity (~330/day): ~$36/day → ~$7/day = ~$870/month saved if traffic holds
+
+Also added a `[VISION] tokens —` usage log line that surfaces `cache_read_input_tokens` and `cache_creation_input_tokens` from the response, so cache hit rate can be verified in Render logs immediately after deploy. The log line is optional-chained to keep the existing vision unit tests green (the mock responses don't supply a usage object).
+
+113/113 backend tests pass. Build clean. **Pushed to Render** as `[hash pending]`.
+
 ### Backend — four new vision rules covering tester misidentification reports
 
 Four targeted vision-rule additions in `backend/src/services/vision.ts` and matching spec overrides in `backend/src/services/trainSpecs.ts`. Each rule was driven by a specific tester-reported misidentification with a confirmed source photo (one pulled from Supabase, three from the desktop `feedback/` folder).

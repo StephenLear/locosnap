@@ -391,6 +391,13 @@ async function identifyWithClaude(
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
       temperature: 0,
+      system: [
+        {
+          type: "text",
+          text: TRAIN_ID_PROMPT,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
       messages: [
         {
           role: "user",
@@ -399,11 +406,22 @@ async function identifyWithClaude(
               type: "image",
               source: { type: "base64", media_type: mediaType, data: base64Image },
             },
-            { type: "text", text: TRAIN_ID_PROMPT },
           ],
         },
       ],
     });
+
+    const usage = response.usage as
+      | (typeof response.usage & {
+          cache_creation_input_tokens?: number;
+          cache_read_input_tokens?: number;
+        })
+      | undefined;
+    if (usage) {
+      console.log(
+        `[VISION] tokens — input ${usage.input_tokens}, cache_read ${usage.cache_read_input_tokens ?? 0}, cache_write ${usage.cache_creation_input_tokens ?? 0}, output ${usage.output_tokens}`
+      );
+    }
 
     const content = response.content[0];
     if (content.type !== "text") return null;
