@@ -345,24 +345,66 @@ export default function HomeScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      // Convert to JPEG — iOS photos are HEIC by default and the backend rejects them
-      const converted = await ImageManipulator.manipulateAsync(
-        result.assets[0].uri,
-        [],
-        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
-      );
-      setPreviewUri(converted.uri);
-      handleScan(converted.uri);
+      try {
+        // Convert to JPEG — iOS photos are HEIC by default and the backend rejects them
+        const converted = await ImageManipulator.manipulateAsync(
+          result.assets[0].uri,
+          [],
+          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+        );
+        setPreviewUri(converted.uri);
+        handleScan(converted.uri);
+      } catch (error) {
+        // iOS PHImageManager throws when an iCloud Photo Library photo
+        // hasn't been downloaded yet (Optimise iPhone Storage). Surfacing
+        // the raw native error to the user is unhelpful.
+        track("scan_failed", {
+          error: "picker_read_failed",
+          message: (error as Error).message,
+        });
+        Alert.alert(
+          "Couldn't load that photo",
+          "It might still be downloading from iCloud. Try another photo, or wait a moment and try again.",
+          [{ text: "OK" }]
+        );
+      }
     }
   };
 
   const takePhoto = async () => {
     if (!cameraRef.current) return;
-    const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-    if (photo) {
-      setCameraMode(false);
-      setPreviewUri(photo.uri);
-      handleScan(photo.uri);
+    try {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.6 });
+      if (photo) {
+        setCameraMode(false);
+        setPreviewUri(photo.uri);
+        handleScan(photo.uri);
+      }
+    } catch (error) {
+      // expo-camera CameraX layer occasionally fails on flagship Samsung
+      // devices on Android 16 (Galaxy S25 Ultra etc.). One retry after a
+      // short delay clears most transient HAL hiccups.
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        const photo = await cameraRef.current?.takePictureAsync({ quality: 0.6 });
+        if (photo) {
+          setCameraMode(false);
+          setPreviewUri(photo.uri);
+          handleScan(photo.uri);
+          return;
+        }
+      } catch {
+        // Fall through to user-facing error below
+      }
+      track("scan_failed", {
+        error: "camera_capture_failed",
+        message: (error as Error).message,
+      });
+      Alert.alert(
+        "Couldn't capture that photo",
+        "Try again — sometimes the camera needs a second attempt.",
+        [{ text: "OK" }]
+      );
     }
   };
 
