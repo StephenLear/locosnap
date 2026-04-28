@@ -104,6 +104,18 @@ export interface IdentifyResponse {
       status: string;
       imageUrl?: string | null;
     } | null;
+    // ── Card v2 provenance (Phase 0.5) ──────────────────
+    // Server-canonical verification result. Client provides the
+    // raw provenance fields; server runs computeVerification() and
+    // returns the canonical tier here. Null when the client did not
+    // supply enough provenance data to classify (e.g. older client
+    // build pre-v1.0.21). Frontend persists tier + riskFlags onto
+    // the spot row when saveSpot writes to Supabase.
+    verification: {
+      verified: boolean;
+      tier: "verified-live" | "verified-recent-gallery" | "unverified";
+      riskFlags: Record<string, boolean>;
+    } | null;
   } | null;
   error: string | null;
   processingTimeMs: number;

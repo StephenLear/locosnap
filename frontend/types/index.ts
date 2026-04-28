@@ -73,6 +73,13 @@ export interface IdentifyResponse {
       status: string;
       imageUrl?: string | null;
     } | null;
+    // Card v2 provenance (Phase 0.5) — server-canonical verification.
+    // Null when client did not supply provenance fields (older builds).
+    verification: {
+      verified: boolean;
+      tier: VerificationTier;
+      riskFlags: Record<string, boolean>;
+    } | null;
   } | null;
   error: string | null;
   processingTimeMs: number;

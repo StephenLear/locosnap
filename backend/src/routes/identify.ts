@@ -24,10 +24,19 @@ import {
   setCachedTrainData,
   setCachedBlueprint,
 } from "../services/trainCache";
+import { computeVerification, isCaptureSource } from "../services/verification";
 import { AppError } from "../middleware/errorHandler";
 import { trackServerEvent } from "../services/analytics";
 import { getSupabase } from "../config/supabase";
-import { IdentifyResponse, TrainSpecs, TrainFacts, RarityInfo, BlueprintStyle } from "../types";
+import {
+  IdentifyResponse,
+  TrainSpecs,
+  TrainFacts,
+  RarityInfo,
+  BlueprintStyle,
+  ProvenanceInput,
+  VerificationResult,
+} from "../types";
 
 const VALID_LANGUAGES = ["en", "de"] as const;
 type Language = typeof VALID_LANGUAGES[number];
@@ -87,6 +96,43 @@ async function checkScanAllowed(
   } catch {
     return { allowed: true }; // fail open — never block on unexpected errors
   }
+}
+
+// ── Provenance parsing (Card v2 P0.5) ────────────────────────
+// Frontend sends multipart form fields alongside the image:
+//   captureSource, exifTimestamp, latitude, longitude,
+//   photoAccuracyM, mockLocationFlag, capturedAt
+// Returns null if any required field is missing or malformed —
+// older clients (pre-v1.0.21) won't send these and the response
+// gracefully omits the verification block in that case.
+function parseProvenance(body: Record<string, unknown>): ProvenanceInput | null {
+  const captureSource = body.captureSource;
+  const capturedAt = body.capturedAt;
+  if (!isCaptureSource(captureSource)) return null;
+  if (typeof capturedAt !== "string" || !capturedAt) return null;
+
+  const parseFloatOrNull = (raw: unknown): number | null => {
+    if (raw === undefined || raw === null || raw === "") return null;
+    const n = typeof raw === "number" ? raw : parseFloat(String(raw));
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const parseBool = (raw: unknown): boolean =>
+    raw === true || raw === "true" || raw === 1 || raw === "1";
+
+  const exifRaw = body.exifTimestamp;
+  const exifTimestamp =
+    typeof exifRaw === "string" && exifRaw.length > 0 ? exifRaw : null;
+
+  return {
+    captureSource,
+    exifTimestamp,
+    latitude: parseFloatOrNull(body.latitude),
+    longitude: parseFloatOrNull(body.longitude),
+    photoAccuracyM: parseFloatOrNull(body.photoAccuracyM),
+    mockLocationFlag: parseBool(body.mockLocationFlag),
+    capturedAt,
+  };
 }
 
 const router = Router();
@@ -157,6 +203,19 @@ router.post(
         requestedLanguage && (VALID_LANGUAGES as readonly string[]).includes(requestedLanguage)
           ? (requestedLanguage as Language)
           : "en";
+
+      // ── Provenance + verification (Card v2 P0.5) ──────
+      // Server-canonical verification: client sends raw provenance
+      // fields, server runs computeVerification(). Client values are
+      // never trusted — the response uses the server's tier.
+      const provenance = parseProvenance(req.body ?? {});
+      let verification: VerificationResult | null = null;
+      if (provenance) {
+        verification = computeVerification(provenance);
+        console.log(
+          `[IDENTIFY] verification: tier=${verification.tier}, source=${provenance.captureSource}, hasGps=${provenance.latitude !== null && provenance.longitude !== null}`
+        );
+      }
 
       // ── Scan gate (server-side limit check) ───────────
       const scanAllowed = await checkScanAllowed(req);
@@ -331,6 +390,7 @@ router.post(
           facts,
           rarity,
           blueprint: blueprintData,
+          verification,
         },
         error: null,
         processingTimeMs,

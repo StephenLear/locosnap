@@ -48,6 +48,30 @@ const SCAN_STAGES = [
   "Fetching specs & rarity...",
 ];
 
+/**
+ * Card v2 P0.4 — convert EXIF DateTimeOriginal (or fall-back fields)
+ * to an ISO 8601 string the backend can parse with new Date(). EXIF
+ * uses "YYYY:MM:DD HH:MM:SS" with colons separating the date — that's
+ * not ISO. Returns null for missing or unparseable values; the backend
+ * then routes the spot to the strippedExif risk-flag path.
+ */
+function parseExifDateTime(exif: Record<string, unknown> | undefined): string | null {
+  if (!exif) return null;
+  const candidates = [
+    exif.DateTimeOriginal,
+    exif.DateTime,
+    exif["{Exif}"] && (exif["{Exif}"] as Record<string, unknown>).DateTimeOriginal,
+  ];
+  for (const raw of candidates) {
+    if (typeof raw !== "string" || raw.length < 19) continue;
+    // "YYYY:MM:DD HH:MM:SS" → "YYYY-MM-DDTHH:MM:SS"
+    const isoLike = raw.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3").replace(" ", "T");
+    const date = new Date(isoLike);
+    if (!Number.isNaN(date.getTime())) return date.toISOString();
+  }
+  return null;
+}
+
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -195,7 +219,11 @@ export default function HomeScreen() {
     }
   };
 
-  const handleScan = async (imageUri: string) => {
+  const handleScan = async (
+    imageUri: string,
+    captureSource: "camera" | "gallery" = "gallery",
+    exifTimestamp: string | null = null,
+  ) => {
     if (!canScan()) {
       if (!session) {
         // Unauthenticated user has used all trial scans — prompt sign-up
@@ -228,27 +256,53 @@ export default function HomeScreen() {
     addBreadcrumb("scan", "Scan started");
     setPhotoUri(imageUri);
 
-    // Capture GPS location (non-blocking)
+    // Capture GPS location + accuracy + mock-location flag (Card v2 P0.4).
+    // accuracy/mocked feed into the server-side computeVerification call.
+    let latitude: number | null = null;
+    let longitude: number | null = null;
+    let photoAccuracyM: number | null = null;
+    let mockLocationFlag = false;
+
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === "granted") {
         const loc = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
-        setLocation({
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-        });
+        latitude = loc.coords.latitude;
+        longitude = loc.coords.longitude;
+        photoAccuracyM =
+          typeof loc.coords.accuracy === "number" ? loc.coords.accuracy : null;
+        // `mocked` is Android-only; iOS leaves it undefined.
+        mockLocationFlag = (loc.coords as { mocked?: boolean }).mocked === true;
+        setLocation({ latitude, longitude });
+      } else {
+        setLocation(null);
       }
     } catch {
       setLocation(null);
     }
 
+    const provenance = {
+      captureSource,
+      exifTimestamp,
+      latitude,
+      longitude,
+      photoAccuracyM,
+      mockLocationFlag,
+      capturedAt: new Date().toISOString(),
+    };
+
     try {
       const { selectedBlueprintStyle } = useTrainStore.getState();
       // Blueprint is never auto-generated during scan.
       // Pro users pick their style on the results screen then tap "Generate Blueprint".
-      const result = await identifyTrain(imageUri, selectedBlueprintStyle, false);
+      const result = await identifyTrain(
+        imageUri,
+        selectedBlueprintStyle,
+        false,
+        provenance,
+      );
 
       if (!result.success || !result.data) {
         track("scan_failed", { error: result.error || "unknown" });
@@ -258,7 +312,22 @@ export default function HomeScreen() {
         return;
       }
 
-      const { train, specs, facts, rarity, blueprint } = result.data;
+      const { train, specs, facts, rarity, blueprint, verification } = result.data;
+
+      // Store the server-canonical verification result (Card v2 P0.4).
+      // Always non-null for v1.0.21+ clients; older clients won't fire
+      // setVerification at all and the flag stays in its post-startScan
+      // null state. saveToHistory will read this when persisting.
+      if (verification) {
+        useTrainStore.getState().setVerification({
+          verified: verification.verified,
+          tier: verification.tier,
+          riskFlags: verification.riskFlags,
+          captureSource: provenance.captureSource,
+          exifTimestamp: provenance.exifTimestamp,
+          photoAccuracyM: provenance.photoAccuracyM,
+        });
+      }
 
       if (train.confidence < 70) {
         Alert.alert(
@@ -323,7 +392,11 @@ export default function HomeScreen() {
         console.log("[PICKER] Raw file:", file.name, file.size, "bytes");
         const objectUrl = URL.createObjectURL(file);
         setPreviewUri(objectUrl);
-        handleScan(objectUrl);
+        // Card v2 P0.4 — web file-picker has no EXIF access without
+        // an extra dependency, so EXIF is null; fall through to
+        // unverified tier on web. file.lastModified is the upload
+        // time, NOT the photo capture time, so deliberately skipped.
+        handleScan(objectUrl, "gallery", null);
       };
       input.click();
       return;
@@ -342,6 +415,10 @@ export default function HomeScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       quality: 0.7,
+      // Card v2 P0.4 — surface EXIF so we can compute the gallery-recency
+      // verification check. expo-image-picker reads EXIF from the original
+      // file before our compression step.
+      exif: true,
     });
 
     if (!result.canceled && result.assets[0]) {
@@ -353,7 +430,14 @@ export default function HomeScreen() {
           { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
         );
         setPreviewUri(converted.uri);
-        handleScan(converted.uri);
+        // Extract EXIF DateTimeOriginal — formats vary by device
+        // ("YYYY:MM:DD HH:MM:SS" on most iOS/Android cameras). Convert
+        // to ISO so the backend can parse it. Returns null if absent
+        // or unparseable — verification falls back to "stripped EXIF"
+        // risk-flag path.
+        const exif = (result.assets[0] as { exif?: Record<string, unknown> }).exif;
+        const exifTimestamp = parseExifDateTime(exif);
+        handleScan(converted.uri, "gallery", exifTimestamp);
       } catch (error) {
         // iOS PHImageManager throws when an iCloud Photo Library photo
         // hasn't been downloaded yet (Optimise iPhone Storage). Surfacing
@@ -378,7 +462,10 @@ export default function HomeScreen() {
       if (photo) {
         setCameraMode(false);
         setPreviewUri(photo.uri);
-        handleScan(photo.uri);
+        // Card v2 P0.4 — live camera capture: source=camera, EXIF time
+        // is "now" so verification can flip straight to verified-live
+        // when GPS + accuracy + no mock-location pass.
+        handleScan(photo.uri, "camera", new Date().toISOString());
       }
     } catch (error) {
       // expo-camera CameraX layer occasionally fails on flagship Samsung
@@ -390,7 +477,7 @@ export default function HomeScreen() {
         if (photo) {
           setCameraMode(false);
           setPreviewUri(photo.uri);
-          handleScan(photo.uri);
+          handleScan(photo.uri, "camera", new Date().toISOString());
           return;
         }
       } catch {

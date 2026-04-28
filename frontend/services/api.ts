@@ -61,6 +61,21 @@ api.interceptors.request.use(async (config) => {
 });
 
 /**
+ * Card v2 P0.4 — provenance fields captured at scan time. Optional;
+ * older callers omit and the backend skips verification computation
+ * (backwards-compatible with pre-v1.0.21 clients).
+ */
+export interface ScanProvenance {
+  captureSource: "camera" | "gallery";
+  exifTimestamp: string | null;       // ISO datetime, or null if absent
+  latitude: number | null;
+  longitude: number | null;
+  photoAccuracyM: number | null;      // GPS horizontal accuracy in metres
+  mockLocationFlag: boolean;          // Android-only; iOS always false
+  capturedAt: string;                 // ISO datetime — "now" at scan time
+}
+
+/**
  * Upload a train photo and get identification results
  * Uses native fetch on web (axios mangles FormData file uploads)
  * Uses axios on native (React Native FormData needs its special handling)
@@ -68,19 +83,35 @@ api.interceptors.request.use(async (config) => {
 export async function identifyTrain(
   imageUri: string,
   blueprintStyle: BlueprintStyle = "technical",
-  generateBlueprint: boolean = false
+  generateBlueprint: boolean = false,
+  provenance?: ScanProvenance
 ): Promise<IdentifyResponse> {
   if (Platform.OS === "web") {
-    return identifyTrainWeb(imageUri, blueprintStyle, generateBlueprint);
+    return identifyTrainWeb(imageUri, blueprintStyle, generateBlueprint, provenance);
   }
-  return identifyTrainNative(imageUri, blueprintStyle, generateBlueprint);
+  return identifyTrainNative(imageUri, blueprintStyle, generateBlueprint, provenance);
+}
+
+// Card v2 P0.4 — append provenance fields to the multipart form
+// when present. Skipped entirely if undefined so legacy callers
+// (and the backend on the receiving side) keep working.
+function appendProvenance(formData: FormData, provenance?: ScanProvenance): void {
+  if (!provenance) return;
+  formData.append("captureSource", provenance.captureSource);
+  formData.append("capturedAt", provenance.capturedAt);
+  formData.append("mockLocationFlag", String(provenance.mockLocationFlag));
+  if (provenance.exifTimestamp) formData.append("exifTimestamp", provenance.exifTimestamp);
+  if (provenance.latitude !== null) formData.append("latitude", String(provenance.latitude));
+  if (provenance.longitude !== null) formData.append("longitude", String(provenance.longitude));
+  if (provenance.photoAccuracyM !== null) formData.append("photoAccuracyM", String(provenance.photoAccuracyM));
 }
 
 /** Web: use native fetch — reliable FormData + File handling */
 async function identifyTrainWeb(
   imageUri: string,
   blueprintStyle: BlueprintStyle,
-  generateBlueprint: boolean
+  generateBlueprint: boolean,
+  provenance?: ScanProvenance
 ): Promise<IdentifyResponse> {
   try {
     let file: File;
@@ -119,6 +150,7 @@ async function identifyTrainWeb(
     formData.append("blueprintStyle", blueprintStyle);
     formData.append("generateBlueprint", String(generateBlueprint));
     formData.append("language", language);
+    appendProvenance(formData, provenance);
 
     // Attach auth token if session exists
     const { data: { session } } = await supabase.auth.getSession();
@@ -172,7 +204,8 @@ async function identifyTrainWeb(
 async function identifyTrainNative(
   imageUri: string,
   blueprintStyle: BlueprintStyle,
-  generateBlueprint: boolean
+  generateBlueprint: boolean,
+  provenance?: ScanProvenance
 ): Promise<IdentifyResponse> {
   // Compress before upload — reduces 20-30 MB gallery photos to ~1-2 MB
   const compressedUri = await compressImageForUpload(imageUri);
@@ -197,6 +230,7 @@ async function identifyTrainNative(
   formData.append("blueprintStyle", blueprintStyle);
   formData.append("generateBlueprint", String(generateBlueprint));
   formData.append("language", language);
+  appendProvenance(formData, provenance);
 
   const attemptRequest = async () => {
     const response = await api.post<IdentifyResponse>(

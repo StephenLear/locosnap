@@ -13,7 +13,21 @@ import {
   BlueprintStatus,
   BlueprintStyle,
   HistoryItem,
+  CaptureSource,
+  VerificationTier,
 } from "../types";
+
+// Card v2 provenance (Phase 0.4) — server-canonical verification
+// result returned by /api/identify. We carry it on the current scan
+// so card-reveal + saveToHistory can persist it onto the spot row.
+interface CurrentVerification {
+  verified: boolean;
+  tier: VerificationTier;
+  riskFlags: Record<string, boolean>;
+  captureSource: CaptureSource;
+  exifTimestamp: string | null;
+  photoAccuracyM: number | null;
+}
 import {
   upsertTrain,
   saveSpot,
@@ -63,6 +77,10 @@ interface TrainState {
   // Location
   currentLocation: { latitude: number; longitude: number } | null;
 
+  // Card v2 provenance — populated by handleScan before identifyTrain,
+  // updated with the server-canonical verification when the response lands.
+  currentVerification: CurrentVerification | null;
+
   // Blueprint style (Pro feature)
   selectedBlueprintStyle: BlueprintStyle;
 
@@ -81,6 +99,7 @@ interface TrainState {
   setBlueprintStatus: (status: BlueprintStatus) => void;
   setPhotoUri: (uri: string) => void;
   setLocation: (location: { latitude: number; longitude: number } | null) => void;
+  setVerification: (verification: CurrentVerification | null) => void;
   clearCurrentScan: () => void;
   loadHistory: () => Promise<void>;
   saveToHistory: () => Promise<void>;
@@ -106,6 +125,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
   isSyncing: false,
   currentPhotoUri: null,
   currentLocation: null,
+  currentVerification: null,
   selectedBlueprintStyle: "technical",
   compareItems: null,
 
@@ -120,6 +140,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       blueprintStatus: null,
       currentSpotId: null,
       currentPhotoUri: null,
+      currentVerification: null,
       // Keep location — it's set before scan starts
     });
   },
@@ -180,6 +201,10 @@ export const useTrainStore = create<TrainState>((set, get) => ({
     set({ currentLocation: location });
   },
 
+  setVerification: (verification) => {
+    set({ currentVerification: verification });
+  },
+
   clearCurrentScan: () => {
     set({
       isScanning: false,
@@ -192,6 +217,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       currentSpotId: null,
       currentPhotoUri: null,
       currentLocation: null,
+      currentVerification: null,
     });
   },
 
