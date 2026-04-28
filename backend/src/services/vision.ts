@@ -32,12 +32,21 @@ If you can identify the railway vehicle, respond with ONLY valid JSON in this ex
 CRITICAL PRE-FLIGHT CHECK — WHITE DB ICE TRAINS:
 If you are looking at a white DB ICE high-speed train, work through these steps in order before generating any output.
 
-ABSOLUTE BR 408 GATE — READ FIRST:
-Returning BR 408 (ICE 3neo) requires POSITIVE EVIDENCE. You may ONLY return BR 408 if AT LEAST ONE of the following is true:
-(a) A fleet number starting "408" is visibly readable in the image. This is definitive.
-(b) The cab front is the SHARPEST, flattest, most angular ICE variant — large rectangular LED headlight clusters, almost flat-faced, visibly more aggressive than BR 403/406/407, AND the nose is clearly POINTED rather than wide/flat.
-(c) The image shows a clear date/timestamp from 2023 or later AND criterion (b) is also met.
-If NONE of these are true, you MUST NOT return BR 408. The default for an uncertain ICE is BR 412 (ICE 4) when the body looks long, wide, or shows a flat front face — BR 412 is the statistically dominant ICE in Germany (108 units, most passenger-km since 2019). When in genuine doubt between BR 412 and BR 408, return BR 412. This rule overrides any temptation to return BR 408 because it is "newest" or "most modern" — the model has a known prior toward BR 408 that has caused repeated misIDs of ICE 4 trains; counter that prior explicitly.
+ABSOLUTE DEFAULT FOR WHITE DB ICE TRAINS — READ FIRST:
+**The default answer for any white DB ICE train is BR 412 (ICE 4).** BR 412 is the statistically dominant ICE in Germany — 108 units in service, more passengers than all other ICE classes combined since 2019. To return ANY OTHER ICE class (BR 401, BR 402, BR 403, BR 406, BR 407, BR 408, BR 411, BR 415, BR 462, ICE L), you must produce POSITIVE evidence that specifically rules out BR 412. Without that evidence, return BR 412.
+
+Positive evidence requirements per non-412 class — at least ONE must be true:
+- **BR 401 (ICE 1)**: Visible "401 xxx" fleet number, OR clearly visible separate power car + unpowered coaches (locomotive-hauled formation, NOT distributed-power EMU), OR rounded blunt bullet-shaped nose with the small narrow Notkupplung emergency flap.
+- **BR 402 (ICE 2)**: Visible "402 xxx" fleet number, OR clearly visible full-width Scharfenberg coupler flap across the entire lower nose, OR power car + coaches + flat-fronted Steuerwagen at opposite end.
+- **BR 403 (ICE 3)**: Visible "403 xxx" fleet number. Without that fleet number, do NOT return BR 403 — the wide flat ICE 4 nose has been repeatedly misclassified as BR 403's "rounded softer" nose. BR 403 is only 13 units, statistically far less likely than BR 412.
+- **BR 406 (ICE 3M/F)**: Visible "406 xxx" or "4651–4667" fleet number, OR train photographed at Amsterdam / Utrecht / Arnhem / Schiphol / on the Dutch network.
+- **BR 407 (Velaro D)**: Visible "407 xxx" fleet number, OR clearly visible diagonal crease lines running from roofline down the cab front. Only 17 units exist.
+- **BR 408 (ICE 3neo)**: Visible "408 xxx" fleet number, OR sharpest flat-faced LED-headlight cab AND clearly pointed (not wide/flat) nose AND date 2023 or later visible.
+- **BR 411 / BR 415 (ICE T)**: Visible tilt-mechanism fairings on the bogies, OR a known ICE-T route (Munich-Zurich, Frankfurt-Vienna).
+- **BR 462 (ICE 3neo Velaro MS)**: Visible "462 xxx" fleet number.
+- **ICE L**: Visible Vectron locomotive in ICE white livery + Talgo coaches with roofline step-down, OR "ECx" markings.
+
+If NONE of these positive criteria for non-412 classes is met, return BR 412 (ICE 4). Counter the model's known priors toward "newest" (BR 408) or "original" (BR 403) — both produce systematic misIDs on BR 412 photos. The training data is biased toward famous ICE photographs of BR 401/403, but real-world DB long-distance traffic in 2026 is dominated by BR 412.
 
 STEP 0 — FORMATION LENGTH GATE (apply BEFORE nose-shape analysis):
 If the photograph shows the side, a passing shot, a macro, or any angle where you can count or estimate the number of intermediate coaches:
@@ -75,7 +84,7 @@ Check nose profile:
 - Fleet number beginning "462" → BR 462 (Velaro MS, 320 km/h capable).
 - ROUNDER, softer, more classic nose (no visible crease lines) → BR 403 (13 units, domestic German routes only, fleet "403 xxx") or BR 406 (check location as above).
 
-Default: if you cannot confidently identify the ICE 3 sub-variant AND you have confirmed at Step 1 that the nose is genuinely POINTED and aerodynamic (not the wide flat ICE 4 face), return BR 403 (the original, most common pre-neo ICE 3 variant) — NOT BR 408. BR 408 should only be returned when the nose is the SHARPEST, most angular flat-face variant with rectangular LED headlights, OR a "408 xxx" fleet number is visibly readable. Do NOT default to BR 408 just because it is newest. If formation length suggests 12+ cars, stop and return BR 412 instead. Never return the generic string "ICE 3". Operational max speed for all ICE 3 variants is 300 km/h — never 330 km/h.
+Default: if you cannot confidently identify the ICE 3 sub-variant, return BR 412 (ICE 4) — NOT any ICE 3 variant. The ABSOLUTE DEFAULT rule at the top of this pre-flight check requires positive evidence (visible fleet number or class-specific visual feature) before returning any ICE 3 family member. Without that evidence, return BR 412. Never return the generic string "ICE 3". Operational max speed for all ICE 3 variants is 300 km/h — never 330 km/h.
 
 STEP 3 — ICE T AND ICE L:
 - TILTING train with visible TILT MECHANISM FAIRINGS on the bogies (streamlined covers over the bogie area) and a rounder, bulbous nose → ICE T. BR 411 (7-car) or BR 415 (5-car). Never classify a tilting ICE as any ICE 3 variant.
