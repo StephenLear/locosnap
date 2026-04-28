@@ -19,6 +19,7 @@ import {
   Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../store/trainStore";
 import { RarityTier } from "../types";
@@ -45,6 +46,26 @@ const rarityColors: Record<RarityTier, string> = {
   legendary: "#f59e0b",
 };
 
+// Card v2 — trading-card visual polish (frontend_backlog #12 — Steph
+// 2026-04-24: "would be a bit better if it did look like a proper
+// trading card and i would share it"). Thicker borders and stronger
+// drop shadows on rarer tiers give the card the physical-collectable
+// feel without needing a full holo/foil shader implementation.
+const rarityBorderWidth: Record<RarityTier, number> = {
+  common: 2,
+  uncommon: 2,
+  rare: 3,
+  epic: 3.5,
+  legendary: 4,
+};
+const rarityShadowIntensity: Record<RarityTier, { radius: number; opacity: number; elevation: number }> = {
+  common: { radius: 6, opacity: 0.15, elevation: 4 },
+  uncommon: { radius: 8, opacity: 0.2, elevation: 5 },
+  rare: { radius: 12, opacity: 0.35, elevation: 8 },
+  epic: { radius: 16, opacity: 0.45, elevation: 10 },
+  legendary: { radius: 20, opacity: 0.55, elevation: 14 },
+};
+
 const rarityLabels: Record<RarityTier, string> = {
   common: "COMMON",
   uncommon: "UNCOMMON",
@@ -63,6 +84,7 @@ const rarityEmoji: Record<RarityTier, string> = {
 
 export default function CardRevealScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   // History mode: when navigated with a `historyId` param, the card-reveal
   // screen renders an existing spot instead of the most-recent fresh scan.
@@ -449,7 +471,15 @@ export default function CardRevealScreen() {
                 style={[
                   styles.card,
                   styles.cardFront,
-                  { borderColor: rarityColor },
+                  {
+                    borderColor: rarityColor,
+                    borderWidth: rarityBorderWidth[currentRarity.tier],
+                    shadowColor: rarityColor,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: rarityShadowIntensity[currentRarity.tier].opacity,
+                    shadowRadius: rarityShadowIntensity[currentRarity.tier].radius,
+                    elevation: rarityShadowIntensity[currentRarity.tier].elevation,
+                  },
                 ]}
                 collapsable={false}
               >
@@ -522,11 +552,9 @@ export default function CardRevealScreen() {
                       color="#fff"
                     />
                     <Text style={styles.verifiedBadgeText}>
-                      {displayVerificationTier === "verified-live"
-                        ? "VERIFIED"
-                        : displayVerificationTier === "verified-recent-gallery"
-                        ? "VERIFIED"
-                        : "PERSONAL"}
+                      {displayVerificationTier === "unverified"
+                        ? t("card.badge.personal")
+                        : t("card.badge.verified")}
                     </Text>
                   </View>
                 )}
@@ -562,7 +590,7 @@ export default function CardRevealScreen() {
                     {displaySpottedAt
                       ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(displaySpottedAt))
                       : !isHistoryMode
-                      ? "Just now"
+                      ? t("card.provenance.justNow")
                       : ""}
                   </Text>
                 )}
@@ -627,7 +655,15 @@ export default function CardRevealScreen() {
                 style={[
                   styles.card,
                   styles.cardBack,
-                  { borderColor: rarityColor },
+                  {
+                    borderColor: rarityColor,
+                    borderWidth: rarityBorderWidth[currentRarity.tier],
+                    shadowColor: rarityColor,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: rarityShadowIntensity[currentRarity.tier].opacity,
+                    shadowRadius: rarityShadowIntensity[currentRarity.tier].radius,
+                    elevation: rarityShadowIntensity[currentRarity.tier].elevation,
+                  },
                 ]}
               >
               <View style={styles.cardBackContent}>

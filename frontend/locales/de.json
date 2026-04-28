@@ -18,6 +18,15 @@
     "scanBadge": "{{count}} Scan",
     "scanBadge_plural": "{{count}} Scans"
   },
+  "card": {
+    "badge": {
+      "verified": "VERIFIZIERT",
+      "personal": "PRIVAT"
+    },
+    "provenance": {
+      "justNow": "Gerade eben"
+    }
+  },
   "results": {
     "specs": "Technische Daten",
     "facts": "Fakten & Geschichte",

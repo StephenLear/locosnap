@@ -18,6 +18,15 @@
     "scanBadge": "{{count}} scan",
     "scanBadge_plural": "{{count}} scans"
   },
+  "card": {
+    "badge": {
+      "verified": "VERIFIED",
+      "personal": "PERSONAL"
+    },
+    "provenance": {
+      "justNow": "Just now"
+    }
+  },
   "results": {
     "specs": "Specifications",
     "facts": "Facts & History",
