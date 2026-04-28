@@ -7,6 +7,56 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### Backend + Frontend — Card v2 P0.4 + P0.5 wiring (`b34a40c`)
+
+Closes the data-flow gap that blocked every visible Card v2 phase 1 feature. Until this commit the migration columns + `computeVerification()` function existed (shipped over the last few weeks) but no scan actually populated `captureSource` / EXIF / GPS accuracy, so every spot landed with defaults and the verification tier was indeterminable. This commit wires the full path end-to-end.
+
+**P0.4 — frontend scan-time capture:**
+- `(tabs)/index.tsx` — `handleScan` signature extended with `(captureSource, exifTimestamp)`. `takePhoto` passes `"camera"` + `new Date().toISOString()`. `pickImage` passes `"gallery"` + parsed EXIF `DateTimeOriginal` from the gallery picker. Web file-picker passes `"gallery"` + `null` EXIF (no EXIF access without an extra dependency; falls through to unverified tier).
+- GPS capture extended to record `coords.accuracy` (used by the verification accuracy threshold rule) and `coords.mocked` (Android-only mock-location flag; iOS leaves it undefined, treated as false).
+- New `parseExifDateTime()` helper converts EXIF `"YYYY:MM:DD HH:MM:SS"` format to ISO 8601 the backend can `new Date()` parse. Returns null for absent/unparseable values; backend then routes to the `strippedExif` risk-flag path.
+- `ImagePicker.launchImageLibraryAsync` now passes `exif: true` so `DateTimeOriginal` surfaces in `result.assets[0].exif`.
+- New `ScanProvenance` interface in `services/api.ts` + `appendProvenance()` helper that appends provenance fields to multipart form on both web (fetch) and native (axios) transport paths. `identifyTrain` / `identifyTrainWeb` / `identifyTrainNative` all accept optional `provenance` — older callers omitting it keep working (backwards-compatible).
+- `store/trainStore.ts` — new `currentVerification` state holds the server-canonical tier + risk flags + raw provenance fields. `setVerification` action; reset on `startScan` + `clearCurrentScan`.
+
+**P0.5 — backend server-canonical verification:**
+- `routes/identify.ts` — `parseProvenance()` reads multipart form fields, returns `ProvenanceInput | null`. Older clients without these fields → null → response omits the verification block (graceful degradation).
+- `computeVerification()` runs server-side; client values are never trusted. Tier (`verified-live` / `verified-recent-gallery` / `unverified`) + risk flags returned in response under `data.verification`.
+- New observability log line: `[VISION] verification: tier=X, source=Y, hasGps=Z`.
+- `IdentifyResponse` data shape extended on both backend and frontend types with the verification block.
+
+**Not in this commit (deliberate):** `saveSpot` to Supabase still doesn't write the new provenance columns. Migration `009_card_v2_provenance.sql` is staged but not run against production per its own header comment. After this commit the verification flows through frontend state and into the card-reveal display, but per-spot persistence is one follow-up commit + a migration run away. Verified/Unverified badge UI (P1.3) is also separate — pure data-plumbing in this commit.
+
+113/113 backend tests pass, 55/55 frontend tests pass, both builds clean. **Pushed as `b34a40c`** — backend deploys to Render automatically. Frontend not live until the next EAS build.
+
+### Backend — railforums-thread misidentification fixes (`cd0464b`)
+
+Three new vision-rule disambiguations + spec overrides driven by misidentifications reported on the [railforums.co.uk LocoSnap feedback thread](https://www.railforums.co.uk/threads/locosnap-%E2%80%94-ai-train-identification-app-would-love-feedback-from-spotters.299731/) (post-launch testing March 2026). One issue from the thread already mitigated indirectly by the `trainFacts.ts` nickname-hallucination guard.
+
+1. **Class 70 (GE PowerHaul) spec lock** — tester `43096` reported a Class 70 scan returning `"Alstom Germany 2024"` as builder/year (multiple wrong things stacked). GE Transportation built all 19 Class 70s at Erie, PA in 2009–10; Wabtec acquired GE Transportation in 2019; Alstom never built any Class 70. Added `WIKIDATA_CORRECTIONS` entries across 5 class-string variants (`class 70`, `br class 70`, `br 70`, `ge powerhaul`, `powerhaul`) locking 75 mph / 2,750 kW / GE Transportation Erie / 19 built / Diesel-Electric.
+2. **Alstom Astride / Coradia Astride locomotive disambiguation rule** — `43096` reported an Alstom Astride misidentified as `"Stadler FLIRT EMU built by Bombardier Transportation, Budapest Metro"` — three compounded errors stacked. New rule sets hard exclusions: (a) a single-traction LOCOMOTIVE that hauls coaches is never a FLIRT (FLIRT is a multiple unit, exclusively Stadler-built), (b) FLIRTs are never Bombardier, (c) mainline Alstom locomotives are never Budapest Metro stock. Fulfils the user's public commitment in the original thread reply.
+3. **Class 455 vs Class 456 disambiguation rule** + `WIKIDATA_CORRECTIONS` for both classes — tester `sad1e` reported a Class 455 misidentified as Class 456. Sister BR Southern Region EMUs from the same lineage but different builders / eras / formation lengths: Class 455 is BREL York 1982–85, 4-car, 137 units, still in active SWR service (being phased out by Class 701 Aventra in 2024–26); Class 456 is ABB Crewe 1990–91, 2-car derivative, only 24 units, fully scrapped by 2024. Statistical default rule added: any current-day Southern Region inner-suburban EMU defaults to Class 455 because the 456 fleet doesn't exist anymore.
+
+Two railforums issues NOT shipped in this commit: (a) HST `"speed record holders"` fabricated nickname is already blocked by the `trainFacts.ts` nickname-hallucination guard added earlier (rule explicitly forbids invented nicknames and whitelists allowed ones — no additional fix needed); (b) BNSF AC4400CW vs Dash-9 confusion left for future — US/Canadian freight locomotives are not the channel's primary market and the original tester acknowledged "good effort, to be fair".
+
+113/113 backend tests pass, build clean. Pushed as `cd0464b`.
+
+### Frontend — three-CTA Profile + dynamic version string (`efa391c`)
+
+Closes `frontend_backlog.md` items #13 and #14 with surgical changes to `profile.tsx` and a small companion change in `sign-in.tsx`.
+
+**#13 — Three-CTA Profile (Steph 2026-04-24 spec):**
+- Replaces the single "Create your free account" CTA card on the Profile screen for guest users with a side-by-side row of two CTAs: **"Log In"** and **"Sign Up"**.
+- Both navigate to `/sign-in` with a new `mode` query param — `?mode=login` for returning users, `?mode=signup` for new ones — but the underlying Supabase OTP flow is identical.
+- `sign-in.tsx` now reads the `mode` param via `useLocalSearchParams` and adapts the heading copy: "Welcome back" for login, the existing tagline + Pokedex pitch for signup.
+- Returning testers (Steph's reinstall case) now have a clear "Log In" path without the existing CTA reading as sign-up-only.
+
+**#14 — Dynamic version string:**
+- Replaces hardcoded `"LocoSnap v1.0.0"` footer with the real app version via `expo-application`'s `nativeApplicationVersion`.
+- Falls back to `"—"` if unreachable (web build).
+
+55/55 frontend tests pass. Pushed as `efa391c`. **Not live until the next EAS build** — frontend change.
+
 ### Frontend — tap history card opens rich card-reveal (card v2 #10/#11)
 
 Closes the long-standing gap reported by Steph and the BR 103 commenter (frontend_backlog #10/#11): tapping a history card was opening the flat `/results` screen instead of the rich post-scan card layout. Now taps push to `/card-reveal?historyId=<id>`, and `card-reveal.tsx` supports a "history mode" that renders the existing spot through the same animated card UI as a fresh scan.
