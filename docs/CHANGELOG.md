@@ -7,6 +7,16 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### v1.0.21 prep — badge locales + trading-card visual polish (`0d5b79d`)
+
+Two finishing touches on the Card v2 phase 1 work for v1.0.21.
+
+**P1.7 — Locale strings for badge + provenance.** New `card` namespace in `locales/en.json` and `locales/de.json`. EN: `VERIFIED` / `PERSONAL` / `Just now`. DE: `VERIFIZIERT` / `PRIVAT` / `Gerade eben`. `card-reveal.tsx` now uses `useTranslation` and `t()` for the badge text + `Just now` fallback — no more hardcoded English strings on the badge.
+
+**Trading-card visual polish (frontend_backlog #12 — Steph 2026-04-24: *"would be a bit better if it did look like a proper trading card and i would share it"*).** Border width and drop-shadow now scale by rarity tier: common/uncommon 2px / minimal shadow → legendary 4px / shadowRadius 20, opacity 0.55, elevation 14. Both card front and card back get the same rarity-graded treatment so the flip animation reveals a coherent card object. Drop-shadow color = rarity color, giving each tier its own visual presence. Pure StyleSheet changes — no new dependencies, no shader work. Holo/foil shader effect deferred to Phase 3 per the card v2 plan.
+
+55/55 frontend tests pass. No backend changes. Live on the next EAS build (v1.0.21).
+
 ### v1.0.21 prep — 6 free scans + Card v2 P1.3 + P1.4 (`8206620`)
 
 Three connected changes preparing the next EAS build.
