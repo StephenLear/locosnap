@@ -7,6 +7,18 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### v1.0.21 prep — 6 free scans + Card v2 P1.3 + P1.4 (`8206620`)
+
+Three connected changes preparing the next EAS build.
+
+**1. Free-tier 3 → 6 scans.** `MAX_FREE_SCANS` in `backend/src/routes/identify.ts` and `PRE_SIGNUP_FREE_SCANS` + `MAX_FREE_SCANS` in `frontend/store/authStore.ts` all bumped from 3 to 6. Driven by **eight independent user signals** over the last week that 3 was too tight (Steph *"3 is far too low"*, multiple DE + EN TikTok commenters, paywall research brief patterns A/C/D, tester `ilia🐦magzüge` today asking *"why only 3 is it per day?"*, another DE-speaker today asking *"Könntet ihr mehr free scans machen?"*). Today's prompt-caching commit (`a3bdaa9`) cut per-scan input cost by ~80% (97% cache hit rate confirmed), providing the cost headroom. Locale strings already use `{{remaining}}` ICU interpolation so banner copy auto-updates.
+
+**2. Card v2 P1.3 — Verified / Personal badge on `card-reveal.tsx`.** Reads `displayVerificationTier` (from `currentVerification` on fresh scans, or `historyItem.verificationTier` in history mode — both wired by `b34a40c` + `c289441`). Renders a green VERIFIED pill for `verified-live` or `verified-recent-gallery`, or a muted dark PERSONAL pill for `unverified`, on the bottom-left of the photo area. Pre-v1.0.21 clients and history items from before `c289441` get null tier and no badge — graceful degradation rather than a wrong badge.
+
+**3. Card v2 P1.4 — Provenance row in `cardInfoArea`.** Renders `{locationName ?? coords} · {medium-formatted date}` on history items, or `"Just now"` on fresh scans. Uses `Intl.DateTimeFormat` with default locale so dates render in the user's device language. Skipped entirely when neither location nor date is available.
+
+113/113 backend tests pass, 55/55 frontend tests pass. Backend bump auto-deploys to Render. Frontend changes live on the **next EAS build (v1.0.21)**.
+
 ### Frontend — saveSpot persists Card v2 provenance fields (`c289441`)
 
 Closes the persistence gap left by `b34a40c`. Migration 009 ran against production Supabase 2026-04-28 evening (verified via `information_schema.columns` query — five columns added with correct defaults: `capture_source` text default `'gallery'`, `exif_timestamp` timestamptz nullable, `verified` boolean default false, `photo_accuracy_m` integer nullable, `risk_flags` jsonb default `'{}'`). This commit makes `saveSpot` actually write to those columns so every new authenticated scan persists its verification tier and risk flags.
