@@ -7,6 +7,32 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### Backend — Invert ICE default to BR 412 (`fa9a2a4`)
+
+Fourth strike on the BR 412 ICE 4 photo today. After `4daf284` forbade BR 408 without positive evidence, the model just shifted to BR 403 (ICE 3 original, only 13 units in service). Same fundamental bug: BR 412 photos from side/passing/macro angles fail Step 0 (no countable cars in frame) and Step 1 (no chin undercut visible) and fall through to ICE 3 family.
+
+**Real fix: invert the default.** BR 412 is now the ABSOLUTE DEFAULT for any white DB ICE — every other ICE class needs **positive evidence** (visible fleet number or class-specific visual feature) to be returned. Replaced the "ABSOLUTE BR 408 GATE" with "ABSOLUTE DEFAULT FOR WHITE DB ICE TRAINS" covering all non-412 classes. Per-class positive-evidence requirements explicitly listed for BR 401/402/403/406/407/408/411/415/462/ICE L. Step 2 default flipped from BR 403 → BR 412. Counter-anchors against both "newest" (BR 408) and "original" (BR 403) priors — training data is biased toward famous BR 401/403 photographs but real-world 2026 DB traffic is BR 412 dominated. Statistical reality: 108 BR 412 vs 60 BR 401, 44 BR 402, 13 BR 403, 17 BR 406, 17 BR 407, ~73 BR 408. BR 412 carries more passengers than all other ICE classes combined.
+
+### Backend — BR 412 facts override (`9fc1262`) — kills "1949" hallucination + refusal
+
+After the vision fix (`4daf284`) landed, tester rescanned and got correct BR 412 classification but the details card showed: *"I appreciate your interest, but I must be honest: I cannot provide reliable details about the DB BR 412 as an EMU that entered service in 1949..."*. Two compounded errors: (1) Haiku hallucinated 1949 as the ICE 4 service-entry year (correct: 8 Dec 2017), (2) after hallucinating an obviously-wrong year, Haiku refused to populate any facts and the meta-commentary landed in the historicalSignificance field. Same regression class as BR 140 / BR 232 / BR 151 — vision correct, downstream text generation needed a hard prompt anchor.
+
+Fix: dedicated DB BR 412 / ICE 4 block in `trainFacts.ts` `FACTS_PROMPT` pinning service entry 8 Dec 2017 (never 1949/1991/any pre-2016 year), Siemens Mobility + Bombardier (now Alstom) consortium builders, 7/12/13-car formations with 13-car XXL = 374 m / 918 seats / longest passenger train in scheduled service in Germany, 250 km/h (never 300/320), ~137 ordered with 108 in service, current-generation status (not withdrawn/retired). Plus an **explicit anti-refusal instruction**: omit unknown details, do NOT output meta-commentary like "I cannot provide reliable details" or "I must be honest". Disambiguates against BR 408 / BR 401 / Czech ČD 412. Pushed as `9fc1262`. Live on Render after auto-deploy.
+
+### Backend — Hard BR 408 positive-evidence gate (`4daf284`)
+
+Tester re-scanned, still got BR 408. `21f32cb` (Step 0 formation gate + default-flip) wasn't enough — the model has a strong prior toward BR 408 ("newest ICE") and was still picking it. Added an absolute gate at the top of the pre-flight check: BR 408 may ONLY be returned with positive evidence — visible "408" fleet number, OR sharpest flat-faced LED-headlight cab, OR (date 2023+ AND flat-faced cab). If none present, BR 408 is forbidden. Default-when-uncertain is now explicitly BR 412 (108 units, statistically dominant ICE in Germany since 2019). Explicit instruction added to counter the BR 408 model prior.
+
+### Backend — BR 412 (ICE 4) vs BR 408 (ICE 3neo) misID fix (`21f32cb`)
+
+Tester scanned a BR 412 (ICE 4), got back BR 408. Same misID pattern as 2026-04-16 — the line 306 disambiguation rule wasn't enough. Two root causes in `vision.ts`: (1) Step 1 used nose-shape only, which fails on side / macro / passing shots where the nose isn't visible; (2) line 64 had a "default to BR 408 if uncertain" rule that primed the model to fall through to BR 408 whenever Step 2 couldn't lock a sub-variant.
+
+Fixes:
+1. **New STEP 0 formation-length gate** ahead of nose analysis. 12 or 13 cars → BR 412, definitive. ICE 4 is the only DB ICE running 12/13-car. BR 408 is fixed 8-car. Catches XXL/macro/side angles directly.
+2. **Killed the BR 408 default.** Step 2 default flipped to BR 403 (original, most common pre-neo variant). BR 408 now only returned with positive ID (sharpest flat face OR visible "408 xxx" number). Removed "newest and most numerous" framing that was biasing the default.
+
+Pushed as `21f32cb`. Live on Render after auto-deploy.
+
 ### Backend — Polish EMU + ET22 fixes from pafawag.w.obiektywie feedback (`75f37cc`)
 
 Polish trainspotter `pafawag.w.obiektywie` (high-quality reporter, scans extensive Polish stock) reported five distinct misIDs/spec errors with screenshots. All fixed in one backend-only commit, auto-deploys via Render.
