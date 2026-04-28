@@ -266,6 +266,11 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       return;
     }
 
+    // Card v2 P0.4 — pull verification + raw provenance through to the
+    // HistoryItem and the Supabase row. currentVerification is null on
+    // older clients (no provenance sent) and on web (no EXIF access).
+    const v = state.currentVerification;
+
     const item: HistoryItem = {
       id: state.currentSpotId || Date.now().toString(),
       train: state.currentTrain,
@@ -277,6 +282,12 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       spottedAt: new Date().toISOString(),
       latitude: state.currentLocation?.latitude || null,
       longitude: state.currentLocation?.longitude || null,
+      captureSource: v?.captureSource,
+      exifTimestamp: v?.exifTimestamp,
+      verified: v?.verified,
+      verificationTier: v?.tier,
+      photoAccuracyM: v?.photoAccuracyM,
+      riskFlags: v?.riskFlags,
     };
 
     // Check for duplicates (same train spotted recently)
@@ -324,7 +335,9 @@ export const useTrainStore = create<TrainState>((set, get) => ({
           );
         }
 
-        // 3. Save the spot record
+        // 3. Save the spot record (Card v2 — provenance fields written
+        // when currentVerification is populated; otherwise fall back
+        // to migration-009 defaults).
         const spotId = await saveSpot({
           userId: auth.user.id,
           trainId,
@@ -337,6 +350,11 @@ export const useTrainStore = create<TrainState>((set, get) => ({
           confidence: state.currentTrain.confidence,
           latitude: state.currentLocation?.latitude,
           longitude: state.currentLocation?.longitude,
+          captureSource: v?.captureSource,
+          exifTimestamp: v?.exifTimestamp,
+          verified: v?.verified,
+          photoAccuracyM: v?.photoAccuracyM,
+          riskFlags: v?.riskFlags,
         });
 
         if (spotId) {

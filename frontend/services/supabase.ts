@@ -106,6 +106,15 @@ export async function saveSpot(params: {
   confidence: number;
   latitude?: number;
   longitude?: number;
+  // Card v2 provenance (migration 009 columns; live in production
+  // 2026-04-28). All optional — older code paths and pre-v1.0.21
+  // clients omit and the columns fall back to schema defaults
+  // (capture_source='gallery', verified=false, risk_flags='{}').
+  captureSource?: "camera" | "gallery";
+  exifTimestamp?: string | null;
+  verified?: boolean;
+  photoAccuracyM?: number | null;
+  riskFlags?: Record<string, boolean>;
 }): Promise<string | null> {
   // Check for first-ever spot of this train by this user
   let isFirstSpot = false;
@@ -119,18 +128,29 @@ export async function saveSpot(params: {
     isFirstSpot = (count ?? 0) === 0;
   }
 
+  // Build insert payload — only include Card v2 provenance fields
+  // when explicitly supplied. Omitting them lets Supabase apply the
+  // migration-009 defaults (capture_source='gallery', verified=false,
+  // risk_flags='{}'), which is what older clients/code paths want.
+  const insertPayload: Record<string, unknown> = {
+    user_id: params.userId,
+    train_id: params.trainId,
+    photo_url: params.photoUrl,
+    blueprint_url: params.blueprintUrl,
+    confidence: params.confidence,
+    latitude: params.latitude ?? null,
+    longitude: params.longitude ?? null,
+    is_first_spot: isFirstSpot,
+  };
+  if (params.captureSource) insertPayload.capture_source = params.captureSource;
+  if (params.exifTimestamp !== undefined) insertPayload.exif_timestamp = params.exifTimestamp;
+  if (params.verified !== undefined) insertPayload.verified = params.verified;
+  if (params.photoAccuracyM !== undefined) insertPayload.photo_accuracy_m = params.photoAccuracyM;
+  if (params.riskFlags) insertPayload.risk_flags = params.riskFlags;
+
   const { data, error } = await supabase
     .from("spots")
-    .insert({
-      user_id: params.userId,
-      train_id: params.trainId,
-      photo_url: params.photoUrl,
-      blueprint_url: params.blueprintUrl,
-      confidence: params.confidence,
-      latitude: params.latitude ?? null,
-      longitude: params.longitude ?? null,
-      is_first_spot: isFirstSpot,
-    })
+    .insert(insertPayload)
     .select("id")
     .single();
 
