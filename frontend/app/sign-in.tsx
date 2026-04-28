@@ -19,6 +19,7 @@ import {
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/authStore";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
@@ -32,6 +33,11 @@ const BLUE_GLOW = "rgba(0, 102, 255, 0.12)";
 
 export default function SignInScreen() {
   const { t } = useTranslation();
+  // mode=login → "Welcome back" copy; mode=signup or absent → "Create your account".
+  // Underlying OTP flow is identical in both — Supabase signInWithOtp with
+  // shouldCreateUser: true handles new + returning users seamlessly.
+  const { mode } = useLocalSearchParams<{ mode?: "login" | "signup" }>();
+  const isLoginMode = mode === "login";
   const [loading, setLoading] = useState<"email" | "otp" | null>(null);
   const [email, setEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -166,9 +172,13 @@ export default function SignInScreen() {
             </View>
 
             <Text style={styles.appName}>LocoSnap</Text>
-            <Text style={styles.tagline}>Snap. Identify. Collect.</Text>
+            <Text style={styles.tagline}>
+              {isLoginMode ? "Welcome back" : "Snap. Identify. Collect."}
+            </Text>
             <Text style={styles.subtitle}>
-              The trainspotter's Pokedex — identify any{"\n"}locomotive instantly with AI
+              {isLoginMode
+                ? "Sign in to your account to sync your collection across devices."
+                : "The trainspotter's Pokedex — identify any\nlocomotive instantly with AI"}
             </Text>
           </View>
 

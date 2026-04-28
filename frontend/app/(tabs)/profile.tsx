@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
+import * as Application from "expo-application";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
@@ -526,27 +527,34 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Sign in prompt (not signed in) */}
+        {/* Sign in / sign up — three-CTA pattern (Steph 2026-04-24).
+            Returning users land here as "Guest Spotter" after a reinstall
+            and need an explicit "Log In" path; new users need "Sign Up".
+            Both routes go to /sign-in (single OTP flow) but with different
+            mode params so the destination screen can show "Welcome back"
+            vs "Create your account" copy. */}
         {!user && (
-          <TouchableOpacity
-            style={styles.signInPrompt}
-            onPress={() => router.push("/sign-in")}
-          >
-            <Ionicons name="cloud-upload-outline" size={20} color={colors.accent} />
-            <View style={styles.upgradeBtnContent}>
-              <Text style={styles.signInPromptTitle}>
-                Create your free account
-              </Text>
-              <Text style={styles.signInPromptSubtitle}>
-                10 scans/month free • Cloud sync • Leaderboards • Streaks
-              </Text>
+          <>
+            <View style={styles.authCtaRow}>
+              <TouchableOpacity
+                style={[styles.authCtaBtn, styles.authCtaBtnPrimary]}
+                onPress={() => router.push("/sign-in?mode=login")}
+              >
+                <Ionicons name="log-in-outline" size={18} color={colors.accent} />
+                <Text style={styles.authCtaBtnTextPrimary}>Log In</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.authCtaBtn, styles.authCtaBtnSecondary]}
+                onPress={() => router.push("/sign-in?mode=signup")}
+              >
+                <Ionicons name="person-add-outline" size={18} color={colors.textPrimary} />
+                <Text style={styles.authCtaBtnTextSecondary}>Sign Up</Text>
+              </TouchableOpacity>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.textMuted}
-            />
-          </TouchableOpacity>
+            <Text style={styles.authCtaSubtitle}>
+              Cloud sync • Leaderboards • Streaks
+            </Text>
+          </>
         )}
 
         {/* Sign out (authenticated) */}
@@ -568,7 +576,9 @@ export default function ProfileScreen() {
 
       {/* ── App info ─────────────────────────────────────── */}
       <View style={styles.appInfo}>
-        <Text style={styles.appInfoText}>LocoSnap v1.0.0</Text>
+        <Text style={styles.appInfoText}>
+          LocoSnap v{Application.nativeApplicationVersion ?? "—"}
+        </Text>
         <Text style={styles.appInfoText}>AI-powered train identification</Text>
       </View>
     </ScrollView>
@@ -993,6 +1003,45 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     color: colors.textSecondary,
     marginTop: 2,
+  },
+  authCtaRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  authCtaBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+  },
+  authCtaBtnPrimary: {
+    backgroundColor: colors.surface,
+    borderColor: colors.accent,
+  },
+  authCtaBtnSecondary: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+  },
+  authCtaBtnTextPrimary: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
+    color: colors.accent,
+  },
+  authCtaBtnTextSecondary: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
+    color: colors.textPrimary,
+  },
+  authCtaSubtitle: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginBottom: spacing.md,
   },
   signOutBtn: {
     flexDirection: "row",
