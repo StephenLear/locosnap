@@ -553,6 +553,38 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "furness railway no 20": { maxSpeed: "25 mph", builder: "Sharp, Stewart & Co. (Manchester)", numberBuilt: 8, fuelType: "Coal (Steam)" },
   "furness no. 20": { maxSpeed: "25 mph", builder: "Sharp, Stewart & Co. (Manchester)", numberBuilt: 8, fuelType: "Coal (Steam)" },
   "furness no 20": { maxSpeed: "25 mph", builder: "Sharp, Stewart & Co. (Manchester)", numberBuilt: 8, fuelType: "Coal (Steam)" },
+  // Class 70 (GE PowerHaul) — GE Transportation 2009-10, 19 units (UK fleet
+  // built at GE Erie). Operators: Freightliner (initial), Colas Rail
+  // (current). Added 2026-04-28 after railforums tester (43096) reported
+  // a Class 70 scan returning specs of "Alstom Germany 2024" — wildly
+  // wrong on builder, country, and year. GE Transportation was acquired
+  // by Wabtec in 2019 so Alstom never built any Class 70. Lock the
+  // canonical specs across class-string variants.
+  "class 70": { maxSpeed: "75 mph", power: "2,750 kW", builder: "GE Transportation (Erie, PA)", numberBuilt: 19, fuelType: "Diesel-Electric" },
+  "br class 70": { maxSpeed: "75 mph", power: "2,750 kW", builder: "GE Transportation (Erie, PA)", numberBuilt: 19, fuelType: "Diesel-Electric" },
+  "br 70": { maxSpeed: "75 mph", power: "2,750 kW", builder: "GE Transportation (Erie, PA)", numberBuilt: 19, fuelType: "Diesel-Electric" },
+  "ge powerhaul": { maxSpeed: "75 mph", power: "2,750 kW", builder: "GE Transportation (Erie, PA)", numberBuilt: 19, fuelType: "Diesel-Electric" },
+  "powerhaul": { maxSpeed: "75 mph", power: "2,750 kW", builder: "GE Transportation (Erie, PA)", numberBuilt: 19, fuelType: "Diesel-Electric" },
+  // Class 455 (BR-built BREL York 1982-85) — Southern Region 4-car
+  // suburban EMU, 137 units (455/7, 455/8, 455/9 sub-classes). Long
+  // primary fleet on SWR Wessex Lines (Waterloo - SW London suburban).
+  // Withdrawal accelerating as Class 701 Aventra (Arterio) replaces
+  // them — by 2026 the fleet is mostly out of service, with a handful
+  // still active during the Aventra rollout completion. Added 2026-04-28
+  // after railforums tester (sad1e) reported a Class 455 misidentified
+  // as Class 456 (a different, smaller 2-car ABB-built sister class).
+  "class 455": { maxSpeed: "75 mph", power: "1,000 kW", builder: "BREL York", numberBuilt: 137, fuelType: "Electric (750 V DC third rail)" },
+  "br class 455": { maxSpeed: "75 mph", power: "1,000 kW", builder: "BREL York", numberBuilt: 137, fuelType: "Electric (750 V DC third rail)" },
+  "br 455": { maxSpeed: "75 mph", power: "1,000 kW", builder: "BREL York", numberBuilt: 137, fuelType: "Electric (750 V DC third rail)" },
+  // Class 456 — ABB Crewe 1990-91, 24 units, 2-car derivative of the
+  // Class 455 for Southern Region peak-hour augmentation. Originally
+  // Network SouthEast then Connex / Southern. Withdrawn from service
+  // by 2022, scrapped through 2023-24. The 456 is far rarer than the
+  // 455 and visually distinguishable mainly by length (2-car vs 4-car)
+  // and the ABB-style end gangway connection.
+  "class 456": { maxSpeed: "75 mph", power: "500 kW", builder: "ABB Crewe", numberBuilt: 24, fuelType: "Electric (750 V DC third rail)" },
+  "br class 456": { maxSpeed: "75 mph", power: "500 kW", builder: "ABB Crewe", numberBuilt: 24, fuelType: "Electric (750 V DC third rail)" },
+  "br 456": { maxSpeed: "75 mph", power: "500 kW", builder: "ABB Crewe", numberBuilt: 24, fuelType: "Electric (750 V DC third rail)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
