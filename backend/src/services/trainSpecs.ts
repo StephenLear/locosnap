@@ -585,6 +585,34 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "class 456": { maxSpeed: "75 mph", power: "500 kW", builder: "ABB Crewe", numberBuilt: 24, fuelType: "Electric (750 V DC third rail)" },
   "br class 456": { maxSpeed: "75 mph", power: "500 kW", builder: "ABB Crewe", numberBuilt: 24, fuelType: "Electric (750 V DC third rail)" },
   "br 456": { maxSpeed: "75 mph", power: "500 kW", builder: "ABB Crewe", numberBuilt: 24, fuelType: "Electric (750 V DC third rail)" },
+  // EN57 / EN57AL / EN57AKŁ — Polish state EMU, Pafawag 1962-1993,
+  // ~1,438 built — by far the most numerous Polish multiple unit ever.
+  // Hundreds still in active POLREGIO / Koleje Mazowieckie / Koleje
+  // Małopolskie / Łódzka Kolej Aglomeracyjna service in 2026, being
+  // gradually replaced by Newag Impuls and Pesa Elf 2. Max speed
+  // 110 km/h (NEVER 160 — that's a Pendolino Sm3 / Pesa Elf 2 figure
+  // that the model has been hallucinating). Power 544 kW continuous
+  // (variants exist with 568 kW). Added 2026-04-28 evening after
+  // Polish tester `pafawag.w.obiektywie` reported a POLREGIO red
+  // EN57 returning 160 km/h / 2,880 kW / "1 left" / Legendary tier
+  // — every spec was wrong by an order of magnitude.
+  "en57": { maxSpeed: "110 km/h", power: "544 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1438, fuelType: "Electric (3 kV DC)" },
+  "en57al": { maxSpeed: "110 km/h", power: "544 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1438, fuelType: "Electric (3 kV DC)" },
+  "en57aks": { maxSpeed: "110 km/h", power: "544 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1438, fuelType: "Electric (3 kV DC)" },
+  "en57akł": { maxSpeed: "110 km/h", power: "544 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1438, fuelType: "Electric (3 kV DC)" },
+  "en57ak": { maxSpeed: "110 km/h", power: "544 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1438, fuelType: "Electric (3 kV DC)" },
+  "en71": { maxSpeed: "110 km/h", power: "1,032 kW", builder: "Pafawag (Wrocław)", numberBuilt: 67, fuelType: "Electric (3 kV DC)" },
+  // ET22 — Polish heavy freight Co-Co electric, Pafawag 1969-1990,
+  // ~1,184 built (one of the most numerous Polish electric locos
+  // alongside the EN57). Max speed 125 km/h (NEVER 160 or 200 — it's
+  // a heavy freight workhorse, not a passenger express). Power
+  // 3,000 kW continuous. Operated by PKP Cargo (green/yellow), Lotos
+  // Kolej, CTL Logistics, and various private Polish freight
+  // operators. Added 2026-04-28 evening following same Polish tester
+  // report — ET22 max speed was wrong.
+  "et22": { maxSpeed: "125 km/h", power: "3,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1184, fuelType: "Electric (3 kV DC)" },
+  "et22-2000": { maxSpeed: "125 km/h", power: "3,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1184, fuelType: "Electric (3 kV DC)" },
+  "pkp et22": { maxSpeed: "125 km/h", power: "3,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1184, fuelType: "Electric (3 kV DC)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
