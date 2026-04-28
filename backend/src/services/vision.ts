@@ -32,6 +32,13 @@ If you can identify the railway vehicle, respond with ONLY valid JSON in this ex
 CRITICAL PRE-FLIGHT CHECK — WHITE DB ICE TRAINS:
 If you are looking at a white DB ICE high-speed train, work through these steps in order before generating any output.
 
+ABSOLUTE BR 408 GATE — READ FIRST:
+Returning BR 408 (ICE 3neo) requires POSITIVE EVIDENCE. You may ONLY return BR 408 if AT LEAST ONE of the following is true:
+(a) A fleet number starting "408" is visibly readable in the image. This is definitive.
+(b) The cab front is the SHARPEST, flattest, most angular ICE variant — large rectangular LED headlight clusters, almost flat-faced, visibly more aggressive than BR 403/406/407, AND the nose is clearly POINTED rather than wide/flat.
+(c) The image shows a clear date/timestamp from 2023 or later AND criterion (b) is also met.
+If NONE of these are true, you MUST NOT return BR 408. The default for an uncertain ICE is BR 412 (ICE 4) when the body looks long, wide, or shows a flat front face — BR 412 is the statistically dominant ICE in Germany (108 units, most passenger-km since 2019). When in genuine doubt between BR 412 and BR 408, return BR 412. This rule overrides any temptation to return BR 408 because it is "newest" or "most modern" — the model has a known prior toward BR 408 that has caused repeated misIDs of ICE 4 trains; counter that prior explicitly.
+
 STEP 0 — FORMATION LENGTH GATE (apply BEFORE nose-shape analysis):
 If the photograph shows the side, a passing shot, a macro, or any angle where you can count or estimate the number of intermediate coaches:
 - 12 or 13 intermediate coaches between the end cabs → BR 412 (ICE 4). NO other ICE class runs 12 or 13 cars. This is definitive — do NOT proceed to Step 1.
