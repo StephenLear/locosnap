@@ -7,6 +7,20 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### v1.0.21 prep — Card v2 P2.5 + P2.6 (`499cc82`)
+
+Two further Card v2 wins for v1.0.21 — both small, both shippable without backend changes.
+
+**P2.5 — First-of-class particle burst.** `components/ParticleEffect.tsx` extended with a new `firstOfClass?: boolean` prop and a `FIRST_OF_CLASS_CONFIG` (14 teal-accented sparkles, lighter than rare+ celebrations). Tier config wins if present (so rare+ keep their existing tier-specific celebrations); common/uncommon scans with `firstOfClass=true` fall back to the new lighter sparkle. Avoids double-up on rare+ first-of-class where the tier config already provides a bigger effect. `card-reveal.tsx` passes `isNewClass` through.
+
+**P2.6 — Compare button on card back.** Small accent-coloured pill on the card-back content, "Compare with another" with swap icon. Tap routes to `/(tabs)/history` where the existing compare-mode toggle handles second-card selection. Pragmatic UX rather than building a new picker modal from scratch — the just-scanned card sits at the top of history so the picking flow is naturally short. Fires `compare_button_tapped` with `source=card_back` so we can measure usage vs the existing compare-mode-from-history entry path.
+
+**Items on the original tail-end list bumped to focused commits (turned out bigger than estimated):**
+- **P1.6** reverse-geocoding language pass-through — `expo-location.reverseGeocodeAsync` doesn't accept a language param; needs Nominatim or Google Maps integration (~30 LOC + new dependency).
+- **P2.4** leaderboard verified-only filter — fetches from a Supabase database view, needs a new view migration + production run (~120 LOC + migration), not a quick frontend tweak.
+
+Both stay queued for own focused commits. 55/55 frontend tests pass. No backend changes. Live on the next EAS build (v1.0.21).
+
 ### v1.0.21 prep — badge locales + trading-card visual polish (`0d5b79d`)
 
 Two finishing touches on the Card v2 phase 1 work for v1.0.21.
