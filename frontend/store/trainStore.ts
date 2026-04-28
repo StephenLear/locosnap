@@ -41,6 +41,7 @@ import {
   checkAndUnlockAchievements,
   fetchAchievements,
   AchievementType,
+  deleteSpot,
 } from "../services/supabase";
 import { useAuthStore } from "./authStore";
 import { RarityTier, ACHIEVEMENT_DEFINITIONS } from "../types";
@@ -449,6 +450,25 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
     } catch {
       console.warn("Failed to update history");
+    }
+
+    // Cloud sync: delete from Supabase too. Without this, on app
+    // restart `loadHistory` would call `fetchSpots` and pull the row
+    // back, making deletion appear ineffective. Reported by Toastbrot82
+    // 2026-04-28: "Ich hab ein Zug gelöscht ... wieder da" after a
+    // close-and-reopen cycle. id format: Supabase UUID for synced
+    // spots, fallback Date.now() string for unsynced local-only spots
+    // (skip the delete call for those — they have no cloud row).
+    const auth = useAuthStore.getState();
+    if (auth.user && id && id.length >= 32) {
+      try {
+        await deleteSpot(id);
+      } catch (err) {
+        console.warn("Failed to delete spot from Supabase:", err);
+        // Local deletion stays — user-side history is correct.
+        // The cloud row will resurface on next loadHistory but we
+        // surfaced the error.
+      }
     }
   },
 
