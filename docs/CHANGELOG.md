@@ -7,6 +7,19 @@ Format: newest first within each date block.
 
 ## 2026-04-28
 
+### Backend — Polish EMU + ET22 fixes from pafawag.w.obiektywie feedback (`75f37cc`)
+
+Polish trainspotter `pafawag.w.obiektywie` (high-quality reporter, scans extensive Polish stock) reported five distinct misIDs/spec errors with screenshots. All fixed in one backend-only commit, auto-deploys via Render.
+
+1. **EN57 family spec override** — `en57` / `en57al` / `en57aks` / `en57akł` / `en57ak` / `en71` lookup keys all locked: 110 km/h / 544 kW / Pafawag (Wrocław) / 1,438 built / Electric (3 kV DC). Original scan returned 160 km/h / 2,880 kW / "1 left" — every spec wrong by an order of magnitude.
+2. **ET22 spec override** (3 lookup keys) — 125 km/h / 3,000 kW / Pafawag / 1,184 built. Existing 120 km/h figure replaced.
+3. **EN57 rarity rule** in `rarity.ts` — classify as `common`, NEVER rare/epic/legendary. Forbid "1 left", "few remaining", "extinct", "near-extinct" framing. Reason field must reflect ~1,438 built and hundreds still active across POLREGIO / KM / KMŁ / ŁKA. EN71 → `uncommon`.
+4. **ET22 rarity rule** — `common` (workhorse on virtually every Polish freight working), max 125 km/h not 160.
+5. **Vision rule: Polish EMU manufacturer disambiguation** — EN57 (boxy 1960s articulated, two flat windscreen panes) vs Newag Impuls (modern smooth-front 2010s+) vs Pesa Elf 2 (Pesa house cab) vs Stadler FLIRT 3 PL (forward-angled "smiling" windscreen). Prevents collapsing all modern Polish EMUs into "Newag Impuls 36WEa". Specifically: ŁKA primarily operates Stadler FLIRT 3 PL, NOT Newag Impuls; SKPL operates Pesa Elf 2, NOT Newag.
+6. **Vision rule: Polish operator livery disambiguation** — yellow body = Koleje Małopolskie (KMŁ), NEVER Koleje Mazowieckie. Red+yellow stripe = Koleje Mazowieckie. Red+grey+yellow EN57 = POLREGIO. Silver/grey FLIRT 3 PL = ŁKA. Closes the most-corrected misID pattern (an EN57AL in KMŁ yellow was returning Mazowieckie — different region entirely).
+
+113/113 backend tests pass. Pushed as `75f37cc`. Live on Render after auto-deploy.
+
 ### v1.0.21 prep — Card v2 P2.5 + P2.6 (`499cc82`)
 
 Two further Card v2 wins for v1.0.21 — both small, both shippable without backend changes.
