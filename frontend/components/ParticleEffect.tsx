@@ -29,6 +29,21 @@ interface ParticleConfig {
   shapes: ("circle" | "square" | "diamond")[];
 }
 
+// Card v2 P2.5 — first-of-class burst. Lighter, teal-accented sparkle
+// used when isNewClass is true on a common/uncommon tier (which would
+// otherwise produce no particle effect). Rare+ tiers keep their existing
+// tier-specific configs — a first-of-class rare/epic/legendary already
+// has its own bigger celebration so no double-up.
+const FIRST_OF_CLASS_CONFIG: ParticleConfig = {
+  count: 14,
+  colors: ["#00D4AA", "#5eead4", "#a7f3d0", "#fff"],
+  size: [3, 6],
+  duration: [900, 1500],
+  spread: 0.85,
+  gravity: 0.35,
+  shapes: ["circle", "diamond"],
+};
+
 const PARTICLE_CONFIGS: Partial<Record<RarityTier, ParticleConfig>> = {
   rare: {
     count: 20,
@@ -143,16 +158,20 @@ function ParticleView({ particle }: { particle: ParticleData }) {
 export default function ParticleEffect({
   tier,
   trigger,
+  firstOfClass = false,
 }: {
   tier: RarityTier;
   trigger: boolean; // set to true to fire
+  firstOfClass?: boolean; // Card v2 P2.5 — fire on first-of-class even at common/uncommon
 }) {
-  const config = PARTICLE_CONFIGS[tier];
-  if (!config) return null; // common/uncommon = no particles
+  // Tier config wins if present; otherwise fall back to the lighter
+  // first-of-class config when the user is bagging a new class.
+  const config = PARTICLE_CONFIGS[tier] ?? (firstOfClass ? FIRST_OF_CLASS_CONFIG : null);
+  if (!config) return null;
 
   const particles = useMemo(
     () => Array.from({ length: config.count }, (_, i) => createParticle(config, i)),
-    [tier]
+    [tier, firstOfClass]
   );
 
   const hasAnimated = useRef(false);

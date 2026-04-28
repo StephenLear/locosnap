@@ -405,7 +405,11 @@ export default function CardRevealScreen() {
       </TouchableOpacity>
 
       {/* Particle effects for Rare+ */}
-      <ParticleEffect tier={currentRarity.tier} trigger={revealComplete} />
+      <ParticleEffect
+        tier={currentRarity.tier}
+        trigger={revealComplete}
+        firstOfClass={isNewClass}
+      />
 
       {/* Rarity tier announcement */}
       {revealComplete && (
@@ -712,6 +716,25 @@ export default function CardRevealScreen() {
                   </View>
                 )}
 
+                {/* Card v2 P2.6 — Compare button.
+                    Navigates to the history tab where the user can use
+                    the existing compare-mode toggle to pick a second
+                    card. The just-scanned card sits at the top of
+                    history so the picking flow is short. */}
+                <TouchableOpacity
+                  style={styles.cardCompareBtn}
+                  onPress={() => {
+                    track("compare_button_tapped", { source: "card_back" });
+                    router.push("/(tabs)/history");
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="swap-horizontal" size={14} color={colors.accent} />
+                  <Text style={styles.cardCompareBtnText}>
+                    Compare with another
+                  </Text>
+                </TouchableOpacity>
+
                 {/* LocoSnap branding */}
                 <View style={styles.cardBranding}>
                   <Text style={styles.cardBrandingText}>LocoSnap</Text>
@@ -1012,6 +1035,23 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     color: colors.textSecondary,
     fontWeight: fonts.weights.medium,
+  },
+  cardCompareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  cardCompareBtnText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.semibold,
+    color: colors.accent,
   },
   cardBranding: {
     position: "absolute",
