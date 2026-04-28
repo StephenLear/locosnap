@@ -527,6 +527,32 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "db class 155": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "dr 250": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "dr baureihe 250": { maxSpeed: "125 km/h", power: "5,400 kW", weight: "123 tonnes", builder: "LEW Hennigsdorf", numberBuilt: 273, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // LNER J94 / WD Austerity 0-6-0ST — Hunslet Engine Co. design 1943, built
+  // 1943-1945 by Hunslet, Hudswell Clarke, Andrew Barclay, W.G. Bagnall,
+  // Robert Stephenson & Hawthorns, and Vulcan Foundry. ~377 built for the War
+  // Department. LNER bought 75 post-war and classified them J94 with BR
+  // numbers 68006-68080. Many preserved on UK heritage railways (Severn Valley,
+  // GCR, Mid-Hants, Bluebell, etc.). Saddle-tank shunter. Added 2026-04-28
+  // after a tester reported BR 68067 'Robert' (Hudswell Clarke 1752) being
+  // misidentified as LNER J72.
+  "lner j94": { maxSpeed: "30 mph", power: "498 kW", builder: "Hunslet Engine Co. (and Hudswell Clarke / Andrew Barclay / W.G. Bagnall / Robert Stephenson & Hawthorns / Vulcan Foundry)", numberBuilt: 377, fuelType: "Coal (Steam)" },
+  "j94": { maxSpeed: "30 mph", power: "498 kW", builder: "Hunslet Engine Co. (and Hudswell Clarke / Andrew Barclay / W.G. Bagnall / Robert Stephenson & Hawthorns / Vulcan Foundry)", numberBuilt: 377, fuelType: "Coal (Steam)" },
+  "wd austerity": { maxSpeed: "30 mph", power: "498 kW", builder: "Hunslet Engine Co. (and Hudswell Clarke / Andrew Barclay / W.G. Bagnall / Robert Stephenson & Hawthorns / Vulcan Foundry)", numberBuilt: 377, fuelType: "Coal (Steam)" },
+  "austerity 0-6-0st": { maxSpeed: "30 mph", power: "498 kW", builder: "Hunslet Engine Co. (and Hudswell Clarke / Andrew Barclay / W.G. Bagnall / Robert Stephenson & Hawthorns / Vulcan Foundry)", numberBuilt: 377, fuelType: "Coal (Steam)" },
+  "hunslet austerity": { maxSpeed: "30 mph", power: "498 kW", builder: "Hunslet Engine Co. (and Hudswell Clarke / Andrew Barclay / W.G. Bagnall / Robert Stephenson & Hawthorns / Vulcan Foundry)", numberBuilt: 377, fuelType: "Coal (Steam)" },
+  // Furness Railway No. 20 (FR20) — Sharp, Stewart & Co. of Manchester 1863,
+  // works no. 1448. 0-4-0 standard-gauge tender locomotive. Oldest operational
+  // standard-gauge steam locomotive in the UK as of 2026. Sole survivor of a
+  // batch of 8 originally built for the Furness Railway. Currently based at
+  // Locomotion (Shildon) / Furness Railway Trust; visits heritage railways as
+  // a guest. Added 2026-04-28 after a tester reported FR20 being misidentified
+  // as Terrier A1X.
+  "fr 20": { maxSpeed: "25 mph", builder: "Sharp, Stewart & Co. (Manchester)", numberBuilt: 8, fuelType: "Coal (Steam)" },
+  "fr20": { maxSpeed: "25 mph", builder: "Sharp, Stewart & Co. (Manchester)", numberBuilt: 8, fuelType: "Coal (Steam)" },
+  "furness railway no. 20": { maxSpeed: "25 mph", builder: "Sharp, Stewart & Co. (Manchester)", numberBuilt: 8, fuelType: "Coal (Steam)" },
+  "furness railway no 20": { maxSpeed: "25 mph", builder: "Sharp, Stewart & Co. (Manchester)", numberBuilt: 8, fuelType: "Coal (Steam)" },
+  "furness no. 20": { maxSpeed: "25 mph", builder: "Sharp, Stewart & Co. (Manchester)", numberBuilt: 8, fuelType: "Coal (Steam)" },
+  "furness no 20": { maxSpeed: "25 mph", builder: "Sharp, Stewart & Co. (Manchester)", numberBuilt: 8, fuelType: "Coal (Steam)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {

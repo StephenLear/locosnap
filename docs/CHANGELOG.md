@@ -5,6 +5,57 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-28
+
+### Backend — four new vision rules covering tester misidentification reports
+
+Four targeted vision-rule additions in `backend/src/services/vision.ts` and matching spec overrides in `backend/src/services/trainSpecs.ts`. Each rule was driven by a specific tester-reported misidentification with a confirmed source photo (one pulled from Supabase, three from the desktop `feedback/` folder).
+
+**Bug 1 — Bombardier/Alstom TRAXX MS3 (BR 187/188) misidentified as Siemens Vectron BR 193 on RegioJet POL.** Source photo pulled from Supabase via the anon REST API (`spots.id 2a5ab0c8-94fb-4d2f-a2d3-41990160a10d`, user `8f7c4d54-...`, photo `1777355306751.jpg`). The orange "ll RegioJet POL" loco was returned as "Siemens Vectron AC (BR 193)" but is unambiguously a TRAXX MS3 — sloped/raked sculpted nose, horizontal black band across the upper cab roofline, angular asymmetric LED clusters in sculpted recesses. Vision rule now distinguishes TRAXX MS3 (sloped sculpted cab + horizontal black roof strip + angular LED clusters) from Vectron BR 193 (flat upright cab + plain roofline + rectangular vertical headlight strips). Includes a statistical note that RegioJet operates BOTH families and livery alone is insufficient.
+
+**Bug 2 — Hamburger Hochbahn DT4 misidentified as DT5.** Reporter `thehvvchannel` (Hamburg HVV expert) flagged a unit returned as "DT5 (Baureihe 5)" that is plainly a DT4 — rectangular cab front with two separate windscreen panes divided by a vertical pillar, four-section formation, fleet number 134 (101–187 range = DT4). Vision rule now sets the discriminator: two-pane flat windscreen + four sections = DT4; one-piece curved wraparound windscreen + full-width LED strip + three sections = DT5. Includes statistical default rule preventing automatic DT5 lean on white/red HVV livery freshness.
+
+**Bug 3 — LNER J94 / WD Austerity 0-6-0ST misidentified as LNER J72.** Reporter Steph (UK heritage tester) scanned BR 68067 'Robert' (Hudswell Clarke works no. 1752, ex-WD 75091) at the Mid-Hants Watercress steam gala — guest engine from Great Central Railway. Front of the result card returned "LNER J72" while the back of the card correctly described the loco as a Hudswell Clarke Austerity 68067 — the front class and back description disagreed within the same scan. Vision rule now hard-disambiguates the saddle-tank silhouette (single curved tank wrapping over the boiler = J94) from the side-tank silhouette (two flat rectangular tanks alongside the boiler with the boiler top exposed = J72). Includes the BR 68006–68080 fleet-number anchor, a rule against returning "Hudswell Clarke Works No. 1752" as the class string (must be "LNER J94" or "WD Austerity"), and a gala-context note that 68067 'Robert' is GCR-based and visits other heritage railways. Spec override added for `lner j94` / `j94` / `wd austerity` / `austerity 0-6-0st` / `hunslet austerity`: max 30 mph, ~498 kW, builder list (Hunslet + Hudswell Clarke + Andrew Barclay + W.G. Bagnall + RSH + Vulcan), 377 built, Coal/Steam.
+
+**Bug 4 — Furness Railway No. 20 (FR20) misidentified as LBSCR Terrier A1X.** Same reporter (Steph), Watercress visit. Source photo shows a 0-4-0 standard-gauge tender locomotive in Indian-red Furness livery with copper-capped chimney and brass dome — built by Sharp, Stewart & Co. of Manchester in 1863 (works no. 1448), the oldest operational standard-gauge UK steam locomotive. The app returned "Terrier A1X — Isle of Wight Steam Railway", which is impossible: Terriers are 0-6-0 tank engines with no tender, FR20 is a 0-4-0 with a separate four-wheel tender. Vision rule now sets a HARD EXCLUSION: any steam locomotive with a separate tender behind it cannot be a Terrier A1/A1X (Terriers are tank engines, full stop). HARD POSITIVE: small Victorian standard-gauge 0-4-0 + separate tender + Indian-red Furness livery + copper chimney cap + brass dome → Furness Railway No. 20. Spec override added for `fr 20` / `fr20` / `furness railway no. 20` (and variants): max 25 mph, builder Sharp Stewart & Co. (Manchester), 8 built, Coal/Steam.
+
+**Verification:** `npm run build` clean, `npm test` passes 113/113. The vision and spec layers compile as TypeScript and all existing test suites still pass.
+
+**Not yet deployed — needs a push to go live on Render.**
+
+---
+
+## 2026-04-27
+
+### Infrastructure — RevenueCat Android wiring completed (Play Store paywall now live)
+
+LocoSnap is live on Google Play (v1.0.20 versionCode 10 approved 2026-04-27 at 100% rollout). With the production app live, the RevenueCat dashboard needed its Android-side product/entitlement/offering wiring finished — earlier configuration only had the iOS App Store products attached. Without this step, any Android user hitting the paywall would see no Play products in the offering, and a successful Play purchase would not have granted the `pro` entitlement that `frontend/services/purchases.ts` checks for.
+
+**State before:**
+- 5 Play products imported into RC (`pro_monthly:monthly`, `pro_annual:annual`, `blueprint_1_credit`, `blueprint_5_credits`, `blueprint_10_credits`).
+- `pro` entitlement had `pro_monthly` and `pro_annual` attached for App Store, plus `pro_annual:annual` for Play Store, plus three harmless Test Store placeholders (`monthly`, `yearly`, `lifetime`) from initial RC setup.
+- `default` offering's `$rc_annual` package had both stores attached. `$rc_monthly` package had **only the App Store product** attached, with the Play Store dropdown reading "No product".
+- `blueprint_credits` offering had **all three packages with App Store products only**, no Play attachments.
+
+**Changes made via RC dashboard:**
+1. `pro` entitlement — attached `pro_monthly:monthly` (Play Store) alongside the existing `pro_monthly` (App Store) and `pro_annual:annual` (Play Store) and `pro_annual` (App Store).
+2. `default` offering → `$rc_monthly` package — attached `pro_monthly:monthly` (Play Store) alongside `pro_monthly` (App Store). The previous backwards-compatibility warning about Android SDK v6+ is harmless because `react-native-purchases` is on v9.9.0 (well above v6 — verified in `frontend/package.json`).
+3. `blueprint_credits` offering — attached `blueprint_10_credits`, `blueprint_5_credits`, and `blueprint_1_credit` Play Store products to their respective packages.
+4. `$rc_lifetime` package left intentionally empty (LocoSnap does not sell a lifetime tier).
+5. Three Test Store placeholder products on the `pro` entitlement (`monthly`, `yearly`, `lifetime`) — left attached. Detach dialog warned "Production purchases use this entitlement" and required typing `pro` to confirm; user opted not to proceed since Test Store products are sandbox-only and inert.
+
+**Verification path:** when an Android v1.0.20 user hits the paywall, `Purchases.getOfferings()` will now return non-empty Play product entries for the `default` and `blueprint_credits` offerings; on successful purchase of `pro_monthly:monthly` or `pro_annual:annual`, RC will grant the `pro` entitlement that `purchases.ts:23` checks against; consumable credit purchases via `purchasePackage()` on the `blueprint_credits` offering will fire correctly.
+
+### Docs — `docs/ARCHITECTURE.md` Section 7 expanded with full RC product/offering wiring
+
+Added explicit product/offering wiring detail to Section 7 (Monetisation — RevenueCat) covering: entitlement identifier (`pro`), SDK version (`react-native-purchases` v9.9.0), and the per-package store attachments for both `default` and `blueprint_credits` offerings. The rule "if a new session reads only `docs/ARCHITECTURE.md`, it should have a complete and accurate picture of the system" now holds for the monetisation surface — previously a future session would have known only that the entitlement was named `Pro`, with no visibility into which products were attached or how the iOS/Android offering structure differed.
+
+### Content — First public Google Play review (German, beta tester) replied to
+
+First public review on the Play Store listing — originally written in German, content emphasised the Pokémon Go comparison and the rapid-iteration shipping pattern. Reply posted in German via Play Console → Quality → Reviews. Memory updated in `project_tester_feedback.md` with the full review text and a flag noting the Pokémon Go framing should be reused in future ad copy / store description tweaks. The review confirms the DE market focus (Germany #1 in `apple_stats.md`) is producing word-of-mouth in the right language.
+
+---
+
 ## 2026-04-26
 
 ### Backend — BR 155 rarity rule (East German lock + tier anchor)
