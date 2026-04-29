@@ -10,14 +10,9 @@ import { config } from "../config/env";
 import { TrainIdentification, TrainSpecs, RarityInfo, RarityTier } from "../types";
 import { getLanguageInstruction } from "../config/languageInstructions";
 
-const RARITY_PROMPT = (train: TrainIdentification, specs: TrainSpecs, language: string = "en") =>
-  `${getLanguageInstruction(language)}You are a trainspotting rarity expert. Classify the rarity of spotting a ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
-
-Known specs:
-- Number built: ${specs.numberBuilt ?? "unknown"}
-- Number surviving: ${specs.numberSurviving ?? "unknown"}
-- Status: ${specs.status ?? "unknown"}
-- Year built: ${train.yearBuilt ?? "unknown"}
+// Static instruction block — cacheable via Anthropic prompt caching.
+// MUST NOT contain any per-call interpolation. Per-train context goes in the user message.
+const RARITY_SYSTEM_PROMPT = `You are a trainspotting rarity expert. Classify the rarity of spotting the train identified in the user message.
 
 Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 {
@@ -58,6 +53,16 @@ Rules:
 - **Polish EN57 family rarity (originally added 2026-04-28, REVISED 2026-04-29 after pafawag.w.obiektywie round-2 + round-3 corrections):** EN57 / EN57AL / EN57AKŁ / EN57AKS / EN57AK / EN57ALd was by FAR the most numerous Polish EMU ever built — **1,438 units produced 1962–1993 by Pafawag (Wrocław)** — but the **active fleet has been heavily reduced**. Per pafawag's correction (verified against ilostan.forumkolejowe.pl): only approximately **60 EN57 units remain in active service** in 2026 out of the original 1,438 — that is about **4% surviving in service**. This is no longer a "common" classification. Classify EN57 and all sub-variants (AL / AKŁ / AKS / AK / ALd / etc.) as **"uncommon"** by default. If the specific photographed unit is in original Pafawag livery (red+grey+yellow) or in an unmodernised state, lean toward **"rare"**. Modernised variants (AL / ALd / AKŁ / AKS) are still uncommon — the survivor count is the dominant rarity factor. ABSOLUTELY **NEVER "legendary"** for any EN57 family member. NEVER "common" — the round-1 "common" classification was based on the 1,438 production figure without accounting for withdrawals; round-2 evidence corrects this. The "reason" field MUST reflect (a) ~1,438 units built — Poland's most numerous historical EMU class, (b) only ~60 in active service in 2026 (~4% surviving), (c) being gradually replaced by Newag Impuls and Pesa Elf 2 — replacement is well underway with most of the fleet already withdrawn. Never describe EN57 as "extinct", "near-extinct", "1 left", "few remaining" (overshooting in the rare direction also flagged by Polish trainspotters), or as "common" / "everyday" / "ubiquitous" (the round-1 framing — Polish testers will flag it). **EN71** is a closely related 4-car derivative (~67 units built); classify as "uncommon". **EN57ALd** specifically is the deep-modernisation variant — operated by POLREGIO; rarity stays "uncommon" or "rare" — never legendary.
 - **Polish ET22 rarity:** PKP Co-Co heavy freight electric, ~1,184 units built 1969–1990 by Pafawag — one of the most numerous Polish electric locomotives ever, alongside the EN57. Still extensively operated by PKP Cargo, Lotos Kolej, CTL Logistics, and various private Polish freight operators across the entire Polish electrified network in 2026. Classify as **"common"** — encountered on virtually every Polish freight workings. Do NOT classify as "rare", "epic", or "legendary". Reason field must reflect (a) ~1,184 units built — Poland's most numerous freight electric, (b) Co-Co heavy freight workhorse still in daily service, (c) max 125 km/h (NEVER 160 — it's a freight loco, not a passenger express).`;
 
+// Per-call dynamic message — small, varies per request, NOT cached.
+const buildRarityUserMessage = (train: TrainIdentification, specs: TrainSpecs, language: string = "en") =>
+  `${getLanguageInstruction(language)}Train to classify: ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
+
+Known specs:
+- Number built: ${specs.numberBuilt ?? "unknown"}
+- Number surviving: ${specs.numberSurviving ?? "unknown"}
+- Status: ${specs.status ?? "unknown"}
+- Year built: ${train.yearBuilt ?? "unknown"}`;
+
 const FALLBACK_RARITY: RarityInfo = {
   tier: "common",
   reason: "Unable to classify rarity.",
@@ -96,7 +101,7 @@ export async function classifyRarity(
   language: string = "en"
 ): Promise<RarityInfo> {
   try {
-    const prompt = RARITY_PROMPT(train, specs, language);
+    const userMessage = buildRarityUserMessage(train, specs, language);
 
     if (config.hasAnthropic) {
       console.log("[RARITY] Using Claude (Anthropic)");
@@ -105,7 +110,14 @@ export async function classifyRarity(
         model: "claude-haiku-4-5-20251001",
         max_tokens: 512,
         temperature: 0,
-        messages: [{ role: "user", content: prompt }],
+        system: [
+          {
+            type: "text",
+            text: RARITY_SYSTEM_PROMPT,
+            cache_control: { type: "ephemeral" },
+          },
+        ],
+        messages: [{ role: "user", content: userMessage }],
       });
       const content = response.content[0];
       if (content.type !== "text") return FALLBACK_RARITY;
@@ -120,7 +132,10 @@ export async function classifyRarity(
           model: "gpt-4o",
           max_tokens: 512,
           temperature: 0,
-          messages: [{ role: "user", content: prompt }],
+          messages: [
+            { role: "system", content: RARITY_SYSTEM_PROMPT },
+            { role: "user", content: userMessage },
+          ],
         },
         {
           headers: {

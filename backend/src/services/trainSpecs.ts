@@ -15,8 +15,9 @@ import { TrainIdentification, TrainSpecs } from "../types";
 import { getWikidataSpecs } from "./wikidataSpecs";
 import { getLanguageInstruction } from "../config/languageInstructions";
 
-const SPECS_PROMPT = (train: TrainIdentification, language: string = "en") =>
-  `${getLanguageInstruction(language)}You are a railway engineering reference database with deep knowledge of UK, European, Scandinavian, Japanese, and North American rolling stock. Provide technical specifications for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
+// Static instruction block — cacheable via Anthropic prompt caching.
+// MUST NOT contain any per-call interpolation. Per-train context goes in the user message.
+const SPECS_SYSTEM_PROMPT = `You are a railway engineering reference database with deep knowledge of UK, European, Scandinavian, Japanese, and North American rolling stock. Provide technical specifications for the train identified in the user message.
 
 Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 {
@@ -121,6 +122,10 @@ Rules:
   maxSpeed "75 mph (120 km/h)", power "3,200 hp (2,386 kW)", weight "127 tonnes", length "21.34 m", builder "Progress Rail Services UK (Longport, Stoke-on-Trent)", numberBuilt 16, status "In service (active fleet, all units operational with GBRf)", fuelType "Diesel-electric (EMD 710G3B-T2)", gauge "Standard (1,435 mm)", route "GBRf heavy freight across the UK network — aggregates, infrastructure, intermodal"
   Co-Co heavy-freight diesel-electric rebuilt by Progress Rail Services UK (a Caterpillar subsidiary) at the Longport works in Stoke-on-Trent, Staffordshire from withdrawn Class 56 locomotives that GB Railfreight purchased and donated to the rebuild programme. New EMD 710G3B-T2 prime mover (the same engine family that powers Class 66) replaces the original Ruston-Paxman 16RK3CT engine; modern AC traction-control electronics, refurbished Class 56 bodyshell. First unit (69001) unveiled June 2021, fleet numbers extended through 69016 as further rebuilds completed. Multiple special liveries on the fleet including the British Transport Police themed yellow-and-black chequered scheme (very distinctive high-vis livery), war/military commemorative liveries, and named-loco commemorative paintwork — alongside the standard GBRf blue/orange. CRITICAL FACTS the AI must never contradict: (a) builder is "Progress Rail Services UK" (often written "Progress Rail" or "Progress Rail UK") — NEVER "Brush Traffic", NEVER "BREL", NEVER "EMD" alone (Progress Rail is the Caterpillar subsidiary that owns EMD), NEVER "English Electric"; (b) numberBuilt is 16 — NEVER more, this is a small fleet; (c) operator is "GB Railfreight" or "GBRf" — NEVER "Colas Rail", NEVER "DRS", NEVER "Freightliner", NEVER "DB Cargo UK", NEVER "Network Rail"; (d) max speed is 75 mph (120 km/h) — NEVER 90 mph (90 mph is the Class 37 freight rating); (e) power is 3,200 hp (2,386 kW) — NEVER 1,750 hp (1,750 hp is Class 37); (f) wheel arrangement is Co-Co (six axles); (g) the class is a 2020s-era REBUILD, not an original 1960s/70s loco — first into service 2021. Distinct from Class 37 (1960s English Electric type 3, completely different rounded "tractor" body, 1,750 hp), Class 56 (1976–1984 original Brush/BREL build, ostensibly the same body but with the original Ruston engine — most have been withdrawn or rebuilt to Class 69), Class 60 (1989–1993 Brush flat-front 6-axle freight, different cab profile and engine), and Class 66 (1998+ EMD/Progress Rail with sloped angular cab, completely different silhouette).`;
 
+// Per-call dynamic message — small, varies per request, NOT cached.
+const buildSpecsUserMessage = (train: TrainIdentification, language: string = "en") =>
+  `${getLanguageInstruction(language)}Train to look up: ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).`;
+
 const FALLBACK_SPECS: TrainSpecs = {
   maxSpeed: null,
   power: null,
@@ -170,7 +175,7 @@ function parseSpecsResponse(text: string): TrainSpecs {
 }
 
 async function getAISpecs(train: TrainIdentification, language: string = "en"): Promise<TrainSpecs> {
-  const prompt = SPECS_PROMPT(train, language);
+  const userMessage = buildSpecsUserMessage(train, language);
 
   if (config.hasAnthropic) {
     console.log("[SPECS] Using Claude (Anthropic)");
@@ -179,7 +184,14 @@ async function getAISpecs(train: TrainIdentification, language: string = "en"): 
       model: "claude-haiku-4-5-20251001",
       max_tokens: 1024,
       temperature: 0,
-      messages: [{ role: "user", content: prompt }],
+      system: [
+        {
+          type: "text",
+          text: SPECS_SYSTEM_PROMPT,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMessage }],
     });
     const content = response.content[0];
     if (content.type !== "text") return FALLBACK_SPECS;
@@ -194,7 +206,10 @@ async function getAISpecs(train: TrainIdentification, language: string = "en"): 
         model: "gpt-4o",
         max_tokens: 1024,
         temperature: 0,
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          { role: "system", content: SPECS_SYSTEM_PROMPT },
+          { role: "user", content: userMessage },
+        ],
       },
       {
         headers: {

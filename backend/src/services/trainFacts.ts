@@ -11,9 +11,10 @@ import { TrainIdentification, TrainFacts } from "../types";
 import { getWikidataSpecs } from "./wikidataSpecs";
 import { getLanguageInstruction } from "../config/languageInstructions";
 
-const FACTS_PROMPT = (train: TrainIdentification, verifiedYear?: string, language: string = "en") =>
-  `${getLanguageInstruction(language)}You are a railway historian and trainspotting enthusiast. Provide fascinating facts and history for the ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).
-${verifiedYear ? `\nVERIFIED FACT — use this exactly, do not contradict it: This class entered service in ${verifiedYear}.\n` : ""}
+// Static instruction block — cacheable via Anthropic prompt caching.
+// MUST NOT contain any per-call interpolation. Per-train context goes in the user message.
+const FACTS_SYSTEM_PROMPT = `You are a railway historian and trainspotting enthusiast. Provide fascinating facts and history for the train class identified in the user message.
+
 Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 {
   "summary": "A 2-3 sentence enthusiastic overview that a trainspotter would enjoy reading. Include what makes this class special.",
@@ -42,6 +43,10 @@ Rules:
 - DB BR 155 / DR Baureihe 250: this is the East German LEW Hennigsdorf six-axle Co'Co' heavy freight electric, 273 units built (3 prototypes 1974, 270 series 1977–1984), originally Deutsche Reichsbahn class 250 and renumbered DB BR 155 on 1 January 1992 after reunification. Manufacturer is "VEB Lokomotivbau Elektrotechnische Werke Hans Beimler Hennigsdorf" (LEW Hennigsdorf) — NEVER "Bombardier", "Siemens", or "Krauss-Maffei" (those built the West German BR 151, a different class). Withdrawal context (factual): the class was withdrawn from DB Cargo by approximately 2019, but a substantial fraction of surviving units continue in active heavy freight service with private operators including PRESS, MEG, HSL Logistik, Captrain, and Wedler Franz Logistik. Do NOT describe the class as "all withdrawn", "completely retired", "extinct", "all scrapped", or "museum only" — many are in daily revenue freight service with private operators in 2026. Correct framing: "withdrawn from DB Cargo by 2019, surviving units active with private freight operators". Documented nicknames: "Elektro-Container" and "Powercontainer" (both reference the boxy LEW carbody — these ARE real and widely used, may be included). Top speed 125 km/h, hourly power 5,400 kW, weight 123 t. The AEG-VEM 1110-127C asynchronous motors and the 15 kV 16.7 Hz AC voltage system are correct. Do NOT confuse with: (a) DB BR 151 (West German Krupp / KM / Henschel, 170 units, completely different fleet); (b) DB BR 156 (LEW prototype sister class, only 4 units built 1991, very similar carbody — if the photo shows a confirmed BR 156 fleet number 156 001–156 004, return BR 156, otherwise default to BR 155 because BR 155 is 68× more numerous); (c) modern BR 250 (Stadler Eurodual dual-mode, completely different sloped modern design, no visual overlap).
 - DB BR 412 / ICE 4: this is the Deutsche Bahn ICE 4 high-speed EMU, the modern backbone of the German long-distance network. Built by a Siemens Mobility–Bombardier Transportation consortium (Siemens Krefeld provided the powered end-cars and overall systems integration; Bombardier Hennigsdorf provided the trailer cars; since Alstom's 2021 acquisition of Bombardier rail, the consortium is described as Siemens + Alstom). First trainset delivered 2016, **regular passenger service began 8 December 2017** on the Hamburg–Munich route — NEVER state 1949, 1991, or any pre-2016 service-entry year. Available in 7-car (BR 412.0/412.2), 12-car (BR 412.0/412.2 long), and 13-car XXL (BR 412.0 longest) formations — the 13-car XXL at 374 m and 918 seats is the LONGEST PASSENGER TRAIN in scheduled service in Germany. Around 137 trainsets ordered (108 in service by 2026, deliveries continuing). Max speed 250 km/h (NEVER 300 or 320 km/h — that is the ICE 3 family). 7,440 kW (8-car) or 9,280 kW (12-car). Bo'Bo'+2'2'+2'2'+2'2'+2'2'+2'2'+Bo'Bo' distributed-power configuration with powered cars spread through the formation. 15 kV 16.7 Hz AC. Replaced ICE 1 and ICE 2 on the busiest IC and ICE corridors (Hamburg–Munich, Berlin–Munich, Frankfurt–Berlin). Wide flat upright nose with prominent chin undercut — VISUALLY DISTINCT from the pointed aerodynamic ICE 3 nose. Real, widely used framing: "the new ICE workhorse", "the most common ICE", "modular ICE platform". Withdrawal context: NONE — this is a current-generation train still being delivered. Do NOT describe ICE 4 as "withdrawn", "retired", "phased out", "rare", "limited production", or "museum". Do NOT confuse with: (a) BR 408 ICE 3neo (pointed nose, 320 km/h, completely different cab); (b) BR 401 ICE 1 (rounded blunt nose, locomotive-hauled, 14-car); (c) BR 412 the older Czech ČD class — different country, irrelevant to DB BR 412. If you genuinely lack confidence about a specific factual detail, OMIT that detail or use cautious language — do NOT refuse to provide facts, do NOT output meta-commentary like "I cannot provide reliable details" or "I must be honest" or "I lack confident knowledge". Always populate notableEvents, historicalSignificance, and operationalDetails fields with the verified context above. Discovered 2026-04-28 when the facts layer hallucinated a 1949 service-entry date and then refused to provide any facts.
 - DB BR 648 / Alstom Coradia LINT 41: this is a mainstream modern regional DMU — NOT a rare, limited, or specialized class. Over 300 units built across the LINT 41 family from 1999 onwards by Alstom (formerly LHB Salzgitter). Operated in daily service by DB Regio, HLB, NAH.SH, erixx, vlexx, Vias, Nordwestbahn and other German regional operators. Do NOT describe it as "extremely limited production", "only 192 units built" (192 is the VR Dv12 Finnish diesel — a completely different class on a different continent), "specialized service", "withdrawn", "rare", or "legendary". The correct framing is workhorse, everyday, defining modern non-electrified German regional rail. Builder is Alstom (never Bombardier, Siemens, or Stadler). "historicalSignificance" should generally be null or very modest for this class — it is a modern everyday unit, not a historically significant locomotive.`;
+
+// Per-call dynamic message — small, varies per request, NOT cached.
+const buildFactsUserMessage = (train: TrainIdentification, verifiedYear?: string, language: string = "en") =>
+  `${getLanguageInstruction(language)}Train to research: ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).${verifiedYear ? `\n\nVERIFIED FACT — use this exactly, do not contradict it: This class entered service in ${verifiedYear}.` : ""}`;
 
 const FALLBACK_FACTS: TrainFacts = {
   summary: "Unable to generate facts for this train.",
@@ -79,7 +84,7 @@ export async function getTrainFacts(
     // Pull Wikidata year if available — hits cache instantly if specs already ran.
     // Injects the verified entry year into the prompt to prevent hallucinated dates.
     const wikidata = await getWikidataSpecs(train.class, train.operator).catch(() => null);
-    const prompt = FACTS_PROMPT(train, wikidata?.yearIntroduced, language);
+    const userMessage = buildFactsUserMessage(train, wikidata?.yearIntroduced, language);
 
     if (config.hasAnthropic) {
       console.log("[FACTS] Using Claude (Anthropic)");
@@ -88,7 +93,14 @@ export async function getTrainFacts(
         model: "claude-haiku-4-5-20251001",
         max_tokens: 2048,
         temperature: 0,
-        messages: [{ role: "user", content: prompt }],
+        system: [
+          {
+            type: "text",
+            text: FACTS_SYSTEM_PROMPT,
+            cache_control: { type: "ephemeral" },
+          },
+        ],
+        messages: [{ role: "user", content: userMessage }],
       });
       const content = response.content[0];
       if (content.type !== "text") return FALLBACK_FACTS;
@@ -103,7 +115,10 @@ export async function getTrainFacts(
           model: "gpt-4o",
           max_tokens: 2048,
           temperature: 0,
-          messages: [{ role: "user", content: prompt }],
+          messages: [
+            { role: "system", content: FACTS_SYSTEM_PROMPT },
+            { role: "user", content: userMessage },
+          ],
         },
         {
           headers: {
