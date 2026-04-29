@@ -215,7 +215,7 @@ async function getAISpecs(train: TrainIdentification, language: string = "en"): 
 // Known Wikidata data quality corrections.
 // Wikidata wins in the merge, but these fields are factually wrong for specific classes —
 // apply after merge to ensure trainspotters see correct values.
-type SpecsOverride = Partial<Pick<TrainSpecs, "maxSpeed" | "power" | "weight" | "builder" | "fuelType" | "numberBuilt">>;
+type SpecsOverride = Partial<Pick<TrainSpecs, "maxSpeed" | "power" | "weight" | "builder" | "fuelType" | "numberBuilt" | "gauge">>;
 const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // BR 462 (ICE 3neo Velaro MS) — Wikidata matches a wrong entity and returns "Crewe Works"
   "br 462": { builder: "Siemens" },
@@ -268,6 +268,59 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "br class 88": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
   "88005": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
   "88005 minerva": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
+  // BR 248 (Siemens Vectron Dual Mode) — added 2026-04-29 after tester andre_18122003 reported
+  // the type field showing "Diesel" only on what is actually a dual-mode (electric + diesel) loco.
+  // Vectron Dual Mode: 15 kV 16.7 Hz AC overhead OR onboard diesel, 2,610 kW electric / 2,000 kW diesel,
+  // 160 km/h, Bo-Bo, built by Siemens Mobility 2018+, ~140 units in production for DB Cargo / DB Regio
+  // and private operators. NEVER classify as plain "Diesel" — it is bi-mode by design.
+  "br 248": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "br248": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "248": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "db 248": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "db class 248": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "vectron dual mode": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "siemens vectron dual mode": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  // SD85 (Pesa-built diesel multiple unit, SKPL operator) — added 2026-04-29 after pafawag.w.obiektywie
+  // round-2 + round-3 corrections. The SD85 was being returned as "Pesa Elf 2 SD85" with Pesa Elf 2 specs
+  // bleeding through. SD85 is a separate Pesa-built class — NOT Pesa Elf 2. Specs verified against
+  // ilostan.forumkolejowe.pl. SKPL is the primary operator. Class string MUST be just "SD85", NEVER
+  // "Pesa Elf 2 SD85" or any prefix.
+  "sd85": { maxSpeed: "120 km/h", builder: "Pesa Bydgoszcz", fuelType: "Diesel" },
+  "skpl sd85": { maxSpeed: "120 km/h", builder: "Pesa Bydgoszcz", fuelType: "Diesel" },
+  "pesa sd85": { maxSpeed: "120 km/h", builder: "Pesa Bydgoszcz", fuelType: "Diesel" },
+  // Pesa Gama 111Ed series — Polish electric locomotive built by Pesa Bydgoszcz (NOT Newag).
+  // Added 2026-04-29 after pafawag.w.obiektywie round-3 reported the 111Ed being attributed to
+  // "Newag 111Ed Griffin" — Newag does NOT build the Pesa Gama. The class string must reflect
+  // Pesa Bydgoszcz as builder and Gama as the model family. 111Ed-022 is one specific unit.
+  "111ed": { maxSpeed: "160 km/h", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "111ed-022": { maxSpeed: "160 km/h", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "111eg": { maxSpeed: "160 km/h", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "111ec": { maxSpeed: "160 km/h", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "pesa gama": { maxSpeed: "160 km/h", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "pesa gama 111ed": { maxSpeed: "160 km/h", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "gama 111ed": { maxSpeed: "160 km/h", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  // EN76A — Pesa-built modern Polish EMU, primarily Podkarpackie POLREGIO. Added 2026-04-29 after
+  // pafawag.w.obiektywie round-2 reported EN76A being misattributed to ER74 + Pesa Elf 2 specs.
+  "en76a": { maxSpeed: "160 km/h", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "polregio en76a": { maxSpeed: "160 km/h", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  // EN57ALd — deeply modernised EN57 variant (POLREGIO). Added 2026-04-29 after pafawag round-3
+  // reported wrong max speed on the EN57ALd. EN57ALd retains the original 110 km/h max speed of the
+  // EN57 family — modernisation refreshed traction electrics and interior, NOT the design speed.
+  "en57ald": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised by Newag/Pesa", fuelType: "Electric (3 kV DC)" },
+  "polregio en57ald": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised by Newag/Pesa", fuelType: "Electric (3 kV DC)" },
+  // CP Portuguese narrow-gauge railcar series (CP 9000 / 9020 / 9030 / 9600 / 9630) —
+  // METRE GAUGE (1,000 mm), NOT standard 1,435 mm. Added 2026-04-29 after pafawag.w.obiektywie
+  // round-2 + round-3 reported the gauge field returning 1,435 mm. These series operate on the
+  // Portuguese metre-gauge network (Linha do Vouga, formerly Linha do Tâmega / Tua / Sabor / Corgo).
+  "cp 9000": { gauge: "1,000 mm (metre gauge)" },
+  "cp class 9000": { gauge: "1,000 mm (metre gauge)" },
+  "cp série 9000": { gauge: "1,000 mm (metre gauge)" },
+  "cp 9020": { gauge: "1,000 mm (metre gauge)" },
+  "cp 9030": { gauge: "1,000 mm (metre gauge)" },
+  "cp 9600": { gauge: "1,000 mm (metre gauge)" },
+  "cp class 9600": { gauge: "1,000 mm (metre gauge)" },
+  "cp série 9600": { gauge: "1,000 mm (metre gauge)" },
+  "cp 9630": { gauge: "1,000 mm (metre gauge)" },
   // BR Class 55 Deltic — Wikidata returns "Stadler Rail" (wrong — modern Swiss company)
   "class 55": { builder: "English Electric / Vulcan Foundry" },
   "class 55 deltic": { builder: "English Electric / Vulcan Foundry" },
