@@ -26,6 +26,14 @@ Each static block is well above Haiku's 2048-token cache minimum (rarity ~6K, sp
 
 113/113 tests pass. Build clean.
 
+### Docs — Leaderboard Phase 1 implementation plan (`3e5b073`)
+
+19-task TDD-ordered implementation plan for the identity layer at `docs/plans/2026-04-29-leaderboard-phase1-implementation.md`. Covers Supabase migration `010_identity_layer.sql` (3 new columns on `profiles`), `frontend/data/countries.ts` + `frontend/data/spotterEmojis.ts`, three reusable components (CountryFlagPicker, EmojiPicker, IdentityBadge), the multi-step `onboarding-identity.tsx` screen, root-layout redirect logic, Profile-edit modal, leaderboard row updates, anonymous→signed-in migration, and ~25 new unit tests in `__tests__/identityLayer.test.ts`. Engineer-readable from cold. Not yet executed — handed off via `superpowers:writing-plans` skill terminal state, awaiting next-session execution choice (subagent-driven vs separate session).
+
+### Docs — Leaderboard Phase 1 design (`f16c9ac`)
+
+Strategic design doc for the leaderboard redesign Phase 1 (identity layer) at `docs/plans/2026-04-29-leaderboard-phase1-design.md`. Output of an end-to-end brainstorm session that locked all 6 design decisions: (Q1) mandatory one-time onboarding sheet on first post-update launch + Profile-modal for later edits, (Q2) email step soft mandatory with "Continue without account" escape hatch, (strategy) free tier competes Bronze/Silver/Gold, Pro unlocks Steam/Diesel/Electric/ICE/Vectron — promotion out of Gold = the paywall moment (Pattern C earned upgrade), (Q3) auto-detect device locale + manual override to ~195-country list, (Q4) tiered curated emoji set (~10 free + ~20 Pro-exclusive railway iconography), (Q5) no level indicator on rows (league badge carries progression), (Q6) no additional Pro indicator (league + emoji choice carry the signal). Cross-references `project_leaderboard_redesign.md` memory file for the broader 5-phase plan. Pivots from the prior "compete on raw XP" pattern to "compete on collection metrics + achievements" matching Steph's signal that achievements drive engagement more than raw leaderboard position.
+
 ### Backend — BR 408 nuclear, DT5 Hamburg, BR 248 dual-mode, Polish round 2+3 (`49853eb`)
 
 Five-strike BR 408 vision fix after four prompt-engineering passes failed on 2026-04-28. Stripped the OR criteria from the absolute BR 408 gate — returning BR 408 now requires a visible "408 xxx" fleet number, full stop. Cab shape, headlight style, "modern appearance", and build-date cues are all forbidden as standalone evidence because the model kept misreading the wide flat ICE 4 cab as a pointed BR 408 cab. Trade-off: real BR 408 photos without a readable fleet number return BR 412 — low-visibility mistake — preferable to repeated highly-visible BR 412 → BR 408 misIDs flagged by testers. The same hardening was applied at the Step 2 pick line to prevent the secondary fall-through.
