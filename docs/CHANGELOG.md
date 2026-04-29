@@ -7,6 +7,25 @@ Format: newest first within each date block.
 
 ## 2026-04-29
 
+### Backend — Anthropic prompt caching enabled on Haiku services (`ecc1142`)
+
+Anthropic Caching dashboard (last 7 days) showed Haiku 4.5 services running at **0.0% cache read ratio** across 7.0M input tokens — every spec/facts/rarity call paying full uncached input price. Vision (Sonnet 4.6) was caching correctly at 49.6% read ratio sustained because its system prompt was wrapped in `cache_control: ephemeral` (commit `a3bdaa9` 2026-04-28); the three Haiku services were sending their entire prompt as a user message without a system block.
+
+Refactor each Haiku service to split:
+- **Static instruction block** (long ruleset, identical across all calls) → moved to `system: [{ type: "text", text: STATIC, cache_control: { type: "ephemeral" } }]`
+- **Per-call dynamic context** (`train.class`, operator, language instruction, verifiedYear, specs values) → moved to `messages[user].content`
+
+Three services touched:
+- `trainSpecs.ts` — `SPECS_PROMPT` → `SPECS_SYSTEM_PROMPT` + `buildSpecsUserMessage`
+- `trainFacts.ts` — `FACTS_PROMPT` → `FACTS_SYSTEM_PROMPT` + `buildFactsUserMessage`
+- `rarity.ts` — `RARITY_PROMPT` → `RARITY_SYSTEM_PROMPT` + `buildRarityUserMessage`
+
+OpenAI fallbacks updated to use proper `system` + `user` message structure rather than concatenated user content — matches the Anthropic side, no behaviour change.
+
+Each static block is well above Haiku's 2048-token cache minimum (rarity ~6K, specs ~30K, facts ~8K tokens of class-specific rules). Expected steady-state read ratio target: ~50% (matching Sonnet 4.6's sustained cache benefit), saving ~$3-4/week at current volume = ~$165-200/year ongoing. Verification window: 24h on Anthropic Console → Caching dashboard, watching Haiku 4.5 row read ratio move from 0.0%.
+
+113/113 tests pass. Build clean.
+
 ### Backend — BR 408 nuclear, DT5 Hamburg, BR 248 dual-mode, Polish round 2+3 (`49853eb`)
 
 Five-strike BR 408 vision fix after four prompt-engineering passes failed on 2026-04-28. Stripped the OR criteria from the absolute BR 408 gate — returning BR 408 now requires a visible "408 xxx" fleet number, full stop. Cab shape, headlight style, "modern appearance", and build-date cues are all forbidden as standalone evidence because the model kept misreading the wide flat ICE 4 cab as a pointed BR 408 cab. Trade-off: real BR 408 photos without a readable fleet number return BR 412 — low-visibility mistake — preferable to repeated highly-visible BR 412 → BR 408 misIDs flagged by testers. The same hardening was applied at the Step 2 pick line to prevent the secondary fall-through.
