@@ -5,6 +5,36 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-29
+
+### Backend — BR 408 nuclear, DT5 Hamburg, BR 248 dual-mode, Polish round 2+3 (`49853eb`)
+
+Five-strike BR 408 vision fix after four prompt-engineering passes failed on 2026-04-28. Stripped the OR criteria from the absolute BR 408 gate — returning BR 408 now requires a visible "408 xxx" fleet number, full stop. Cab shape, headlight style, "modern appearance", and build-date cues are all forbidden as standalone evidence because the model kept misreading the wide flat ICE 4 cab as a pointed BR 408 cab. Trade-off: real BR 408 photos without a readable fleet number return BR 412 — low-visibility mistake — preferable to repeated highly-visible BR 412 → BR 408 misIDs flagged by testers. The same hardening was applied at the Step 2 pick line to prevent the secondary fall-through.
+
+DT5 Hamburg vs DT3 Nürnberg disambiguation: andre_18122003 sent a clear shot at Hamburger Hochbahn "Hauptbahnhof Nord" (U2 line displayed, classic Hamburg red-cab livery) that returned "DT 3 aus Nürnberg". Same wrong-country-entirely failure class as BR 151 vs ČD 151. New rule pins Hamburg DT3/DT4/DT5 to Hamburger Hochbahn livery + Hamburg station-name OCR signals + line indicators U1–U4, and forbids Nürnberg DT3-F when any Hamburg cue is present. Hamburg DT5 is the statistical default for ambiguous modern white+red German metro stock with a wraparound windscreen.
+
+BR 248 (Siemens Vectron Dual Mode) trainSpecs override: andre_18122003 reported the type field reading "Diesel" only on a dual-mode loco. Added BR 248 across 7 lookup keys with `fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)"`, maxSpeed 160 km/h, power "2,610 kW (electric) / 2,000 kW (diesel)", builder "Siemens Mobility". Body-text already explained dual-mode correctly; only the structured-spec chip needed the fix.
+
+Polish corrections (pafawag.w.obiektywie round 2 + round 3, both shipped in this commit) — 17 distinct corrections, several course-correcting `75f37cc` from 2026-04-28:
+
+- `vision.ts` Polish operator livery rule rewritten end-to-end: KMŁ livery is **blue+yellow** (round 1 had it as plain yellow — wrong); KM livery is **white-yellow-green** (round 1 had red+yellow — wrong); KMŁ operates EN57AL only (never plain EN57); SKPL fleet is 810 / SN82 / SN83 / SN84 / SD85 only (never Pesa Elf 2, never Newag Impuls); EU47 operator is Koleje Mazowieckie ONLY; 111Ed family is Pesa Bydgoszcz / Gama (NEVER Newag / Griffin); ED72A and ED72Ac operator is POLREGIO ONLY; EN76A is preferred over ER74 in Podkarpackie POLREGIO scans; ED78 in blue+white+yellow is POLREGIO West Pomeranian (NOT Koleje Dolnośląskie — KD livery is yellow+white only, no blue); SA133 in blue+white is POLREGIO (NOT Arriva RP — Arriva RP livery is yellow+grey+white).
+- `trainSpecs.ts` new entries: SD85 (Pesa Bydgoszcz, Diesel, 120 km/h) — kills the "Pesa Elf 2 SD85" prefix bleed-through; 111Ed / 111Eg / 111Ec / Pesa Gama (Pesa Bydgoszcz, 160 km/h, 3 kV DC); EN76A (Pesa Bydgoszcz, 160 km/h, 3 kV DC); EN57ALd (max 110 km/h — round 3 reported wrong max speed); CP 9000 / 9020 / 9030 / 9600 / 9630 series gauge = 1,000 mm (metre gauge), correcting the default 1,435 mm. `SpecsOverride` type extended to include `gauge`.
+- `rarity.ts` EN57 family revised: Common → Uncommon by default, lean Rare in original Pafawag livery. Round-1 evidence framing of "1,438 built, so common" was incomplete — round-2 correction notes only ~60 active in service in 2026 (~4% surviving). EN57ALd specifically: never Legendary.
+
+113/113 backend tests pass. Build clean. Reporters credited: andre_18122003 (BR 408 / DT5 / BR 248) and pafawag.w.obiektywie (Polish round 2 + round 3).
+
+### Website — locosnap.app DE bio link unbreak + Google Play CTA (`c8e3726`)
+
+Andre (TikTok andre_18122003, iOS 26.4) reported the locosnap.app bio link showing "App nicht verfügbar in deiner Region" on a German Apple ID. Direct App Store search worked; only the bio link broke. Two root causes on the landing page:
+
+- All Apple Store hrefs lacked a country code, so Apple resolved them to the US storefront on DE Apple IDs and showed "not available in your region". Now pinned to `/de/` — DE is the dominant audience anyway.
+- "Android coming soon" stubs in both the hero and the bottom CTA had no Google Play link, leaving every Android visitor at a dead end. Replaced with proper Google Play buttons pointing to `play.google.com/store/apps/details?id=com.locosnap.app&hl=de`.
+- Hero badge updated from "Now live on the App Store" to "Now live on iOS + Android" to reflect the v1.0.21 dual-store launch.
+
+Deployed via `vercel --prod`. The Vercel project alias for `locosnap.app` is `website` (not `locosnap-landing` — that one is unaliased; the actual production source is `~/Projects/locosnap/website/index.html`).
+
+---
+
 ## 2026-04-28
 
 ### Backend — Invert ICE default to BR 412 (`fa9a2a4`)
