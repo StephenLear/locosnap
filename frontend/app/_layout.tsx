@@ -16,6 +16,7 @@ import { useSettingsStore } from "../store/settingsStore";
 import { supabase } from "../services/supabase";
 import { colors } from "../constants/theme";
 import { shouldShowOnboarding } from "./_layout-helpers";
+import { IDENTITY_ONBOARDING_KEY } from "../store/authStore-helpers";
 import {
   registerForPushNotifications,
   scheduleStreakReminder,
@@ -158,7 +159,7 @@ function RootLayout() {
 
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    AsyncStorage.getItem("locosnap_identity_onboarding_completed").then(
+    AsyncStorage.getItem(IDENTITY_ONBOARDING_KEY).then(
       (flag) => {
         if (cancelled) return;
         const profile = useAuthStore.getState().profile;

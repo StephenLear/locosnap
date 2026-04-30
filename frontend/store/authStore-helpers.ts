@@ -6,9 +6,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Profile } from "./authStore";
 
-const ANONYMOUS_COUNTRY_KEY = "locosnap_anonymous_identity_country";
-const ANONYMOUS_EMOJI_KEY = "locosnap_anonymous_identity_emoji";
-const IDENTITY_ONBOARDING_KEY = "locosnap_identity_onboarding_completed";
+// Single source of truth for the identity AsyncStorage keys. Both
+// authStore (for write paths) and the migration helpers (for read/clear)
+// must import from here to avoid drift.
+export const ANONYMOUS_COUNTRY_KEY = "locosnap_anonymous_identity_country";
+export const ANONYMOUS_EMOJI_KEY = "locosnap_anonymous_identity_emoji";
+export const IDENTITY_ONBOARDING_KEY = "locosnap_identity_onboarding_completed";
 
 export interface AnonymousIdentityUpdates {
   country_code?: string;

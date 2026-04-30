@@ -9,7 +9,13 @@ import { Session, User } from "@supabase/supabase-js";
 import { track, identifyUser, resetIdentity, addBreadcrumb } from "../services/analytics";
 import { loginRevenueCat, logoutRevenueCat, syncProStatus } from "../services/purchases";
 import { updateProfileIdentity } from "../services/supabase";
-import { migrateAnonymousIdentity, clearAnonymousIdentity } from "./authStore-helpers";
+import {
+  migrateAnonymousIdentity,
+  clearAnonymousIdentity,
+  ANONYMOUS_COUNTRY_KEY,
+  ANONYMOUS_EMOJI_KEY,
+  IDENTITY_ONBOARDING_KEY,
+} from "./authStore-helpers";
 
 export interface Profile {
   id: string;
@@ -55,9 +61,6 @@ interface AuthState {
   markIdentityOnboardingComplete: () => Promise<void>;
 }
 
-const ANONYMOUS_COUNTRY_KEY = "locosnap_anonymous_identity_country";
-const ANONYMOUS_EMOJI_KEY = "locosnap_anonymous_identity_emoji";
-const IDENTITY_ONBOARDING_KEY = "locosnap_identity_onboarding_completed";
 
 // Unauthenticated users get 6 trial scans before sign-up is required.
 // Bumped from 3 to 6 on 2026-04-28 — eight independent user signals
