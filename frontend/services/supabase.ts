@@ -470,6 +470,25 @@ export async function fetchRarityLeaderboard(
   }));
 }
 
+// ── Identity (country flag + spotter emoji + onboarding flag) ──
+
+export interface IdentityUpdates {
+  country_code?: string;
+  spotter_emoji?: string;
+  has_completed_identity_onboarding?: boolean;
+}
+
+export async function updateProfileIdentity(
+  userId: string,
+  updates: IdentityUpdates
+) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", userId);
+  return { data, error };
+}
+
 // ── UK Regions ──────────────────────────────────────────────
 
 export const UK_REGIONS: { key: string; label: string }[] = [
