@@ -9,11 +9,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, useRouter, useSegments, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
 import { useSettingsStore } from "../store/settingsStore";
 import { supabase } from "../services/supabase";
 import { colors } from "../constants/theme";
+import { shouldShowOnboarding } from "./_layout-helpers";
 import {
   registerForPushNotifications,
   scheduleStreakReminder,
@@ -130,6 +132,37 @@ function RootLayout() {
     }
   }, [settingsLoading, languageChosen, authIsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Identity onboarding gate (v1.0.22+).
+  // Fires after auth + settings + language-picker are resolved. Guards on
+  // pathname so we don't loop while the user is on the screen, and on the
+  // language-chosen flag so language-picker has priority.
+  // Uses the same setTimeout(0) pattern as language-picker — see Android-16
+  // notes above.
+  useEffect(() => {
+    if (settingsLoading || authIsLoading) return;
+    if (!languageChosen) return;
+    // Don't fire while user is already on the onboarding screen, sign-in,
+    // language-picker, or any modal screen.
+    if (pathname === "/onboarding-identity" || pathname === "/sign-in" || pathname === "/language-picker") {
+      return;
+    }
+
+    let cancelled = false;
+    AsyncStorage.getItem("locosnap_identity_onboarding_completed").then(
+      (flag) => {
+        if (cancelled) return;
+        const profile = useAuthStore.getState().profile;
+        if (shouldShowOnboarding({ profile, anonymousFlag: flag })) {
+          const id = setTimeout(() => router.replace("/onboarding-identity"), 0);
+          return () => clearTimeout(id);
+        }
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [settingsLoading, authIsLoading, languageChosen, user?.id, pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Handle magic link deep link callbacks (locosnap://auth/callback)
   useEffect(() => {
     const handleUrl = async (url: string) => {
@@ -239,6 +272,10 @@ function RootLayout() {
           <Stack.Screen
             name="sign-in"
             options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="onboarding-identity"
+            options={{ headerShown: false, gestureEnabled: false }}
           />
           <Stack.Screen
             name="(tabs)"
