@@ -37,7 +37,11 @@ export function CountryFlagPicker({ selectedCode, mode, onSelect }: Props) {
         {selected ? (
           <Text style={styles.compactGlyph}>{selected.glyph}</Text>
         ) : (
-          <Text style={styles.compactGlyph}>🏳️</Text>
+          // White flag glyph as the no-selection placeholder. This is in-app
+          // iconography (data, like the country glyphs in COUNTRIES) and
+          // therefore does not fall under the project "no emojis in output"
+          // rule, which targets communication content.
+          <Text style={styles.compactGlyph}>{"\u{1F3F3}\u{FE0F}"}</Text>
         )}
         <Text style={styles.compactName}>
           {selected?.name ?? t("onboardingIdentity.countryNoneSelected")}

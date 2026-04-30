@@ -49,8 +49,10 @@ export function EmojiPicker({ selectedId, isPro, onSelect, onProLockTapped }: Pr
             accessibilityRole="button"
             accessibilityLabel={
               isLocked
-                ? t("onboardingIdentity.emojiLocked", { label: item.label })
-                : item.label
+                ? t("onboardingIdentity.emojiLocked", {
+                    label: t(`spotterEmojis.${item.id}`, { defaultValue: item.label }),
+                  })
+                : t(`spotterEmojis.${item.id}`, { defaultValue: item.label })
             }
           >
             {item.source === "unicode" && item.glyph ? (
@@ -60,7 +62,7 @@ export function EmojiPicker({ selectedId, isPro, onSelect, onProLockTapped }: Pr
               // temporary visual until the SVG asset set lands.
               <View style={styles.svgPlaceholder}>
                 <Text style={styles.svgPlaceholderText}>
-                  {item.label.charAt(0)}
+                  {t(`spotterEmojis.${item.id}`, { defaultValue: item.label }).charAt(0)}
                 </Text>
               </View>
             )}

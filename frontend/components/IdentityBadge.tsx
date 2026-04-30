@@ -5,6 +5,7 @@
 // ============================================================
 
 import { View, Text, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { getCountryByCode } from "../data/countries";
 import { getEmojiById } from "../data/spotterEmojis";
 import { colors, borderRadius } from "../constants/theme";
@@ -16,8 +17,12 @@ interface Props {
 }
 
 export function IdentityBadge({ countryCode, emojiId, size = "md" }: Props) {
+  const { t } = useTranslation();
   const country = countryCode ? getCountryByCode(countryCode) : undefined;
   const emoji = emojiId ? getEmojiById(emojiId) : undefined;
+  const localizedEmojiLabel = emoji
+    ? t(`spotterEmojis.${emoji.id}`, { defaultValue: emoji.label })
+    : undefined;
 
   if (!country && !emoji) return null;
 
@@ -38,7 +43,9 @@ export function IdentityBadge({ countryCode, emojiId, size = "md" }: Props) {
             { width: placeholderSize, height: placeholderSize },
           ]}
         >
-          <Text style={styles.svgPlaceholderText}>{emoji.label.charAt(0)}</Text>
+          <Text style={styles.svgPlaceholderText}>
+            {(localizedEmojiLabel ?? emoji.label).charAt(0)}
+          </Text>
         </View>
       )}
     </View>

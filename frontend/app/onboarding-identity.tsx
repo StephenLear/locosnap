@@ -37,12 +37,21 @@ const UK_REGION_KEYS = new Set(UK_REGIONS.map((r) => r.key));
 /**
  * Resolve the initial country code for the country picker.
  * Order:
- *   1. profile.region — only when it matches a known UK region key (in which
+ *   1. Existing user-saved country_code (covers re-entry mid-onboarding).
+ *   2. profile.region — only when it matches a known UK region key (in which
  *      case the country is GB).
- *   2. Device locale (Intl) — when its region matches a known ISO country.
- *   3. Settings language: de → DE, anything else → GB.
+ *   3. Device locale (Intl) — when its region matches a known ISO country.
+ *   4. Settings language: de → DE, anything else → GB.
  */
-function deriveInitialCountry(profileRegion: string | null, language: string): string {
+function deriveInitialCountry(
+  savedCountryCode: string | null,
+  profileRegion: string | null,
+  language: string
+): string {
+  if (savedCountryCode && getCountryByCode(savedCountryCode)) {
+    return savedCountryCode;
+  }
+
   if (profileRegion && UK_REGION_KEYS.has(profileRegion)) {
     return "GB";
   }
@@ -74,13 +83,17 @@ export default function OnboardingIdentityScreen() {
   const isPro = profile?.is_pro ?? false;
 
   const initialCountryCode = useMemo(
-    () => deriveInitialCountry(profile?.region ?? null, language),
-    [profile?.region, language]
+    () => deriveInitialCountry(
+      profile?.country_code ?? null,
+      profile?.region ?? null,
+      language
+    ),
+    [profile?.country_code, profile?.region, language]
   );
 
   const [step, setStep] = useState<Step>(1);
   const [countryCode, setCountryCode] = useState<string>(initialCountryCode);
-  const [emojiId, setEmojiId] = useState<string | null>(null);
+  const [emojiId, setEmojiId] = useState<string | null>(profile?.spotter_emoji ?? null);
   const [email, setEmail] = useState("");
   const [emailSubmitting, setEmailSubmitting] = useState(false);
 
