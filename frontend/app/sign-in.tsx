@@ -36,14 +36,22 @@ export default function SignInScreen() {
   // mode=login → "Welcome back" copy; mode=signup or absent → "Create your account".
   // Underlying OTP flow is identical in both — Supabase signInWithOtp with
   // shouldCreateUser: true handles new + returning users seamlessly.
-  const { mode } = useLocalSearchParams<{ mode?: "login" | "signup" }>();
+  const params = useLocalSearchParams<{
+    mode?: "login" | "signup";
+    email?: string;
+    autoSend?: string;
+  }>();
+  const { mode } = params;
+  const prefilledEmail = typeof params.email === "string" ? params.email : "";
+  const shouldAutoSend = params.autoSend === "true";
   const isLoginMode = mode === "login";
   const [loading, setLoading] = useState<"email" | "otp" | null>(null);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefilledEmail);
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const { supabase } = require("../config/supabase");
   const pendingAutoVerify = useRef(false);
+  const autoSendFired = useRef(false);
 
   // Supabase OTP codes are 8 digits (configured in Supabase dashboard)
   const OTP_LENGTH = 8;
@@ -105,6 +113,21 @@ export default function SignInScreen() {
       setLoading(null);
     }
   };
+
+  // Auto-send OTP when arriving with email prefilled (e.g. from onboarding
+  // step 4). Fires exactly once per mount.
+  useEffect(() => {
+    if (
+      shouldAutoSend &&
+      prefilledEmail &&
+      !autoSendFired.current &&
+      !otpSent &&
+      !loading
+    ) {
+      autoSendFired.current = true;
+      handleSendOtp();
+    }
+  }, [shouldAutoSend, prefilledEmail, otpSent, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-verify when all digits entered
   useEffect(() => {

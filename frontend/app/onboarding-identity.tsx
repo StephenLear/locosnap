@@ -68,7 +68,6 @@ export default function OnboardingIdentityScreen() {
   const updateCountryCode = useAuthStore((s) => s.updateCountryCode);
   const updateSpotterEmoji = useAuthStore((s) => s.updateSpotterEmoji);
   const markIdentityOnboardingComplete = useAuthStore((s) => s.markIdentityOnboardingComplete);
-  const signInWithMagicLink = useAuthStore((s) => s.signInWithMagicLink);
   const language = useSettingsStore((s) => s.language);
 
   const isAnonymous = session === null;
@@ -108,18 +107,26 @@ export default function OnboardingIdentityScreen() {
   const handleSendCode = async () => {
     const trimmed = email.trim();
     if (!trimmed.includes("@")) {
-      Alert.alert(t("onboardingIdentity.emailErrorTitle"), t("onboardingIdentity.emailInvalid"));
+      Alert.alert(
+        t("onboardingIdentity.emailErrorTitle"),
+        t("onboardingIdentity.emailInvalid")
+      );
       return;
     }
     setEmailSubmitting(true);
     try {
-      await signInWithMagicLink(trimmed);
-      // Mark onboarding complete locally so the gate doesn't fire again on
-      // return; the OTP completion flow will sync identity to the new profile.
+      // Mark onboarding complete locally — the gate must NOT re-fire when the
+      // user returns from /sign-in. The anon-to-signed-in migration in
+      // fetchProfile will lift this flag (and country/emoji) onto the
+      // server-side profile after OTP verification.
       await markIdentityOnboardingComplete();
-      router.replace({ pathname: "/sign-in", params: { mode: "otp", email: trimmed } });
-    } catch (err) {
-      Alert.alert(t("onboardingIdentity.emailErrorTitle"), (err as Error).message);
+      // Hand off to /sign-in for the actual OTP send + verify. autoSend=true
+      // triggers handleSendOtp on /sign-in mount, so the user only ever sees
+      // the OTP-entry view, not the empty email form.
+      router.replace({
+        pathname: "/sign-in",
+        params: { mode: "signup", email: trimmed, autoSend: "true" },
+      });
     } finally {
       setEmailSubmitting(false);
     }
