@@ -7,6 +7,95 @@ Format: newest first within each date block.
 
 ## 2026-04-30
 
+### Frontend / DB — Leaderboard Phase 1 identity layer implementation (branch `feat/leaderboard-phase1`, 25 commits, NOT YET MERGED OR DEPLOYED)
+
+Builds the v1.0.22 identity layer end-to-end on a feature branch. **Status: implementation complete + reviewed three times; awaits user-gated steps (apply migrations to prod, manual device QA, EAS build trigger).** Backs the strategy in `~/.claude/projects/-Users-StephenLear-Projects-locosnap/memory/project_leaderboard_redesign.md` (Phase 1 of 5). Plan: `docs/plans/2026-04-29-leaderboard-phase1-implementation.md`. Design: `docs/plans/2026-04-29-leaderboard-phase1-design.md`.
+
+#### `supabase/migrations/010_identity_layer.sql` — New: identity columns on profiles
+- **Added** three columns to `profiles`: `country_code TEXT NULL` (ISO 3166-1 alpha-2), `spotter_emoji TEXT NULL` (id from `data/spotterEmojis.ts`), `has_completed_identity_onboarding BOOLEAN NOT NULL DEFAULT FALSE`
+- **Added** `idx_profiles_country_code` partial index (Phase 3 country-leaderboard filter)
+- **Why:** foundation for the identity onboarding flow + per-row flag/emoji on leaderboard. Reversible (additive).
+
+#### `supabase/migrations/011_leaderboard_identity.sql` — New: leaderboard views with identity columns
+- **Added** `country_code` + `spotter_emoji` to all four leaderboard views via DROP + CREATE inside one transaction. Wrapped in `BEGIN; ... COMMIT;` so the DDL is invisible until commit (no missing-relation window for in-flight reads).
+- **Added** `DO $$ ... RAISE EXCEPTION` guard at top: aborts cleanly if migration 010 hasn't been applied first.
+- **Why:** existing views in `005_fix_leaderboard_security.sql` don't auto-pick up new profile columns.
+
+#### `frontend/data/countries.ts` — New: 249-country ISO list with priority sort
+- **Added** all 249 ISO 3166-1 alpha-2 entries with flag glyph + name. Priority sort (DE, PL, GB, AT, CH, NL, FR, IT, ES, CZ, SK, HU, BE, LU, DK, SE, NO, FI, IE, US) followed by alphabetical.
+- **Added** `getCountryByCode` and `getDefaultCountryCodeForLocale` helpers. **Tests:** 7.
+
+#### `frontend/data/spotterEmojis.ts` — New: curated spotter emoji set
+- **Added** 30 entries: 10 free Unicode + 5 Pro Unicode + 16 Pro SVG (placeholder paths reserved for future asset bundle).
+- **Changed** the exposed `SPOTTER_EMOJIS` to filter out `source: 'svg'` until SVG assets ship — prevents shipping broken letter-tile placeholders to paying Pro users. Full set retained internally as `ALL_SPOTTER_EMOJIS` so values stored on the server still resolve via `getEmojiById`. **Tests:** 11.
+
+#### `frontend/store/authStore.ts` + `frontend/store/authStore-helpers.ts` — Identity actions + anon→signed-in migration
+- **Added** three fields to `Profile`: `country_code`, `spotter_emoji`, `has_completed_identity_onboarding`.
+- **Added** three actions: `updateCountryCode`, `updateSpotterEmoji`, `markIdentityOnboardingComplete`. Each does optimistic Zustand update → AsyncStorage write → conditional Supabase PATCH for signed-in users. Errors logged via `addBreadcrumb`, never thrown.
+- **Added** `migrateAnonymousIdentity` helper called from `fetchProfile` after the server profile arrives. Lifts AsyncStorage country/emoji + onboarding flag onto the new server profile in one PATCH. Server values always win on conflict. Stale anon keys cleared on success or when server already populated. The onboarding flag key is intentionally retained for the next anonymous-launch gate check.
+- **Removed** dead `signInWithMagicLink` action — onboarding refactor removed its only call site; `/sign-in` now owns the OTP send.
+- **Added** AsyncStorage key constants exported from `authStore-helpers.ts` as the single source of truth (deduped from previous string-literal duplication). **Tests:** 6 + 9 + 4.
+
+#### `frontend/services/supabase.ts` — `updateProfileIdentity` helper + `LeaderboardEntry` extended
+- **Added** `updateProfileIdentity(userId, updates)` PATCH helper.
+- **Changed** `LeaderboardEntry` — added `countryCode` + `spotterEmoji`. All four `fetchLeaderboard*` mappers updated. **Tests:** 3.
+
+#### `frontend/components/CountryFlagPicker.tsx` — New reusable picker
+- **Added** compact mode (auto-selected flag + Confirm + Change country link) and full mode (search + virtualized FlatList over 249 countries). Used by both onboarding screen and Profile edit modal.
+- **Translated** all user-facing strings via `t()`. Fallback white-flag glyph commented as in-app data, not communication output.
+
+#### `frontend/components/EmojiPicker.tsx` — New 5-column grid with Pro lock
+- **Added** Pro-emoji lock overlay using `Ionicons name="lock-closed"` (replaced literal 🔒 to honour the project's no-emoji-in-files rule).
+- **Added** SVG-source placeholder fallback (label initial in surfaceHighlight tile) — currently unreachable since SVG entries filtered out.
+- **Translated** lock-state a11y label and SVG-fallback initial via `t('spotterEmojis.${id}', { defaultValue: emoji.label })`.
+
+#### `frontend/components/IdentityBadge.tsx` — New display-only flag+emoji cluster
+- **Added** sm/md/lg sizes. Returns null when both fields are null. SVG fallback uses `t()` for the placeholder initial.
+
+#### `frontend/app/onboarding-identity.tsx` — New 3-or-4-step onboarding screen
+- **Added** state machine: welcome → country → emoji → (anonymous only) email handoff. Done CTA disabled until emoji selected.
+- **Added** `deriveInitialCountry` resolution order: `profile.country_code` → known UK region in `profile.region` → `Intl.DateTimeFormat()` device locale → settings language → GB. Polish-locale device + EN/DE app language now resolves to PL.
+- **Changed** the email step: instead of pre-sending OTP via `signInWithMagicLink` and routing to `/sign-in` (which caused a duplicate OTP send + forced email retype), now routes to `/sign-in?mode=signup&email=…&autoSend=true` with `markIdentityOnboardingComplete()` called first locally.
+- **Why root cause** (duplicate OTP): `/sign-in` previously read only the `mode` param, so the prefilled email was ignored — user re-entered email + tapped Send → second OTP, invalidating the first. Fixed by accepting `email` + `autoSend` in `/sign-in`.
+- **Translated** all strings via `onboardingIdentity.*` and `identityModal.*` i18n groups.
+
+#### `frontend/app/_layout.tsx` + `frontend/app/_layout-helpers.ts` — Onboarding gate
+- **Added** post-auth gate effect that reads AsyncStorage flag, evaluates `shouldShowOnboarding({ profile, anonymousFlag })`, and `router.replace`s to `/onboarding-identity` when needed. Same Android-16/Hermes-safe `setTimeout(0)` pattern as the language-picker gate.
+- **Added** skip list: onboarding-identity, sign-in, language-picker, card-reveal, paywall, results, blueprint, compare.
+- **Fixed** stale-timer bug — `clearTimeout` cleanup was previously inside `.then()` (unreachable). Now lifted into the effect cleanup with both `cancelled` flag + `timeoutId` ref guarding. **Tests:** 5.
+
+#### `frontend/app/sign-in.tsx` — Accept email + autoSend params
+- **Added** `email` + `autoSend` query params. Email prefills on mount; if `autoSend === "true"`, fires `handleSendOtp` exactly once via `useRef` guard.
+- **Why:** clean handoff from onboarding step 4 — user goes straight to OTP code-entry, not the empty email form. Eliminates the duplicate-OTP bug.
+
+#### `frontend/app/(tabs)/profile.tsx` — Identity badge cluster + edit modal
+- **Added** tappable `<IdentityBadge />` cluster above email row (or "Set flag + emoji" placeholder when both empty).
+- **Added** edit modal: country picker + emoji picker side by side, Save/Cancel, plus "Add account to sync across devices" link for anonymous users.
+
+#### `frontend/app/(tabs)/leaderboard.tsx` — Flag + emoji on each row
+- **Added** `<IdentityBadge size="sm" />` next to each row's username, fed by the new `countryCode`/`spotterEmoji` columns from the mappers.
+
+#### `frontend/locales/en.json` + `frontend/locales/de.json` — i18n (160 keys each, full parity)
+- **Added** `onboardingIdentity` group (25 keys), `identityModal` group (8 keys), `spotterEmojis` group (30 keys: localized labels for every emoji in the curated set).
+- **Changed** DE strings to use "Bestenliste" instead of "Leaderboard" (consistency with profile/paywall copy at lines 6/87/99/105). Removed the unimplemented "Erfolge" claim from welcome body.
+- **Added** correct umlauts throughout: Länderflaggen, ändern, geräteübergreifend, Stellwerk, Straßenbahn, Klemmbrett, etc.
+
+#### `frontend/jest.setup.ts` — Added `updateProfileIdentity` to global mock
+- **Added** the new function to the `services/supabase` mock list so other tests that load authStore don't break on undefined imports.
+
+#### Test summary
+- **Frontend:** 101/101 pass (was 55 baseline; +46 new across 8 test files).
+- **Backend:** 113/113 pass (untouched).
+- **TypeScript:** 3 pre-existing baseline errors in `_layout.tsx:16`, `i18n/index.ts:16`, `services/notifications.ts:66` — none introduced.
+
+#### Three-pass review reconciliation
+First pass found 10 issues (all fixed); second pass found 4 IMPORTANT + 5 NICE-TO-HAVE (all fixed); third pass found 3 NICE-TO-HAVE (all fixed). User explicitly flagged the iterative-review pattern; saved `feedback_check_completeness_first_time.md` to memory with a self-review checklist (i18n parity, no-emoji glyphs, dead code, cross-file consistency, test gaps) to apply BEFORE asking for review next time.
+
+#### Outstanding (user-gated, not done this session)
+1. **Apply migrations to production Supabase**, in order: `010_identity_layer.sql` then `011_leaderboard_identity.sql`. The dependency guard in 011 will fail fast if 010 isn't applied first.
+2. **Manual QA on a real device** against production: 6 flows from design doc Section 5.
+3. **Push branch to origin + EAS build** for v1.0.22.
+
 ### Content / Docs — EU45/BR 185 cross-border ad design + render (`a737b83`)
 
 No code touched. Design doc + ad assets only.
