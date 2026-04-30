@@ -8,6 +8,7 @@ import { supabase } from "../config/supabase";
 import { Session, User } from "@supabase/supabase-js";
 import { track, identifyUser, resetIdentity, addBreadcrumb } from "../services/analytics";
 import { loginRevenueCat, logoutRevenueCat, syncProStatus } from "../services/purchases";
+import { updateProfileIdentity } from "../services/supabase";
 
 export interface Profile {
   id: string;
@@ -49,7 +50,14 @@ interface AuthState {
   canScan: () => boolean;
   deductBlueprintCredit: () => Promise<boolean>;
   addBlueprintCredits: (amount: number) => Promise<void>;
+  updateCountryCode: (code: string) => Promise<void>;
+  updateSpotterEmoji: (emojiId: string) => Promise<void>;
+  markIdentityOnboardingComplete: () => Promise<void>;
 }
+
+const ANONYMOUS_COUNTRY_KEY = "locosnap_anonymous_identity_country";
+const ANONYMOUS_EMOJI_KEY = "locosnap_anonymous_identity_emoji";
+const IDENTITY_ONBOARDING_KEY = "locosnap_identity_onboarding_completed";
 
 // Unauthenticated users get 6 trial scans before sign-up is required.
 // Bumped from 3 to 6 on 2026-04-28 — eight independent user signals
@@ -338,6 +346,62 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (data) {
       set({ profile: data });
       track("blueprint_credits_added", { amount, total: newCredits });
+    }
+  },
+
+  updateCountryCode: async (code: string) => {
+    const { profile, session } = get();
+    if (profile) {
+      set({ profile: { ...profile, country_code: code } });
+    }
+    try {
+      await AsyncStorage.setItem(ANONYMOUS_COUNTRY_KEY, code);
+    } catch {
+      // Non-fatal
+    }
+    if (session?.user?.id) {
+      const { error } = await updateProfileIdentity(session.user.id, { country_code: code });
+      if (error) {
+        addBreadcrumb("auth", "updateCountryCode Supabase failed");
+      }
+    }
+  },
+
+  updateSpotterEmoji: async (emojiId: string) => {
+    const { profile, session } = get();
+    if (profile) {
+      set({ profile: { ...profile, spotter_emoji: emojiId } });
+    }
+    try {
+      await AsyncStorage.setItem(ANONYMOUS_EMOJI_KEY, emojiId);
+    } catch {
+      // Non-fatal
+    }
+    if (session?.user?.id) {
+      const { error } = await updateProfileIdentity(session.user.id, { spotter_emoji: emojiId });
+      if (error) {
+        addBreadcrumb("auth", "updateSpotterEmoji Supabase failed");
+      }
+    }
+  },
+
+  markIdentityOnboardingComplete: async () => {
+    const { profile, session } = get();
+    if (profile) {
+      set({ profile: { ...profile, has_completed_identity_onboarding: true } });
+    }
+    try {
+      await AsyncStorage.setItem(IDENTITY_ONBOARDING_KEY, "true");
+    } catch {
+      // Non-fatal
+    }
+    if (session?.user?.id) {
+      const { error } = await updateProfileIdentity(session.user.id, {
+        has_completed_identity_onboarding: true,
+      });
+      if (error) {
+        addBreadcrumb("auth", "markIdentityOnboardingComplete Supabase failed");
+      }
     }
   },
 }));
