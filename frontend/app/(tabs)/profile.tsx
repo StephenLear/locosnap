@@ -35,6 +35,9 @@ import {
 } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { isValidUsername } from "../../utils/profanityFilter";
+import { IdentityBadge } from "../../components/IdentityBadge";
+import { CountryFlagPicker } from "../../components/CountryFlagPicker";
+import { EmojiPicker } from "../../components/EmojiPicker";
 
 // ── Level system ────────────────────────────────────────────
 
@@ -83,13 +86,57 @@ export default function ProfileScreen() {
     }
   };
   const router = useRouter();
-  const { profile, user, signOut, updateRegion, updateUsername } = useAuthStore();
+  const {
+    profile,
+    user,
+    session,
+    signOut,
+    updateRegion,
+    updateUsername,
+    updateCountryCode,
+    updateSpotterEmoji,
+  } = useAuthStore();
 
   // ── Username edit modal state ────────────────────────────
   const [usernameModalVisible, setUsernameModalVisible] = useState(false);
   const [usernameInput, setUsernameInput] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [usernameSaving, setUsernameSaving] = useState(false);
+
+  // ── Identity (flag + emoji) edit modal state ────────────
+  const [identityModalVisible, setIdentityModalVisible] = useState(false);
+  const [draftCountry, setDraftCountry] = useState<string | null>(null);
+  const [draftEmoji, setDraftEmoji] = useState<string | null>(null);
+  const [identitySaving, setIdentitySaving] = useState(false);
+
+  const handleOpenIdentityModal = () => {
+    setDraftCountry(profile?.country_code ?? null);
+    setDraftEmoji(profile?.spotter_emoji ?? null);
+    setIdentityModalVisible(true);
+  };
+
+  const handleSaveIdentity = async () => {
+    setIdentitySaving(true);
+    try {
+      if (draftCountry && draftCountry !== profile?.country_code) {
+        await updateCountryCode(draftCountry);
+      }
+      if (draftEmoji && draftEmoji !== profile?.spotter_emoji) {
+        await updateSpotterEmoji(draftEmoji);
+      }
+      setIdentityModalVisible(false);
+    } finally {
+      setIdentitySaving(false);
+    }
+  };
+
+  const handleProLockTapped = () => {
+    Alert.alert(
+      "Pro emoji",
+      "This emoji is exclusive to LocoSnap Pro. Upgrade to unlock all 30 emoji.",
+      [{ text: "OK" }]
+    );
+  };
 
   const handleOpenUsernameModal = () => {
     setUsernameInput(profile?.username || "");
@@ -292,6 +339,30 @@ export default function ProfileScreen() {
           <Text style={styles.userEmail}>
             {user?.email || ""}
           </Text>
+          <TouchableOpacity
+            onPress={handleOpenIdentityModal}
+            style={styles.identityBadgeButton}
+            accessibilityRole="button"
+            accessibilityLabel="Edit identity"
+          >
+            {profile?.country_code || profile?.spotter_emoji ? (
+              <IdentityBadge
+                countryCode={profile?.country_code ?? null}
+                emojiId={profile?.spotter_emoji ?? null}
+                size="md"
+              />
+            ) : (
+              <Text style={styles.identityBadgePlaceholder}>
+                Set flag + emoji
+              </Text>
+            )}
+            <Ionicons
+              name="pencil"
+              size={12}
+              color={colors.textSecondary}
+              style={{ marginLeft: 6 }}
+            />
+          </TouchableOpacity>
         </View>
         {profile?.is_pro && (
           <View style={styles.proBadge}>
@@ -628,6 +699,74 @@ export default function ProfileScreen() {
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <Text style={styles.modalSaveText}>{t("profile.usernameModal.save")}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+
+    {/* ── Identity (flag + emoji) edit modal ───────────── */}
+    <Modal
+      visible={identityModalVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setIdentityModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, styles.identityModalContent]}>
+          <Text style={styles.modalTitle}>Edit identity</Text>
+          <Text style={styles.modalSubtitle}>
+            Pick your country flag and spotter emoji.
+          </Text>
+
+          <Text style={styles.identitySectionLabel}>Country</Text>
+          <CountryFlagPicker
+            mode="compact"
+            selectedCode={draftCountry}
+            onSelect={setDraftCountry}
+          />
+
+          <Text style={styles.identitySectionLabel}>Spotter emoji</Text>
+          <View style={styles.identityEmojiContainer}>
+            <EmojiPicker
+              selectedId={draftEmoji}
+              isPro={profile?.is_pro ?? false}
+              onSelect={setDraftEmoji}
+              onProLockTapped={handleProLockTapped}
+            />
+          </View>
+
+          {!session && (
+            <TouchableOpacity
+              style={styles.addAccountLink}
+              onPress={() => {
+                setIdentityModalVisible(false);
+                router.push("/sign-in");
+              }}
+            >
+              <Text style={styles.addAccountText}>
+                Add account to sync across devices
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={styles.modalCancelBtn}
+              onPress={() => setIdentityModalVisible(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalSaveBtn, identitySaving && styles.modalSaveBtnDisabled]}
+              onPress={handleSaveIdentity}
+              disabled={identitySaving}
+            >
+              {identitySaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.modalSaveText}>Save</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -1158,5 +1297,44 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.bold,
     color: "#fff",
+  },
+  identityBadgeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    alignSelf: "flex-start",
+  },
+  identityBadgePlaceholder: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textMuted,
+  },
+  identityModalContent: {
+    maxHeight: "85%",
+    width: "92%",
+  },
+  identitySectionLabel: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    fontWeight: fonts.weights.semibold,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  identityEmojiContainer: {
+    height: 220,
+  },
+  addAccountLink: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: "center",
+  },
+  addAccountText: {
+    color: colors.primary,
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
   },
 });
