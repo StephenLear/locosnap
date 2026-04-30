@@ -27,17 +27,35 @@ import { useSettingsStore } from "../store/settingsStore";
 import { CountryFlagPicker } from "../components/CountryFlagPicker";
 import { EmojiPicker } from "../components/EmojiPicker";
 import { getDefaultCountryCodeForLocale, getCountryByCode } from "../data/countries";
+import { UK_REGIONS } from "../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
 type Step = 1 | 2 | 3 | 4;
 
+const UK_REGION_KEYS = new Set(UK_REGIONS.map((r) => r.key));
+
+/**
+ * Resolve the initial country code for the country picker.
+ * Order:
+ *   1. profile.region — only when it matches a known UK region key (in which
+ *      case the country is GB).
+ *   2. Device locale (Intl) — when its region matches a known ISO country.
+ *   3. Settings language: de → DE, anything else → GB.
+ */
 function deriveInitialCountry(profileRegion: string | null, language: string): string {
-  // Prefer existing profile region (UK regions are stored there)
-  if (profileRegion) {
-    // Existing region values are UK regions like "london" — these should map to GB
+  if (profileRegion && UK_REGION_KEYS.has(profileRegion)) {
     return "GB";
   }
-  // Fall back to settings language → locale guess
+
+  // Device locale via Intl — works in Hermes without an extra dep.
+  try {
+    const deviceLocale = Intl.DateTimeFormat().resolvedOptions().locale;
+    const region = deviceLocale.split("-")[1]?.toUpperCase();
+    if (region && getCountryByCode(region)) return region;
+  } catch {
+    // Intl unavailable — fall through to language fallback
+  }
+
   if (language === "de") return getDefaultCountryCodeForLocale("de-DE");
   return getDefaultCountryCodeForLocale(language);
 }

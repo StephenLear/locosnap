@@ -141,25 +141,38 @@ function RootLayout() {
   useEffect(() => {
     if (settingsLoading || authIsLoading) return;
     if (!languageChosen) return;
-    // Don't fire while user is already on the onboarding screen, sign-in,
-    // language-picker, or any modal screen.
-    if (pathname === "/onboarding-identity" || pathname === "/sign-in" || pathname === "/language-picker") {
-      return;
-    }
+    // Don't fire while user is already on a screen where pulling them out
+    // would be jarring or break flows: onboarding itself, sign-in,
+    // language-picker, or any presented modal.
+    const skipPaths = new Set([
+      "/onboarding-identity",
+      "/sign-in",
+      "/language-picker",
+      "/card-reveal",
+      "/paywall",
+      "/results",
+      "/blueprint",
+      "/compare",
+    ]);
+    if (skipPaths.has(pathname)) return;
 
     let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     AsyncStorage.getItem("locosnap_identity_onboarding_completed").then(
       (flag) => {
         if (cancelled) return;
         const profile = useAuthStore.getState().profile;
         if (shouldShowOnboarding({ profile, anonymousFlag: flag })) {
-          const id = setTimeout(() => router.replace("/onboarding-identity"), 0);
-          return () => clearTimeout(id);
+          timeoutId = setTimeout(
+            () => router.replace("/onboarding-identity"),
+            0
+          );
         }
       }
     );
     return () => {
       cancelled = true;
+      if (timeoutId !== null) clearTimeout(timeoutId);
     };
   }, [settingsLoading, authIsLoading, languageChosen, user?.id, pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
