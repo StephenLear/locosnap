@@ -14,6 +14,22 @@
 
 BEGIN;
 
+-- Hard guard against running 011 before 010. If country_code is missing
+-- from public.profiles, the view recreations below would silently succeed
+-- without the new columns. Fail fast instead.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'profiles'
+      AND column_name = 'country_code'
+  ) THEN
+    RAISE EXCEPTION 'Migration 011 requires migration 010 to be applied first (profiles.country_code missing)';
+  END IF;
+END$$;
+
 DROP VIEW IF EXISTS public.leaderboard_regional;
 DROP VIEW IF EXISTS public.leaderboard_rarity;
 DROP VIEW IF EXISTS public.leaderboard_weekly;

@@ -40,7 +40,6 @@ interface AuthState {
   initialize: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  signInWithMagicLink: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setSession: (session: Session | null) => void;
@@ -163,19 +162,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error;
     track("sign_in", { method: "google" });
     addBreadcrumb("auth", "Signed in with Google");
-  },
-
-  signInWithMagicLink: async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: "locosnap://auth/callback",
-      },
-    });
-    if (error) throw error;
-    track("sign_in", { method: "magic_link" });
-    addBreadcrumb("auth", "Magic link sent");
   },
 
   signOut: async () => {
