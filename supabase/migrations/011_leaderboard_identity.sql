@@ -3,7 +3,16 @@
 -- See docs/plans/2026-04-29-leaderboard-phase1-design.md
 -- Depends on migration 010_identity_layer.sql (adds the two columns
 -- to public.profiles).
+--
+-- Wrapped in a single transaction so the DROP/RECREATE pair is atomic.
+-- Without this wrapper, in-flight SELECTs against the leaderboard views
+-- between DROP and CREATE could observe "relation does not exist"
+-- errors. Inside a transaction the DDL is invisible to other sessions
+-- until COMMIT, so they either see the old views or block on the lock,
+-- never the missing-relation window.
 -- ============================================================
+
+BEGIN;
 
 DROP VIEW IF EXISTS public.leaderboard_regional;
 DROP VIEW IF EXISTS public.leaderboard_rarity;
@@ -92,3 +101,5 @@ WHERE p.username IS NOT NULL
   AND p.region IS NOT NULL
 GROUP BY p.id, p.username, p.avatar_url, p.level, p.region, p.country_code, p.spotter_emoji
 ORDER BY unique_classes DESC, total_spots DESC;
+
+COMMIT;
