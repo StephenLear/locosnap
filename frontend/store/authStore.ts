@@ -22,6 +22,9 @@ export interface Profile {
   is_pro: boolean;
   blueprint_credits: number;
   region: string | null;
+  country_code: string | null;
+  spotter_emoji: string | null;
+  has_completed_identity_onboarding: boolean;
 }
 
 interface AuthState {
