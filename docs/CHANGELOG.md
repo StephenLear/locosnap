@@ -5,6 +5,21 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-04-30
+
+### Content / Docs — EU45/BR 185 cross-border ad design + render (`a737b83`)
+
+No code touched. Design doc + ad assets only.
+
+- **Design doc:** `docs/plans/2026-04-30-eu45-cross-border-ad-design.md` committed in `a737b83`. Cross-border reveal narrative ("Diese Lok kennt jeder" → "In Polen: EU45" → "Eine Lok. Zwei Namen.") balancing DE conversion engine + PL surge play. Honours both audiences without bilingual text dilution.
+- **Output files:** `~/Desktop/BR185_ad/locosnap_eu45_tt_v1.mp4` (TikTok, 10.0s, 720×1280, no audio) + `~/Desktop/BR185_ad/locosnap_eu45_ig_v1.mp4` (Instagram, 10.5s with 0.5s "BR 185 vs EU45" pre-roll text card to address EN57's 58.7% IG skip rate).
+- **Source footage:** `~/Desktop/BR185/` — 5 BR 185 clips (DB Cargo / Captrain / Bruchsal) + 2 EU45-846 PKP Cargo clips. 4 of 7 used; 3 reserved as B-roll.
+- **Stats inputs driving the design:** EN57 PL ad delivered 65.7% PL viewer share (6.5× lift over BR 412's 10.1%). Day 2 Android (28 Apr) hit 20 installs incl. 4 PL. First DE Android Pro Annual landed 29 Apr ($39.92). EN57 retention died at 0:02 → IG variant adds explicit pre-roll to answer "what is this" before the scroll instinct fires.
+- **Music to be added in CapCut at post time** (mid-tempo industrial-cinematic instrumental, ~100-110 BPM). Caption + hashtag set logged in `tiktok_stats.md`.
+- **No frontend or backend code changes this session.** Stats review + memory updates + ad production only.
+
+---
+
 ## 2026-04-29
 
 ### Backend — Anthropic prompt caching enabled on Haiku services (`ecc1142`)
