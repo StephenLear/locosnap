@@ -21,6 +21,7 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/authStore";
 import { useSettingsStore } from "../store/settingsStore";
 import { CountryFlagPicker } from "../components/CountryFlagPicker";
@@ -42,6 +43,7 @@ function deriveInitialCountry(profileRegion: string | null, language: string): s
 }
 
 export default function OnboardingIdentityScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const profile = useAuthStore((s) => s.profile);
   const session = useAuthStore((s) => s.session);
@@ -88,7 +90,7 @@ export default function OnboardingIdentityScreen() {
   const handleSendCode = async () => {
     const trimmed = email.trim();
     if (!trimmed.includes("@")) {
-      Alert.alert("Invalid email", "Please enter a valid email address.");
+      Alert.alert(t("onboardingIdentity.emailErrorTitle"), t("onboardingIdentity.emailInvalid"));
       return;
     }
     setEmailSubmitting(true);
@@ -99,7 +101,7 @@ export default function OnboardingIdentityScreen() {
       await markIdentityOnboardingComplete();
       router.replace({ pathname: "/sign-in", params: { mode: "otp", email: trimmed } });
     } catch (err) {
-      Alert.alert("Could not send code", (err as Error).message);
+      Alert.alert(t("onboardingIdentity.emailErrorTitle"), (err as Error).message);
     } finally {
       setEmailSubmitting(false);
     }
@@ -111,9 +113,9 @@ export default function OnboardingIdentityScreen() {
 
   const handleProLockTapped = () => {
     Alert.alert(
-      "Pro emoji",
-      "This emoji is exclusive to LocoSnap Pro. You can pick a free emoji for now and upgrade any time.",
-      [{ text: "OK" }]
+      t("onboardingIdentity.emojiProLockTitle"),
+      t("onboardingIdentity.emojiProLockBody"),
+      [{ text: t("onboardingIdentity.emojiProLockOk") }]
     );
   };
 
@@ -133,25 +135,24 @@ export default function OnboardingIdentityScreen() {
 
       {step === 1 && (
         <ScrollView contentContainerStyle={styles.welcomeContainer}>
-          <Text style={styles.title}>Set up your spotter identity</Text>
-          <Text style={styles.body}>
-            We've added country flags, achievements, and a new leaderboard. Set
-            up your identity in 30 seconds.
-          </Text>
+          <Text style={styles.title}>{t("onboardingIdentity.welcomeTitle")}</Text>
+          <Text style={styles.body}>{t("onboardingIdentity.welcomeBody")}</Text>
           <Pressable
             style={styles.primaryButton}
             onPress={() => setStep(2)}
             accessibilityRole="button"
           >
-            <Text style={styles.primaryButtonText}>Continue</Text>
+            <Text style={styles.primaryButtonText}>
+              {t("onboardingIdentity.continueCta")}
+            </Text>
           </Pressable>
         </ScrollView>
       )}
 
       {step === 2 && (
         <View style={styles.stepContainer}>
-          <Text style={styles.title}>Pick your country</Text>
-          <Text style={styles.subtitle}>Looks right? Confirm.</Text>
+          <Text style={styles.title}>{t("onboardingIdentity.countryTitle")}</Text>
+          <Text style={styles.subtitle}>{t("onboardingIdentity.countrySubtitle")}</Text>
           <CountryFlagPicker
             mode="compact"
             selectedCode={countryCode}
@@ -163,7 +164,7 @@ export default function OnboardingIdentityScreen() {
             accessibilityRole="button"
           >
             <Text style={styles.primaryButtonText}>
-              Confirm {getCountryByCode(countryCode)?.glyph ?? ""}
+              {t("onboardingIdentity.confirmCta")} {getCountryByCode(countryCode)?.glyph ?? ""}
             </Text>
           </Pressable>
         </View>
@@ -171,10 +172,10 @@ export default function OnboardingIdentityScreen() {
 
       {step === 3 && (
         <View style={styles.stepContainer}>
-          <Text style={styles.title}>Pick your spotter emoji</Text>
+          <Text style={styles.title}>{t("onboardingIdentity.emojiTitle")}</Text>
           {!isPro && (
             <Text style={styles.subtitle}>
-              Unlock more options with LocoSnap Pro.
+              {t("onboardingIdentity.emojiProSubtitle")}
             </Text>
           )}
           <View style={styles.emojiGrid}>
@@ -192,7 +193,9 @@ export default function OnboardingIdentityScreen() {
             accessibilityRole="button"
           >
             <Text style={styles.primaryButtonText}>
-              {isAnonymous ? "Continue" : "Done"}
+              {isAnonymous
+                ? t("onboardingIdentity.continueCta")
+                : t("onboardingIdentity.doneCta")}
             </Text>
           </Pressable>
         </View>
@@ -200,16 +203,12 @@ export default function OnboardingIdentityScreen() {
 
       {step === 4 && (
         <ScrollView contentContainerStyle={styles.stepContainer}>
-          <Text style={styles.title}>
-            Save your spots and join the leaderboard
-          </Text>
-          <Text style={styles.subtitle}>
-            We'll email you a code. No password needed.
-          </Text>
+          <Text style={styles.title}>{t("onboardingIdentity.emailTitle")}</Text>
+          <Text style={styles.subtitle}>{t("onboardingIdentity.emailSubtitle")}</Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
-            placeholder="you@example.com"
+            placeholder={t("onboardingIdentity.emailPlaceholder")}
             placeholderTextColor={colors.textMuted}
             style={styles.emailInput}
             keyboardType="email-address"
@@ -226,7 +225,9 @@ export default function OnboardingIdentityScreen() {
             accessibilityRole="button"
           >
             <Text style={styles.primaryButtonText}>
-              {emailSubmitting ? "Sending..." : "Send code"}
+              {emailSubmitting
+                ? t("onboardingIdentity.emailSending")
+                : t("onboardingIdentity.emailSendCode")}
             </Text>
           </Pressable>
           <Pressable
@@ -234,7 +235,9 @@ export default function OnboardingIdentityScreen() {
             onPress={handleSkipEmail}
             accessibilityRole="button"
           >
-            <Text style={styles.skipButtonText}>Continue without account</Text>
+            <Text style={styles.skipButtonText}>
+              {t("onboardingIdentity.emailSkip")}
+            </Text>
           </Pressable>
         </ScrollView>
       )}

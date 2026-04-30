@@ -127,5 +127,39 @@
     "english": "English",
     "german": "Deutsch",
     "continue": "Continue"
+  },
+  "onboardingIdentity": {
+    "welcomeTitle": "Set up your spotter identity",
+    "welcomeBody": "We've added country flags, achievements, and a new leaderboard. Set up your identity in 30 seconds.",
+    "countryTitle": "Pick your country",
+    "countrySubtitle": "Looks right? Confirm.",
+    "countryChange": "Change country",
+    "countrySearchPlaceholder": "Search country...",
+    "emojiTitle": "Pick your spotter emoji",
+    "emojiProSubtitle": "Unlock more options with LocoSnap Pro.",
+    "emojiProLockTitle": "Pro emoji",
+    "emojiProLockBody": "This emoji is exclusive to LocoSnap Pro. You can pick a free emoji for now and upgrade any time.",
+    "emojiProLockOk": "OK",
+    "emailTitle": "Save your spots and join the leaderboard",
+    "emailSubtitle": "We'll email you a code. No password needed.",
+    "emailPlaceholder": "you@example.com",
+    "emailSending": "Sending...",
+    "emailSendCode": "Send code",
+    "emailSkip": "Continue without account",
+    "emailInvalid": "Please enter a valid email address.",
+    "emailErrorTitle": "Could not send code",
+    "continueCta": "Continue",
+    "confirmCta": "Confirm",
+    "doneCta": "Done"
+  },
+  "identityModal": {
+    "title": "Edit identity",
+    "subtitle": "Pick your country flag and spotter emoji.",
+    "countryLabel": "Country",
+    "emojiLabel": "Spotter emoji",
+    "addAccount": "Add account to sync across devices",
+    "save": "Save",
+    "cancel": "Cancel",
+    "badgePlaceholder": "Set flag + emoji"
   }
 }

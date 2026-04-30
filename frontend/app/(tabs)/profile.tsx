@@ -132,9 +132,9 @@ export default function ProfileScreen() {
 
   const handleProLockTapped = () => {
     Alert.alert(
-      "Pro emoji",
-      "This emoji is exclusive to LocoSnap Pro. Upgrade to unlock all 30 emoji.",
-      [{ text: "OK" }]
+      t("onboardingIdentity.emojiProLockTitle"),
+      t("onboardingIdentity.emojiProLockBody"),
+      [{ text: t("onboardingIdentity.emojiProLockOk") }]
     );
   };
 
@@ -353,7 +353,7 @@ export default function ProfileScreen() {
               />
             ) : (
               <Text style={styles.identityBadgePlaceholder}>
-                Set flag + emoji
+                {t("identityModal.badgePlaceholder")}
               </Text>
             )}
             <Ionicons
@@ -715,19 +715,17 @@ export default function ProfileScreen() {
     >
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, styles.identityModalContent]}>
-          <Text style={styles.modalTitle}>Edit identity</Text>
-          <Text style={styles.modalSubtitle}>
-            Pick your country flag and spotter emoji.
-          </Text>
+          <Text style={styles.modalTitle}>{t("identityModal.title")}</Text>
+          <Text style={styles.modalSubtitle}>{t("identityModal.subtitle")}</Text>
 
-          <Text style={styles.identitySectionLabel}>Country</Text>
+          <Text style={styles.identitySectionLabel}>{t("identityModal.countryLabel")}</Text>
           <CountryFlagPicker
             mode="compact"
             selectedCode={draftCountry}
             onSelect={setDraftCountry}
           />
 
-          <Text style={styles.identitySectionLabel}>Spotter emoji</Text>
+          <Text style={styles.identitySectionLabel}>{t("identityModal.emojiLabel")}</Text>
           <View style={styles.identityEmojiContainer}>
             <EmojiPicker
               selectedId={draftEmoji}
@@ -746,7 +744,7 @@ export default function ProfileScreen() {
               }}
             >
               <Text style={styles.addAccountText}>
-                Add account to sync across devices
+                {t("identityModal.addAccount")}
               </Text>
             </TouchableOpacity>
           )}
@@ -756,7 +754,7 @@ export default function ProfileScreen() {
               style={styles.modalCancelBtn}
               onPress={() => setIdentityModalVisible(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={styles.modalCancelText}>{t("identityModal.cancel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalSaveBtn, identitySaving && styles.modalSaveBtnDisabled]}
@@ -766,7 +764,7 @@ export default function ProfileScreen() {
               {identitySaving ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.modalSaveText}>Save</Text>
+                <Text style={styles.modalSaveText}>{t("identityModal.save")}</Text>
               )}
             </TouchableOpacity>
           </View>

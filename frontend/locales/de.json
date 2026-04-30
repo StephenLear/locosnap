@@ -127,5 +127,39 @@
     "english": "English",
     "german": "Deutsch",
     "continue": "Weiter"
+  },
+  "onboardingIdentity": {
+    "welcomeTitle": "Richte dein Spotter-Profil ein",
+    "welcomeBody": "Es gibt jetzt Länderflaggen, Erfolge und ein neues Leaderboard. Richte dein Profil in 30 Sekunden ein.",
+    "countryTitle": "Wähle dein Land",
+    "countrySubtitle": "Passt das? Bestätigen.",
+    "countryChange": "Land ändern",
+    "countrySearchPlaceholder": "Land suchen...",
+    "emojiTitle": "Wähle dein Spotter-Emoji",
+    "emojiProSubtitle": "Mit LocoSnap Pro schaltest du weitere Emojis frei.",
+    "emojiProLockTitle": "Pro-Emoji",
+    "emojiProLockBody": "Dieses Emoji ist LocoSnap Pro vorbehalten. Du kannst zunächst ein kostenloses wählen und jederzeit upgraden.",
+    "emojiProLockOk": "OK",
+    "emailTitle": "Sichere deine Sichtungen und tritt dem Leaderboard bei",
+    "emailSubtitle": "Wir schicken dir einen Code per E-Mail. Kein Passwort nötig.",
+    "emailPlaceholder": "du@beispiel.de",
+    "emailSending": "Wird gesendet...",
+    "emailSendCode": "Code senden",
+    "emailSkip": "Ohne Konto fortfahren",
+    "emailInvalid": "Bitte gib eine gültige E-Mail-Adresse ein.",
+    "emailErrorTitle": "Code konnte nicht gesendet werden",
+    "continueCta": "Weiter",
+    "confirmCta": "Bestätigen",
+    "doneCta": "Fertig"
+  },
+  "identityModal": {
+    "title": "Profil bearbeiten",
+    "subtitle": "Wähle deine Länderflagge und dein Spotter-Emoji.",
+    "countryLabel": "Land",
+    "emojiLabel": "Spotter-Emoji",
+    "addAccount": "Konto hinzufügen, um geräteübergreifend zu synchronisieren",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "badgePlaceholder": "Flagge + Emoji setzen"
   }
 }
