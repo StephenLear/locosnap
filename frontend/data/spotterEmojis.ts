@@ -7,7 +7,13 @@ export interface SpotterEmoji {
   svgAsset?: string;
 }
 
-export const SPOTTER_EMOJIS: SpotterEmoji[] = [
+/**
+ * Full curated set including SVG-source Pro emojis. The SVG assets are not
+ * yet sourced — see frontend/assets/emoji-svg/.gitkeep. Until they land,
+ * SPOTTER_EMOJIS (the exposed list) filters out SVG entries so users never
+ * see broken placeholder tiles. When the assets ship, drop this filter.
+ */
+const ALL_SPOTTER_EMOJIS: SpotterEmoji[] = [
   // Free tier — Unicode train iconography
   { id: 'train_steam', label: 'Steam locomotive', isPro: false, source: 'unicode', glyph: '\u{1F682}' },
   { id: 'train_diesel', label: 'Diesel train', isPro: false, source: 'unicode', glyph: '\u{1F686}' },
@@ -43,8 +49,16 @@ export const SPOTTER_EMOJIS: SpotterEmoji[] = [
   { id: 'pro_clipboard', label: 'Spotter clipboard', isPro: true, source: 'unicode', glyph: '\u{1F4CB}' },
 ];
 
+// Exposed set: Unicode-only until SVG asset bundle ships. See above.
+export const SPOTTER_EMOJIS: SpotterEmoji[] = ALL_SPOTTER_EMOJIS.filter(
+  e => e.source === 'unicode'
+);
+
 export function getEmojiById(id: string): SpotterEmoji | undefined {
-  return SPOTTER_EMOJIS.find(e => e.id === id);
+  // Search the full set so values stored on the server (e.g. an SVG id from
+  // a future build) still resolve when the user is on a build that filters
+  // them out — they just won't be re-selectable.
+  return ALL_SPOTTER_EMOJIS.find(e => e.id === id);
 }
 
 export function canSelectEmoji(id: string, isPro: boolean): boolean {
