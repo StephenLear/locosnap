@@ -9,6 +9,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { track, identifyUser, resetIdentity, addBreadcrumb } from "../services/analytics";
 import { loginRevenueCat, logoutRevenueCat, syncProStatus } from "../services/purchases";
 import { updateProfileIdentity } from "../services/supabase";
+import { migrateAnonymousIdentity, clearAnonymousIdentity } from "./authStore-helpers";
 
 export interface Profile {
   id: string;
@@ -217,6 +218,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Lifetime scan limit — no monthly reset. daily_scans_used is now
         // a lifetime counter despite the legacy column name.
         set({ profile: data });
+
+        // Anonymous → signed-in identity migration. If the user picked a
+        // country flag and/or spotter emoji while anonymous, lift those
+        // values onto the new Supabase profile before any other code reads
+        // it. Server values always win on conflict (e.g. signed in on
+        // another device).
+        try {
+          const updates = await migrateAnonymousIdentity({ profile: data });
+          if (updates) {
+            const { error: patchError } = await updateProfileIdentity(user.id, updates);
+            if (!patchError) {
+              const merged = { ...data, ...updates };
+              set({ profile: merged });
+              await clearAnonymousIdentity();
+              addBreadcrumb("auth", "anonymous identity migrated to profile");
+            } else {
+              addBreadcrumb("auth", "anonymous identity migration PATCH failed");
+            }
+          }
+        } catch {
+          // Non-fatal — migration retries on next foreground via fetchProfile
+        }
 
         // Sync Pro status with RevenueCat entitlements
         // Only upgrade to Pro if RevenueCat confirms it — never downgrade a manually-granted Pro
