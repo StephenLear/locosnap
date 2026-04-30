@@ -130,7 +130,7 @@
   },
   "onboardingIdentity": {
     "welcomeTitle": "Richte dein Spotter-Profil ein",
-    "welcomeBody": "Es gibt jetzt Länderflaggen, Erfolge und ein neues Leaderboard. Richte dein Profil in 30 Sekunden ein.",
+    "welcomeBody": "Neu: Länderflaggen und Spotter-Emojis für die Bestenliste. Richte dein Profil in 30 Sekunden ein.",
     "countryTitle": "Wähle dein Land",
     "countrySubtitle": "Passt das? Bestätigen.",
     "countryChange": "Land ändern",
@@ -140,7 +140,7 @@
     "emojiProLockTitle": "Pro-Emoji",
     "emojiProLockBody": "Dieses Emoji ist LocoSnap Pro vorbehalten. Du kannst zunächst ein kostenloses wählen und jederzeit upgraden.",
     "emojiProLockOk": "OK",
-    "emailTitle": "Sichere deine Sichtungen und tritt dem Leaderboard bei",
+    "emailTitle": "Sichere deine Sichtungen und tritt der Bestenliste bei",
     "emailSubtitle": "Wir schicken dir einen Code per E-Mail. Kein Passwort nötig.",
     "emailPlaceholder": "du@beispiel.de",
     "emailSending": "Wird gesendet...",
