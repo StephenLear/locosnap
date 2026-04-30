@@ -343,7 +343,7 @@ export default function ProfileScreen() {
             onPress={handleOpenIdentityModal}
             style={styles.identityBadgeButton}
             accessibilityRole="button"
-            accessibilityLabel="Edit identity"
+            accessibilityLabel={t("identityModal.title")}
           >
             {profile?.country_code || profile?.spotter_emoji ? (
               <IdentityBadge

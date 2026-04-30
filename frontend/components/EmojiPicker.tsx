@@ -5,6 +5,8 @@
 // ============================================================
 
 import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { SPOTTER_EMOJIS, canSelectEmoji } from "../data/spotterEmojis";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
@@ -18,6 +20,7 @@ interface Props {
 const COLUMNS = 5;
 
 export function EmojiPicker({ selectedId, isPro, onSelect, onProLockTapped }: Props) {
+  const { t } = useTranslation();
   return (
     <FlatList
       data={SPOTTER_EMOJIS}
@@ -45,7 +48,9 @@ export function EmojiPicker({ selectedId, isPro, onSelect, onProLockTapped }: Pr
             ]}
             accessibilityRole="button"
             accessibilityLabel={
-              isLocked ? `${item.label} (locked, Pro only)` : item.label
+              isLocked
+                ? t("onboardingIdentity.emojiLocked", { label: item.label })
+                : item.label
             }
           >
             {item.source === "unicode" && item.glyph ? (
@@ -59,7 +64,14 @@ export function EmojiPicker({ selectedId, isPro, onSelect, onProLockTapped }: Pr
                 </Text>
               </View>
             )}
-            {isLocked && <Text style={styles.lockIcon}>🔒</Text>}
+            {isLocked && (
+              <Ionicons
+                name="lock-closed"
+                size={12}
+                color={colors.textMuted}
+                style={styles.lockIcon}
+              />
+            )}
           </Pressable>
         );
       }}
@@ -106,6 +118,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: spacing.xs,
     right: spacing.xs,
-    fontSize: 12,
   },
 });

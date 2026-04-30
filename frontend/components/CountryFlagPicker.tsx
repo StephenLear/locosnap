@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { View, Text, FlatList, TextInput, Pressable, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { COUNTRIES, getCountryByCode, Country } from "../data/countries";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function CountryFlagPicker({ selectedCode, mode, onSelect }: Props) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [internalMode, setInternalMode] = useState<"compact" | "full">(mode);
 
@@ -38,15 +40,17 @@ export function CountryFlagPicker({ selectedCode, mode, onSelect }: Props) {
           <Text style={styles.compactGlyph}>🏳️</Text>
         )}
         <Text style={styles.compactName}>
-          {selected?.name ?? "No country selected"}
+          {selected?.name ?? t("onboardingIdentity.countryNoneSelected")}
         </Text>
         <Pressable
           onPress={() => setInternalMode("full")}
           style={styles.changeButton}
           accessibilityRole="button"
-          accessibilityLabel="Change country"
+          accessibilityLabel={t("onboardingIdentity.countryChange")}
         >
-          <Text style={styles.changeButtonText}>Change country</Text>
+          <Text style={styles.changeButtonText}>
+            {t("onboardingIdentity.countryChange")}
+          </Text>
         </Pressable>
       </View>
     );
@@ -57,7 +61,7 @@ export function CountryFlagPicker({ selectedCode, mode, onSelect }: Props) {
       <TextInput
         value={search}
         onChangeText={setSearch}
-        placeholder="Search country..."
+        placeholder={t("onboardingIdentity.countrySearchPlaceholder")}
         placeholderTextColor={colors.textMuted}
         style={styles.searchInput}
         autoCapitalize="none"
@@ -71,7 +75,7 @@ export function CountryFlagPicker({ selectedCode, mode, onSelect }: Props) {
             onPress={() => onSelect(item.code)}
             style={styles.row}
             accessibilityRole="button"
-            accessibilityLabel={`Select ${item.name}`}
+            accessibilityLabel={item.name}
           >
             <Text style={styles.rowGlyph}>{item.glyph}</Text>
             <Text style={styles.rowName}>{item.name}</Text>
@@ -82,7 +86,9 @@ export function CountryFlagPicker({ selectedCode, mode, onSelect }: Props) {
         )}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No countries match "{search}"</Text>
+            <Text style={styles.emptyText}>
+              {t("onboardingIdentity.countryNoMatch", { query: search })}
+            </Text>
           </View>
         )}
         keyboardShouldPersistTaps="handled"
