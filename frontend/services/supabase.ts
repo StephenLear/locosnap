@@ -374,6 +374,9 @@ export interface LeaderboardEntry {
   uniqueTrains: number;
   rareCount: number;
   lastActive: string | null;
+  // Identity (Phase 1 — added in migration 011)
+  countryCode: string | null;
+  spotterEmoji: string | null;
   // Weekly-specific
   weeklySpots?: number;
   weeklyUnique?: number;
@@ -403,6 +406,8 @@ export async function fetchLeaderboard(
     username: entry.username || "Anonymous Spotter",
     avatarUrl: entry.avatar_url || null,
     level: entry.level || 1,
+    countryCode: entry.country_code || null,
+    spotterEmoji: entry.spotter_emoji || null,
     totalSpots: entry.total_spots || 0,
     uniqueTrains: entry.unique_classes || 0,
     rareCount: entry.rare_count || 0,
@@ -431,6 +436,8 @@ export async function fetchWeeklyLeaderboard(
     username: entry.username || "Anonymous Spotter",
     avatarUrl: entry.avatar_url || null,
     level: entry.level || 1,
+    countryCode: entry.country_code || null,
+    spotterEmoji: entry.spotter_emoji || null,
     totalSpots: 0,
     uniqueTrains: entry.weekly_unique || 0,
     rareCount: entry.rare_count || 0,
@@ -461,6 +468,8 @@ export async function fetchRarityLeaderboard(
     username: entry.username || "Anonymous Spotter",
     avatarUrl: entry.avatar_url || null,
     level: entry.level || 1,
+    countryCode: entry.country_code || null,
+    spotterEmoji: entry.spotter_emoji || null,
     totalSpots: entry.total_spots || 0,
     uniqueTrains: 0,
     rareCount: entry.rare_count || 0,
@@ -529,6 +538,8 @@ export async function fetchRegionalLeaderboard(
     username: entry.username || "Anonymous Spotter",
     avatarUrl: entry.avatar_url || null,
     level: entry.level || 1,
+    countryCode: entry.country_code || null,
+    spotterEmoji: entry.spotter_emoji || null,
     totalSpots: entry.total_spots || 0,
     uniqueTrains: entry.unique_classes || 0,
     rareCount: entry.rare_count || 0,

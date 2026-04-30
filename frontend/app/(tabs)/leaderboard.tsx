@@ -28,6 +28,7 @@ import {
 } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track } from "../../services/analytics";
+import { IdentityBadge } from "../../components/IdentityBadge";
 
 // ── Level names (same as profile) ────────────────────────────
 
@@ -319,16 +320,23 @@ function LeaderboardRow({
           />
         </View>
         <View style={styles.userMeta}>
-          <Text
-            style={[
-              styles.rowUsername,
-              isCurrentUser && styles.rowUsernameHighlight,
-            ]}
-            numberOfLines={1}
-          >
-            {entry.username}
-            {isCurrentUser ? " (You)" : ""}
-          </Text>
+          <View style={styles.usernameLine}>
+            <Text
+              style={[
+                styles.rowUsername,
+                isCurrentUser && styles.rowUsernameHighlight,
+              ]}
+              numberOfLines={1}
+            >
+              {entry.username}
+              {isCurrentUser ? " (You)" : ""}
+            </Text>
+            <IdentityBadge
+              countryCode={entry.countryCode}
+              emojiId={entry.spotterEmoji}
+              size="sm"
+            />
+          </View>
           <Text style={styles.rowLevel}>
             {LEVEL_NAMES[entry.level] || `Level ${entry.level}`}
           </Text>
@@ -593,10 +601,17 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
     flex: 1,
   },
+  usernameLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexShrink: 1,
+  },
   rowUsername: {
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.semibold,
     color: colors.textPrimary,
+    flexShrink: 1,
   },
   rowUsernameHighlight: {
     color: colors.accent,
