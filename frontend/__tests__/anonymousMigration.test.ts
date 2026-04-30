@@ -34,11 +34,42 @@ describe('migrateAnonymousIdentity', () => {
     expect(updates).toBeNull();
   });
 
-  it('returns null when profile already has both values (server wins)', async () => {
+  it('returns null and clears AsyncStorage when profile already has both values (server wins)', async () => {
     await AsyncStorage.setItem('locosnap_anonymous_identity_country', 'DE');
     await AsyncStorage.setItem('locosnap_anonymous_identity_emoji', 'train_steam');
     const updates = await migrateAnonymousIdentity({
       profile: profile({ country_code: 'PL', spotter_emoji: 'train_diesel' }),
+    });
+    expect(updates).toBeNull();
+    // Stale anon values should be cleared to prevent re-application on next launch
+    expect(await AsyncStorage.getItem('locosnap_anonymous_identity_country')).toBeNull();
+    expect(await AsyncStorage.getItem('locosnap_anonymous_identity_emoji')).toBeNull();
+  });
+
+  it('lifts onboarding completion flag onto profile when anon flag is set', async () => {
+    await AsyncStorage.setItem('locosnap_identity_onboarding_completed', 'true');
+    const updates = await migrateAnonymousIdentity({
+      profile: profile({ has_completed_identity_onboarding: false }),
+    });
+    expect(updates).toEqual({ has_completed_identity_onboarding: true });
+  });
+
+  it('combines identity values + onboarding flag in a single patch', async () => {
+    await AsyncStorage.setItem('locosnap_anonymous_identity_country', 'DE');
+    await AsyncStorage.setItem('locosnap_anonymous_identity_emoji', 'train_steam');
+    await AsyncStorage.setItem('locosnap_identity_onboarding_completed', 'true');
+    const updates = await migrateAnonymousIdentity({ profile: profile() });
+    expect(updates).toEqual({
+      country_code: 'DE',
+      spotter_emoji: 'train_steam',
+      has_completed_identity_onboarding: true,
+    });
+  });
+
+  it('does not migrate onboarding flag when server already has it true', async () => {
+    await AsyncStorage.setItem('locosnap_identity_onboarding_completed', 'true');
+    const updates = await migrateAnonymousIdentity({
+      profile: profile({ has_completed_identity_onboarding: true }),
     });
     expect(updates).toBeNull();
   });
