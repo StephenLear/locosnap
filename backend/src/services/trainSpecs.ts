@@ -241,6 +241,18 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "db class 114": { maxSpeed: "160 km/h" },
   "class 114": { maxSpeed: "160 km/h" },
   "br 114": { maxSpeed: "160 km/h" },
+  // BR 110 / DB E 10 — West German Bo'Bo' express electric, Krauss-Maffei (prime) +
+  // Krupp + Henschel + AEG + Siemens, 379 BR 110.1 built 1956-1969. Max 150 km/h
+  // (NOT 110 — that's BR 140 freight variant; NOT 160 — that's BR 113 high-speed sub-class).
+  // 3,620 kW continuous, 85 t. DB Regio retired 12 Feb 2014; ~11-15 still operate
+  // with private operators (TRI, Centralbahn, GfF, TeutoLok, Lok Partner, Pressnitztalbahn).
+  "br 110": { maxSpeed: "150 km/h", power: "3,620 kW", weight: "85 t", builder: "Krauss-Maffei / Krupp / Henschel / AEG / Siemens", numberBuilt: 379, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br110": { maxSpeed: "150 km/h", power: "3,620 kW", weight: "85 t", builder: "Krauss-Maffei / Krupp / Henschel / AEG / Siemens", numberBuilt: 379, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 110": { maxSpeed: "150 km/h", power: "3,620 kW", weight: "85 t", builder: "Krauss-Maffei / Krupp / Henschel / AEG / Siemens", numberBuilt: 379, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db br 110": { maxSpeed: "150 km/h", power: "3,620 kW", weight: "85 t", builder: "Krauss-Maffei / Krupp / Henschel / AEG / Siemens", numberBuilt: 379, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "e 10": { maxSpeed: "150 km/h", power: "3,620 kW", weight: "85 t", builder: "Krauss-Maffei / Krupp / Henschel / AEG / Siemens", numberBuilt: 379, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "e10": { maxSpeed: "150 km/h", power: "3,620 kW", weight: "85 t", builder: "Krauss-Maffei / Krupp / Henschel / AEG / Siemens", numberBuilt: 379, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db e 10": { maxSpeed: "150 km/h", power: "3,620 kW", weight: "85 t", builder: "Krauss-Maffei / Krupp / Henschel / AEG / Siemens", numberBuilt: 379, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   // BR 412 (ICE 4) — ensure correct max speed (250 km/h, not 300/320 km/h like ICE 3)
   // Multiple variants because vision may return different class string formats
   "br 412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },

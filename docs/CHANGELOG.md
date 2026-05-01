@@ -7,6 +7,20 @@ Format: newest first within each date block.
 
 ## 2026-05-01
 
+### Backend — BR 110 / DB E 10 facts + spec hard-override (pre-ad lock-in)
+
+#### `backend/src/services/trainFacts.ts` — new BR 110 / E 10 block in `FACTS_PROMPT`
+- **Added** a comprehensive class-truth block covering: 379 BR 110.1 built 1956–1969 by Krauss-Maffei / Krupp / Henschel / AEG / Siemens; max 150 km/h, 3,620 kW; "Bügelfalte" / "Kasten" nicknames whitelisted; **DB Regio retired 12 February 2014 (last loco: 110 469); BR 115 retired February 2020**; current operator list (TRI, Centralbahn, GfF, TeutoLok, Lok Partner→VIAS, Schienenverkehrsgesellschaft, Pressnitztalbahn, DB Museum) with specific fleet numbers; recent dated milestones (110 448 refurbished 10 Dec 2024, Centralbahn 115 278 charters 7-8 Feb 2026); confusion guards against BR 111 / 113 / 114 / 115; explicit forbid list against "DB Cargo", "still being phased out", "final runs this year".
+- **Why:** preparing tomorrow's BR 110 short-form ad, and the BR 185/EU45 cross-border ad was publicly corrected this week. Locking the in-app card-reveal to factually verified data ensures the ad's caption and the in-app scan card cannot disagree. Plus prevents the model from defaulting to a generic "withdrawn from DB Cargo" hallucination (BR 110 is a passenger loco; DB Cargo never operated it).
+
+#### `backend/src/services/trainSpecs.ts` — BR 110 spec entries in `WIKIDATA_CORRECTIONS`
+- **Added** 7 lookup-key variants ("br 110", "br110", "baureihe 110", "db br 110", "e 10", "e10", "db e 10") all mapping to the canonical spec: 150 km/h / 3,620 kW / 85 t / Krauss-Maffei + Krupp + Henschel + AEG + Siemens / 379 built / 15 kV 16.7 Hz AC / Standard 1,435 mm gauge.
+- **Why:** Wikidata sometimes returns 110 km/h for BR 110 (which is BR 140's max — closely related freight class), or 160 km/h (BR 113 sub-class). Lock the value.
+
+- **Tests:** 113/113 backend pass.
+
+---
+
 ### Backend — IP rate limiter on `/api/identify` skips authenticated requests (Sentry REACT-NATIVE-6 fix)
 
 #### `backend/src/routes/identify.ts` — `identifyRateLimit` now has `skip` predicate for `Bearer` auth
