@@ -5,6 +5,17 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-01
+
+### Backend — bump `trainFacts` max_tokens 2048 → 4096
+
+#### `backend/src/services/trainFacts.ts` — fix verbose-German truncation
+- **Changed** `max_tokens: 2048` → `max_tokens: 4096` in both the Anthropic (Haiku 4.5) and OpenAI (GPT-4o) code paths.
+- **Why:** tester Andre reported the DT5 (Hamburger Hochbahn) facts card showing the last Fun Facts bullet cut off mid-sentence ("...wobei die Auslieferung zwischen 20"). Root cause: 2048 tokens isn't enough headroom for verbose German output on rich classes. German is roughly 1.3–1.5× more tokens than English for equivalent meaning, and DT5/BR 412/Class 91-style entries hit 6+ bullets across summary / historicalSignificance / funFacts / notableEvents. Bumping to 4096 doubles headroom; cost impact is negligible because Haiku bills only on actual output tokens, not the cap.
+- **Tests:** 113/113 backend pass.
+
+---
+
 ## 2026-04-30
 
 ### Content / Docs — EU45/BR 185 cross-border ad design + render (`a737b83`)

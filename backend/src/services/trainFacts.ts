@@ -91,7 +91,7 @@ export async function getTrainFacts(
       const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
       const response = await anthropic.messages.create({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 2048,
+        max_tokens: 4096,
         temperature: 0,
         system: [
           {
@@ -113,7 +113,7 @@ export async function getTrainFacts(
         "https://api.openai.com/v1/chat/completions",
         {
           model: "gpt-4o",
-          max_tokens: 2048,
+          max_tokens: 4096,
           temperature: 0,
           messages: [
             { role: "system", content: FACTS_SYSTEM_PROMPT },
