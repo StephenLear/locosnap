@@ -5,6 +5,40 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-01
+
+### Frontend — v1.0.22 version bump, branch pushed, EAS builds + store submissions
+
+#### `frontend/app.json` — version 1.0.21 → 1.0.22
+- **Changed** `expo.version` from `"1.0.21"` to `"1.0.22"` (commit `2f4d99b`).
+- **Why:** ships the Leaderboard Phase 1 identity layer (the 26-commit `feat/leaderboard-phase1` branch from 2026-04-30) to production. Android `versionCode` auto-increments to **12** via EAS production profile (`autoIncrement: true` in `eas.json`); iOS `buildNumber` auto-increments to **44**.
+
+#### Production Supabase — migrations 010 + 011 applied
+- **Applied** `supabase/migrations/010_identity_layer.sql` first via Supabase SQL Editor — added `country_code TEXT NULL`, `spotter_emoji TEXT NULL`, `has_completed_identity_onboarding BOOLEAN NOT NULL DEFAULT FALSE` to `profiles` plus partial index `idx_profiles_country_code`.
+- **Applied** `supabase/migrations/011_leaderboard_identity.sql` second (010-dependency `RAISE EXCEPTION` guard passed). Wrapped in `BEGIN; ... COMMIT;` for atomic view swap. All four leaderboard views (`leaderboard`, `leaderboard_weekly`, `leaderboard_rarity`, `leaderboard_regional`) recreated with `country_code` + `spotter_emoji` columns. Verified post-apply: `SELECT country_code, spotter_emoji FROM leaderboard LIMIT 1` returns `(NULL, NULL)` — columns exist, no rows yet have onboarded.
+- **Why:** unblocks the v1.0.22 client which writes to and reads from these columns.
+
+#### Branch + builds + store submissions
+- **Pushed** `feat/leaderboard-phase1` to `origin` for the first time. 28 commits ahead of `origin/main` (26 leaderboard branch commits + 2 pre-existing docs commits).
+- **Triggered** EAS production builds for both platforms via `eas build --platform all --profile production --non-interactive --no-wait` from feat branch. Both builds completed successfully:
+  - **Android (.aab):** versionCode 12 — https://expo.dev/artifacts/eas/sQkk91VG398VKm2hAKdPUv.aab
+  - **iOS (.ipa):** build 44 — https://expo.dev/artifacts/eas/82eAguos4zULQQ8LULDbU1.ipa
+- **Submitted** both via `eas submit --platform all --profile production --non-interactive --latest`. iOS uploaded to App Store Connect (sent for Apple review). Android uploaded to Play Console production track as draft.
+
+#### Play Console — versionCode 12 promoted into Internal + Closed testing tracks
+- **Replaced** the ancient versionCode 4 (v1.0.6, dated 27 Mar) sitting in **Internal testing** with versionCode 12.
+- **Replaced** versionCode 7 (the original Play-flagged offender) sitting in **Closed testing** with versionCode 12.
+- **Why:** Play Console flagged the v1.0.22 production submission with "Invalid use of the photo and video permissions" referencing **Version code: 7** even though v1.0.22's manifest is clean. Root cause: Play scans all *active* tracks together — old versionCodes 4 + 7 still had `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` from before the v1.0.20 permissions cleanup (`af3fc75`, 2026-04-23). Replacing them with versionCode 12 in every active track clears the warning. Verified the v1.0.22 AAB manifest contains only `READ_MEDIA_VISUAL_USER_SELECTED` (the Photo Picker permission Google requires) — no `READ_MEDIA_IMAGES` or `READ_MEDIA_VIDEO`. Production review re-submitted; Google running quick check.
+- **Lesson preserved:** when Play flags a permissions issue with a versionCode you don't recognise, check Internal/Closed/Open testing tracks first — old release sitting in a non-production track will trip the policy scanner across the whole app.
+
+#### Status at session close (awaiting store approval)
+- iOS v1.0.22 build 44 — in Apple review queue
+- Android v1.0.22 versionCode 12 — in Google Play review queue (Internal + Closed + Production all on versionCode 12)
+- Branch `feat/leaderboard-phase1` — pushed to origin, NOT yet merged to `main`, no PR opened yet
+- 101/101 frontend tests pass; 113/113 backend tests pass (backend untouched this session)
+
+---
+
 ## 2026-04-30
 
 ### Frontend / DB — Leaderboard Phase 1 identity layer implementation (branch `feat/leaderboard-phase1`, 25 commits, NOT YET MERGED OR DEPLOYED)
