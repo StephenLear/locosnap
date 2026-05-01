@@ -7,6 +7,18 @@ Format: newest first within each date block.
 
 ## 2026-05-01
 
+### Backend — BR 110 rarity hardening (rarity card hallucinated freight loco / 60 built)
+
+#### `backend/src/services/rarity.ts` — new BR 110 / E 10 anchor in rarity prompt
+- **Added** a class-truth block forbidding the freight-loco / DB-Cargo / "60 built" / "Lokomotion or Railpool" / BR 155-spec hallucinations that the rarity model produced when scanning a TRI 110 469-4 photo on 2026-05-01.
+- **Tier:** "rare" (not common, not epic). 379 originally built, ~12 active with private operators in 2026.
+- **Forbids:** "mixed-traffic", "freight", "DB Cargo veteran", "Lokomotion / Railpool operator", "60 units", "879 units", "phased out by BR 151/155", "Bombardier / Siemens / Adtranz" builder.
+- **Required reason-field facts:** West German Bundesbahn origin, express passenger (not freight), 379 built, DB Regio retired 12 Feb 2014, surviving fleet with TRI / Centralbahn / GfF / TeutoLok / Lok Partner / Pressnitztalbahn, builder is Krauss-Maffei + Krupp + Henschel + AEG + Siemens.
+- **Why:** discovered 2026-05-01 during pre-ad screen recording — the live rarity card claimed "only 60 units built", "mixed-traffic", "5,400 kW heavy freight Alpine / Ruhr" (those are BR 155 specs), and "Lokomotion or Railpool" operators. Every claim wrong; would have been publicly corrected within minutes of posting.
+- **Tests:** 113/113 backend pass.
+
+---
+
 ### Backend — BR 110 / DB E 10 facts + spec hard-override (pre-ad lock-in)
 
 #### `backend/src/services/trainFacts.ts` — new BR 110 / E 10 block in `FACTS_PROMPT`
