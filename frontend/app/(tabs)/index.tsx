@@ -26,6 +26,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../../store/trainStore";
 import { useAuthStore, PRE_SIGNUP_FREE_SCANS, MAX_FREE_SCANS } from "../../store/authStore";
 import { identifyTrain, pollBlueprintStatus, healthCheck } from "../../services/api";
+import { submitWrongIdReport } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track, captureError, addBreadcrumb } from "../../services/analytics";
 
@@ -331,18 +332,33 @@ export default function HomeScreen() {
 
       if (train.confidence < 70) {
         Alert.alert(
-          "Not 100% Sure",
-          `Is this a ${train.class} (${train.operator})?\n\nConfidence: ${train.confidence}%`,
+          t("lowConfidence.title"),
+          t("lowConfidence.body"),
           [
             {
-              text: "No, retry",
+              // Decline path — silently log the low-confidence ID for triage,
+              // then dismiss without setting a scanError. The user is back on
+              // the scan screen and can retake immediately. Class name is
+              // intentionally hidden from the prompt so the user isn't
+              // anchored on a possibly-wrong answer.
+              text: t("lowConfidence.tryAnother"),
               style: "cancel",
               onPress: () => {
-                setScanError("Try a clearer photo or different angle");
+                track("low_confidence_decline", {
+                  train_class: train.class,
+                  confidence: train.confidence,
+                });
+                submitWrongIdReport({
+                  source: "low-confidence-decline",
+                  returnedClass: train.class,
+                  returnedOperator: train.operator,
+                  returnedConfidence: train.confidence,
+                  userId: session?.user?.id,
+                }).catch(() => {});
               },
             },
             {
-              text: "Yes, that's right",
+              text: t("lowConfidence.showAnyway"),
               onPress: () => {
                 setScanResults(train, specs, facts, rarity);
                 if (!session) incrementPreSignupScans();

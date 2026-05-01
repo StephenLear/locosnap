@@ -18,6 +18,22 @@
     "scanBadge": "{{count}} scan",
     "scanBadge_plural": "{{count}} scans"
   },
+  "lowConfidence": {
+    "title": "Hmm, this one's tricky",
+    "body": "We're not fully sure about this photo. Try another angle for a sharper read?",
+    "tryAnother": "Try another photo",
+    "showAnyway": "Show me anyway"
+  },
+  "wrongId": {
+    "button": "Wrong ID?",
+    "loggedTitle": "Thanks — we've logged this",
+    "loggedBody": "Your report helps LocoSnap get better at identifying this kind of train.",
+    "helpFix": "Help us fix this",
+    "correctionPlaceholder": "What class is it? (optional)",
+    "correctionSubmit": "Send",
+    "correctionCancel": "Skip",
+    "correctionThanks": "Thanks for the correction"
+  },
   "card": {
     "badge": {
       "verified": "VERIFIED",

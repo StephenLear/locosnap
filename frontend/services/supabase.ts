@@ -271,6 +271,45 @@ export async function updateSpotBlueprint(
   return true;
 }
 
+/**
+ * Submit a wrong-ID report to the misidentification triage table.
+ * Both anonymous and authenticated users can submit. RLS allows
+ * INSERT-only; SELECT is blocked at the policy level (admin-only via
+ * service-role).
+ *
+ * Two entry points (`source`):
+ *  - 'low-confidence-decline' — the low-confidence Alert was declined ("try another angle")
+ *  - 'card-wrong-id'          — the user tapped "Wrong ID" on the card-reveal screen
+ */
+export async function submitWrongIdReport(params: {
+  source: "low-confidence-decline" | "card-wrong-id";
+  returnedClass: string;
+  returnedOperator?: string;
+  returnedConfidence?: number;
+  userCorrection?: string;
+  spotId?: string;
+  photoUrl?: string;
+  userId?: string;
+}): Promise<boolean> {
+  const { error } = await supabase.from("wrong_id_reports").insert({
+    user_id: params.userId ?? null,
+    spot_id: params.spotId ?? null,
+    photo_url: params.photoUrl ?? null,
+    returned_class: params.returnedClass,
+    returned_operator: params.returnedOperator ?? null,
+    returned_confidence: params.returnedConfidence ?? null,
+    user_correction: params.userCorrection ?? null,
+    source: params.source,
+  });
+
+  if (error) {
+    console.warn("Failed to submit wrong-ID report:", error.message);
+    return false;
+  }
+
+  return true;
+}
+
 // ── Storage uploads ─────────────────────────────────────────
 
 /**

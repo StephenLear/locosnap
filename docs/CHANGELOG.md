@@ -7,6 +7,50 @@ Format: newest first within each date block.
 
 ## 2026-05-01
 
+### Android — v1.0.22 versionCode 12 LIVE on Google Play
+- Approved + 100% rollout. iOS still in Apple review at session close. Internal + Closed + Production tracks all on versionCode 12.
+
+---
+
+### DB / Frontend — v1.0.23 work: wrong-ID report flow + low-confidence Alert revamp (branch `feat/v1.0.23-resilience`)
+
+Backlog #18 (wrong-ID dead-end fix) + #19 (low-confidence "try another angle" gate). Single-commit chunk because both flows write to the same new `wrong_id_reports` table; same migration unblocks both.
+
+#### `supabase/migrations/012_wrong_id_reports.sql` — New: misidentification triage table
+- **Added** `wrong_id_reports` table: `id UUID PK`, `user_id UUID nullable` (FK auth.users SET NULL), `spot_id UUID nullable` (FK spots CASCADE), `photo_url TEXT nullable`, `returned_class TEXT NOT NULL`, `returned_operator TEXT`, `returned_confidence INTEGER`, `user_correction TEXT`, `source TEXT NOT NULL CHECK (source IN ('low-confidence-decline', 'card-wrong-id'))`, `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`. Two indexes: `idx_wrong_id_reports_returned_class` and `idx_wrong_id_reports_created_at DESC` for triage queries.
+- **RLS:** anyone (anonymous or authenticated) can INSERT — `WITH CHECK (user_id IS NULL OR auth.uid() = user_id)`. **No SELECT policy** — table is write-only from the client; service-role (Supabase dashboard) bypasses RLS for triage queries. Reports flow into the dashboard for offline review; triage workflow lives outside the app.
+- **Why:** Card-reveal "Wrong ID?" tap and the low-confidence Alert decline path both feed this table so we get a structured stream of misID training signal instead of dead-ending the user with "use a different photo".
+- **Status:** NOT yet applied to production Supabase. User-gated step before v1.0.23 ships.
+
+#### `frontend/services/supabase.ts` — `submitWrongIdReport` helper
+- **Added** `submitWrongIdReport({ source, returnedClass, returnedOperator?, returnedConfidence?, userCorrection?, spotId?, photoUrl?, userId? })` returning `Promise<boolean>`. Single INSERT into `wrong_id_reports`. Returns false on Supabase error (logs warning); never throws. Defaults all optional fields to null.
+
+#### `frontend/__tests__/services.wrongId.test.ts` — New: 4 tests covering the helper
+- Insert with required fields, optional `userCorrection`, default-null behaviour for missing optionals, false-on-error path.
+
+#### `frontend/app/(tabs)/index.tsx` — #19 low-confidence Alert revamp
+- **Changed** the `train.confidence < 70` Alert from "Not 100% Sure / Is this a {class} ({operator})? / Confidence: X%" with [No, retry] (which dead-ended into `setScanError("Try a clearer photo or different angle")`) and [Yes, that's right] — to a class-name-hidden version: "Hmm, this one's tricky / We're not fully sure about this photo. Try another angle for a sharper read?" with [Try another photo] (decline path) and [Show me anyway] (accept path).
+- **Decline path now:** silently `submitWrongIdReport({ source: 'low-confidence-decline', returnedClass, returnedOperator, returnedConfidence, userId })` (fire-and-forget; .catch swallows errors so a Supabase outage doesn't break the UX), tracks `low_confidence_decline` analytics event, and dismisses without setting `scanError`. The user is back on the scan screen with the camera/gallery buttons live.
+- **Why:** old flow showed the (potentially wrong) class up front and anchored the user to that answer; declining left them with a useless "Try a clearer photo" toast. New flow asks for another photo before showing a class, and turns the decline into a logged training signal instead of a dead-end.
+- **Note:** the existing `train.confidence < 70` threshold is preserved unchanged. Tuning it is a follow-up tied to triage-data volume.
+
+#### `frontend/app/card-reveal.tsx` — #18 Wrong-ID button + correction flow
+- **Added** a discreet "Wrong ID?" text-link below the action buttons row, only rendered when `revealComplete`. Disabled after first tap to prevent duplicate submissions in the same screen view; label flips to "Thanks — we've logged this".
+- **First tap (silent log):** fire `submitWrongIdReport({ source: 'card-wrong-id', returnedClass, returnedOperator, returnedConfidence, spotId: historyItem?.id, userId })`, track `wrong_id_reported` analytics event with `from: 'history' | 'fresh-scan'`, then show a confirmation Alert: "Thanks — we've logged this / Your report helps LocoSnap get better at identifying this kind of train" with buttons [OK] (closes) and [Help us fix this] (opens the correction modal).
+- **Secondary tap (optional correction):** opens a Modal with TextInput; user can type the correct class (max 60 chars, autoCapitalize="characters") and submit. Empty submission is treated as a skip (modal closes without a second insert). Non-empty submission fires a second `submitWrongIdReport` with `userCorrection` populated and shows a "Thanks for the correction" toast on the existing `saveConfirm` channel.
+- **Modal pattern:** mirrors the existing username-edit Modal in `(tabs)/profile.tsx` for consistency. Reuses `colors.surfaceLight` from the theme tokens.
+- **Imports added** to card-reveal.tsx: `Modal`, `TextInput`, `ActivityIndicator` from react-native; `useAuthStore` from `../store/authStore`; `submitWrongIdReport` from `../services/supabase`.
+
+#### `frontend/locales/en.json` + `frontend/locales/de.json` — 12 new keys × 2 locales
+- **Added** `lowConfidence.{title,body,tryAnother,showAnyway}` (4) and `wrongId.{button,loggedTitle,loggedBody,helpFix,correctionPlaceholder,correctionSubmit,correctionCancel,correctionThanks}` (8). DE umlauts verified: knifflig, Versuch's, anderem, künftig, Überspringen.
+- **Parity:** 172/172 keys each, full parity verified.
+
+#### Tests
+- 106/106 frontend pass (was 102 — added 4 new wrongId service tests).
+- TSC: 3 pre-existing baseline errors unchanged. No new errors introduced by this work.
+
+---
+
 ### Frontend — v1.0.23 work: extend `/api/identify` retry to also cover timeouts (branch `feat/v1.0.23-resilience`)
 
 #### `frontend/services/api.ts` — retry once on `ECONNABORTED` (timeout) in addition to connection failures

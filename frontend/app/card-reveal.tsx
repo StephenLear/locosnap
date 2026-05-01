@@ -17,11 +17,15 @@ import {
   Image,
   Platform,
   Alert,
+  Modal,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../store/trainStore";
+import { useAuthStore } from "../store/authStore";
 import { RarityTier } from "../types";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { captureRef } from "react-native-view-shot";
@@ -30,6 +34,7 @@ import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import ParticleEffect from "../components/ParticleEffect";
 import { track } from "../services/analytics";
+import { submitWrongIdReport } from "../services/supabase";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 // Cap card width on web/desktop to avoid a massive pixelated card
@@ -167,6 +172,15 @@ export default function CardRevealScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [saveConfirm, setSaveConfirm] = useState<string | null>(null);
+
+  // Wrong-ID flow state. The "Wrong ID?" tap silently submits a report
+  // and shows a confirmation Alert; "Help us fix this" opens a modal
+  // for an optional user-supplied correct-class string.
+  const session = useAuthStore((s) => s.session);
+  const [wrongIdReported, setWrongIdReported] = useState(false);
+  const [correctionModalVisible, setCorrectionModalVisible] = useState(false);
+  const [correctionInput, setCorrectionInput] = useState("");
+  const [correctionSubmitting, setCorrectionSubmitting] = useState(false);
 
   // Track card reveal on mount — distinct event for fresh scan vs history view.
   useEffect(() => {
@@ -344,6 +358,71 @@ export default function CardRevealScreen() {
       Alert.alert("Save failed", msg);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Wrong-ID flow handlers (#18).
+  // First tap: silently log the report, then show a confirmation Alert
+  // offering an optional secondary "Help us fix this" tap which opens
+  // the correction modal.
+  const handleWrongIdTap = () => {
+    if (!currentTrain || wrongIdReported) return;
+    setWrongIdReported(true);
+    track("wrong_id_reported", {
+      train_class: currentTrain.class,
+      from: isHistoryMode ? "history" : "fresh-scan",
+    });
+    submitWrongIdReport({
+      source: "card-wrong-id",
+      returnedClass: currentTrain.class,
+      returnedOperator: currentTrain.operator,
+      returnedConfidence: currentTrain.confidence,
+      spotId: historyItem?.id,
+      userId: session?.user?.id,
+    }).catch(() => {});
+    Alert.alert(
+      t("wrongId.loggedTitle"),
+      t("wrongId.loggedBody"),
+      [
+        { text: "OK", style: "cancel" },
+        {
+          text: t("wrongId.helpFix"),
+          onPress: () => {
+            setCorrectionInput("");
+            setCorrectionModalVisible(true);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSubmitCorrection = async () => {
+    if (!currentTrain) return;
+    const corrected = correctionInput.trim();
+    if (!corrected) {
+      setCorrectionModalVisible(false);
+      return;
+    }
+    setCorrectionSubmitting(true);
+    try {
+      await submitWrongIdReport({
+        source: "card-wrong-id",
+        returnedClass: currentTrain.class,
+        returnedOperator: currentTrain.operator,
+        returnedConfidence: currentTrain.confidence,
+        userCorrection: corrected,
+        spotId: historyItem?.id,
+        userId: session?.user?.id,
+      });
+      track("wrong_id_correction_submitted", {
+        train_class: currentTrain.class,
+        correction_length: corrected.length,
+      });
+    } finally {
+      setCorrectionSubmitting(false);
+      setCorrectionModalVisible(false);
+      setSaveConfirm(t("wrongId.correctionThanks"));
+      setTimeout(() => setSaveConfirm(null), 2500);
     }
   };
 
@@ -794,6 +873,73 @@ export default function CardRevealScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Wrong-ID report link — discreet text-only button below the main
+          actions. Becomes a muted "Reported" label after the user taps it
+          to prevent duplicate submissions in the same screen view. */}
+      {revealComplete && (
+        <TouchableOpacity
+          style={styles.wrongIdLink}
+          onPress={handleWrongIdTap}
+          disabled={wrongIdReported}
+          activeOpacity={0.6}
+          accessibilityLabel={t("wrongId.button")}
+        >
+          <Text
+            style={[
+              styles.wrongIdLinkText,
+              wrongIdReported && styles.wrongIdLinkTextReported,
+            ]}
+          >
+            {wrongIdReported ? t("wrongId.loggedTitle") : t("wrongId.button")}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Correction modal — opens from the "Help us fix this" button on the
+          confirmation Alert. Optional input. Empty submission is treated as
+          a skip (modal closes without a second insert). */}
+      <Modal
+        visible={correctionModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCorrectionModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t("wrongId.helpFix")}</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={correctionInput}
+              onChangeText={setCorrectionInput}
+              placeholder={t("wrongId.correctionPlaceholder")}
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={60}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setCorrectionModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>{t("wrongId.correctionCancel")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalSaveBtn, correctionSubmitting && styles.modalSaveBtnDisabled]}
+                onPress={handleSubmitCorrection}
+                disabled={correctionSubmitting}
+              >
+                {correctionSubmitting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalSaveText}>{t("wrongId.correctionSubmit")}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1168,6 +1314,81 @@ const styles = StyleSheet.create({
   },
   saveConfirmText: {
     color: colors.accent,
+    fontWeight: fonts.weights.semibold,
+  },
+  // Wrong-ID flow
+  wrongIdLink: {
+    alignSelf: "center",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.xs,
+  },
+  wrongIdLinkText: {
+    color: colors.textSecondary,
+    fontSize: fonts.sizes.sm,
+    textDecorationLine: "underline",
+  },
+  wrongIdLinkTextReported: {
+    textDecorationLine: "none",
+    opacity: 0.6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing.lg,
+  },
+  modalContent: {
+    width: "100%",
+    maxWidth: 380,
+    backgroundColor: colors.surfaceLight,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+  },
+  modalTitle: {
+    color: colors.textPrimary,
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.bold,
+    marginBottom: spacing.md,
+  },
+  modalInput: {
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    color: colors.textPrimary,
+    fontSize: fonts.sizes.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.sm,
+  },
+  modalCancelBtn: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  modalCancelText: {
+    color: colors.textSecondary,
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
+  },
+  modalSaveBtn: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.accent,
+  },
+  modalSaveBtnDisabled: {
+    opacity: 0.6,
+  },
+  modalSaveText: {
+    color: "#fff",
+    fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.semibold,
   },
 
