@@ -24,6 +24,9 @@
     "tryAnother": "Anderes Foto",
     "showAnyway": "Trotzdem anzeigen"
   },
+  "blueprint": {
+    "aiGenerated": "KI-generierte Illustration"
+  },
   "wrongId": {
     "button": "Falsche Erkennung?",
     "loggedTitle": "Danke — wir haben das gespeichert",

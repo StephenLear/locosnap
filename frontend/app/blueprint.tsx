@@ -28,6 +28,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
@@ -35,6 +36,7 @@ import { track } from "../services/analytics";
 
 export default function BlueprintScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { blueprintStatus, currentTrain } = useTrainStore();
@@ -316,9 +318,15 @@ export default function BlueprintScreen() {
         )}
       </View>
 
-      {/* Train label */}
+      {/* Train label + AI provenance caption (#15 — sets expectation that
+          the blueprint is an illustration, not a real engineering drawing,
+          per hartelex_alt's 2026-04-28 EN launch ad criticism). */}
       <View style={styles.labelBar}>
         <Text style={styles.labelText} numberOfLines={1}>{trainLabel}</Text>
+        <View style={styles.aiProvenanceRow}>
+          <Ionicons name="sparkles" size={11} color={colors.textSecondary} />
+          <Text style={styles.aiProvenanceText}>{t("blueprint.aiGenerated")}</Text>
+        </View>
       </View>
 
       {/* Action buttons */}
@@ -459,6 +467,19 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.semibold,
     color: colors.textPrimary,
     textAlign: "center",
+  },
+  aiProvenanceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    marginTop: 2,
+  },
+  aiProvenanceText: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    fontWeight: fonts.weights.regular,
+    letterSpacing: 0.3,
   },
   actionsBar: {
     flexDirection: "row",

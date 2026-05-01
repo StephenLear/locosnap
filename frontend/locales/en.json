@@ -24,6 +24,9 @@
     "tryAnother": "Try another photo",
     "showAnyway": "Show me anyway"
   },
+  "blueprint": {
+    "aiGenerated": "AI-generated illustration"
+  },
   "wrongId": {
     "button": "Wrong ID?",
     "loggedTitle": "Thanks — we've logged this",

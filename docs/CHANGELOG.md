@@ -12,6 +12,29 @@ Format: newest first within each date block.
 
 ---
 
+### Frontend — v1.0.23: AI-generated provenance label on blueprints (#15) + Sentry upload scaffolding (#17) (branch `feat/v1.0.23-resilience`)
+
+#### `frontend/app/blueprint.tsx` — #15 "AI-generated illustration" caption under blueprint label
+- **Added** a small understated row inside the existing `labelBar` directly below the train name: a `sparkles` Ionicon (11pt) followed by the localised string "AI-generated illustration" (DE: "KI-generierte Illustration"). Muted secondary-text colour, 11pt, slight letter-spacing.
+- **Wired** `useTranslation` import (the screen had no i18n hook before).
+- **Why:** addresses hartelex_alt's 2026-04-28 EN launch ad criticism that implied the blueprint feature is misleading because it looks like a real engineering drawing. Setting the expectation explicitly removes the "trying to fool me" reading powering the criticism. Defensive UX move; minimal screen real estate cost. Tracks backlog #15.
+- **Scope:** `blueprint.tsx` is the only place blueprint images are rendered at full size. `(tabs)/history.tsx` only shows a tiny indicator icon — no provenance line needed there.
+
+#### `frontend/locales/{en,de}.json` — 1 new key × 2 locales
+- **Added** `blueprint.aiGenerated`. Parity 173/173 verified.
+
+#### `frontend/plugins/withSentryDisableUpload.js` — #17 gate Sentry upload behind opt-in env flag
+- **Changed** the iOS Xcode build-phase plugin to read `process.env.ENABLE_SENTRY_UPLOAD`. When set to `"true"`, the plugin skips injecting `SENTRY_DISABLE_AUTO_UPLOAD=true` into Xcode build configurations, allowing the standard `sentry-xcode.sh` upload phase to run during EAS iOS builds. When unset (default), behaviour is unchanged from before.
+
+#### `frontend/eas.json` — flip production profile from disable → enable
+- **Changed** production profile env from `"SENTRY_DISABLE_AUTO_UPLOAD": "true"` to `"ENABLE_SENTRY_UPLOAD": "true"`. iOS now reads this via the plugin (Xcode build setting). Android's `sentry-cli` also no longer sees `SENTRY_DISABLE_AUTO_UPLOAD` so its upload step runs too. Preview profile unchanged (still has `SENTRY_DISABLE_AUTO_UPLOAD=true` — preview builds don't need symbol upload).
+
+#### Activation requirement — user-gated step before next EAS build
+- **`SENTRY_AUTH_TOKEN` must exist as an EAS Secret** for uploads to actually succeed. Run once: `eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value <token>`. Token is generated in Sentry → Settings → Auth Tokens with `project:releases` + `project:write` scopes. Without the token, EAS builds will warn and skip the upload step but still complete successfully.
+- **Why:** addresses backlog #17 — Play Console warning on v1.0.21 versionCode 11 about missing R8 deobfuscation file. Sentry receives the ProGuard/R8 mapping during build via `@sentry/react-native` Android plugin and uses it to deobfuscate Android crash stack traces in the Sentry dashboard. iOS dSYMs are uploaded the same way for symbolicated iOS crashes. **Caveat:** Play Console's Vitals dashboard requires the `mapping.txt` to be uploaded directly to Play (separate from Sentry); for that, manually download the mapping.txt build artifact from the EAS dashboard after each production build and upload via Play Console UI under "App bundle explorer → mapping.txt". Most teams use Sentry as primary crash source, so this is acceptable.
+
+---
+
 ### DB / Frontend — v1.0.23 work: wrong-ID report flow + low-confidence Alert revamp (branch `feat/v1.0.23-resilience`)
 
 Backlog #18 (wrong-ID dead-end fix) + #19 (low-confidence "try another angle" gate). Single-commit chunk because both flows write to the same new `wrong_id_reports` table; same migration unblocks both.
