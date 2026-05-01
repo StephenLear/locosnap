@@ -23,8 +23,7 @@ export function initI18n() {
     interpolation: {
       escapeValue: false, // React handles XSS
     },
-    compatibilityJSON: "v3",
-    initImmediate: false, // synchronous init — ensures i18n is ready before changeLanguage()
+    initAsync: false, // synchronous init (was initImmediate before i18next v23) — ensures i18n is ready before changeLanguage()
   });
 }
 

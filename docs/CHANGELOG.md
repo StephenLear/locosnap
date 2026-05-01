@@ -12,6 +12,29 @@ Format: newest first within each date block.
 
 ---
 
+### Frontend — v1.0.23: baseline TSC cleanup (3 long-standing errors resolved)
+
+#### `frontend/app/_layout.tsx:16` — wrong import path for `supabase`
+- **Changed** import from `"../services/supabase"` (which doesn't export `supabase`, only CRUD helpers) to `"../config/supabase"` (which exports the client). Runtime worked via bundler shenanigans; TSC was correctly flagging the broken declaration. Pre-existing baseline error noted in 2026-04-30 leaderboard handover.
+
+#### `frontend/i18n/index.ts` — i18next 23+ migration
+- **Removed** `compatibilityJSON: "v3"` — i18next 26 dropped v3 plural support entirely.
+- **Renamed** `initImmediate: false` → `initAsync: false` (option renamed in i18next v23).
+- **Migrated** `_plural`-suffix keys to v4 ICU style in `frontend/locales/{en,de}.json`: `trialBanner` + `trialBanner_plural` → `trialBanner_one` + `trialBanner_other`; `scanBadge` + `scanBadge_plural` → `scanBadge_one` + `scanBadge_other`. Call sites unchanged — `t(key, { count })` auto-resolves the plural form.
+
+#### `frontend/services/notifications.ts:66` — dead Android channel-setup code removed
+- **Removed** the `Platform.OS === "android"` channel-setup block (was lines 65-78). After the early-return at line 27 (`Platform.OS === "android"` → return null, documented Android-16 FCM/JNI crash prevention), TS correctly narrowed `Platform.OS` to exclude android, making the secondary check unreachable. Replaced with a comment explaining where to re-introduce channel setup when Android push is re-enabled.
+
+#### Result
+- **`tsc --noEmit` now exits clean** — zero errors. Previously 3 baseline errors carried since the leaderboard branch.
+- 106/106 tests still pass.
+
+#### Backlog #7 (Offline spot sync) — diagnosed and deferred
+- **Verified real gap.** `trainStore.saveToHistory` always writes to AsyncStorage first then attempts Supabase sync inline; on error it only `console.warn`s. No retry, no queue, no replay-on-reconnect. Authenticated users who scan offline get local-only items that never reach leaderboard / XP / achievements.
+- **Deferred to v1.0.24.** Minimal "replay-on-app-start" fix is ~1-2h but risks duplicate rows on retry-after-actually-synced edge case. Proper fix (NetInfo listener + dedup key + replay queue) is ~4-6h and needs a design session. Backlog memory updated with this conclusion.
+
+---
+
 ### Frontend — v1.0.23: AI-generated provenance label on blueprints (#15) + Sentry upload scaffolding (#17) (branch `feat/v1.0.23-resilience`)
 
 #### `frontend/app/blueprint.tsx` — #15 "AI-generated illustration" caption under blueprint label

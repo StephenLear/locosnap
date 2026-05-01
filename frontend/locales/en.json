@@ -10,13 +10,13 @@
     "scanButton": "Scan Train",
     "scanning": "Identifying...",
     "warmingUp": "Warming up...",
-    "trialBanner": "{{remaining}} free scan left",
-    "trialBanner_plural": "{{remaining}} free scans left",
+    "trialBanner_one": "{{remaining}} free scan left",
+    "trialBanner_other": "{{remaining}} free scans left",
     "signUpPrompt": "Create a free account to save your collection",
     "noTrainFound": "Could not identify a train. Try a clearer photo.",
     "cameraPermission": "Camera access is needed to scan trains.",
-    "scanBadge": "{{count}} scan",
-    "scanBadge_plural": "{{count}} scans"
+    "scanBadge_one": "{{count}} scan",
+    "scanBadge_other": "{{count}} scans"
   },
   "lowConfidence": {
     "title": "Hmm, this one's tricky",

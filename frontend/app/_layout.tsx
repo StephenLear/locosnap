@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
 import { useSettingsStore } from "../store/settingsStore";
-import { supabase } from "../services/supabase";
+import { supabase } from "../config/supabase";
 import { colors } from "../constants/theme";
 import { shouldShowOnboarding } from "./_layout-helpers";
 import { IDENTITY_ONBOARDING_KEY } from "../store/authStore-helpers";

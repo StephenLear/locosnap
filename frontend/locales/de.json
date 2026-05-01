@@ -10,13 +10,13 @@
     "scanButton": "Zug scannen",
     "scanning": "Wird erkannt...",
     "warmingUp": "Wird gestartet...",
-    "trialBanner": "Noch {{remaining}} kostenloser Scan",
-    "trialBanner_plural": "Noch {{remaining}} kostenlose Scans",
+    "trialBanner_one": "Noch {{remaining}} kostenloser Scan",
+    "trialBanner_other": "Noch {{remaining}} kostenlose Scans",
     "signUpPrompt": "Erstelle ein kostenloses Konto, um deine Sammlung zu speichern.",
     "noTrainFound": "Kein Zug erkannt. Bitte versuche es mit einem klareren Foto.",
     "cameraPermission": "Kamerazugriff wird zum Scannen von Zügen benötigt.",
-    "scanBadge": "{{count}} Scan",
-    "scanBadge_plural": "{{count}} Scans"
+    "scanBadge_one": "{{count}} Scan",
+    "scanBadge_other": "{{count}} Scans"
   },
   "lowConfidence": {
     "title": "Hmm, das ist knifflig",
