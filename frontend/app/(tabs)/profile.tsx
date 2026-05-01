@@ -445,8 +445,8 @@ export default function ProfileScreen() {
         <Ionicons name="chevron-forward" size={16} color={colors.textMuted} style={{ marginLeft: 4 }} />
       </TouchableOpacity>
 
-      {/* ── Region selector ─────────────────────────────── */}
-      {user && (
+      {/* ── Region selector (UK-only until DE/PL regions ship in v1.0.24) ── */}
+      {user && language === "en" && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Region</Text>
           <Text style={styles.regionHelpText}>

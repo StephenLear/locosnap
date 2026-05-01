@@ -7,6 +7,43 @@ Format: newest first within each date block.
 
 ## 2026-05-01
 
+### Backend — BR 110 / DB E 10 hard-overrides (facts + spec + rarity hardening) — DEPLOYED on main
+
+Triggered by deep research before a TikTok/IG ad (DE market): without overrides the model invented "60 built", "mixed-traffic freight loco", "BR 151/155 successors", "Lokomotion / Railpool" — all wrong. BR 110 is express passenger, DB Cargo never operated it, DB Regio retired the class on 12 February 2014 (last unit: 110 469), and only ~12 units now run with private operators (TRI / Centralbahn / GfF / TeutoLok / Pressnitztalbahn).
+
+#### `backend/src/services/trainFacts.ts` — BR 110 / DB E 10 facts override (commit `992188c`)
+- **Added** hard-coded facts block alongside existing BR 151 / BR 101 anchors. Locks: 1956–1969 production, 379 BR 110.1 + 31 BR 113 built by Krauss-Maffei + Krupp + Henschel + AEG + Siemens; "Bügelfalte" creased-nose 110.3 from 1963; DB Regio retired 12 Feb 2014 (110 469); BR 115 followed Feb 2020; TRI 110 469-4 in National Express livery; TRI 110 448 refurbished in Dessau Dec 2024; Centralbahn 115 278 + 115 383 charters Venlo→Bonn / Rotterdam→Koblenz Feb 2026.
+
+#### `backend/src/services/vision.ts` (or specs path) — BR 110 spec override (commit `992188c`)
+- **Locked** max_speed = 150 km/h, power = 3,620 kW per Wikipedia DE.
+
+#### `backend/src/services/rarity.ts` — BR 110 rarity hardening (commit `6e956b0`)
+- **Added** anchor forbidding hallucination patterns observed in pre-override scans: "60 built", "mixed-traffic", "freight", "DB Cargo", "Lokomotion", "Railpool", "BR 151/155 successors", "5,400 kW / 120 km/h". Forces "rare" tier with description: "379 BR 110.1 built 1956–1969… DB Regio retired the class on 12 February 2014; ~12 units now operate with private operators TRI / Centralbahn / GfF / TeutoLok".
+
+#### `backend/src/services/trainFacts.ts` — `max_tokens` 2048 → 4096 (commit `88e58db`)
+- **Fixed** Andre's DT5 truncation report. Long-form facts pages were getting cut mid-sentence on rich classes.
+
+#### `backend/src/middleware/rateLimit.ts` — IP rate limiter skips authenticated users (commit `b04a530`)
+- **Fix** for Sentry REACT-NATIVE-6: legitimate authenticated users behind the same NAT (cafe Wi-Fi, mobile carrier CG-NAT) were tripping the IP rate limit during normal scans. Authenticated requests now bypass the IP limiter; abuse protection still applies to anonymous traffic.
+
+#### Verification
+- 113/113 backend tests pass.
+- Live re-scan of TRI 110 469-4 photo on the deployed backend shows: DB BR 110 / TRI / 150 km/h / 3,620 kW / RARE / "12 left" / facts page free of all forbidden patterns. Verified end-to-end before ad render.
+
+#### `BR110_ad_v1.mp4` — TikTok/IG short-form organic video (NOT code, but logged for context)
+- 10.0s, 1080×1920, 30fps. Beat structure: TRI 110 469 hero → RE19 Wesel → Köln Dostos → Stuttgart GfF → card-reveal end card from live scan recording. Yellow Impact subs (DE), silent audio (music added in TikTok/IG editor). Stored at `~/Desktop/BR110/BR110_ad_v1.mp4`. Posting morning 2026-05-02. Caption + hashtags drafted in session.
+
+---
+
+### Frontend — v1.0.23: hide UK-only region picker for non-English locales
+
+#### `frontend/app/(tabs)/profile.tsx:449` — locale-gate the "Your Region" section
+- **Changed** render condition from `{user && (...)}` to `{user && language === "en" && (...)}`. UK region picker (London / South East / South West / East Anglia + UK_REGIONS list) and the "Set your UK region to appear on regional leaderboards" copy were rendering for German users on the DE locale, sending an implicit "this app isn't for you" signal in the #1 market. Hidden until v1.0.24 ships proper DE Bundesländer + PL voivodeship taxonomy as part of leaderboard Phase 2 (see `project_leaderboard_redesign.md`). UK English users see the picker unchanged.
+- **Why:** market mix is Germany #1, Poland #2 (+1,499% Apr), UK #3 and softening (`project_market_focus.md`). Showing UK-only regions to DE/PL users is a profile-screen own-goal.
+- **TSC clean.**
+
+---
+
 ### Android — v1.0.22 versionCode 12 LIVE on Google Play
 - Approved + 100% rollout. iOS still in Apple review at session close. Internal + Closed + Production tracks all on versionCode 12.
 
