@@ -7,6 +7,16 @@ Format: newest first within each date block.
 
 ## 2026-05-01
 
+### Backend — IP rate limiter on `/api/identify` skips authenticated requests (Sentry REACT-NATIVE-6 fix)
+
+#### `backend/src/routes/identify.ts` — `identifyRateLimit` now has `skip` predicate for `Bearer` auth
+- **Changed** the 20-requests-per-IP-per-hour limiter to skip when the request carries an `Authorization: Bearer ...` header. Authenticated traffic is already governed by `checkScanAllowed` (3-lifetime free quota / unlimited for Pro) — the IP gate is now anonymous-only and exists to throttle abusive trial-user volume.
+- **Why:** Sentry REACT-NATIVE-6 ("Too many scan requests. Please wait before trying again.") regressed in v1.0.22 — 18 events / 9 users / 30d, including paying Pro users on Samsung Android 16. Root cause: CGNAT (mobile carriers), family WiFi, office WiFi collapse many users to one outbound IP. Once any combined hour of activity from that shared IP hit 20 requests, every user behind it — including authenticated Pro users — got 429'd before reaching the per-user logic.
+- **Trade-off:** an authenticated user could now technically spam beyond 20/hour, but they're still bounded by `checkScanAllowed` (3 lifetime scans for free, unlimited for Pro). For an attacker, this means having to authenticate first; the per-user lifetime cap then makes the attack pointless economically. Anonymous traffic still gets the 20/hour IP gate.
+- **Tests:** 113/113 backend pass.
+
+---
+
 ### Backend — bump `trainFacts` max_tokens 2048 → 4096
 
 #### `backend/src/services/trainFacts.ts` — fix verbose-German truncation

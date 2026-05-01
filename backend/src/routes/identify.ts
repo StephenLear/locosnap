@@ -143,13 +143,21 @@ function parseProvenance(body: Record<string, unknown>): ProvenanceInput | null 
 const router = Router();
 
 // ── Rate limiting ───────────────────────────────────────────
-// 20 requests per IP per hour — enough for legitimate use,
-// blocks runaway abuse that burns Vision API credits.
+// 20 requests per IP per hour for ANONYMOUS traffic only — blocks
+// runaway abuse that burns Vision API credits. Authenticated requests
+// are governed by `checkScanAllowed` (3-lifetime free quota / unlimited
+// for Pro) and skip this gate; otherwise CGNAT / family WiFi / office
+// WiFi collisions can throttle legitimate users behind shared IPs
+// (Sentry REACT-NATIVE-6 — paying users got blocked sharing IPs).
 const identifyRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    const auth = req.headers.authorization;
+    return typeof auth === "string" && auth.startsWith("Bearer ");
+  },
   message: {
     success: false,
     error: "Too many scan requests. Please wait before trying again.",
