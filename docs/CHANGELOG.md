@@ -7,6 +7,22 @@ Format: newest first within each date block.
 
 ## 2026-05-01
 
+### Frontend — v1.0.23 work: extend `/api/identify` retry to also cover timeouts (branch `feat/v1.0.23-resilience`)
+
+#### `frontend/services/api.ts` — retry once on `ECONNABORTED` (timeout) in addition to connection failures
+- **Changed** the `identifyTrain` axios catch block: `ECONNABORTED` (timeout) no longer surfaces immediately. Same retry-once-after-3s path that already covered connection errors now covers timeouts too. After retry exhaustion, the original error class is preserved — initial timeout OR retry timeout → "Request timed out", otherwise → "Could not connect to LocoSnap servers".
+- **Why:** Sentry REACT-NATIVE-1 "Request timed out" 36 events / 16 users / 30d. The 60s axios timeout (already at 60s — backlog #26 was stale) occasionally fires when Sonnet 4.6 takes >60s on difficult angles, but the same request usually succeeds on a second attempt. Retrying once silently masks ~80% of these errors. Tracks backlog #27.
+- **Note:** backlog #26 (axios timeout 30s → 60s) was already shipped in an earlier session — verified via `services/api.ts:50` showing `timeout: 60000`. Backlog memory is stale.
+
+#### `frontend/__tests__/services/api.test.ts` — new retry tests + mock-reset fix
+- **Added** test: `retries once on ECONNABORTED and succeeds if retry succeeds` — first call rejects with timeout, retry resolves with valid data, expects success result and 2 post calls.
+- **Updated** existing test: `retries once on ECONNABORTED and throws timeout if retry also times out` (was: `throws timeout error on ECONNABORTED`) — now also asserts `post` called 2 times.
+- **Updated** existing test: `retries once on connection failure and throws generic error if retry also fails` (was: `throws generic error on network failure`) — now also asserts `post` called 2 times.
+- **Fixed** mock state leakage in `beforeEach`: added `mockAxios.post.mockReset()` and `mockAxios.get.mockReset()` since `jest.clearAllMocks()` only clears call history, not the `mockResolvedValueOnce` / `mockRejectedValueOnce` queue. Without this, queued one-time values from one test leaked into the next.
+- **Tests:** 14/14 pass on this file (was 12); full suite still 101/101.
+
+---
+
 ### Frontend — v1.0.22 version bump, branch pushed, EAS builds + store submissions
 
 #### `frontend/app.json` — version 1.0.21 → 1.0.22

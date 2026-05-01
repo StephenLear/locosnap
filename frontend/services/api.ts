@@ -253,15 +253,10 @@ async function identifyTrainNative(
       throw new Error(axiosError.response.data.error);
     }
 
-    // Timeout — don't retry, surface immediately
-    if (axiosError.code === "ECONNABORTED") {
-      throw new Error(
-        "Request timed out. Please check your connection and try again."
-      );
-    }
-
-    // Connection error (no response at all) — silent retry after 3s.
-    // Covers the Render restart window during deploys.
+    // Timeout (ECONNABORTED) or connection error (no response) — silent retry once after 3s.
+    // Covers Render restart windows during deploys + occasional vision-pipeline edge cases
+    // where Sonnet 4.6 takes the full 60s. Sentry REACT-NATIVE-1 / -6.
+    const initialWasTimeout = axiosError.code === "ECONNABORTED";
     try {
       await sleep(3000);
       return await attemptRequest();
@@ -269,6 +264,11 @@ async function identifyTrainNative(
       const retryAxiosError = retryError as AxiosError<{ error: string }>;
       if (retryAxiosError.response?.data?.error) {
         throw new Error(retryAxiosError.response.data.error);
+      }
+      if (initialWasTimeout || retryAxiosError.code === "ECONNABORTED") {
+        throw new Error(
+          "Request timed out. Please check your connection and try again."
+        );
       }
       throw new Error(
         "Could not connect to LocoSnap servers. Please try again later."
