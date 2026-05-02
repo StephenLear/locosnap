@@ -428,14 +428,35 @@ export default function HomeScreen() {
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.7,
-      // Card v2 P0.4 — surface EXIF so we can compute the gallery-recency
-      // verification check. expo-image-picker reads EXIF from the original
-      // file before our compression step.
-      exif: true,
-    });
+    // Wrap the launch call: Android (especially Samsung Galaxy A15 / Android
+    // 16) occasionally rejects launchImageLibraryAsync with
+    // java.lang.IllegalStateException after the host activity has been
+    // recreated (backgrounding mid-pick, dark-mode toggle, rotation). The
+    // Promise rejection used to bubble out and silently terminate the
+    // handler — Sentry REACT-NATIVE-H, 8 events / 3 users on v1.0.20-22.
+    // Surface a graceful Alert so the user knows to retry.
+    let result: ImagePicker.ImagePickerResult;
+    try {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.7,
+        // Card v2 P0.4 — surface EXIF so we can compute the gallery-recency
+        // verification check. expo-image-picker reads EXIF from the original
+        // file before our compression step.
+        exif: true,
+      });
+    } catch (error) {
+      track("scan_failed", {
+        error: "picker_launch_failed",
+        message: (error as Error).message,
+      });
+      Alert.alert(
+        "Couldn't open the photo library",
+        "Try again, or restart the app if it keeps happening.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
 
     if (!result.canceled && result.assets[0]) {
       try {
