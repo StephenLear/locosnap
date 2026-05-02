@@ -717,6 +717,54 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "obb kiss": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 27, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC)" },
   "cityjet eco": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 27, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC)" },
   "stadler kiss öbb": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 27, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC)" },
+  // DB IC1 (BR 101 + IC coaches + Bpmbdzf single-deck control car) — added
+  // 2026-05-02 after a tester scanned an IC1 at Minden and the app returned
+  // "DB IC2 (Twindexx)" with type "EMU", 320 km/h, 8,000 kW (every spec
+  // wrong). IC1 is a locomotive-hauled push-pull SINGLE-DECK Intercity
+  // formation. Lead loco BR 101: ADtranz/Bombardier 1996–1999, 145 units,
+  // 220 km/h tested / 200 km/h in IC service, 6,400 kW continuous, Bo'Bo',
+  // 15 kV 16.7 Hz AC. The numberBuilt figure here references the BR 101
+  // locomotive class (the coaches are interchangeable across IC rakes so a
+  // single "IC1 set count" is meaningless).
+  "db ic1": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "ADtranz / Bombardier", numberBuilt: 145, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "ic1": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "ADtranz / Bombardier", numberBuilt: 145, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "intercity 1": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "ADtranz / Bombardier", numberBuilt: 145, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db intercity 1": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "ADtranz / Bombardier", numberBuilt: 145, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "bpmbdzf": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "ADtranz / Bombardier", numberBuilt: 145, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // DB IC2 Twindexx (BR 146.5 + Twindexx Vario double-deck push-pull) —
+  // Bombardier (now Alstom) 2013+ framework, in service since 13 Dec 2015.
+  // Lead loco BR 146.5: 160 km/h, 5,600 kW, Bo'Bo'. Initial order 27 sets
+  // (5-car each), expanded with a follow-on 25-set TRAXX call-off — 52+
+  // trainsets total. NOT an EMU (loco-hauled). Distinguish from IC2 KISS
+  // (Stadler Class 4110) which IS an EMU.
+  "db ic2": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Bombardier (now Alstom)", numberBuilt: 52, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "ic2": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Bombardier (now Alstom)", numberBuilt: 52, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "ic2 twindexx": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Bombardier (now Alstom)", numberBuilt: 52, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db ic2 twindexx": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Bombardier (now Alstom)", numberBuilt: 52, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "twindexx ic2": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Bombardier (now Alstom)", numberBuilt: 52, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "bombardier twindexx": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Bombardier (now Alstom)", numberBuilt: 52, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "twindexx vario": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Bombardier (now Alstom)", numberBuilt: 52, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // DB IC2 KISS (Stadler Class 4110) — double-deck self-propelled EMU,
+  // Stadler Rail Switzerland 2023+, supplementary IC2 service.
+  "db ic2 kiss": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 17, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "ic2 kiss": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 17, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "br 4110": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 17, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "class 4110": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 17, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "stadler kiss db": { maxSpeed: "200 km/h", power: "6,000 kW", builder: "Stadler Rail (Bussnang)", numberBuilt: 17, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // Generic Stadler KISS (regional variants) — added 2026-05-02 after a tester
+  // scanned a WestfalenBahn KISS and the app returned "Siemens Desiro HC"
+  // with 160 km/h / 3,100 kW. Stadler KISS is a double-deck EMU operated by
+  // many regional operators (WestfalenBahn / Transdev, ODEG, MTR Express,
+  // BLS, ÖBB Class 4010, DB IC2 KISS Class 4110, etc.). Regional variants
+  // typically 160 km/h; intercity variants (ÖBB / DB) up to 200 km/h.
+  // The numberBuilt figure is left unset (intentionally null) because the
+  // KISS family spans many operators; per-operator overrides above (DB,
+  // ÖBB) carry their own counts. Builder is always Stadler.
+  "stadler kiss": { maxSpeed: "160 km/h", power: "4,000 kW", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "kiss": { maxSpeed: "160 km/h", power: "4,000 kW", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "westfalenbahn kiss": { maxSpeed: "160 km/h", power: "4,000 kW", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "transdev kiss": { maxSpeed: "160 km/h", power: "4,000 kW", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "odeg kiss": { maxSpeed: "160 km/h", power: "4,000 kW", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
 };
 
 function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpecs {
