@@ -371,11 +371,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch {
       // Non-fatal
     }
+    // Background sync — never block the UI on Supabase. The anon→signed-in
+    // migration in fetchProfile re-applies AsyncStorage values on next launch
+    // if this fails.
     if (session?.user?.id) {
-      const { error } = await updateProfileIdentity(session.user.id, { country_code: code });
-      if (error) {
-        addBreadcrumb("auth", "updateCountryCode Supabase failed");
-      }
+      updateProfileIdentity(session.user.id, { country_code: code })
+        .then(({ error }) => {
+          if (error) addBreadcrumb("auth", "updateCountryCode Supabase failed");
+        })
+        .catch(() => addBreadcrumb("auth", "updateCountryCode Supabase threw"));
     }
   },
 
@@ -390,10 +394,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Non-fatal
     }
     if (session?.user?.id) {
-      const { error } = await updateProfileIdentity(session.user.id, { spotter_emoji: emojiId });
-      if (error) {
-        addBreadcrumb("auth", "updateSpotterEmoji Supabase failed");
-      }
+      updateProfileIdentity(session.user.id, { spotter_emoji: emojiId })
+        .then(({ error }) => {
+          if (error) addBreadcrumb("auth", "updateSpotterEmoji Supabase failed");
+        })
+        .catch(() => addBreadcrumb("auth", "updateSpotterEmoji Supabase threw"));
     }
   },
 
@@ -408,12 +413,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Non-fatal
     }
     if (session?.user?.id) {
-      const { error } = await updateProfileIdentity(session.user.id, {
+      updateProfileIdentity(session.user.id, {
         has_completed_identity_onboarding: true,
-      });
-      if (error) {
-        addBreadcrumb("auth", "markIdentityOnboardingComplete Supabase failed");
-      }
+      })
+        .then(({ error }) => {
+          if (error) addBreadcrumb("auth", "markIdentityOnboardingComplete Supabase failed");
+        })
+        .catch(() => addBreadcrumb("auth", "markIdentityOnboardingComplete Supabase threw"));
     }
   },
 }));

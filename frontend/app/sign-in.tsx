@@ -19,10 +19,16 @@ import {
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/authStore";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
+
+// Whitelist of safe return-to targets. Prevents an open redirect if a
+// `returnTo` param ever arrives from an untrusted source (deep link, etc.).
+const RETURN_TO_ROUTES: Record<string, string> = {
+  paywall: "/paywall",
+};
 
 // ── Local palette (matches home screen scanner) ──────────────
 const TEAL = "#00D4AA";
@@ -40,11 +46,19 @@ export default function SignInScreen() {
     mode?: "login" | "signup";
     email?: string;
     autoSend?: string;
+    returnTo?: string;
   }>();
+  const router = useRouter();
+  const session = useAuthStore((s) => s.session);
   const { mode } = params;
   const prefilledEmail = typeof params.email === "string" ? params.email : "";
   const shouldAutoSend = params.autoSend === "true";
+  const returnToTarget =
+    typeof params.returnTo === "string" && params.returnTo in RETURN_TO_ROUTES
+      ? RETURN_TO_ROUTES[params.returnTo]
+      : null;
   const isLoginMode = mode === "login";
+  const returnHandled = useRef(false);
   const [loading, setLoading] = useState<"email" | "otp" | null>(null);
   const [email, setEmail] = useState(prefilledEmail);
   const [otpSent, setOtpSent] = useState(false);
@@ -128,6 +142,16 @@ export default function SignInScreen() {
       handleSendOtp();
     }
   }, [shouldAutoSend, prefilledEmail, otpSent, loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Return to the originating screen (e.g. /paywall) once the session lands.
+  // The auth store fires session updates async after verifyOtp resolves, so we
+  // watch session rather than chaining off the verify call.
+  useEffect(() => {
+    if (session && returnToTarget && !returnHandled.current) {
+      returnHandled.current = true;
+      router.replace(returnToTarget as any);
+    }
+  }, [session, returnToTarget, router]);
 
   // Auto-verify when all digits entered
   useEffect(() => {

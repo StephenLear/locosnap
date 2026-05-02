@@ -123,9 +123,13 @@
     "allBlueprintStyles": "Alle Blueprint-Stile",
     "leaderboardAccess": "Zugang zur Bestenliste",
     "subscribe": "Weiter",
+    "subscribeSignedOut": "Zum Abonnieren anmelden",
     "restorePurchases": "Käufe wiederherstellen",
     "monthlyPrice": "{{price}} / Monat",
-    "yearlyPrice": "{{price}} / Jahr"
+    "yearlyPrice": "{{price}} / Jahr",
+    "signInGateTitle": "Zum Abonnieren anmelden",
+    "signInGateBody": "Pro bleibt bei deinem Account, nicht beim Gerät. Einmal per E-Mail anmelden — dein Abo läuft auf jedem Telefon, mit dem du dich anmeldest.",
+    "signInGateCta": "Anmelden, um fortzufahren"
   },
   "rarity": {
     "common": "Häufig",

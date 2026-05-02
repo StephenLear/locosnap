@@ -96,6 +96,8 @@ export default function PaywallScreen() {
   const router = useRouter();
   const { source } = useLocalSearchParams<{ source?: string }>();
   const { user, fetchProfile } = useAuthStore();
+  const session = useAuthStore((s) => s.session);
+  const isSignedIn = session !== null;
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -197,8 +199,25 @@ export default function PaywallScreen() {
     setLoading(false);
   };
 
+  // Anonymous purchases create orphan RevenueCat customers we can't reconcile
+  // to a Supabase profile (no email, no leaderboard, no winback path). Force
+  // sign-in before any real-money flow — Restore, Pro purchase, credit purchase.
+  // After OTP verifies the user lands back here via /sign-in?returnTo=paywall.
+  const requireSignInElseRoute = (intent: string): boolean => {
+    if (isSignedIn) return true;
+    track("paywall_signin_gate_triggered", {
+      source: source || "unknown",
+      intent,
+    });
+    router.push(
+      `/sign-in?mode=signup&returnTo=paywall&intent=${intent}` as any
+    );
+    return false;
+  };
+
   const handlePurchase = async () => {
     if (packages.length === 0) return;
+    if (!requireSignInElseRoute("subscribe")) return;
 
     const selectedPackage = packages[selectedIndex];
     if (!selectedPackage) return;
@@ -230,6 +249,8 @@ export default function PaywallScreen() {
   };
 
   const handleRestore = async () => {
+    if (!requireSignInElseRoute("restore")) return;
+
     setRestoring(true);
     setError(null);
 
@@ -259,6 +280,8 @@ export default function PaywallScreen() {
   };
 
   const handleCreditPurchase = async () => {
+    if (!requireSignInElseRoute("credits")) return;
+
     // Find the blueprint credit package from offerings
     const offerings = await getOfferings();
     const creditPackage = offerings?.all?.["blueprint_credits"]?.availablePackages?.[0];
@@ -497,6 +520,23 @@ export default function PaywallScreen() {
           </View>
         )}
 
+        {/* ── Sign-in gate banner (anonymous users only) ───── */}
+        {!isSignedIn && (
+          <View style={styles.signInGate}>
+            <View style={styles.signInGateIcon}>
+              <Ionicons name="mail" size={16} color={SCANNER.teal} />
+            </View>
+            <View style={styles.signInGateText}>
+              <Text style={styles.signInGateTitle}>
+                {t("paywall.signInGateTitle")}
+              </Text>
+              <Text style={styles.signInGateBody}>
+                {t("paywall.signInGateBody")}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* ── CTA ───────────────────────────────────────────── */}
         <TouchableOpacity
           style={[
@@ -510,9 +550,15 @@ export default function PaywallScreen() {
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <>
-              <Ionicons name="flash" size={20} color="#fff" />
+              <Ionicons
+                name={isSignedIn ? "flash" : "mail"}
+                size={20}
+                color="#fff"
+              />
               <Text style={styles.primaryBtnText}>
-                {t("paywall.subscribe")}
+                {isSignedIn
+                  ? t("paywall.subscribe")
+                  : t("paywall.subscribeSignedOut")}
               </Text>
             </>
           )}
@@ -992,6 +1038,42 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     color: colors.danger,
     flex: 1,
+  },
+
+  // Sign-in gate (shown above CTA for anonymous users)
+  signInGate: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
+    backgroundColor: SCANNER.tealSubtle,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: "rgba(0, 212, 170, 0.2)",
+  },
+  signInGateIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(0, 212, 170, 0.12)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  signInGateText: {
+    flex: 1,
+  },
+  signInGateTitle: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  signInGateBody: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+    lineHeight: 16,
   },
 
   // Primary CTA

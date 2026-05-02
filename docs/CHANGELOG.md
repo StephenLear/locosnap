@@ -5,6 +5,58 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-02
+
+### Release — iOS v1.0.22 build 44 LIVE on App Store
+
+Apple approved overnight from the 2026-05-01 submission. Both stores now on parity at v1.0.22 (Leaderboard Phase 1 identity payload — country flag + spotter emoji onboarding, anonymous→signed-in identity migration, `/sign-in` `email`+`autoSend` query params, 67 EN+DE i18n keys). No code changes this entry — store-state update only.
+
+### Content — BR 110 ad posted to TikTok + Instagram
+
+Followed yesterday's plan. `BR110_ad_v1.mp4` (10s, 1080×1920, TRI 110 469 hero → RE19 Wesel → Köln Dostos → Stuttgart GfF → live card-reveal end card). Music added in TikTok/IG editor at posting time.
+
+### Backend — RevenueCat webhook crash on `$RCAnonymousID:` skip (DEPLOYED on main, commit `d368cd6`)
+
+#### `backend/src/routes/webhooks.ts` + `__tests__/routes/webhooks.test.ts`
+- **Cause**: anonymous RevenueCat customers (purchases made without app sign-in) get IDs prefixed `$RCAnonymousID:` — these aren't Supabase UUIDs and crashed every downstream Postgres query in the webhook handler with "invalid input syntax for type uuid" before the existing `try/catch` could return 200. Sentry alerted on each one as a high-priority backend error (issue 116958498).
+- **Fix**: validate `app_user_id` matches the canonical UUID shape at the top of the handler. Non-UUID ids return 200 with `skipped: "non_uuid_app_user_id"` so RevenueCat doesn't retry-storm. Entitlement is preserved client-side (StoreKit + RC SDK on device) and reconciles to a real Supabase profile when RC fires the TRANSFER event after sign-in.
+- **Tests**: +2 (`skips $RCAnonymousID app_user_ids without crashing` + `processes events with valid UUID app_user_ids`). Backend suite 115/115 pass on main, TSC clean.
+- **Real-world trigger**: a German customer paid USD 35.17 for Pro Annual on iOS while anonymous (RC App User ID `$RCA••••54cf`); entitlement working on their device, no Supabase profile yet, audit trail row missing in `subscription_events`. A second anonymous DE customer (Android, `$RCA••••3152`, EUR 33.99 from 2026-04-29) was discovered in the dashboard the same day and had already cancelled.
+
+### Frontend — v1.0.23 branch (uncommitted on `feat/v1.0.23-resilience`)
+
+#### `frontend/store/authStore.ts` + `frontend/app/onboarding-identity.tsx` — Weiter button onboarding fix
+- **Cause**: `updateCountryCode` / `updateSpotterEmoji` / `markIdentityOnboardingComplete` awaited the Supabase PATCH inline. On a slow/CG-NAT network the await hangs indefinitely, so `setStep(4)` / `finish()` never fired and tapping "Weiter" looked unresponsive. Reported by tester YXNSST! on iOS v1.0.22 with screenshot of the emoji-picker step.
+- **Fix**: identity actions now fire-and-forget the Supabase sync. Local Zustand + AsyncStorage persistence stays synchronous (so the picked emoji/country is durable). Background sync errors are breadcrumbed via Sentry. `handleConfirmCountry` / `handleConfirmEmoji` / `finish` wrapped in try/catch belt-and-suspenders so an unexpected throw can't strand the user mid-flow.
+- **Tests**: 12/12 identity-related frontend tests pass, full frontend suite 106/106, TSC clean.
+
+#### `frontend/app/paywall.tsx` + `frontend/app/sign-in.tsx` + `frontend/locales/{en,de}.json` — Paywall sign-in gate (anonymous-payer prevention)
+- **Why**: two known anonymous-payer cases (DE iOS USD 35.17 active 2026-05-02, DE Android EUR 33.99 cancelled within 3 days) confirmed the orphan-payer pattern is recurring, not a one-off. Anonymous purchases create RevenueCat customers we cannot contact, cannot tag in Supabase, and cannot win back.
+- **Fix**: `paywall.tsx` now checks `useAuthStore(s => s.session)` before `handlePurchase` / `handleCreditPurchase` / `handleRestore`. If `session === null`, routes to `/sign-in?mode=signup&returnTo=paywall&intent=<...>` instead of starting the purchase. New analytics event `paywall_signin_gate_triggered`. Visual: a teal sign-in gate banner above the CTA when signed out, plus the CTA text/icon swaps to "Sign in to subscribe" / "Zum Abonnieren anmelden". `sign-in.tsx` accepts the new `returnTo` query param (whitelisted to safe routes only — guards against open-redirect via deep link) and fires `router.replace('/paywall')` once the session lands.
+- **i18n**: 3 new EN keys + 3 new DE keys (`subscribeSignedOut`, `signInGateTitle`, `signInGateBody`, `signInGateCta`). Parity verified manually.
+- **Apple guideline check**: 5.1.1(v) permits forced sign-in when "directly relevant to the core functionality" (paid subscription qualifies). 4.8 covered — Sign in with Apple is offered alongside Google + email OTP.
+- **Backend impact**: zero changes; the Sentry fix shipped today already handles any leftover anonymous events that slip through.
+- **Tests**: TSC clean, 106/106 frontend tests pass.
+
+### Backend — IC1 vs IC2 (Twindexx) vs IC2 (KISS) disambiguation (uncommitted on `feat/v1.0.23-resilience`)
+
+#### `backend/src/services/vision.ts` — DB Intercity pre-flight check
+- Added a new "DB INTERCITY (IC1 vs IC2) PRE-FLIGHT CHECK" before the regional EMU pre-flight. STEP 1 deck count is the discriminator — single-deck DB Fernverkehr push-pull → IC1, double-deck → IC2 (Twindexx vs KISS by traction). Bpmbdzf control car explicitly anchored as single-deck IC1, distinguished from the Twindexx Bpbdzf double-deck control car by bodyside row count (NOT cab profile, which is similar). Type field forced to "Push-pull (locomotive-hauled)" for IC1 and IC2 Twindexx — never "EMU".
+
+#### `backend/src/services/trainSpecs.ts` — IC1 + IC2 Twindexx + IC2 KISS spec overrides
+- **DB IC1**: 200 km/h, 6,400 kW, ADtranz/Bombardier, 145 BR 101 units, 15 kV 16.7 Hz AC. Variants covered: `db ic1`, `ic1`, `intercity 1`, `db intercity 1`, `bpmbdzf`.
+- **DB IC2 Twindexx**: 160 km/h, 5,600 kW, Bombardier (now Alstom), 52 trainsets total. Variants covered: `db ic2`, `ic2`, `ic2 twindexx`, `db ic2 twindexx`, `twindexx ic2`, `bombardier twindexx`, `twindexx vario`.
+- **DB IC2 KISS**: 200 km/h, 6,000 kW, Stadler Rail (Bussnang), 17 sets. Variants covered: `db ic2 kiss`, `ic2 kiss`, `br 4110`, `class 4110`, `stadler kiss db`.
+
+#### `backend/src/services/trainFacts.ts` — IC1 + IC2 Twindexx facts overrides
+- IC1 framing: locomotive-hauled push-pull, single-deck, BR 101 + IC coaches + Bpmbdzf control car, NEVER EMU. No "withdrawn / phased out" framing — IC1 is everyday operations in 2026.
+- IC2 Twindexx framing: 5-car double-deck push-pull set, BR 146.5 + Twindexx Vario coaches, 27 initial + 25 expansion = 52+ trainsets, 160 km/h, NEVER EMU. Operator is DB Fernverkehr (never DB Regio or DB Cargo).
+
+- **Real-world trigger**: tester scanned an IC1 (BR 101 + Bpmbdzf at Minden) and the app returned class "DB IC2 (Twindexx)" with type "EMU", 320 km/h, 8,000 kW, "63 left" rarity — every spec wrong because the model collapsed onto IC2 without checking deck count. Tester publicly corrected: "Du weisst schon das dass ein IC1 ist nh?".
+- **Tests**: 113/113 backend tests pass on the v1.0.23 branch, TSC clean.
+
+---
+
 ## 2026-05-01
 
 ### Backend — BR 110 / DB E 10 hard-overrides (facts + spec + rarity hardening) — DEPLOYED on main

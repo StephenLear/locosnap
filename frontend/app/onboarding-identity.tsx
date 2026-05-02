@@ -97,19 +97,34 @@ export default function OnboardingIdentityScreen() {
   const [email, setEmail] = useState("");
   const [emailSubmitting, setEmailSubmitting] = useState(false);
 
+  // The identity actions persist locally (Zustand + AsyncStorage) synchronously
+  // and fire-and-forget the Supabase sync. We still defensively try/catch each
+  // handler so an unexpected throw can't strand the user mid-flow.
   const finish = async () => {
-    await markIdentityOnboardingComplete();
+    try {
+      await markIdentityOnboardingComplete();
+    } catch {
+      // Local persistence handled inside the action; Supabase sync is non-blocking.
+    }
     router.replace("/(tabs)/");
   };
 
   const handleConfirmCountry = async () => {
-    await updateCountryCode(countryCode);
+    try {
+      await updateCountryCode(countryCode);
+    } catch {
+      // Continue to next step regardless — local state is already updated.
+    }
     setStep(3);
   };
 
   const handleConfirmEmoji = async () => {
     if (!emojiId) return;
-    await updateSpotterEmoji(emojiId);
+    try {
+      await updateSpotterEmoji(emojiId);
+    } catch {
+      // Continue to next step regardless — local state is already updated.
+    }
     if (isAnonymous) {
       setStep(4);
     } else {

@@ -123,9 +123,13 @@
     "allBlueprintStyles": "All blueprint styles",
     "leaderboardAccess": "Leaderboard access",
     "subscribe": "Continue",
+    "subscribeSignedOut": "Sign in to subscribe",
     "restorePurchases": "Restore purchases",
     "monthlyPrice": "{{price}} / month",
-    "yearlyPrice": "{{price}} / year"
+    "yearlyPrice": "{{price}} / year",
+    "signInGateTitle": "Sign in to subscribe",
+    "signInGateBody": "Your Pro stays with your account, not your device. Sign in once with email — your subscription works on any phone you sign into.",
+    "signInGateCta": "Sign in to continue"
   },
   "rarity": {
     "common": "Common",
