@@ -77,6 +77,22 @@ router.post(
         `[WEBHOOK] RevenueCat event: ${eventType} for user ${appUserId}`
       );
 
+      // RevenueCat assigns anonymous app_user_ids ("$RCAnonymousID:...") to
+      // users who haven't signed in. These aren't Supabase UUIDs and would
+      // crash every downstream query with "invalid input syntax for type uuid".
+      // Acknowledge with 200 — RC will fire a TRANSFER event once the user
+      // signs in, which is when the purchase should be reconciled to a real
+      // profiles.id. Belt-and-suspenders: also reject any non-UUID id.
+      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!appUserId || !UUID_REGEX.test(appUserId)) {
+        console.log(
+          `[WEBHOOK] Skipping event for non-UUID app_user_id (${appUserId}); ` +
+          `awaiting TRANSFER event after sign-in.`
+        );
+        res.status(200).json({ status: "ok", skipped: "non_uuid_app_user_id" });
+        return;
+      }
+
       const supabase = getSupabase();
       if (!supabase) {
         console.warn("[WEBHOOK] Supabase not configured — skipping");
