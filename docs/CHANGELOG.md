@@ -5,7 +5,26 @@ Format: newest first within each date block.
 
 ---
 
-## 2026-05-03
+## 2026-05-03 (PM session — v1.0.25 work begins on feat/v1.0.25-leaderboard-phase2 worktree)
+
+### Frontend — BLUEPRINT_TIMEOUT bump (Christian fix bundled into v1.0.25)
+
+#### `frontend/constants/api.ts` — Blueprint polling window 120s → 240s
+- **Cause**: Christian (christian.grama@outlook.com) reproduced the same Class 4020 ÖBB schematic-blueprint timeout reported on launch day (2026-04-27) — frontend gives up at 120s while Replicate continues generating in the background and often succeeds after 130-180s. Tester sees a "Time Out" screen for what was actually a successful generation they never get to view.
+- **Fix**: `BLUEPRINT_TIMEOUT` constant raised from 120000ms (2 min) to 240000ms (4 min). Backend timeouts unchanged — issue was purely frontend-side polling. Comment block in the file documents the rationale + Christian's repro for future maintainers.
+- **Tests**: TSC clean, frontend suite 106/106. No new test added — single constant value change with no logic delta.
+- **Reply**: Email sent to Christian (Resend id `95a9e012-f4c0-4c8a-9be3-e5a520f98937`) confirming v1.0.25 will carry the fix.
+
+### Database — Migration 013 staged (Phase 2-5 schema, NOT YET APPLIED)
+
+#### `supabase/migrations/013_leaderboard_phase2.sql` — leaderboard schema foundation
+- **Adds**: `verification_tier` text column on `spots` (replaces the frontend-only computation, persists what the codebase already classifies); `featured_spot_id` + `streak_freezes_available` columns on `profiles`; `league_membership` (Phase 2 core); `weekly_xp_events` (append-only audit trail); `user_boost_inventory` (Phase 4); `friendships` (Phase 5 stub); `league_cycle_state` (singleton cron coordinator). Plus RLS policies + a `SECURITY DEFINER` `get_my_league_rankings` function.
+- **Backfill rules** (idempotent — re-runs are safe):
+  - `verification_tier`: derived from existing `verified` boolean + `capture_source` (camera = `verified-live`; gallery = `verified-recent-gallery`; verified=false = `unverified`). Existing 117-spot collections (e.g. Steph) preserve all current visibility.
+  - `featured_spot_id`: set per profile from highest-rarity `verified-live`-or-`verified-recent-gallery` spot (deterministic tiebreaker `created_at` asc).
+  - `league_membership`: every existing profile auto-enrolled in tier_1 (Bronze) for the current week.
+- **Naming reconciliation**: design doc Section 3 used VERIFIED/PERSONAL/UNVERIFIED tier names but the codebase already uses `verified-live`/`verified-recent-gallery`/`unverified` (frontend/types/index.ts `VerificationTier`). Migration uses codebase names — design doc terminology was brainstorm drift, will be reconciled.
+- **NOT yet applied**. Local + staging dry-run + production apply require user oversight per implementation plan A.2 → A.3 → A.4. Frontend + backend code that writes the new column on new scans + reads `league_membership` for tab rendering is also not yet shipped, so applying early is harmless (existing flow continues unchanged) but pointless until the client catches up.
 
 ### Release — iOS v1.0.23 build 45 LIVE on App Store + Android v1.0.23 (versionCode 13) LIVE on Google Play
 
