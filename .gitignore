@@ -41,3 +41,6 @@ yarn-error.*
 
 # EAS
 google-services.json
+
+# Claude worktrees
+.claude/worktrees/
