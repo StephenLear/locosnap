@@ -16,7 +16,13 @@
     "noTrainFound": "Could not identify a train. Try a clearer photo.",
     "cameraPermission": "Camera access is needed to scan trains.",
     "scanBadge_one": "{{count}} scan",
-    "scanBadge_other": "{{count}} scans"
+    "scanBadge_other": "{{count}} scans",
+    "pickerError": {
+      "title": "Couldn't open the photo library",
+      "body": "Your phone wouldn't let us open the gallery just now. Take a photo with the camera instead?",
+      "useCamera": "Use camera",
+      "cancel": "Cancel"
+    }
   },
   "lowConfidence": {
     "title": "Hmm, this one's tricky",

@@ -445,8 +445,11 @@ export default function ProfileScreen() {
         <Ionicons name="chevron-forward" size={16} color={colors.textMuted} style={{ marginLeft: 4 }} />
       </TouchableOpacity>
 
-      {/* ── Region selector (UK-only until DE/PL regions ship in v1.0.24) ── */}
-      {user && language === "en" && (
+      {/* ── Region selector — gated on country_code, not UI language. A
+            German user with English UI should not see London / South East /
+            etc; a British user with German UI should. v1.0.23 shipped the
+            language-based gate by mistake. */}
+      {user && profile?.country_code === "GB" && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Region</Text>
           <Text style={styles.regionHelpText}>
@@ -795,7 +798,12 @@ function StatBox({
         size={18}
         color={accent || colors.accent}
       />
-      <Text style={[styles.statValue, accent ? { color: accent } : null]}>
+      <Text
+        style={[styles.statValue, accent ? { color: accent } : null]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.6}
+      >
         {value}
       </Text>
       <Text style={styles.statLabel}>{label}</Text>

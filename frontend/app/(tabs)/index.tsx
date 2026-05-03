@@ -428,32 +428,59 @@ export default function HomeScreen() {
       return;
     }
 
-    // Wrap the launch call: Android (especially Samsung Galaxy A15 / Android
-    // 16) occasionally rejects launchImageLibraryAsync with
-    // java.lang.IllegalStateException after the host activity has been
-    // recreated (backgrounding mid-pick, dark-mode toggle, rotation). The
-    // Promise rejection used to bubble out and silently terminate the
-    // handler — Sentry REACT-NATIVE-H, 8 events / 3 users on v1.0.20-22.
-    // Surface a graceful Alert so the user knows to retry.
-    let result: ImagePicker.ImagePickerResult;
+    // Sentry REACT-NATIVE-H — Samsung Galaxy A15 / Android 16 (and similar
+    // One UI lifecycle quirks) occasionally rejects launchImageLibraryAsync
+    // with java.lang.IllegalStateException because the host Activity was
+    // recreated and the registered ActivityResultLauncher is no longer valid.
+    // v1.0.23 shipped a band-aid Alert. v1.0.24 attempts recovery:
+    //   Plan A: pause 250ms (lets the activity finish its lifecycle) and
+    //           retry once. Mirrors the takePhoto retry pattern below.
+    //   Plan B: if the retry also throws, offer the camera as a fallback
+    //           (the camera path uses a different native launcher and is
+    //           almost always still usable when the gallery launcher is
+    //           stale).
+    let result: ImagePicker.ImagePickerResult | null = null;
+    let pickerError: Error | null = null;
+    const pickerOpts: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ["images"],
+      quality: 0.7,
+      // Card v2 P0.4 — surface EXIF so we can compute the gallery-recency
+      // verification check. expo-image-picker reads EXIF from the original
+      // file before our compression step.
+      exif: true,
+    };
     try {
-      result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 0.7,
-        // Card v2 P0.4 — surface EXIF so we can compute the gallery-recency
-        // verification check. expo-image-picker reads EXIF from the original
-        // file before our compression step.
-        exif: true,
-      });
+      result = await ImagePicker.launchImageLibraryAsync(pickerOpts);
     } catch (error) {
+      pickerError = error as Error;
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        result = await ImagePicker.launchImageLibraryAsync(pickerOpts);
+        track("picker_launch_recovered", {
+          firstError: pickerError.message,
+        });
+        pickerError = null;
+      } catch (retryError) {
+        pickerError = retryError as Error;
+      }
+    }
+    if (pickerError || !result) {
       track("scan_failed", {
         error: "picker_launch_failed",
-        message: (error as Error).message,
+        message: pickerError?.message ?? "no_result",
       });
       Alert.alert(
-        "Couldn't open the photo library",
-        "Try again, or restart the app if it keeps happening.",
-        [{ text: "OK" }]
+        t("scan.pickerError.title"),
+        t("scan.pickerError.body"),
+        [
+          { text: t("scan.pickerError.cancel"), style: "cancel" },
+          {
+            text: t("scan.pickerError.useCamera"),
+            onPress: () => {
+              void openCamera();
+            },
+          },
+        ]
       );
       return;
     }

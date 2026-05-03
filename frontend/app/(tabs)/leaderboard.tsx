@@ -96,6 +96,14 @@ export default function LeaderboardScreen() {
     []
   );
 
+  // The Region tab uses UK regions only. Hide it for non-GB users —
+  // surfacing London / South East / etc. to DE/PL users sends an
+  // implicit "this app isn't for you" signal in our top markets.
+  // v1.0.23 shipped this gate on profile.tsx but missed the leaderboard.
+  const visibleTabs = TABS.filter(
+    (tab) => tab.key !== "regional" || profile?.country_code === "GB"
+  );
+
   useEffect(() => {
     setLoading(true);
     loadLeaderboard(activeTab, selectedRegion);
@@ -140,7 +148,7 @@ export default function LeaderboardScreen() {
     <View style={styles.container}>
       {/* ── Tab switcher ──────────────────────────────── */}
       <View style={styles.tabBar}>
-        {TABS.map((tab) => (
+        {visibleTabs.map((tab) => (
           <TouchableOpacity
             key={tab.key}
             style={[

@@ -779,7 +779,7 @@ export default function CardRevealScreen() {
                 {/* Summary */}
                 {currentFacts?.summary && (
                   <View style={styles.backSummary}>
-                    <Text style={styles.backSummaryText} numberOfLines={3}>
+                    <Text style={styles.backSummaryText} numberOfLines={2}>
                       {currentFacts.summary}
                     </Text>
                   </View>
@@ -1187,7 +1187,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "flex-start",
     gap: 6,
-    marginTop: spacing.sm,
+    marginTop: "auto",
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.full,

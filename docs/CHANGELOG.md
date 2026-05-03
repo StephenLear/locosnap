@@ -5,6 +5,51 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-03
+
+### Release — iOS v1.0.23 build 45 LIVE on App Store + Android v1.0.23 (versionCode 13) LIVE on Google Play
+
+Apple approved iOS build 45 overnight 2026-05-03 from the 2026-05-02 submission. Google approved Android versionCode 13 on 2026-05-02 and the rollout commit was pushed the same day. Both stores now on parity at v1.0.23. Architecture doc + project_status memory updated. No code changes in this entry — store-state update only.
+
+### Frontend — Profile "Legendary" Rarest Find tile overflow fix
+
+#### `frontend/app/(tabs)/profile.tsx` — auto-shrink long stat values
+- **Cause**: `statValue` rendered at `xxl` (24pt) bold with no `numberOfLines` and no shrink, in a tile of `minWidth: 45%` with 16pt padding each side (~115–130pt usable text width). "Legendary" (9 chars) wrapped to two lines as "Legendar / y" on the Rarest Find tile. Reported by user on iPhone 16 Pro Max screenshot. Long-locale strings (DE "Legendär", FI "Legendaarinen", etc.) would compound the failure.
+- **Fix**: `statValue` Text now uses `numberOfLines={1}` + `adjustsFontSizeToFit` + `minimumFontScale={0.6}`. Long values shrink down to ~14pt automatically, short values keep the full 24pt size. Tradeoff: tile fonts become non-uniform when only one tile has a long value, accepted as a v1 patch — proper redesign (rarity pill instead of bare text) deferred to card-v2 / profile-redesign work.
+- **Tests**: TSC clean.
+
+### Frontend — Card-back "Compare with another" button clipped on long-locale text
+
+#### `frontend/app/card-reveal.tsx` — pin Compare button to bottom + tighten summary lines
+- **Cause**: card has fixed `CARD_HEIGHT = CARD_WIDTH * 1.45` with `overflow: "hidden"`. Long German specs/summary/funfact text pushed the Compare button below the clip boundary, leaving only the top half of "Compare with another" visible. Reproducible on DB BR 110 RARE card-back screenshot supplied by user. EN text just barely fits; DE / PL / FI reliably overflow.
+- **Fix**: (1) `cardCompareBtn.marginTop` changed from `spacing.sm` to `"auto"` so the button is pinned to the bottom of the flex container regardless of middle-content height. (2) `backSummary` Text `numberOfLines` reduced from 3 to 2 — long German "Universallokomotive…" descriptions still convey the gist. Funfact stays at 3 lines (more interesting content; deserves the room). Card dimensions, gestures, and trading-card feel preserved. No ScrollView added.
+- **Tests**: TSC clean.
+
+### Frontend — v1.0.24 region-gate fix (UK regions were leaking to non-UK users on v1.0.23)
+
+#### `frontend/app/(tabs)/profile.tsx` — gate Profile "Your Region" picker on country_code, not UI language
+- **Cause**: v1.0.23 shipped the gate as `language === "en"` (commit `95e1c82`). DE / PL users with their app set to English (a common combination — many EU testers run English UI on German/Polish accounts) saw the UK chip picker. Reported by user 2026-05-03 with screenshot showing London / South East / South West / East Anglia chips on a German (DE flag) account.
+- **Fix**: gate is now `profile?.country_code === "GB"`. A British user with German UI gets the picker; a German user with English UI does not. Edge case: users with `country_code === null` (didn't complete identity onboarding, or accounts predating it) lose the picker — accepted, since they can complete onboarding to opt in, and showing UK regions to a confirmed-non-British user is the worse failure mode.
+
+#### `frontend/app/(tabs)/leaderboard.tsx` — hide "Region" tab for non-GB users
+- **Cause**: v1.0.23 only gated the Profile picker, not the Leaderboard tab. The "Region" tab was always rendered for every user from the static `TABS` array. DE / PL users saw a tab that, when tapped, only loaded UK regional leaderboards — sending an implicit "this app isn't for you" signal in our top two markets.
+- **Fix**: filter `TABS` into a `visibleTabs` const inside the component, dropping the `"regional"` entry unless `profile?.country_code === "GB"`. `{TABS.map(...)}` becomes `{visibleTabs.map(...)}` at the tab-bar render site.
+
+### Frontend — v1.0.24 ImagePicker recovery on `feat/v1.0.24-imagepicker-recovery` branch (UNCOMMITTED, awaiting Android 16 verification)
+
+#### `frontend/app/(tabs)/index.tsx` — auto-retry + camera fallback for Sentry REACT-NATIVE-H
+- **Cause**: Sentry REACT-NATIVE-H — Samsung Galaxy A15 / Android 16 (and similar One UI lifecycle quirks) reject `launchImageLibraryAsync` with `java.lang.IllegalStateException` after the host Activity is recreated and the registered `ActivityResultLauncher` becomes stale. v1.0.23 shipped a band-aid Alert telling the user to "try again or restart the app" — surfaced the failure but didn't recover, and the launcher stays stale until app restart so a literal retry doesn't help.
+- **Fix — Plan A (auto-retry)**: on the first launcher rejection, wait 250ms (lets the Activity finish its lifecycle) and call `launchImageLibraryAsync` again. Mirrors the existing `takePhoto` retry pattern at lines 511-522. New analytics event `picker_launch_recovered` fires when the retry succeeds, so we can measure how often Plan A alone is enough.
+- **Fix — Plan B (camera fallback)**: if the retry also throws, the Alert now offers two buttons: `Cancel` and `Use camera`. The camera path uses a different native launcher (CameraX via expo-camera, not the gallery `ActivityResultLauncher`) and is almost always still usable when the gallery launcher is stale. Tapping "Use camera" calls the existing `openCamera()` flow which handles permission and switches to camera mode.
+- **i18n**: 4 new EN keys + 4 new DE keys under `scan.pickerError` (`title`, `body`, `useCamera`, `cancel`). DE diacritics verified (`ö` in "geöffnet").
+- **Tests**: TSC clean, frontend suite 106/106 pass.
+- **Status**: NOT yet committed per yesterday's plan — ship-or-not decision awaits verification on user's Android 16 device. v1.0.24 build will batch this fix with the morning's Profile + card-reveal overflow fixes.
+
+#### `frontend/locales/en.json` + `frontend/locales/de.json` — `scan.pickerError` i18n block
+- **Added** `pickerError.title`, `pickerError.body`, `pickerError.useCamera`, `pickerError.cancel` in both locales. EN body: "Your phone wouldn't let us open the gallery just now. Take a photo with the camera instead?". DE body: "Dein Handy hat die Galerie gerade nicht geöffnet. Stattdessen ein Foto mit der Kamera aufnehmen?"
+
+---
+
 ## 2026-05-02
 
 ### Release — iOS v1.0.22 build 44 LIVE on App Store

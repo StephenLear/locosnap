@@ -16,7 +16,13 @@
     "noTrainFound": "Kein Zug erkannt. Bitte versuche es mit einem klareren Foto.",
     "cameraPermission": "Kamerazugriff wird zum Scannen von Zügen benötigt.",
     "scanBadge_one": "{{count}} Scan",
-    "scanBadge_other": "{{count}} Scans"
+    "scanBadge_other": "{{count}} Scans",
+    "pickerError": {
+      "title": "Galerie konnte nicht geöffnet werden",
+      "body": "Dein Handy hat die Galerie gerade nicht geöffnet. Stattdessen ein Foto mit der Kamera aufnehmen?",
+      "useCamera": "Kamera nutzen",
+      "cancel": "Abbrechen"
+    }
   },
   "lowConfidence": {
     "title": "Hmm, das ist knifflig",
