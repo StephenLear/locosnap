@@ -5,6 +5,34 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-04
+
+### Backend — Polish "Gagarin" family (ET21 / EU05 / EP05) + Newag Dragon (E6ACT) coverage
+
+Closes a class-collision bug reported on the ET22 TikTok ad: a Polish viewer (`@fuckhypocrisy_`) scanned a Pafawag-era electric loco ("Gagarin" — Polish nickname for the EU05 / ET21 family) and the app returned "Japanese Škoda". Same family of class-collision hallucinations as BR 151 / BR 232 / BR 648 / BR 442 — fixed with explicit disambiguation rules.
+
+**Vision rules added (`backend/src/services/vision.ts`):**
+- **ET21 / EU05 / EP05 "Gagarin" heritage family**: first generation of Polish-built electrics by Pafawag (Wrocław), 1957–1971, named after Yuri Gagarin's 1961 first manned spaceflight. **EU05** = Bo'Bo' express passenger (1962–1963, only 30 units built). **ET21** = Co-Co heavy freight (1957–1971, ~174 units built). **EP05** = EU05 reclassified for passenger duties (same physical loco). Disambiguation rules cover wheel-arrangement discrimination (Bo'Bo' = EU05, Co-Co = ET21), explicit prohibitions against returning Czech Škoda or Soviet ChS / Lugansk attributions, and builder enforcement (Pafawag, never Škoda or Lugansk). When metadata or class string contains the colloquial nickname "Gagarin", prefer EU05 unless wheel count or fleet number indicates ET21.
+- **Newag Dragon (E6ACT / E6ACTa / E6ACTadb)**: modern Polish heavy freight Co-Co electric, Newag (Nowy Sącz) 2010+, the contemporary replacement for the ET22 in PKP Cargo / Lotos Kolej / CTL Logistics / DB Cargo Polska freight service. Disambiguation against ET22 (older Pafawag boxy 1969-1990 design) and Pesa Gama (passenger-spec Bydgoszcz build, different platform). Builder always "Newag (Nowy Sącz)" — never Pafawag, Pesa, Bombardier, or Siemens. Adding proper coverage so we recognise the loco we already reference in our own ET22 ad caption.
+
+**Spec entries added (`backend/src/services/trainSpecs.ts`):**
+- ET21 / PKP ET21: 125 km/h, 2,400 kW, Pafawag, 174 built, 3 kV DC
+- EU05 / PKP EU05 / EP05 / PKP EP05: 125 km/h, 2,000 kW, Pafawag, 30 built, 3 kV DC
+- Newag Dragon / Dragon / Dragon 2 / E6ACT / E6ACTa: 120 km/h, 5,000 kW, Newag, 50 built, 3 kV DC
+- E6ACTadb (dual-mode): 120 km/h, 5,800 kW, Newag, 50 built, 3 kV DC + Diesel
+
+**Rarity overrides added (`backend/src/services/rarity.ts`):**
+- **EU05 / EP05**: legendary — 30-unit class, mostly retired, only museum-preserved units occasionally roll out (Polish Railway Museum + Skansen Tabor heritage events)
+- **ET21**: epic — ~174 units originally, functionally extinct from commercial service; a handful preserved or operated on enthusiast services
+- **Newag Dragon**: uncommon — ~50-unit modern fleet across multiple operators, active mainline freight presence
+- **E6ACTadb**: rare (smaller dual-mode sub-fleet)
+
+**Reason field constraints**: explicit reminder that the Gagarin family represents the first generation of Polish-built electric locomotives, that the nickname is a notable Polish trainspotter cultural marker, and that survivor counts make these spotting-trophy tier rather than common.
+
+113/113 backend tests pass.
+
+---
+
 ## 2026-05-03
 
 ### Release — iOS v1.0.23 build 45 LIVE on App Store + Android v1.0.23 (versionCode 13) LIVE on Google Play
