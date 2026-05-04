@@ -11,4 +11,5 @@ export const VERIFICATION_CONFIG = {
   galleryRecencyDays: 7,
   liveCameraMaxAccuracyM: 50,
   galleryMaxAccuracyM: 100,
+  implausibleEXIFAgeYears: 5,
 } as const;

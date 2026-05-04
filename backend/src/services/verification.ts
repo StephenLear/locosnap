@@ -1,17 +1,31 @@
 // ============================================================
-// Verification — classify a spot as Verified or Unverified.
+// Verification — classify a spot into one of four tiers.
 //
 // Pure function, no I/O. Called both at scan time (client, for
 // optimistic UI) and on persist (server, canonical). Client is
 // never trusted: /api/identify re-runs this server-side and
 // overrides whatever the client sent.
 //
+// Four tiers (leaderboard Phase 2 split, 2026-05-04):
+//   verified-live           — live camera + GPS + accuracy <= 50m + not mocked
+//                             counts for League XP.
+//   verified-recent-gallery — gallery + GPS + accuracy <= 100m + EXIF <= 7d
+//                             + not mocked. counts for League XP.
+//   personal                — legit but no recency proof: weak GPS, stale
+//                             EXIF, no GPS with intact EXIF, etc. visible
+//                             everywhere; NOT in League XP.
+//   unverified              — actively suspicious: stripped EXIF (gallery),
+//                             mock location, implausible date (>5y or
+//                             future). private to user; NOT in League XP.
+//
+// Ordering matters: suspicious-signal checks (mock loc, stripped EXIF,
+// implausible date) run BEFORE the legit-but-weak fallthrough so a
+// scan with both suspicious AND weak signals lands in UNVERIFIED.
+//
 // ⚠ KEEP IN SYNC with frontend/services/verification.ts — the
 // frontend copy is a direct mirror of this file. If you change
 // the logic here, change it there too, and update
-// backend/src/__tests__/verification.test.ts. A drift test
-// there asserts both implementations produce identical results
-// for the shared fixture set.
+// backend/src/__tests__/services/verification.test.ts.
 // ============================================================
 
 import {
@@ -23,6 +37,7 @@ import {
 import { VERIFICATION_CONFIG } from "../config/verification";
 
 const MS_PER_DAY = 86_400_000;
+const MS_PER_YEAR = 365.25 * MS_PER_DAY;
 
 export function computeVerification(input: ProvenanceInput): VerificationResult {
   const riskFlags: VerificationResult["riskFlags"] = {};
@@ -37,16 +52,32 @@ export function computeVerification(input: ProvenanceInput): VerificationResult 
     accuracy !== null && accuracy <= VERIFICATION_CONFIG.liveCameraMaxAccuracyM;
   const galleryAccuracyOk =
     accuracy !== null && accuracy <= VERIFICATION_CONFIG.galleryMaxAccuracyM;
+  if (accuracy !== null && !galleryAccuracyOk) riskFlags.lowAccuracy = true;
 
-  // ── EXIF freshness (gallery only) ──
+  // ── EXIF parsing (gallery only) ──
   let exifFresh = false;
+  let exifIntact = false;
+  let exifImplausible = false;
   if (input.exifTimestamp) {
     const exifMs = new Date(input.exifTimestamp).getTime();
-    if (!Number.isNaN(exifMs)) {
+    if (Number.isNaN(exifMs)) {
+      // Malformed string — treat as stripped on the gallery path.
+      if (input.captureSource === "gallery") riskFlags.strippedExif = true;
+    } else {
+      exifIntact = true;
       const ageMs = now - exifMs;
-      const maxAgeMs = VERIFICATION_CONFIG.galleryRecencyDays * MS_PER_DAY;
-      exifFresh = ageMs >= 0 && ageMs <= maxAgeMs;
-      if (!exifFresh && ageMs > maxAgeMs) riskFlags.staleExif = true;
+      const maxFreshMs = VERIFICATION_CONFIG.galleryRecencyDays * MS_PER_DAY;
+      const maxPlausibleAgeMs = VERIFICATION_CONFIG.implausibleEXIFAgeYears * MS_PER_YEAR;
+      // Future timestamps OR EXIF older than the implausibility threshold
+      // → treat as suspected internet find / clock tampering.
+      if (ageMs < 0 || ageMs > maxPlausibleAgeMs) {
+        exifImplausible = true;
+        riskFlags.implausibleDate = true;
+      } else if (ageMs <= maxFreshMs) {
+        exifFresh = true;
+      } else {
+        riskFlags.staleExif = true;
+      }
     }
   } else if (input.captureSource === "gallery") {
     riskFlags.strippedExif = true;
@@ -56,25 +87,36 @@ export function computeVerification(input: ProvenanceInput): VerificationResult 
   if (input.mockLocationFlag) riskFlags.mockLocation = true;
 
   // ── Tier assignment ──
+  // Suspicious gates first, then verified gates, then personal fallback.
   let tier: VerificationTier;
 
-  if (input.captureSource === "camera" && hasGps && liveAccuracyOk && !input.mockLocationFlag) {
+  const isSuspicious =
+    input.mockLocationFlag ||
+    exifImplausible ||
+    (input.captureSource === "gallery" && !exifIntact);
+
+  if (isSuspicious) {
+    tier = "unverified";
+  } else if (
+    input.captureSource === "camera" &&
+    hasGps &&
+    liveAccuracyOk
+  ) {
     tier = "verified-live";
   } else if (
     input.captureSource === "gallery" &&
     hasGps &&
     galleryAccuracyOk &&
-    exifFresh &&
-    !input.mockLocationFlag
+    exifFresh
   ) {
     tier = "verified-recent-gallery";
   } else {
-    tier = "unverified";
-    if (accuracy !== null && !galleryAccuracyOk) riskFlags.lowAccuracy = true;
+    // Legit but no recency proof: weak GPS, stale EXIF, etc.
+    tier = "personal";
   }
 
   return {
-    verified: tier !== "unverified",
+    verified: tier === "verified-live" || tier === "verified-recent-gallery",
     tier,
     riskFlags,
   };

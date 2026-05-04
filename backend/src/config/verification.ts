@@ -21,4 +21,12 @@ export const VERIFICATION_CONFIG = {
   // live camera.
   liveCameraMaxAccuracyM: 50,
   galleryMaxAccuracyM: 100,
+
+  // Implausibility threshold for EXIF timestamps. Anything older
+  // than this (or in the future) is treated as a suspected internet
+  // find / clock-skew tampering and lands in UNVERIFIED instead of
+  // PERSONAL. 5 years catches the long tail of "scraped photos
+  // re-uploaded from old galleries" while still allowing legitimate
+  // older personal photos people are working through their library.
+  implausibleEXIFAgeYears: 5,
 } as const;

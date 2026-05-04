@@ -35,23 +35,30 @@
 -- but doesn't persist it. Add the column + backfill from existing
 -- `verified` + `capture_source` data.
 
+-- Tier semantics (matches the design doc):
+--   verified-live            : camera capture, GPS valid, recent — counts for League XP
+--   verified-recent-gallery  : gallery upload with intact recent EXIF + GPS — counts for League XP
+--   personal                 : legit gallery upload, no recency proof — visible everywhere, NO League XP
+--   unverified               : stripped EXIF or implausible date — private to user, NO League XP
 alter table public.spots
   add column if not exists verification_tier text
-    check (verification_tier in ('verified-live', 'verified-recent-gallery', 'unverified'));
+    check (verification_tier in ('verified-live', 'verified-recent-gallery', 'personal', 'unverified'));
 
 -- Backfill historical spots based on the heuristic:
 --   verified=true  AND capture_source='camera'  -> verified-live
 --   verified=true  AND capture_source='gallery' -> verified-recent-gallery
---   verified=false                              -> unverified
+--   verified=false AND capture_source='gallery' -> personal (grandfather: keep visibility)
+--   verified=false AND capture_source='camera'  -> personal (camera scans without GPS lock)
+--   capture_source NULL                         -> personal (very old rows pre-Card-v2)
 update public.spots
 set verification_tier = case
   when verified = true and capture_source = 'camera'  then 'verified-live'
   when verified = true and capture_source = 'gallery' then 'verified-recent-gallery'
-  else 'unverified'
+  else 'personal'
 end
 where verification_tier is null;
 
--- After backfill, make column not-null and add index for league XP cron
+-- After backfill, make column not-null and add indices for league XP cron + personal/unverified gate
 alter table public.spots
   alter column verification_tier set not null;
 
