@@ -26,6 +26,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../../store/trainStore";
 import { useAuthStore, PRE_SIGNUP_FREE_SCANS, MAX_FREE_SCANS } from "../../store/authStore";
 import { identifyTrain, pollBlueprintStatus, healthCheck } from "../../services/api";
+import { submitWrongIdReport } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track, captureError, addBreadcrumb } from "../../services/analytics";
 
@@ -331,18 +332,33 @@ export default function HomeScreen() {
 
       if (train.confidence < 70) {
         Alert.alert(
-          "Not 100% Sure",
-          `Is this a ${train.class} (${train.operator})?\n\nConfidence: ${train.confidence}%`,
+          t("lowConfidence.title"),
+          t("lowConfidence.body"),
           [
             {
-              text: "No, retry",
+              // Decline path — silently log the low-confidence ID for triage,
+              // then dismiss without setting a scanError. The user is back on
+              // the scan screen and can retake immediately. Class name is
+              // intentionally hidden from the prompt so the user isn't
+              // anchored on a possibly-wrong answer.
+              text: t("lowConfidence.tryAnother"),
               style: "cancel",
               onPress: () => {
-                setScanError("Try a clearer photo or different angle");
+                track("low_confidence_decline", {
+                  train_class: train.class,
+                  confidence: train.confidence,
+                });
+                submitWrongIdReport({
+                  source: "low-confidence-decline",
+                  returnedClass: train.class,
+                  returnedOperator: train.operator,
+                  returnedConfidence: train.confidence,
+                  userId: session?.user?.id,
+                }).catch(() => {});
               },
             },
             {
-              text: "Yes, that's right",
+              text: t("lowConfidence.showAnyway"),
               onPress: () => {
                 setScanResults(train, specs, facts, rarity);
                 if (!session) incrementPreSignupScans();
@@ -412,14 +428,62 @@ export default function HomeScreen() {
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
+    // Sentry REACT-NATIVE-H — Samsung Galaxy A15 / Android 16 (and similar
+    // One UI lifecycle quirks) occasionally rejects launchImageLibraryAsync
+    // with java.lang.IllegalStateException because the host Activity was
+    // recreated and the registered ActivityResultLauncher is no longer valid.
+    // v1.0.23 shipped a band-aid Alert. v1.0.24 attempts recovery:
+    //   Plan A: pause 250ms (lets the activity finish its lifecycle) and
+    //           retry once. Mirrors the takePhoto retry pattern below.
+    //   Plan B: if the retry also throws, offer the camera as a fallback
+    //           (the camera path uses a different native launcher and is
+    //           almost always still usable when the gallery launcher is
+    //           stale).
+    let result: ImagePicker.ImagePickerResult | null = null;
+    let pickerError: Error | null = null;
+    const pickerOpts: ImagePicker.ImagePickerOptions = {
       mediaTypes: ["images"],
       quality: 0.7,
       // Card v2 P0.4 — surface EXIF so we can compute the gallery-recency
       // verification check. expo-image-picker reads EXIF from the original
       // file before our compression step.
       exif: true,
-    });
+    };
+    try {
+      result = await ImagePicker.launchImageLibraryAsync(pickerOpts);
+    } catch (error) {
+      pickerError = error as Error;
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        result = await ImagePicker.launchImageLibraryAsync(pickerOpts);
+        track("picker_launch_recovered", {
+          firstError: pickerError.message,
+        });
+        pickerError = null;
+      } catch (retryError) {
+        pickerError = retryError as Error;
+      }
+    }
+    if (pickerError || !result) {
+      track("scan_failed", {
+        error: "picker_launch_failed",
+        message: pickerError?.message ?? "no_result",
+      });
+      Alert.alert(
+        t("scan.pickerError.title"),
+        t("scan.pickerError.body"),
+        [
+          { text: t("scan.pickerError.cancel"), style: "cancel" },
+          {
+            text: t("scan.pickerError.useCamera"),
+            onPress: () => {
+              void openCamera();
+            },
+          },
+        ]
+      );
+      return;
+    }
 
     if (!result.canceled && result.assets[0]) {
       try {

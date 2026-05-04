@@ -35,6 +35,9 @@ import {
 } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { isValidUsername } from "../../utils/profanityFilter";
+import { IdentityBadge } from "../../components/IdentityBadge";
+import { CountryFlagPicker } from "../../components/CountryFlagPicker";
+import { EmojiPicker } from "../../components/EmojiPicker";
 
 // ── Level system ────────────────────────────────────────────
 
@@ -83,13 +86,57 @@ export default function ProfileScreen() {
     }
   };
   const router = useRouter();
-  const { profile, user, signOut, updateRegion, updateUsername } = useAuthStore();
+  const {
+    profile,
+    user,
+    session,
+    signOut,
+    updateRegion,
+    updateUsername,
+    updateCountryCode,
+    updateSpotterEmoji,
+  } = useAuthStore();
 
   // ── Username edit modal state ────────────────────────────
   const [usernameModalVisible, setUsernameModalVisible] = useState(false);
   const [usernameInput, setUsernameInput] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [usernameSaving, setUsernameSaving] = useState(false);
+
+  // ── Identity (flag + emoji) edit modal state ────────────
+  const [identityModalVisible, setIdentityModalVisible] = useState(false);
+  const [draftCountry, setDraftCountry] = useState<string | null>(null);
+  const [draftEmoji, setDraftEmoji] = useState<string | null>(null);
+  const [identitySaving, setIdentitySaving] = useState(false);
+
+  const handleOpenIdentityModal = () => {
+    setDraftCountry(profile?.country_code ?? null);
+    setDraftEmoji(profile?.spotter_emoji ?? null);
+    setIdentityModalVisible(true);
+  };
+
+  const handleSaveIdentity = async () => {
+    setIdentitySaving(true);
+    try {
+      if (draftCountry && draftCountry !== profile?.country_code) {
+        await updateCountryCode(draftCountry);
+      }
+      if (draftEmoji && draftEmoji !== profile?.spotter_emoji) {
+        await updateSpotterEmoji(draftEmoji);
+      }
+      setIdentityModalVisible(false);
+    } finally {
+      setIdentitySaving(false);
+    }
+  };
+
+  const handleProLockTapped = () => {
+    Alert.alert(
+      t("onboardingIdentity.emojiProLockTitle"),
+      t("onboardingIdentity.emojiProLockBody"),
+      [{ text: t("onboardingIdentity.emojiProLockOk") }]
+    );
+  };
 
   const handleOpenUsernameModal = () => {
     setUsernameInput(profile?.username || "");
@@ -292,6 +339,30 @@ export default function ProfileScreen() {
           <Text style={styles.userEmail}>
             {user?.email || ""}
           </Text>
+          <TouchableOpacity
+            onPress={handleOpenIdentityModal}
+            style={styles.identityBadgeButton}
+            accessibilityRole="button"
+            accessibilityLabel={t("identityModal.title")}
+          >
+            {profile?.country_code || profile?.spotter_emoji ? (
+              <IdentityBadge
+                countryCode={profile?.country_code ?? null}
+                emojiId={profile?.spotter_emoji ?? null}
+                size="md"
+              />
+            ) : (
+              <Text style={styles.identityBadgePlaceholder}>
+                {t("identityModal.badgePlaceholder")}
+              </Text>
+            )}
+            <Ionicons
+              name="pencil"
+              size={12}
+              color={colors.textSecondary}
+              style={{ marginLeft: 6 }}
+            />
+          </TouchableOpacity>
         </View>
         {profile?.is_pro && (
           <View style={styles.proBadge}>
@@ -374,8 +445,11 @@ export default function ProfileScreen() {
         <Ionicons name="chevron-forward" size={16} color={colors.textMuted} style={{ marginLeft: 4 }} />
       </TouchableOpacity>
 
-      {/* ── Region selector ─────────────────────────────── */}
-      {user && (
+      {/* ── Region selector — gated on country_code, not UI language. A
+            German user with English UI should not see London / South East /
+            etc; a British user with German UI should. v1.0.23 shipped the
+            language-based gate by mistake. */}
+      {user && profile?.country_code === "GB" && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Region</Text>
           <Text style={styles.regionHelpText}>
@@ -634,6 +708,72 @@ export default function ProfileScreen() {
         </View>
       </View>
     </Modal>
+
+    {/* ── Identity (flag + emoji) edit modal ───────────── */}
+    <Modal
+      visible={identityModalVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setIdentityModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, styles.identityModalContent]}>
+          <Text style={styles.modalTitle}>{t("identityModal.title")}</Text>
+          <Text style={styles.modalSubtitle}>{t("identityModal.subtitle")}</Text>
+
+          <Text style={styles.identitySectionLabel}>{t("identityModal.countryLabel")}</Text>
+          <CountryFlagPicker
+            mode="compact"
+            selectedCode={draftCountry}
+            onSelect={setDraftCountry}
+          />
+
+          <Text style={styles.identitySectionLabel}>{t("identityModal.emojiLabel")}</Text>
+          <View style={styles.identityEmojiContainer}>
+            <EmojiPicker
+              selectedId={draftEmoji}
+              isPro={profile?.is_pro ?? false}
+              onSelect={setDraftEmoji}
+              onProLockTapped={handleProLockTapped}
+            />
+          </View>
+
+          {!session && (
+            <TouchableOpacity
+              style={styles.addAccountLink}
+              onPress={() => {
+                setIdentityModalVisible(false);
+                router.push("/sign-in");
+              }}
+            >
+              <Text style={styles.addAccountText}>
+                {t("identityModal.addAccount")}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={styles.modalCancelBtn}
+              onPress={() => setIdentityModalVisible(false)}
+            >
+              <Text style={styles.modalCancelText}>{t("identityModal.cancel")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalSaveBtn, identitySaving && styles.modalSaveBtnDisabled]}
+              onPress={handleSaveIdentity}
+              disabled={identitySaving}
+            >
+              {identitySaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.modalSaveText}>{t("identityModal.save")}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
     </>
   );
 }
@@ -658,7 +798,12 @@ function StatBox({
         size={18}
         color={accent || colors.accent}
       />
-      <Text style={[styles.statValue, accent ? { color: accent } : null]}>
+      <Text
+        style={[styles.statValue, accent ? { color: accent } : null]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.6}
+      >
         {value}
       </Text>
       <Text style={styles.statLabel}>{label}</Text>
@@ -1158,5 +1303,44 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.bold,
     color: "#fff",
+  },
+  identityBadgeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    alignSelf: "flex-start",
+  },
+  identityBadgePlaceholder: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textMuted,
+  },
+  identityModalContent: {
+    maxHeight: "85%",
+    width: "92%",
+  },
+  identitySectionLabel: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    fontWeight: fonts.weights.semibold,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  identityEmojiContainer: {
+    height: 220,
+  },
+  addAccountLink: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: "center",
+  },
+  addAccountText: {
+    color: colors.primary,
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
   },
 });

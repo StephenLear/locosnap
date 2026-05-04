@@ -271,6 +271,45 @@ export async function updateSpotBlueprint(
   return true;
 }
 
+/**
+ * Submit a wrong-ID report to the misidentification triage table.
+ * Both anonymous and authenticated users can submit. RLS allows
+ * INSERT-only; SELECT is blocked at the policy level (admin-only via
+ * service-role).
+ *
+ * Two entry points (`source`):
+ *  - 'low-confidence-decline' — the low-confidence Alert was declined ("try another angle")
+ *  - 'card-wrong-id'          — the user tapped "Wrong ID" on the card-reveal screen
+ */
+export async function submitWrongIdReport(params: {
+  source: "low-confidence-decline" | "card-wrong-id";
+  returnedClass: string;
+  returnedOperator?: string;
+  returnedConfidence?: number;
+  userCorrection?: string;
+  spotId?: string;
+  photoUrl?: string;
+  userId?: string;
+}): Promise<boolean> {
+  const { error } = await supabase.from("wrong_id_reports").insert({
+    user_id: params.userId ?? null,
+    spot_id: params.spotId ?? null,
+    photo_url: params.photoUrl ?? null,
+    returned_class: params.returnedClass,
+    returned_operator: params.returnedOperator ?? null,
+    returned_confidence: params.returnedConfidence ?? null,
+    user_correction: params.userCorrection ?? null,
+    source: params.source,
+  });
+
+  if (error) {
+    console.warn("Failed to submit wrong-ID report:", error.message);
+    return false;
+  }
+
+  return true;
+}
+
 // ── Storage uploads ─────────────────────────────────────────
 
 /**
@@ -374,6 +413,9 @@ export interface LeaderboardEntry {
   uniqueTrains: number;
   rareCount: number;
   lastActive: string | null;
+  // Identity (Phase 1 — added in migration 011)
+  countryCode: string | null;
+  spotterEmoji: string | null;
   // Weekly-specific
   weeklySpots?: number;
   weeklyUnique?: number;
@@ -403,6 +445,8 @@ export async function fetchLeaderboard(
     username: entry.username || "Anonymous Spotter",
     avatarUrl: entry.avatar_url || null,
     level: entry.level || 1,
+    countryCode: entry.country_code || null,
+    spotterEmoji: entry.spotter_emoji || null,
     totalSpots: entry.total_spots || 0,
     uniqueTrains: entry.unique_classes || 0,
     rareCount: entry.rare_count || 0,
@@ -431,6 +475,8 @@ export async function fetchWeeklyLeaderboard(
     username: entry.username || "Anonymous Spotter",
     avatarUrl: entry.avatar_url || null,
     level: entry.level || 1,
+    countryCode: entry.country_code || null,
+    spotterEmoji: entry.spotter_emoji || null,
     totalSpots: 0,
     uniqueTrains: entry.weekly_unique || 0,
     rareCount: entry.rare_count || 0,
@@ -461,6 +507,8 @@ export async function fetchRarityLeaderboard(
     username: entry.username || "Anonymous Spotter",
     avatarUrl: entry.avatar_url || null,
     level: entry.level || 1,
+    countryCode: entry.country_code || null,
+    spotterEmoji: entry.spotter_emoji || null,
     totalSpots: entry.total_spots || 0,
     uniqueTrains: 0,
     rareCount: entry.rare_count || 0,
@@ -468,6 +516,25 @@ export async function fetchRarityLeaderboard(
     legendaryCount: entry.legendary_count || 0,
     epicCount: entry.epic_count || 0,
   }));
+}
+
+// ── Identity (country flag + spotter emoji + onboarding flag) ──
+
+export interface IdentityUpdates {
+  country_code?: string;
+  spotter_emoji?: string;
+  has_completed_identity_onboarding?: boolean;
+}
+
+export async function updateProfileIdentity(
+  userId: string,
+  updates: IdentityUpdates
+) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", userId);
+  return { data, error };
 }
 
 // ── UK Regions ──────────────────────────────────────────────
@@ -510,6 +577,8 @@ export async function fetchRegionalLeaderboard(
     username: entry.username || "Anonymous Spotter",
     avatarUrl: entry.avatar_url || null,
     level: entry.level || 1,
+    countryCode: entry.country_code || null,
+    spotterEmoji: entry.spotter_emoji || null,
     totalSpots: entry.total_spots || 0,
     uniqueTrains: entry.unique_classes || 0,
     rareCount: entry.rare_count || 0,

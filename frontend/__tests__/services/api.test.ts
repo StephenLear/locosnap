@@ -59,6 +59,11 @@ const mockAxios = (axios as any).__mockInstance;
 describe("API client", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // mockReset clears the mockResolvedValueOnce / mockRejectedValueOnce queue
+    // which clearAllMocks does not. Without this, queued one-time values can
+    // leak into subsequent tests.
+    mockAxios.post.mockReset();
+    mockAxios.get.mockReset();
   });
 
   describe("identifyTrain", () => {
@@ -109,20 +114,44 @@ describe("API client", () => {
       );
     });
 
-    it("throws timeout error on ECONNABORTED", async () => {
+    it("retries once on ECONNABORTED and throws timeout if retry also times out", async () => {
       mockAxios.post.mockRejectedValue({ code: "ECONNABORTED" });
 
       await expect(identifyTrain("file:///train.jpg")).rejects.toThrow(
         "Request timed out"
       );
+      expect(mockAxios.post).toHaveBeenCalledTimes(2);
     });
 
-    it("throws generic error on network failure", async () => {
+    it("retries once on ECONNABORTED and succeeds if retry succeeds", async () => {
+      mockAxios.post
+        .mockRejectedValueOnce({ code: "ECONNABORTED" })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            data: {
+              train: { class: "Class 390" },
+              specs: { maxSpeed: "125 mph" },
+              rarity: { tier: "common" },
+              blueprint: { taskId: "task-1", status: "queued" },
+            },
+            error: null,
+            processingTimeMs: 500,
+          },
+        });
+
+      const result = await identifyTrain("file:///train.jpg");
+      expect(result.success).toBe(true);
+      expect(mockAxios.post).toHaveBeenCalledTimes(2);
+    });
+
+    it("retries once on connection failure and throws generic error if retry also fails", async () => {
       mockAxios.post.mockRejectedValue(new Error("Network Error"));
 
       await expect(identifyTrain("file:///train.jpg")).rejects.toThrow(
         "Could not connect"
       );
+      expect(mockAxios.post).toHaveBeenCalledTimes(2);
     });
 
     it("includes language field from settingsStore in the request body", async () => {

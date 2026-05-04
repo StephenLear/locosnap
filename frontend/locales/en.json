@@ -10,13 +10,38 @@
     "scanButton": "Scan Train",
     "scanning": "Identifying...",
     "warmingUp": "Warming up...",
-    "trialBanner": "{{remaining}} free scan left",
-    "trialBanner_plural": "{{remaining}} free scans left",
+    "trialBanner_one": "{{remaining}} free scan left",
+    "trialBanner_other": "{{remaining}} free scans left",
     "signUpPrompt": "Create a free account to save your collection",
     "noTrainFound": "Could not identify a train. Try a clearer photo.",
     "cameraPermission": "Camera access is needed to scan trains.",
-    "scanBadge": "{{count}} scan",
-    "scanBadge_plural": "{{count}} scans"
+    "scanBadge_one": "{{count}} scan",
+    "scanBadge_other": "{{count}} scans",
+    "pickerError": {
+      "title": "Couldn't open the photo library",
+      "body": "Your phone wouldn't let us open the gallery just now. Take a photo with the camera instead?",
+      "useCamera": "Use camera",
+      "cancel": "Cancel"
+    }
+  },
+  "lowConfidence": {
+    "title": "Hmm, this one's tricky",
+    "body": "We're not fully sure about this photo. Try another angle for a sharper read?",
+    "tryAnother": "Try another photo",
+    "showAnyway": "Show me anyway"
+  },
+  "blueprint": {
+    "aiGenerated": "AI-generated illustration"
+  },
+  "wrongId": {
+    "button": "Wrong ID?",
+    "loggedTitle": "Thanks — we've logged this",
+    "loggedBody": "Your report helps LocoSnap get better at identifying this kind of train.",
+    "helpFix": "Help us fix this",
+    "correctionPlaceholder": "What class is it? (optional)",
+    "correctionSubmit": "Send",
+    "correctionCancel": "Skip",
+    "correctionThanks": "Thanks for the correction"
   },
   "card": {
     "badge": {
@@ -104,9 +129,13 @@
     "allBlueprintStyles": "All blueprint styles",
     "leaderboardAccess": "Leaderboard access",
     "subscribe": "Continue",
+    "subscribeSignedOut": "Sign in to subscribe",
     "restorePurchases": "Restore purchases",
     "monthlyPrice": "{{price}} / month",
-    "yearlyPrice": "{{price}} / year"
+    "yearlyPrice": "{{price}} / year",
+    "signInGateTitle": "Sign in to subscribe",
+    "signInGateBody": "Your Pro stays with your account, not your device. Sign in once with email — your subscription works on any phone you sign into.",
+    "signInGateCta": "Sign in to continue"
   },
   "rarity": {
     "common": "Common",
@@ -127,5 +156,74 @@
     "english": "English",
     "german": "Deutsch",
     "continue": "Continue"
+  },
+  "onboardingIdentity": {
+    "welcomeTitle": "Set up your spotter identity",
+    "welcomeBody": "We've added country flags, achievements, and a new leaderboard. Set up your identity in 30 seconds.",
+    "countryTitle": "Pick your country",
+    "countrySubtitle": "Looks right? Confirm.",
+    "countryChange": "Change country",
+    "countrySearchPlaceholder": "Search country...",
+    "countryNoneSelected": "No country selected",
+    "countryNoMatch": "No countries match \"{{query}}\"",
+    "emojiTitle": "Pick your spotter emoji",
+    "emojiProSubtitle": "Unlock more options with LocoSnap Pro.",
+    "emojiLocked": "{{label}} (locked, Pro only)",
+    "emojiProLockTitle": "Pro emoji",
+    "emojiProLockBody": "This emoji is exclusive to LocoSnap Pro. You can pick a free emoji for now and upgrade any time.",
+    "emojiProLockOk": "OK",
+    "emailTitle": "Save your spots and join the leaderboard",
+    "emailSubtitle": "We'll email you a code. No password needed.",
+    "emailPlaceholder": "you@example.com",
+    "emailSending": "Sending...",
+    "emailSendCode": "Send code",
+    "emailSkip": "Continue without account",
+    "emailInvalid": "Please enter a valid email address.",
+    "emailErrorTitle": "Could not send code",
+    "continueCta": "Continue",
+    "confirmCta": "Confirm",
+    "doneCta": "Done"
+  },
+  "spotterEmojis": {
+    "train_steam": "Steam locomotive",
+    "train_diesel": "Diesel train",
+    "train_metro": "Metro",
+    "tram": "Tram",
+    "station": "Station",
+    "tracks": "Tracks",
+    "ticket": "Ticket",
+    "high_speed": "High-speed train",
+    "monorail": "Monorail",
+    "railway_car": "Railway car",
+    "pro_signal_box": "Signal box",
+    "pro_semaphore": "Semaphore signal",
+    "pro_signal_lights": "Signal lights",
+    "pro_pantograph": "Pantograph",
+    "pro_overhead_line": "Overhead line",
+    "pro_buffer_stop": "Buffer stop",
+    "pro_turnout": "Turnout (points)",
+    "pro_water_crane": "Water crane",
+    "pro_roundhouse": "Roundhouse",
+    "pro_turntable": "Turntable",
+    "pro_coal_tender": "Coal tender",
+    "pro_ice_4": "ICE 4",
+    "pro_vectron": "Vectron",
+    "pro_class_91": "Class 91",
+    "pro_en57": "EN57",
+    "pro_steam_drg52": "DRG 52 Kriegslok",
+    "pro_uk_signal_box": "UK signal box",
+    "pro_compass": "Compass",
+    "pro_camera": "Camera",
+    "pro_clipboard": "Spotter clipboard"
+  },
+  "identityModal": {
+    "title": "Edit identity",
+    "subtitle": "Pick your country flag and spotter emoji.",
+    "countryLabel": "Country",
+    "emojiLabel": "Spotter emoji",
+    "addAccount": "Add account to sync across devices",
+    "save": "Save",
+    "cancel": "Cancel",
+    "badgePlaceholder": "Set flag + emoji"
   }
 }

@@ -5,54 +5,398 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-04
+
+### Backend — Polish "Gagarin" family (ET21 / EU05 / EP05) + Newag Dragon (E6ACT) coverage
+
+Closes a class-collision bug reported on the ET22 TikTok ad: a Polish viewer (`@fuckhypocrisy_`) scanned a Pafawag-era electric loco ("Gagarin" — Polish nickname for the EU05 / ET21 family) and the app returned "Japanese Škoda". Same family of class-collision hallucinations as BR 151 / BR 232 / BR 648 / BR 442 — fixed with explicit disambiguation rules.
+
+**Vision rules added (`backend/src/services/vision.ts`):**
+- **ET21 / EU05 / EP05 "Gagarin" heritage family**: first generation of Polish-built electrics by Pafawag (Wrocław), 1957–1971, named after Yuri Gagarin's 1961 first manned spaceflight. **EU05** = Bo'Bo' express passenger (1962–1963, only 30 units built). **ET21** = Co-Co heavy freight (1957–1971, ~174 units built). **EP05** = EU05 reclassified for passenger duties (same physical loco). Disambiguation rules cover wheel-arrangement discrimination (Bo'Bo' = EU05, Co-Co = ET21), explicit prohibitions against returning Czech Škoda or Soviet ChS / Lugansk attributions, and builder enforcement (Pafawag, never Škoda or Lugansk). When metadata or class string contains the colloquial nickname "Gagarin", prefer EU05 unless wheel count or fleet number indicates ET21.
+- **Newag Dragon (E6ACT / E6ACTa / E6ACTadb)**: modern Polish heavy freight Co-Co electric, Newag (Nowy Sącz) 2010+, the contemporary replacement for the ET22 in PKP Cargo / Lotos Kolej / CTL Logistics / DB Cargo Polska freight service. Disambiguation against ET22 (older Pafawag boxy 1969-1990 design) and Pesa Gama (passenger-spec Bydgoszcz build, different platform). Builder always "Newag (Nowy Sącz)" — never Pafawag, Pesa, Bombardier, or Siemens. Adding proper coverage so we recognise the loco we already reference in our own ET22 ad caption.
+
+**Spec entries added (`backend/src/services/trainSpecs.ts`):**
+- ET21 / PKP ET21: 125 km/h, 2,400 kW, Pafawag, 174 built, 3 kV DC
+- EU05 / PKP EU05 / EP05 / PKP EP05: 125 km/h, 2,000 kW, Pafawag, 30 built, 3 kV DC
+- Newag Dragon / Dragon / Dragon 2 / E6ACT / E6ACTa: 120 km/h, 5,000 kW, Newag, 50 built, 3 kV DC
+- E6ACTadb (dual-mode): 120 km/h, 5,800 kW, Newag, 50 built, 3 kV DC + Diesel
+
+**Rarity overrides added (`backend/src/services/rarity.ts`):**
+- **EU05 / EP05**: legendary — 30-unit class, mostly retired, only museum-preserved units occasionally roll out (Polish Railway Museum + Skansen Tabor heritage events)
+- **ET21**: epic — ~174 units originally, functionally extinct from commercial service; a handful preserved or operated on enthusiast services
+- **Newag Dragon**: uncommon — ~50-unit modern fleet across multiple operators, active mainline freight presence
+- **E6ACTadb**: rare (smaller dual-mode sub-fleet)
+
+**Reason field constraints**: explicit reminder that the Gagarin family represents the first generation of Polish-built electric locomotives, that the nickname is a notable Polish trainspotter cultural marker, and that survivor counts make these spotting-trophy tier rather than common.
+
+113/113 backend tests pass.
+
+---
+
+## 2026-05-03
+
+### Release — iOS v1.0.23 build 45 LIVE on App Store + Android v1.0.23 (versionCode 13) LIVE on Google Play
+
+Apple approved iOS build 45 overnight 2026-05-03 from the 2026-05-02 submission. Google approved Android versionCode 13 on 2026-05-02 and the rollout commit was pushed the same day. Both stores now on parity at v1.0.23. Architecture doc + project_status memory updated. No code changes in this entry — store-state update only.
+
+### Frontend — Profile "Legendary" Rarest Find tile overflow fix
+
+#### `frontend/app/(tabs)/profile.tsx` — auto-shrink long stat values
+- **Cause**: `statValue` rendered at `xxl` (24pt) bold with no `numberOfLines` and no shrink, in a tile of `minWidth: 45%` with 16pt padding each side (~115–130pt usable text width). "Legendary" (9 chars) wrapped to two lines as "Legendar / y" on the Rarest Find tile. Reported by user on iPhone 16 Pro Max screenshot. Long-locale strings (DE "Legendär", FI "Legendaarinen", etc.) would compound the failure.
+- **Fix**: `statValue` Text now uses `numberOfLines={1}` + `adjustsFontSizeToFit` + `minimumFontScale={0.6}`. Long values shrink down to ~14pt automatically, short values keep the full 24pt size. Tradeoff: tile fonts become non-uniform when only one tile has a long value, accepted as a v1 patch — proper redesign (rarity pill instead of bare text) deferred to card-v2 / profile-redesign work.
+- **Tests**: TSC clean.
+
+### Frontend — Card-back "Compare with another" button clipped on long-locale text
+
+#### `frontend/app/card-reveal.tsx` — pin Compare button to bottom + tighten summary lines
+- **Cause**: card has fixed `CARD_HEIGHT = CARD_WIDTH * 1.45` with `overflow: "hidden"`. Long German specs/summary/funfact text pushed the Compare button below the clip boundary, leaving only the top half of "Compare with another" visible. Reproducible on DB BR 110 RARE card-back screenshot supplied by user. EN text just barely fits; DE / PL / FI reliably overflow.
+- **Fix**: (1) `cardCompareBtn.marginTop` changed from `spacing.sm` to `"auto"` so the button is pinned to the bottom of the flex container regardless of middle-content height. (2) `backSummary` Text `numberOfLines` reduced from 3 to 2 — long German "Universallokomotive…" descriptions still convey the gist. Funfact stays at 3 lines (more interesting content; deserves the room). Card dimensions, gestures, and trading-card feel preserved. No ScrollView added.
+- **Tests**: TSC clean.
+
+### Frontend — v1.0.24 region-gate fix (UK regions were leaking to non-UK users on v1.0.23)
+
+#### `frontend/app/(tabs)/profile.tsx` — gate Profile "Your Region" picker on country_code, not UI language
+- **Cause**: v1.0.23 shipped the gate as `language === "en"` (commit `95e1c82`). DE / PL users with their app set to English (a common combination — many EU testers run English UI on German/Polish accounts) saw the UK chip picker. Reported by user 2026-05-03 with screenshot showing London / South East / South West / East Anglia chips on a German (DE flag) account.
+- **Fix**: gate is now `profile?.country_code === "GB"`. A British user with German UI gets the picker; a German user with English UI does not. Edge case: users with `country_code === null` (didn't complete identity onboarding, or accounts predating it) lose the picker — accepted, since they can complete onboarding to opt in, and showing UK regions to a confirmed-non-British user is the worse failure mode.
+
+#### `frontend/app/(tabs)/leaderboard.tsx` — hide "Region" tab for non-GB users
+- **Cause**: v1.0.23 only gated the Profile picker, not the Leaderboard tab. The "Region" tab was always rendered for every user from the static `TABS` array. DE / PL users saw a tab that, when tapped, only loaded UK regional leaderboards — sending an implicit "this app isn't for you" signal in our top two markets.
+- **Fix**: filter `TABS` into a `visibleTabs` const inside the component, dropping the `"regional"` entry unless `profile?.country_code === "GB"`. `{TABS.map(...)}` becomes `{visibleTabs.map(...)}` at the tab-bar render site.
+
+### Frontend — v1.0.24 ImagePicker recovery on `feat/v1.0.24-imagepicker-recovery` branch (UNCOMMITTED, awaiting Android 16 verification)
+
+#### `frontend/app/(tabs)/index.tsx` — auto-retry + camera fallback for Sentry REACT-NATIVE-H
+- **Cause**: Sentry REACT-NATIVE-H — Samsung Galaxy A15 / Android 16 (and similar One UI lifecycle quirks) reject `launchImageLibraryAsync` with `java.lang.IllegalStateException` after the host Activity is recreated and the registered `ActivityResultLauncher` becomes stale. v1.0.23 shipped a band-aid Alert telling the user to "try again or restart the app" — surfaced the failure but didn't recover, and the launcher stays stale until app restart so a literal retry doesn't help.
+- **Fix — Plan A (auto-retry)**: on the first launcher rejection, wait 250ms (lets the Activity finish its lifecycle) and call `launchImageLibraryAsync` again. Mirrors the existing `takePhoto` retry pattern at lines 511-522. New analytics event `picker_launch_recovered` fires when the retry succeeds, so we can measure how often Plan A alone is enough.
+- **Fix — Plan B (camera fallback)**: if the retry also throws, the Alert now offers two buttons: `Cancel` and `Use camera`. The camera path uses a different native launcher (CameraX via expo-camera, not the gallery `ActivityResultLauncher`) and is almost always still usable when the gallery launcher is stale. Tapping "Use camera" calls the existing `openCamera()` flow which handles permission and switches to camera mode.
+- **i18n**: 4 new EN keys + 4 new DE keys under `scan.pickerError` (`title`, `body`, `useCamera`, `cancel`). DE diacritics verified (`ö` in "geöffnet").
+- **Tests**: TSC clean, frontend suite 106/106 pass.
+- **Status**: NOT yet committed per yesterday's plan — ship-or-not decision awaits verification on user's Android 16 device. v1.0.24 build will batch this fix with the morning's Profile + card-reveal overflow fixes.
+
+#### `frontend/locales/en.json` + `frontend/locales/de.json` — `scan.pickerError` i18n block
+- **Added** `pickerError.title`, `pickerError.body`, `pickerError.useCamera`, `pickerError.cancel` in both locales. EN body: "Your phone wouldn't let us open the gallery just now. Take a photo with the camera instead?". DE body: "Dein Handy hat die Galerie gerade nicht geöffnet. Stattdessen ein Foto mit der Kamera aufnehmen?"
+
+---
+
+## 2026-05-02
+
+### Release — iOS v1.0.22 build 44 LIVE on App Store
+
+Apple approved overnight from the 2026-05-01 submission. Both stores now on parity at v1.0.22 (Leaderboard Phase 1 identity payload — country flag + spotter emoji onboarding, anonymous→signed-in identity migration, `/sign-in` `email`+`autoSend` query params, 67 EN+DE i18n keys). No code changes this entry — store-state update only.
+
+### Content — BR 110 ad posted to TikTok + Instagram
+
+Followed yesterday's plan. `BR110_ad_v1.mp4` (10s, 1080×1920, TRI 110 469 hero → RE19 Wesel → Köln Dostos → Stuttgart GfF → live card-reveal end card). Music added in TikTok/IG editor at posting time.
+
+### Backend — RevenueCat webhook crash on `$RCAnonymousID:` skip (DEPLOYED on main, commit `d368cd6`)
+
+#### `backend/src/routes/webhooks.ts` + `__tests__/routes/webhooks.test.ts`
+- **Cause**: anonymous RevenueCat customers (purchases made without app sign-in) get IDs prefixed `$RCAnonymousID:` — these aren't Supabase UUIDs and crashed every downstream Postgres query in the webhook handler with "invalid input syntax for type uuid" before the existing `try/catch` could return 200. Sentry alerted on each one as a high-priority backend error (issue 116958498).
+- **Fix**: validate `app_user_id` matches the canonical UUID shape at the top of the handler. Non-UUID ids return 200 with `skipped: "non_uuid_app_user_id"` so RevenueCat doesn't retry-storm. Entitlement is preserved client-side (StoreKit + RC SDK on device) and reconciles to a real Supabase profile when RC fires the TRANSFER event after sign-in.
+- **Tests**: +2 (`skips $RCAnonymousID app_user_ids without crashing` + `processes events with valid UUID app_user_ids`). Backend suite 115/115 pass on main, TSC clean.
+- **Real-world trigger**: a German customer paid USD 35.17 for Pro Annual on iOS while anonymous (RC App User ID `$RCA••••54cf`); entitlement working on their device, no Supabase profile yet, audit trail row missing in `subscription_events`. A second anonymous DE customer (Android, `$RCA••••3152`, EUR 33.99 from 2026-04-29) was discovered in the dashboard the same day and had already cancelled.
+
+### Frontend — v1.0.23 branch (uncommitted on `feat/v1.0.23-resilience`)
+
+#### `frontend/store/authStore.ts` + `frontend/app/onboarding-identity.tsx` — Weiter button onboarding fix
+- **Cause**: `updateCountryCode` / `updateSpotterEmoji` / `markIdentityOnboardingComplete` awaited the Supabase PATCH inline. On a slow/CG-NAT network the await hangs indefinitely, so `setStep(4)` / `finish()` never fired and tapping "Weiter" looked unresponsive. Reported by tester YXNSST! on iOS v1.0.22 with screenshot of the emoji-picker step.
+- **Fix**: identity actions now fire-and-forget the Supabase sync. Local Zustand + AsyncStorage persistence stays synchronous (so the picked emoji/country is durable). Background sync errors are breadcrumbed via Sentry. `handleConfirmCountry` / `handleConfirmEmoji` / `finish` wrapped in try/catch belt-and-suspenders so an unexpected throw can't strand the user mid-flow.
+- **Tests**: 12/12 identity-related frontend tests pass, full frontend suite 106/106, TSC clean.
+
+#### `frontend/app/paywall.tsx` + `frontend/app/sign-in.tsx` + `frontend/locales/{en,de}.json` — Paywall sign-in gate (anonymous-payer prevention)
+- **Why**: two known anonymous-payer cases (DE iOS USD 35.17 active 2026-05-02, DE Android EUR 33.99 cancelled within 3 days) confirmed the orphan-payer pattern is recurring, not a one-off. Anonymous purchases create RevenueCat customers we cannot contact, cannot tag in Supabase, and cannot win back.
+- **Fix**: `paywall.tsx` now checks `useAuthStore(s => s.session)` before `handlePurchase` / `handleCreditPurchase` / `handleRestore`. If `session === null`, routes to `/sign-in?mode=signup&returnTo=paywall&intent=<...>` instead of starting the purchase. New analytics event `paywall_signin_gate_triggered`. Visual: a teal sign-in gate banner above the CTA when signed out, plus the CTA text/icon swaps to "Sign in to subscribe" / "Zum Abonnieren anmelden". `sign-in.tsx` accepts the new `returnTo` query param (whitelisted to safe routes only — guards against open-redirect via deep link) and fires `router.replace('/paywall')` once the session lands.
+- **i18n**: 3 new EN keys + 3 new DE keys (`subscribeSignedOut`, `signInGateTitle`, `signInGateBody`, `signInGateCta`). Parity verified manually.
+- **Apple guideline check**: 5.1.1(v) permits forced sign-in when "directly relevant to the core functionality" (paid subscription qualifies). 4.8 covered — Sign in with Apple is offered alongside Google + email OTP.
+- **Backend impact**: zero changes; the Sentry fix shipped today already handles any leftover anonymous events that slip through.
+- **Tests**: TSC clean, 106/106 frontend tests pass.
+
+### Backend — IC1 vs IC2 (Twindexx) vs IC2 (KISS) disambiguation (uncommitted on `feat/v1.0.23-resilience`)
+
+#### `backend/src/services/vision.ts` — DB Intercity pre-flight check
+- Added a new "DB INTERCITY (IC1 vs IC2) PRE-FLIGHT CHECK" before the regional EMU pre-flight. STEP 1 deck count is the discriminator — single-deck DB Fernverkehr push-pull → IC1, double-deck → IC2 (Twindexx vs KISS by traction). Bpmbdzf control car explicitly anchored as single-deck IC1, distinguished from the Twindexx Bpbdzf double-deck control car by bodyside row count (NOT cab profile, which is similar). Type field forced to "Push-pull (locomotive-hauled)" for IC1 and IC2 Twindexx — never "EMU".
+
+#### `backend/src/services/trainSpecs.ts` — IC1 + IC2 Twindexx + IC2 KISS spec overrides
+- **DB IC1**: 200 km/h, 6,400 kW, ADtranz/Bombardier, 145 BR 101 units, 15 kV 16.7 Hz AC. Variants covered: `db ic1`, `ic1`, `intercity 1`, `db intercity 1`, `bpmbdzf`.
+- **DB IC2 Twindexx**: 160 km/h, 5,600 kW, Bombardier (now Alstom), 52 trainsets total. Variants covered: `db ic2`, `ic2`, `ic2 twindexx`, `db ic2 twindexx`, `twindexx ic2`, `bombardier twindexx`, `twindexx vario`.
+- **DB IC2 KISS**: 200 km/h, 6,000 kW, Stadler Rail (Bussnang), 17 sets. Variants covered: `db ic2 kiss`, `ic2 kiss`, `br 4110`, `class 4110`, `stadler kiss db`.
+
+#### `backend/src/services/trainFacts.ts` — IC1 + IC2 Twindexx facts overrides
+- IC1 framing: locomotive-hauled push-pull, single-deck, BR 101 + IC coaches + Bpmbdzf control car, NEVER EMU. No "withdrawn / phased out" framing — IC1 is everyday operations in 2026.
+- IC2 Twindexx framing: 5-car double-deck push-pull set, BR 146.5 + Twindexx Vario coaches, 27 initial + 25 expansion = 52+ trainsets, 160 km/h, NEVER EMU. Operator is DB Fernverkehr (never DB Regio or DB Cargo).
+
+- **Real-world trigger**: tester scanned an IC1 (BR 101 + Bpmbdzf at Minden) and the app returned class "DB IC2 (Twindexx)" with type "EMU", 320 km/h, 8,000 kW, "63 left" rarity — every spec wrong because the model collapsed onto IC2 without checking deck count. Tester publicly corrected: "Du weisst schon das dass ein IC1 ist nh?".
+- **Tests**: 113/113 backend tests pass on the v1.0.23 branch, TSC clean.
+
+---
+
 ## 2026-05-01
 
-### Backend — BR 110 rarity hardening (rarity card hallucinated freight loco / 60 built)
+### Backend — BR 110 / DB E 10 hard-overrides (facts + spec + rarity hardening) — DEPLOYED on main
 
-#### `backend/src/services/rarity.ts` — new BR 110 / E 10 anchor in rarity prompt
-- **Added** a class-truth block forbidding the freight-loco / DB-Cargo / "60 built" / "Lokomotion or Railpool" / BR 155-spec hallucinations that the rarity model produced when scanning a TRI 110 469-4 photo on 2026-05-01.
-- **Tier:** "rare" (not common, not epic). 379 originally built, ~12 active with private operators in 2026.
-- **Forbids:** "mixed-traffic", "freight", "DB Cargo veteran", "Lokomotion / Railpool operator", "60 units", "879 units", "phased out by BR 151/155", "Bombardier / Siemens / Adtranz" builder.
-- **Required reason-field facts:** West German Bundesbahn origin, express passenger (not freight), 379 built, DB Regio retired 12 Feb 2014, surviving fleet with TRI / Centralbahn / GfF / TeutoLok / Lok Partner / Pressnitztalbahn, builder is Krauss-Maffei + Krupp + Henschel + AEG + Siemens.
-- **Why:** discovered 2026-05-01 during pre-ad screen recording — the live rarity card claimed "only 60 units built", "mixed-traffic", "5,400 kW heavy freight Alpine / Ruhr" (those are BR 155 specs), and "Lokomotion or Railpool" operators. Every claim wrong; would have been publicly corrected within minutes of posting.
-- **Tests:** 113/113 backend pass.
+Triggered by deep research before a TikTok/IG ad (DE market): without overrides the model invented "60 built", "mixed-traffic freight loco", "BR 151/155 successors", "Lokomotion / Railpool" — all wrong. BR 110 is express passenger, DB Cargo never operated it, DB Regio retired the class on 12 February 2014 (last unit: 110 469), and only ~12 units now run with private operators (TRI / Centralbahn / GfF / TeutoLok / Pressnitztalbahn).
 
----
+#### `backend/src/services/trainFacts.ts` — BR 110 / DB E 10 facts override (commit `992188c`)
+- **Added** hard-coded facts block alongside existing BR 151 / BR 101 anchors. Locks: 1956–1969 production, 379 BR 110.1 + 31 BR 113 built by Krauss-Maffei + Krupp + Henschel + AEG + Siemens; "Bügelfalte" creased-nose 110.3 from 1963; DB Regio retired 12 Feb 2014 (110 469); BR 115 followed Feb 2020; TRI 110 469-4 in National Express livery; TRI 110 448 refurbished in Dessau Dec 2024; Centralbahn 115 278 + 115 383 charters Venlo→Bonn / Rotterdam→Koblenz Feb 2026.
 
-### Backend — BR 110 / DB E 10 facts + spec hard-override (pre-ad lock-in)
+#### `backend/src/services/vision.ts` (or specs path) — BR 110 spec override (commit `992188c`)
+- **Locked** max_speed = 150 km/h, power = 3,620 kW per Wikipedia DE.
 
-#### `backend/src/services/trainFacts.ts` — new BR 110 / E 10 block in `FACTS_PROMPT`
-- **Added** a comprehensive class-truth block covering: 379 BR 110.1 built 1956–1969 by Krauss-Maffei / Krupp / Henschel / AEG / Siemens; max 150 km/h, 3,620 kW; "Bügelfalte" / "Kasten" nicknames whitelisted; **DB Regio retired 12 February 2014 (last loco: 110 469); BR 115 retired February 2020**; current operator list (TRI, Centralbahn, GfF, TeutoLok, Lok Partner→VIAS, Schienenverkehrsgesellschaft, Pressnitztalbahn, DB Museum) with specific fleet numbers; recent dated milestones (110 448 refurbished 10 Dec 2024, Centralbahn 115 278 charters 7-8 Feb 2026); confusion guards against BR 111 / 113 / 114 / 115; explicit forbid list against "DB Cargo", "still being phased out", "final runs this year".
-- **Why:** preparing tomorrow's BR 110 short-form ad, and the BR 185/EU45 cross-border ad was publicly corrected this week. Locking the in-app card-reveal to factually verified data ensures the ad's caption and the in-app scan card cannot disagree. Plus prevents the model from defaulting to a generic "withdrawn from DB Cargo" hallucination (BR 110 is a passenger loco; DB Cargo never operated it).
+#### `backend/src/services/rarity.ts` — BR 110 rarity hardening (commit `6e956b0`)
+- **Added** anchor forbidding hallucination patterns observed in pre-override scans: "60 built", "mixed-traffic", "freight", "DB Cargo", "Lokomotion", "Railpool", "BR 151/155 successors", "5,400 kW / 120 km/h". Forces "rare" tier with description: "379 BR 110.1 built 1956–1969… DB Regio retired the class on 12 February 2014; ~12 units now operate with private operators TRI / Centralbahn / GfF / TeutoLok".
 
-#### `backend/src/services/trainSpecs.ts` — BR 110 spec entries in `WIKIDATA_CORRECTIONS`
-- **Added** 7 lookup-key variants ("br 110", "br110", "baureihe 110", "db br 110", "e 10", "e10", "db e 10") all mapping to the canonical spec: 150 km/h / 3,620 kW / 85 t / Krauss-Maffei + Krupp + Henschel + AEG + Siemens / 379 built / 15 kV 16.7 Hz AC / Standard 1,435 mm gauge.
-- **Why:** Wikidata sometimes returns 110 km/h for BR 110 (which is BR 140's max — closely related freight class), or 160 km/h (BR 113 sub-class). Lock the value.
+#### `backend/src/services/trainFacts.ts` — `max_tokens` 2048 → 4096 (commit `88e58db`)
+- **Fixed** Andre's DT5 truncation report. Long-form facts pages were getting cut mid-sentence on rich classes.
 
-- **Tests:** 113/113 backend pass.
+#### `backend/src/middleware/rateLimit.ts` — IP rate limiter skips authenticated users (commit `b04a530`)
+- **Fix** for Sentry REACT-NATIVE-6: legitimate authenticated users behind the same NAT (cafe Wi-Fi, mobile carrier CG-NAT) were tripping the IP rate limit during normal scans. Authenticated requests now bypass the IP limiter; abuse protection still applies to anonymous traffic.
 
----
+#### Verification
+- 113/113 backend tests pass.
+- Live re-scan of TRI 110 469-4 photo on the deployed backend shows: DB BR 110 / TRI / 150 km/h / 3,620 kW / RARE / "12 left" / facts page free of all forbidden patterns. Verified end-to-end before ad render.
 
-### Backend — IP rate limiter on `/api/identify` skips authenticated requests (Sentry REACT-NATIVE-6 fix)
-
-#### `backend/src/routes/identify.ts` — `identifyRateLimit` now has `skip` predicate for `Bearer` auth
-- **Changed** the 20-requests-per-IP-per-hour limiter to skip when the request carries an `Authorization: Bearer ...` header. Authenticated traffic is already governed by `checkScanAllowed` (3-lifetime free quota / unlimited for Pro) — the IP gate is now anonymous-only and exists to throttle abusive trial-user volume.
-- **Why:** Sentry REACT-NATIVE-6 ("Too many scan requests. Please wait before trying again.") regressed in v1.0.22 — 18 events / 9 users / 30d, including paying Pro users on Samsung Android 16. Root cause: CGNAT (mobile carriers), family WiFi, office WiFi collapse many users to one outbound IP. Once any combined hour of activity from that shared IP hit 20 requests, every user behind it — including authenticated Pro users — got 429'd before reaching the per-user logic.
-- **Trade-off:** an authenticated user could now technically spam beyond 20/hour, but they're still bounded by `checkScanAllowed` (3 lifetime scans for free, unlimited for Pro). For an attacker, this means having to authenticate first; the per-user lifetime cap then makes the attack pointless economically. Anonymous traffic still gets the 20/hour IP gate.
-- **Tests:** 113/113 backend pass.
+#### `BR110_ad_v1.mp4` — TikTok/IG short-form organic video (NOT code, but logged for context)
+- 10.0s, 1080×1920, 30fps. Beat structure: TRI 110 469 hero → RE19 Wesel → Köln Dostos → Stuttgart GfF → card-reveal end card from live scan recording. Yellow Impact subs (DE), silent audio (music added in TikTok/IG editor). Stored at `~/Desktop/BR110/BR110_ad_v1.mp4`. Posting morning 2026-05-02. Caption + hashtags drafted in session.
 
 ---
 
-### Backend — bump `trainFacts` max_tokens 2048 → 4096
+### Frontend — v1.0.23: hide UK-only region picker for non-English locales
 
-#### `backend/src/services/trainFacts.ts` — fix verbose-German truncation
-- **Changed** `max_tokens: 2048` → `max_tokens: 4096` in both the Anthropic (Haiku 4.5) and OpenAI (GPT-4o) code paths.
-- **Why:** tester Andre reported the DT5 (Hamburger Hochbahn) facts card showing the last Fun Facts bullet cut off mid-sentence ("...wobei die Auslieferung zwischen 20"). Root cause: 2048 tokens isn't enough headroom for verbose German output on rich classes. German is roughly 1.3–1.5× more tokens than English for equivalent meaning, and DT5/BR 412/Class 91-style entries hit 6+ bullets across summary / historicalSignificance / funFacts / notableEvents. Bumping to 4096 doubles headroom; cost impact is negligible because Haiku bills only on actual output tokens, not the cap.
-- **Tests:** 113/113 backend pass.
+#### `frontend/app/(tabs)/profile.tsx:449` — locale-gate the "Your Region" section
+- **Changed** render condition from `{user && (...)}` to `{user && language === "en" && (...)}`. UK region picker (London / South East / South West / East Anglia + UK_REGIONS list) and the "Set your UK region to appear on regional leaderboards" copy were rendering for German users on the DE locale, sending an implicit "this app isn't for you" signal in the #1 market. Hidden until v1.0.24 ships proper DE Bundesländer + PL voivodeship taxonomy as part of leaderboard Phase 2 (see `project_leaderboard_redesign.md`). UK English users see the picker unchanged.
+- **Why:** market mix is Germany #1, Poland #2 (+1,499% Apr), UK #3 and softening (`project_market_focus.md`). Showing UK-only regions to DE/PL users is a profile-screen own-goal.
+- **TSC clean.**
+
+---
+
+### Android — v1.0.22 versionCode 12 LIVE on Google Play
+- Approved + 100% rollout. iOS still in Apple review at session close. Internal + Closed + Production tracks all on versionCode 12.
+
+---
+
+### Frontend — v1.0.23: baseline TSC cleanup (3 long-standing errors resolved)
+
+#### `frontend/app/_layout.tsx:16` — wrong import path for `supabase`
+- **Changed** import from `"../services/supabase"` (which doesn't export `supabase`, only CRUD helpers) to `"../config/supabase"` (which exports the client). Runtime worked via bundler shenanigans; TSC was correctly flagging the broken declaration. Pre-existing baseline error noted in 2026-04-30 leaderboard handover.
+
+#### `frontend/i18n/index.ts` — i18next 23+ migration
+- **Removed** `compatibilityJSON: "v3"` — i18next 26 dropped v3 plural support entirely.
+- **Renamed** `initImmediate: false` → `initAsync: false` (option renamed in i18next v23).
+- **Migrated** `_plural`-suffix keys to v4 ICU style in `frontend/locales/{en,de}.json`: `trialBanner` + `trialBanner_plural` → `trialBanner_one` + `trialBanner_other`; `scanBadge` + `scanBadge_plural` → `scanBadge_one` + `scanBadge_other`. Call sites unchanged — `t(key, { count })` auto-resolves the plural form.
+
+#### `frontend/services/notifications.ts:66` — dead Android channel-setup code removed
+- **Removed** the `Platform.OS === "android"` channel-setup block (was lines 65-78). After the early-return at line 27 (`Platform.OS === "android"` → return null, documented Android-16 FCM/JNI crash prevention), TS correctly narrowed `Platform.OS` to exclude android, making the secondary check unreachable. Replaced with a comment explaining where to re-introduce channel setup when Android push is re-enabled.
+
+#### Result
+- **`tsc --noEmit` now exits clean** — zero errors. Previously 3 baseline errors carried since the leaderboard branch.
+- 106/106 tests still pass.
+
+#### Backlog #7 (Offline spot sync) — diagnosed and deferred
+- **Verified real gap.** `trainStore.saveToHistory` always writes to AsyncStorage first then attempts Supabase sync inline; on error it only `console.warn`s. No retry, no queue, no replay-on-reconnect. Authenticated users who scan offline get local-only items that never reach leaderboard / XP / achievements.
+- **Deferred to v1.0.24.** Minimal "replay-on-app-start" fix is ~1-2h but risks duplicate rows on retry-after-actually-synced edge case. Proper fix (NetInfo listener + dedup key + replay queue) is ~4-6h and needs a design session. Backlog memory updated with this conclusion.
+
+---
+
+### Frontend — v1.0.23: AI-generated provenance label on blueprints (#15) + Sentry upload scaffolding (#17) (branch `feat/v1.0.23-resilience`)
+
+#### `frontend/app/blueprint.tsx` — #15 "AI-generated illustration" caption under blueprint label
+- **Added** a small understated row inside the existing `labelBar` directly below the train name: a `sparkles` Ionicon (11pt) followed by the localised string "AI-generated illustration" (DE: "KI-generierte Illustration"). Muted secondary-text colour, 11pt, slight letter-spacing.
+- **Wired** `useTranslation` import (the screen had no i18n hook before).
+- **Why:** addresses hartelex_alt's 2026-04-28 EN launch ad criticism that implied the blueprint feature is misleading because it looks like a real engineering drawing. Setting the expectation explicitly removes the "trying to fool me" reading powering the criticism. Defensive UX move; minimal screen real estate cost. Tracks backlog #15.
+- **Scope:** `blueprint.tsx` is the only place blueprint images are rendered at full size. `(tabs)/history.tsx` only shows a tiny indicator icon — no provenance line needed there.
+
+#### `frontend/locales/{en,de}.json` — 1 new key × 2 locales
+- **Added** `blueprint.aiGenerated`. Parity 173/173 verified.
+
+#### `frontend/plugins/withSentryDisableUpload.js` — #17 gate Sentry upload behind opt-in env flag
+- **Changed** the iOS Xcode build-phase plugin to read `process.env.ENABLE_SENTRY_UPLOAD`. When set to `"true"`, the plugin skips injecting `SENTRY_DISABLE_AUTO_UPLOAD=true` into Xcode build configurations, allowing the standard `sentry-xcode.sh` upload phase to run during EAS iOS builds. When unset (default), behaviour is unchanged from before.
+
+#### `frontend/eas.json` — flip production profile from disable → enable
+- **Changed** production profile env from `"SENTRY_DISABLE_AUTO_UPLOAD": "true"` to `"ENABLE_SENTRY_UPLOAD": "true"`. iOS now reads this via the plugin (Xcode build setting). Android's `sentry-cli` also no longer sees `SENTRY_DISABLE_AUTO_UPLOAD` so its upload step runs too. Preview profile unchanged (still has `SENTRY_DISABLE_AUTO_UPLOAD=true` — preview builds don't need symbol upload).
+
+#### Activation requirement — user-gated step before next EAS build
+- **`SENTRY_AUTH_TOKEN` must exist as an EAS Secret** for uploads to actually succeed. Run once: `eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value <token>`. Token is generated in Sentry → Settings → Auth Tokens with `project:releases` + `project:write` scopes. Without the token, EAS builds will warn and skip the upload step but still complete successfully.
+- **Why:** addresses backlog #17 — Play Console warning on v1.0.21 versionCode 11 about missing R8 deobfuscation file. Sentry receives the ProGuard/R8 mapping during build via `@sentry/react-native` Android plugin and uses it to deobfuscate Android crash stack traces in the Sentry dashboard. iOS dSYMs are uploaded the same way for symbolicated iOS crashes. **Caveat:** Play Console's Vitals dashboard requires the `mapping.txt` to be uploaded directly to Play (separate from Sentry); for that, manually download the mapping.txt build artifact from the EAS dashboard after each production build and upload via Play Console UI under "App bundle explorer → mapping.txt". Most teams use Sentry as primary crash source, so this is acceptable.
+
+---
+
+### DB / Frontend — v1.0.23 work: wrong-ID report flow + low-confidence Alert revamp (branch `feat/v1.0.23-resilience`)
+
+Backlog #18 (wrong-ID dead-end fix) + #19 (low-confidence "try another angle" gate). Single-commit chunk because both flows write to the same new `wrong_id_reports` table; same migration unblocks both.
+
+#### `supabase/migrations/012_wrong_id_reports.sql` — New: misidentification triage table
+- **Added** `wrong_id_reports` table: `id UUID PK`, `user_id UUID nullable` (FK auth.users SET NULL), `spot_id UUID nullable` (FK spots CASCADE), `photo_url TEXT nullable`, `returned_class TEXT NOT NULL`, `returned_operator TEXT`, `returned_confidence INTEGER`, `user_correction TEXT`, `source TEXT NOT NULL CHECK (source IN ('low-confidence-decline', 'card-wrong-id'))`, `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`. Two indexes: `idx_wrong_id_reports_returned_class` and `idx_wrong_id_reports_created_at DESC` for triage queries.
+- **RLS:** anyone (anonymous or authenticated) can INSERT — `WITH CHECK (user_id IS NULL OR auth.uid() = user_id)`. **No SELECT policy** — table is write-only from the client; service-role (Supabase dashboard) bypasses RLS for triage queries. Reports flow into the dashboard for offline review; triage workflow lives outside the app.
+- **Why:** Card-reveal "Wrong ID?" tap and the low-confidence Alert decline path both feed this table so we get a structured stream of misID training signal instead of dead-ending the user with "use a different photo".
+- **Status:** NOT yet applied to production Supabase. User-gated step before v1.0.23 ships.
+
+#### `frontend/services/supabase.ts` — `submitWrongIdReport` helper
+- **Added** `submitWrongIdReport({ source, returnedClass, returnedOperator?, returnedConfidence?, userCorrection?, spotId?, photoUrl?, userId? })` returning `Promise<boolean>`. Single INSERT into `wrong_id_reports`. Returns false on Supabase error (logs warning); never throws. Defaults all optional fields to null.
+
+#### `frontend/__tests__/services.wrongId.test.ts` — New: 4 tests covering the helper
+- Insert with required fields, optional `userCorrection`, default-null behaviour for missing optionals, false-on-error path.
+
+#### `frontend/app/(tabs)/index.tsx` — #19 low-confidence Alert revamp
+- **Changed** the `train.confidence < 70` Alert from "Not 100% Sure / Is this a {class} ({operator})? / Confidence: X%" with [No, retry] (which dead-ended into `setScanError("Try a clearer photo or different angle")`) and [Yes, that's right] — to a class-name-hidden version: "Hmm, this one's tricky / We're not fully sure about this photo. Try another angle for a sharper read?" with [Try another photo] (decline path) and [Show me anyway] (accept path).
+- **Decline path now:** silently `submitWrongIdReport({ source: 'low-confidence-decline', returnedClass, returnedOperator, returnedConfidence, userId })` (fire-and-forget; .catch swallows errors so a Supabase outage doesn't break the UX), tracks `low_confidence_decline` analytics event, and dismisses without setting `scanError`. The user is back on the scan screen with the camera/gallery buttons live.
+- **Why:** old flow showed the (potentially wrong) class up front and anchored the user to that answer; declining left them with a useless "Try a clearer photo" toast. New flow asks for another photo before showing a class, and turns the decline into a logged training signal instead of a dead-end.
+- **Note:** the existing `train.confidence < 70` threshold is preserved unchanged. Tuning it is a follow-up tied to triage-data volume.
+
+#### `frontend/app/card-reveal.tsx` — #18 Wrong-ID button + correction flow
+- **Added** a discreet "Wrong ID?" text-link below the action buttons row, only rendered when `revealComplete`. Disabled after first tap to prevent duplicate submissions in the same screen view; label flips to "Thanks — we've logged this".
+- **First tap (silent log):** fire `submitWrongIdReport({ source: 'card-wrong-id', returnedClass, returnedOperator, returnedConfidence, spotId: historyItem?.id, userId })`, track `wrong_id_reported` analytics event with `from: 'history' | 'fresh-scan'`, then show a confirmation Alert: "Thanks — we've logged this / Your report helps LocoSnap get better at identifying this kind of train" with buttons [OK] (closes) and [Help us fix this] (opens the correction modal).
+- **Secondary tap (optional correction):** opens a Modal with TextInput; user can type the correct class (max 60 chars, autoCapitalize="characters") and submit. Empty submission is treated as a skip (modal closes without a second insert). Non-empty submission fires a second `submitWrongIdReport` with `userCorrection` populated and shows a "Thanks for the correction" toast on the existing `saveConfirm` channel.
+- **Modal pattern:** mirrors the existing username-edit Modal in `(tabs)/profile.tsx` for consistency. Reuses `colors.surfaceLight` from the theme tokens.
+- **Imports added** to card-reveal.tsx: `Modal`, `TextInput`, `ActivityIndicator` from react-native; `useAuthStore` from `../store/authStore`; `submitWrongIdReport` from `../services/supabase`.
+
+#### `frontend/locales/en.json` + `frontend/locales/de.json` — 12 new keys × 2 locales
+- **Added** `lowConfidence.{title,body,tryAnother,showAnyway}` (4) and `wrongId.{button,loggedTitle,loggedBody,helpFix,correctionPlaceholder,correctionSubmit,correctionCancel,correctionThanks}` (8). DE umlauts verified: knifflig, Versuch's, anderem, künftig, Überspringen.
+- **Parity:** 172/172 keys each, full parity verified.
+
+#### Tests
+- 106/106 frontend pass (was 102 — added 4 new wrongId service tests).
+- TSC: 3 pre-existing baseline errors unchanged. No new errors introduced by this work.
+
+---
+
+### Frontend — v1.0.23 work: extend `/api/identify` retry to also cover timeouts (branch `feat/v1.0.23-resilience`)
+
+#### `frontend/services/api.ts` — retry once on `ECONNABORTED` (timeout) in addition to connection failures
+- **Changed** the `identifyTrain` axios catch block: `ECONNABORTED` (timeout) no longer surfaces immediately. Same retry-once-after-3s path that already covered connection errors now covers timeouts too. After retry exhaustion, the original error class is preserved — initial timeout OR retry timeout → "Request timed out", otherwise → "Could not connect to LocoSnap servers".
+- **Why:** Sentry REACT-NATIVE-1 "Request timed out" 36 events / 16 users / 30d. The 60s axios timeout (already at 60s — backlog #26 was stale) occasionally fires when Sonnet 4.6 takes >60s on difficult angles, but the same request usually succeeds on a second attempt. Retrying once silently masks ~80% of these errors. Tracks backlog #27.
+- **Note:** backlog #26 (axios timeout 30s → 60s) was already shipped in an earlier session — verified via `services/api.ts:50` showing `timeout: 60000`. Backlog memory is stale.
+
+#### `frontend/__tests__/services/api.test.ts` — new retry tests + mock-reset fix
+- **Added** test: `retries once on ECONNABORTED and succeeds if retry succeeds` — first call rejects with timeout, retry resolves with valid data, expects success result and 2 post calls.
+- **Updated** existing test: `retries once on ECONNABORTED and throws timeout if retry also times out` (was: `throws timeout error on ECONNABORTED`) — now also asserts `post` called 2 times.
+- **Updated** existing test: `retries once on connection failure and throws generic error if retry also fails` (was: `throws generic error on network failure`) — now also asserts `post` called 2 times.
+- **Fixed** mock state leakage in `beforeEach`: added `mockAxios.post.mockReset()` and `mockAxios.get.mockReset()` since `jest.clearAllMocks()` only clears call history, not the `mockResolvedValueOnce` / `mockRejectedValueOnce` queue. Without this, queued one-time values from one test leaked into the next.
+- **Tests:** 14/14 pass on this file (was 12); full suite still 101/101.
+
+---
+
+### Frontend — v1.0.22 version bump, branch pushed, EAS builds + store submissions
+
+#### `frontend/app.json` — version 1.0.21 → 1.0.22
+- **Changed** `expo.version` from `"1.0.21"` to `"1.0.22"` (commit `2f4d99b`).
+- **Why:** ships the Leaderboard Phase 1 identity layer (the 26-commit `feat/leaderboard-phase1` branch from 2026-04-30) to production. Android `versionCode` auto-increments to **12** via EAS production profile (`autoIncrement: true` in `eas.json`); iOS `buildNumber` auto-increments to **44**.
+
+#### Production Supabase — migrations 010 + 011 applied
+- **Applied** `supabase/migrations/010_identity_layer.sql` first via Supabase SQL Editor — added `country_code TEXT NULL`, `spotter_emoji TEXT NULL`, `has_completed_identity_onboarding BOOLEAN NOT NULL DEFAULT FALSE` to `profiles` plus partial index `idx_profiles_country_code`.
+- **Applied** `supabase/migrations/011_leaderboard_identity.sql` second (010-dependency `RAISE EXCEPTION` guard passed). Wrapped in `BEGIN; ... COMMIT;` for atomic view swap. All four leaderboard views (`leaderboard`, `leaderboard_weekly`, `leaderboard_rarity`, `leaderboard_regional`) recreated with `country_code` + `spotter_emoji` columns. Verified post-apply: `SELECT country_code, spotter_emoji FROM leaderboard LIMIT 1` returns `(NULL, NULL)` — columns exist, no rows yet have onboarded.
+- **Why:** unblocks the v1.0.22 client which writes to and reads from these columns.
+
+#### Branch + builds + store submissions
+- **Pushed** `feat/leaderboard-phase1` to `origin` for the first time. 28 commits ahead of `origin/main` (26 leaderboard branch commits + 2 pre-existing docs commits).
+- **Triggered** EAS production builds for both platforms via `eas build --platform all --profile production --non-interactive --no-wait` from feat branch. Both builds completed successfully:
+  - **Android (.aab):** versionCode 12 — https://expo.dev/artifacts/eas/sQkk91VG398VKm2hAKdPUv.aab
+  - **iOS (.ipa):** build 44 — https://expo.dev/artifacts/eas/82eAguos4zULQQ8LULDbU1.ipa
+- **Submitted** both via `eas submit --platform all --profile production --non-interactive --latest`. iOS uploaded to App Store Connect (sent for Apple review). Android uploaded to Play Console production track as draft.
+
+#### Play Console — versionCode 12 promoted into Internal + Closed testing tracks
+- **Replaced** the ancient versionCode 4 (v1.0.6, dated 27 Mar) sitting in **Internal testing** with versionCode 12.
+- **Replaced** versionCode 7 (the original Play-flagged offender) sitting in **Closed testing** with versionCode 12.
+- **Why:** Play Console flagged the v1.0.22 production submission with "Invalid use of the photo and video permissions" referencing **Version code: 7** even though v1.0.22's manifest is clean. Root cause: Play scans all *active* tracks together — old versionCodes 4 + 7 still had `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` from before the v1.0.20 permissions cleanup (`af3fc75`, 2026-04-23). Replacing them with versionCode 12 in every active track clears the warning. Verified the v1.0.22 AAB manifest contains only `READ_MEDIA_VISUAL_USER_SELECTED` (the Photo Picker permission Google requires) — no `READ_MEDIA_IMAGES` or `READ_MEDIA_VIDEO`. Production review re-submitted; Google running quick check.
+- **Lesson preserved:** when Play flags a permissions issue with a versionCode you don't recognise, check Internal/Closed/Open testing tracks first — old release sitting in a non-production track will trip the policy scanner across the whole app.
+
+#### Status at session close (awaiting store approval)
+- iOS v1.0.22 build 44 — in Apple review queue
+- Android v1.0.22 versionCode 12 — in Google Play review queue (Internal + Closed + Production all on versionCode 12)
+- Branch `feat/leaderboard-phase1` — pushed to origin, NOT yet merged to `main`, no PR opened yet
+- 101/101 frontend tests pass; 113/113 backend tests pass (backend untouched this session)
 
 ---
 
 ## 2026-04-30
+
+### Frontend / DB — Leaderboard Phase 1 identity layer implementation (branch `feat/leaderboard-phase1`, 25 commits, NOT YET MERGED OR DEPLOYED)
+
+Builds the v1.0.22 identity layer end-to-end on a feature branch. **Status: implementation complete + reviewed three times; awaits user-gated steps (apply migrations to prod, manual device QA, EAS build trigger).** Backs the strategy in `~/.claude/projects/-Users-StephenLear-Projects-locosnap/memory/project_leaderboard_redesign.md` (Phase 1 of 5). Plan: `docs/plans/2026-04-29-leaderboard-phase1-implementation.md`. Design: `docs/plans/2026-04-29-leaderboard-phase1-design.md`.
+
+#### `supabase/migrations/010_identity_layer.sql` — New: identity columns on profiles
+- **Added** three columns to `profiles`: `country_code TEXT NULL` (ISO 3166-1 alpha-2), `spotter_emoji TEXT NULL` (id from `data/spotterEmojis.ts`), `has_completed_identity_onboarding BOOLEAN NOT NULL DEFAULT FALSE`
+- **Added** `idx_profiles_country_code` partial index (Phase 3 country-leaderboard filter)
+- **Why:** foundation for the identity onboarding flow + per-row flag/emoji on leaderboard. Reversible (additive).
+
+#### `supabase/migrations/011_leaderboard_identity.sql` — New: leaderboard views with identity columns
+- **Added** `country_code` + `spotter_emoji` to all four leaderboard views via DROP + CREATE inside one transaction. Wrapped in `BEGIN; ... COMMIT;` so the DDL is invisible until commit (no missing-relation window for in-flight reads).
+- **Added** `DO $$ ... RAISE EXCEPTION` guard at top: aborts cleanly if migration 010 hasn't been applied first.
+- **Why:** existing views in `005_fix_leaderboard_security.sql` don't auto-pick up new profile columns.
+
+#### `frontend/data/countries.ts` — New: 249-country ISO list with priority sort
+- **Added** all 249 ISO 3166-1 alpha-2 entries with flag glyph + name. Priority sort (DE, PL, GB, AT, CH, NL, FR, IT, ES, CZ, SK, HU, BE, LU, DK, SE, NO, FI, IE, US) followed by alphabetical.
+- **Added** `getCountryByCode` and `getDefaultCountryCodeForLocale` helpers. **Tests:** 7.
+
+#### `frontend/data/spotterEmojis.ts` — New: curated spotter emoji set
+- **Added** 30 entries: 10 free Unicode + 5 Pro Unicode + 16 Pro SVG (placeholder paths reserved for future asset bundle).
+- **Changed** the exposed `SPOTTER_EMOJIS` to filter out `source: 'svg'` until SVG assets ship — prevents shipping broken letter-tile placeholders to paying Pro users. Full set retained internally as `ALL_SPOTTER_EMOJIS` so values stored on the server still resolve via `getEmojiById`. **Tests:** 11.
+
+#### `frontend/store/authStore.ts` + `frontend/store/authStore-helpers.ts` — Identity actions + anon→signed-in migration
+- **Added** three fields to `Profile`: `country_code`, `spotter_emoji`, `has_completed_identity_onboarding`.
+- **Added** three actions: `updateCountryCode`, `updateSpotterEmoji`, `markIdentityOnboardingComplete`. Each does optimistic Zustand update → AsyncStorage write → conditional Supabase PATCH for signed-in users. Errors logged via `addBreadcrumb`, never thrown.
+- **Added** `migrateAnonymousIdentity` helper called from `fetchProfile` after the server profile arrives. Lifts AsyncStorage country/emoji + onboarding flag onto the new server profile in one PATCH. Server values always win on conflict. Stale anon keys cleared on success or when server already populated. The onboarding flag key is intentionally retained for the next anonymous-launch gate check.
+- **Removed** dead `signInWithMagicLink` action — onboarding refactor removed its only call site; `/sign-in` now owns the OTP send.
+- **Added** AsyncStorage key constants exported from `authStore-helpers.ts` as the single source of truth (deduped from previous string-literal duplication). **Tests:** 6 + 9 + 4.
+
+#### `frontend/services/supabase.ts` — `updateProfileIdentity` helper + `LeaderboardEntry` extended
+- **Added** `updateProfileIdentity(userId, updates)` PATCH helper.
+- **Changed** `LeaderboardEntry` — added `countryCode` + `spotterEmoji`. All four `fetchLeaderboard*` mappers updated. **Tests:** 3.
+
+#### `frontend/components/CountryFlagPicker.tsx` — New reusable picker
+- **Added** compact mode (auto-selected flag + Confirm + Change country link) and full mode (search + virtualized FlatList over 249 countries). Used by both onboarding screen and Profile edit modal.
+- **Translated** all user-facing strings via `t()`. Fallback white-flag glyph commented as in-app data, not communication output.
+
+#### `frontend/components/EmojiPicker.tsx` — New 5-column grid with Pro lock
+- **Added** Pro-emoji lock overlay using `Ionicons name="lock-closed"` (replaced literal 🔒 to honour the project's no-emoji-in-files rule).
+- **Added** SVG-source placeholder fallback (label initial in surfaceHighlight tile) — currently unreachable since SVG entries filtered out.
+- **Translated** lock-state a11y label and SVG-fallback initial via `t('spotterEmojis.${id}', { defaultValue: emoji.label })`.
+
+#### `frontend/components/IdentityBadge.tsx` — New display-only flag+emoji cluster
+- **Added** sm/md/lg sizes. Returns null when both fields are null. SVG fallback uses `t()` for the placeholder initial.
+
+#### `frontend/app/onboarding-identity.tsx` — New 3-or-4-step onboarding screen
+- **Added** state machine: welcome → country → emoji → (anonymous only) email handoff. Done CTA disabled until emoji selected.
+- **Added** `deriveInitialCountry` resolution order: `profile.country_code` → known UK region in `profile.region` → `Intl.DateTimeFormat()` device locale → settings language → GB. Polish-locale device + EN/DE app language now resolves to PL.
+- **Changed** the email step: instead of pre-sending OTP via `signInWithMagicLink` and routing to `/sign-in` (which caused a duplicate OTP send + forced email retype), now routes to `/sign-in?mode=signup&email=…&autoSend=true` with `markIdentityOnboardingComplete()` called first locally.
+- **Why root cause** (duplicate OTP): `/sign-in` previously read only the `mode` param, so the prefilled email was ignored — user re-entered email + tapped Send → second OTP, invalidating the first. Fixed by accepting `email` + `autoSend` in `/sign-in`.
+- **Translated** all strings via `onboardingIdentity.*` and `identityModal.*` i18n groups.
+
+#### `frontend/app/_layout.tsx` + `frontend/app/_layout-helpers.ts` — Onboarding gate
+- **Added** post-auth gate effect that reads AsyncStorage flag, evaluates `shouldShowOnboarding({ profile, anonymousFlag })`, and `router.replace`s to `/onboarding-identity` when needed. Same Android-16/Hermes-safe `setTimeout(0)` pattern as the language-picker gate.
+- **Added** skip list: onboarding-identity, sign-in, language-picker, card-reveal, paywall, results, blueprint, compare.
+- **Fixed** stale-timer bug — `clearTimeout` cleanup was previously inside `.then()` (unreachable). Now lifted into the effect cleanup with both `cancelled` flag + `timeoutId` ref guarding. **Tests:** 5.
+
+#### `frontend/app/sign-in.tsx` — Accept email + autoSend params
+- **Added** `email` + `autoSend` query params. Email prefills on mount; if `autoSend === "true"`, fires `handleSendOtp` exactly once via `useRef` guard.
+- **Why:** clean handoff from onboarding step 4 — user goes straight to OTP code-entry, not the empty email form. Eliminates the duplicate-OTP bug.
+
+#### `frontend/app/(tabs)/profile.tsx` — Identity badge cluster + edit modal
+- **Added** tappable `<IdentityBadge />` cluster above email row (or "Set flag + emoji" placeholder when both empty).
+- **Added** edit modal: country picker + emoji picker side by side, Save/Cancel, plus "Add account to sync across devices" link for anonymous users.
+
+#### `frontend/app/(tabs)/leaderboard.tsx` — Flag + emoji on each row
+- **Added** `<IdentityBadge size="sm" />` next to each row's username, fed by the new `countryCode`/`spotterEmoji` columns from the mappers.
+
+#### `frontend/locales/en.json` + `frontend/locales/de.json` — i18n (160 keys each, full parity)
+- **Added** `onboardingIdentity` group (25 keys), `identityModal` group (8 keys), `spotterEmojis` group (30 keys: localized labels for every emoji in the curated set).
+- **Changed** DE strings to use "Bestenliste" instead of "Leaderboard" (consistency with profile/paywall copy at lines 6/87/99/105). Removed the unimplemented "Erfolge" claim from welcome body.
+- **Added** correct umlauts throughout: Länderflaggen, ändern, geräteübergreifend, Stellwerk, Straßenbahn, Klemmbrett, etc.
+
+#### `frontend/jest.setup.ts` — Added `updateProfileIdentity` to global mock
+- **Added** the new function to the `services/supabase` mock list so other tests that load authStore don't break on undefined imports.
+
+#### Test summary
+- **Frontend:** 101/101 pass (was 55 baseline; +46 new across 8 test files).
+- **Backend:** 113/113 pass (untouched).
+- **TypeScript:** 3 pre-existing baseline errors in `_layout.tsx:16`, `i18n/index.ts:16`, `services/notifications.ts:66` — none introduced.
+
+#### Three-pass review reconciliation
+First pass found 10 issues (all fixed); second pass found 4 IMPORTANT + 5 NICE-TO-HAVE (all fixed); third pass found 3 NICE-TO-HAVE (all fixed). User explicitly flagged the iterative-review pattern; saved `feedback_check_completeness_first_time.md` to memory with a self-review checklist (i18n parity, no-emoji glyphs, dead code, cross-file consistency, test gaps) to apply BEFORE asking for review next time.
+
+#### Outstanding (user-gated, not done this session)
+1. **Apply migrations to production Supabase**, in order: `010_identity_layer.sql` then `011_leaderboard_identity.sql`. The dependency guard in 011 will fail fast if 010 isn't applied first.
+2. **Manual QA on a real device** against production: 6 flows from design doc Section 5.
+3. **Push branch to origin + EAS build** for v1.0.22.
 
 ### Content / Docs — EU45/BR 185 cross-border ad design + render (`a737b83`)
 

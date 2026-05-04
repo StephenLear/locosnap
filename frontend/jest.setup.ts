@@ -76,4 +76,5 @@ jest.mock("./services/supabase", () => ({
   updateStreak: jest.fn().mockResolvedValue({ current: 1 }),
   checkAndUnlockAchievements: jest.fn().mockResolvedValue([]),
   fetchAchievements: jest.fn().mockResolvedValue([]),
+  updateProfileIdentity: jest.fn().mockResolvedValue({ data: null, error: null }),
 }));

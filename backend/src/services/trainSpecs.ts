@@ -693,6 +693,35 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "et22": { maxSpeed: "125 km/h", power: "3,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1184, fuelType: "Electric (3 kV DC)" },
   "et22-2000": { maxSpeed: "125 km/h", power: "3,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1184, fuelType: "Electric (3 kV DC)" },
   "pkp et22": { maxSpeed: "125 km/h", power: "3,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1184, fuelType: "Electric (3 kV DC)" },
+  // ET21 / EU05 / EP05 — Polish "Gagarin" heritage family (Pafawag,
+  // 1957-1971). EU05 (1962-1963, 30 built, Bo'Bo' express passenger,
+  // 125 km/h, ~2,000 kW); ET21 (1957-1971, ~174 built, Co-Co heavy
+  // freight, 125 km/h, ~2,400 kW); EP05 = EU05 reclassified for
+  // passenger duties. Nicknamed "Gagarin" after Yuri Gagarin's 1961
+  // first manned spaceflight which coincided with Pafawag's launch
+  // of the first home-built Polish electrics. Mostly retired now,
+  // some preserved at Polish Railway Museum and heritage events.
+  // Added 2026-05-04 evening following a Polish TikTok report of
+  // "Gagarin uznała za japońską skode" — class-collision bug.
+  "et21": { maxSpeed: "125 km/h", power: "2,400 kW", builder: "Pafawag (Wrocław)", numberBuilt: 174, fuelType: "Electric (3 kV DC)" },
+  "pkp et21": { maxSpeed: "125 km/h", power: "2,400 kW", builder: "Pafawag (Wrocław)", numberBuilt: 174, fuelType: "Electric (3 kV DC)" },
+  "eu05": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 30, fuelType: "Electric (3 kV DC)" },
+  "pkp eu05": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 30, fuelType: "Electric (3 kV DC)" },
+  "ep05": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 30, fuelType: "Electric (3 kV DC)" },
+  "pkp ep05": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 30, fuelType: "Electric (3 kV DC)" },
+  // Newag Dragon (E6ACT / E6ACTa / E6ACTadb) — modern Polish heavy
+  // freight Co-Co electric, Newag (Nowy Sącz) 2010+, 50+ built,
+  // 120 km/h, 5,000-5,800 kW depending on variant, 3 kV DC. The
+  // contemporary replacement for the ET22 in PKP Cargo / Lotos Kolej
+  // / CTL Logistics / DB Cargo Polska freight service. Referenced in
+  // LocoSnap's own ET22 ad caption as the replacement class — adding
+  // proper coverage so we recognise what we advertise.
+  "newag dragon": { maxSpeed: "120 km/h", power: "5,000 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
+  "dragon": { maxSpeed: "120 km/h", power: "5,000 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
+  "e6act": { maxSpeed: "120 km/h", power: "5,000 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
+  "e6acta": { maxSpeed: "120 km/h", power: "5,000 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
+  "e6actadb": { maxSpeed: "120 km/h", power: "5,800 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC) + Diesel" },
+  "dragon 2": { maxSpeed: "120 km/h", power: "5,000 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
   // DB Class 182 / 6190 series (Siemens ES64U2 Eurosprinter, German
   // private-operator Taurus). Same physical platform as ÖBB 1116 but
   // operated by Railadventure / MRCE / ELL / Lokomotion / BoxXpress

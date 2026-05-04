@@ -8,6 +8,14 @@ import { supabase } from "../config/supabase";
 import { Session, User } from "@supabase/supabase-js";
 import { track, identifyUser, resetIdentity, addBreadcrumb } from "../services/analytics";
 import { loginRevenueCat, logoutRevenueCat, syncProStatus } from "../services/purchases";
+import { updateProfileIdentity } from "../services/supabase";
+import {
+  migrateAnonymousIdentity,
+  clearAnonymousIdentity,
+  ANONYMOUS_COUNTRY_KEY,
+  ANONYMOUS_EMOJI_KEY,
+  IDENTITY_ONBOARDING_KEY,
+} from "./authStore-helpers";
 
 export interface Profile {
   id: string;
@@ -22,6 +30,9 @@ export interface Profile {
   is_pro: boolean;
   blueprint_credits: number;
   region: string | null;
+  country_code: string | null;
+  spotter_emoji: string | null;
+  has_completed_identity_onboarding: boolean;
 }
 
 interface AuthState {
@@ -35,7 +46,6 @@ interface AuthState {
   initialize: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  signInWithMagicLink: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setSession: (session: Session | null) => void;
@@ -46,7 +56,11 @@ interface AuthState {
   canScan: () => boolean;
   deductBlueprintCredit: () => Promise<boolean>;
   addBlueprintCredits: (amount: number) => Promise<void>;
+  updateCountryCode: (code: string) => Promise<void>;
+  updateSpotterEmoji: (emojiId: string) => Promise<void>;
+  markIdentityOnboardingComplete: () => Promise<void>;
 }
+
 
 // Unauthenticated users get 6 trial scans before sign-up is required.
 // Bumped from 3 to 6 on 2026-04-28 — eight independent user signals
@@ -153,19 +167,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     addBreadcrumb("auth", "Signed in with Google");
   },
 
-  signInWithMagicLink: async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: "locosnap://auth/callback",
-      },
-    });
-    if (error) throw error;
-    track("sign_in", { method: "magic_link" });
-    addBreadcrumb("auth", "Magic link sent");
-  },
-
   signOut: async () => {
     track("sign_out");
     await logoutRevenueCat();
@@ -206,6 +207,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Lifetime scan limit — no monthly reset. daily_scans_used is now
         // a lifetime counter despite the legacy column name.
         set({ profile: data });
+
+        // Anonymous → signed-in identity migration. If the user picked a
+        // country flag and/or spotter emoji while anonymous, lift those
+        // values onto the new Supabase profile before any other code reads
+        // it. Server values always win on conflict (e.g. signed in on
+        // another device).
+        try {
+          const updates = await migrateAnonymousIdentity({ profile: data });
+          if (updates) {
+            const { error: patchError } = await updateProfileIdentity(user.id, updates);
+            if (!patchError) {
+              const merged = { ...data, ...updates };
+              set({ profile: merged });
+              await clearAnonymousIdentity();
+              addBreadcrumb("auth", "anonymous identity migrated to profile");
+            } else {
+              addBreadcrumb("auth", "anonymous identity migration PATCH failed");
+            }
+          }
+        } catch {
+          // Non-fatal — migration retries on next foreground via fetchProfile
+        }
 
         // Sync Pro status with RevenueCat entitlements
         // Only upgrade to Pro if RevenueCat confirms it — never downgrade a manually-granted Pro
@@ -335,6 +358,68 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (data) {
       set({ profile: data });
       track("blueprint_credits_added", { amount, total: newCredits });
+    }
+  },
+
+  updateCountryCode: async (code: string) => {
+    const { profile, session } = get();
+    if (profile) {
+      set({ profile: { ...profile, country_code: code } });
+    }
+    try {
+      await AsyncStorage.setItem(ANONYMOUS_COUNTRY_KEY, code);
+    } catch {
+      // Non-fatal
+    }
+    // Background sync — never block the UI on Supabase. The anon→signed-in
+    // migration in fetchProfile re-applies AsyncStorage values on next launch
+    // if this fails.
+    if (session?.user?.id) {
+      updateProfileIdentity(session.user.id, { country_code: code })
+        .then(({ error }) => {
+          if (error) addBreadcrumb("auth", "updateCountryCode Supabase failed");
+        })
+        .catch(() => addBreadcrumb("auth", "updateCountryCode Supabase threw"));
+    }
+  },
+
+  updateSpotterEmoji: async (emojiId: string) => {
+    const { profile, session } = get();
+    if (profile) {
+      set({ profile: { ...profile, spotter_emoji: emojiId } });
+    }
+    try {
+      await AsyncStorage.setItem(ANONYMOUS_EMOJI_KEY, emojiId);
+    } catch {
+      // Non-fatal
+    }
+    if (session?.user?.id) {
+      updateProfileIdentity(session.user.id, { spotter_emoji: emojiId })
+        .then(({ error }) => {
+          if (error) addBreadcrumb("auth", "updateSpotterEmoji Supabase failed");
+        })
+        .catch(() => addBreadcrumb("auth", "updateSpotterEmoji Supabase threw"));
+    }
+  },
+
+  markIdentityOnboardingComplete: async () => {
+    const { profile, session } = get();
+    if (profile) {
+      set({ profile: { ...profile, has_completed_identity_onboarding: true } });
+    }
+    try {
+      await AsyncStorage.setItem(IDENTITY_ONBOARDING_KEY, "true");
+    } catch {
+      // Non-fatal
+    }
+    if (session?.user?.id) {
+      updateProfileIdentity(session.user.id, {
+        has_completed_identity_onboarding: true,
+      })
+        .then(({ error }) => {
+          if (error) addBreadcrumb("auth", "markIdentityOnboardingComplete Supabase failed");
+        })
+        .catch(() => addBreadcrumb("auth", "markIdentityOnboardingComplete Supabase threw"));
     }
   },
 }));

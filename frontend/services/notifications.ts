@@ -62,20 +62,9 @@ export async function registerForPushNotifications(
       return null;
     }
 
-    // Android notification channel
-    if (Platform.OS === "android") {
-      try {
-        await Notifications.setNotificationChannelAsync("default", {
-          name: "LocoSnap",
-          importance: Notifications.AndroidImportance.DEFAULT,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: "#FF6B00",
-        });
-      } catch (channelError) {
-        console.warn("[NOTIFICATIONS] Failed to set Android channel:", channelError);
-        // Non-fatal — continue without channel
-      }
-    }
+    // (No Android notification channel setup — the function returns early at the
+    // top for Platform.OS === "android" to prevent the Android-16 FCM/JNI crash.
+    // Re-introduce this block when Android push is re-enabled.)
 
     // Get the push token
     try {
