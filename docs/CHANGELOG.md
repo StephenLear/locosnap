@@ -7,15 +7,147 @@ Format: newest first within each date block.
 
 ## 2026-05-04
 
-### Release — v1.0.25 SUBMITTED (hotfix scope: Weiter Android-nav fix + BLUEPRINT_TIMEOUT bump)
+### Release — v1.0.25 SUBMITTED to BOTH stores (Android Play Console + iOS App Store Connect)
 
-Cut as a hotfix for tester YXNSST who has been blocked on the identity onboarding flow since v1.0.24. Original v1.0.25 plan (leaderboard Phase 2-5: weekly leagues, verification UNVERIFIED tier, cron coordinator, tab restructure, featured cards, freeze + boost UI) defers to **v1.0.26**. Migration `013_leaderboard_phase2.sql` remains staged but **NOT applied** to either staging or production — leaderboard work resumes after v1.0.25 ships.
+Cut as a hotfix for tester YXNSST who was blocked on the identity onboarding flow since v1.0.24. Original v1.0.25 plan (leaderboard Phase 2-5) reduced to two surgical fixes; full leaderboard scope continues as **v1.0.26** work on the same `feat/v1.0.25-leaderboard-phase2` worktree branch.
 
-**v1.0.25 scope:**
-- Weiter button safe-area fix on Android 3-button nav (this entry below)
-- `BLUEPRINT_TIMEOUT` 120s → 240s (Christian fix from 2026-05-03 PM session)
+**v1.0.25 ship scope:**
+- Weiter button safe-area fix on Android 3-button nav (commit `9f98031`, see entry below)
+- `BLUEPRINT_TIMEOUT` 120s → 240s (Christian fix from 2026-05-03 PM)
 
-`app.json` version bumped 1.0.24 → 1.0.25. EAS production build + submit triggered.
+**Build / submit chain:**
+- `app.json` version bumped 1.0.24 → 1.0.25 (commit `f7ac50b`). EAS auto-incremented Android versionCode 14 → 15, iOS buildNumber 46 → 47 (per `appVersionSource: remote` + `autoIncrement: true` in `eas.json`).
+- Android build `ddae1cc6-5130-48ad-936b-84155019b983` finished 19:25 UTC, AAB at https://expo.dev/artifacts/eas/tnGagSoRAmokXe6fcQMBEk.aab — submitted via `eas submit --platform android --profile production --non-interactive --latest` (submission `8c105c4e-aef4-4455-858d-6051af54a309`). Landed in Play Console Production track as draft (per `releaseStatus: draft`).
+- iOS build `870dad5e-61ef-44c6-ba53-c634c31e1c19` finished ~19:35 UTC, IPA at https://expo.dev/artifacts/eas/hFgkwXr6xFMxsu54x6gFdv.ipa — submitted via `eas submit --platform ios` (submission `f4ecb20b-2442-4a11-b917-03cfc8618e8e`). Apple processing 5-10 min, then attached to v1.0.25 in App Store Connect.
+- User manually added EN + DE release notes on both stores and clicked Send for review on Play Console + Submit for Review on App Store Connect simultaneously, so both review clocks start together. Confirmed by user 2026-05-04 evening.
+
+**Release notes (EN):**
+> Bug fixes:
+> - Android: Fixed an issue where the Continue button on the identity onboarding flow could close the app on devices with 3-button navigation.
+> - Train blueprints now wait longer before timing out, so more illustrations display successfully on the first try.
+
+**Release notes (DE):**
+> Fehlerbehebungen:
+> - Android: Behebt ein Problem, bei dem der Weiter-Button im Identitäts-Onboarding die App auf Geräten mit 3-Button-Navigation schließen konnte.
+> - Zug-Blueprints warten jetzt länger, bevor sie abbrechen — dadurch erscheinen mehr Illustrationen direkt beim ersten Versuch.
+
+Migration `013_leaderboard_phase2.sql` continues to be staged but **NOT applied** to staging or production. Phase 2-5 backend code can ship in v1.0.26 immediately once the migration is applied.
+
+### Backend — Polish "Gagarin" family (ET21 / EU05 / EP05) + Newag Dragon coverage (commit `9e21341`, deployed)
+
+Closes a class-collision bug reported on the ET22 TikTok ad: a Polish viewer (`@fuckhypocrisy_`) scanned a Pafawag-era electric loco ("Gagarin" — Polish nickname for the EU05 / ET21 family) and the app returned "Japanese Škoda" (a class that does not exist). Same family of class-collision hallucinations as BR 151 / BR 232 / BR 648 / BR 442 — fixed with explicit disambiguation rules.
+
+**Vision rules added (`backend/src/services/vision.ts`):**
+- **ET21 / EU05 / EP05 "Gagarin" heritage family**: first generation of Polish-built electrics by Pafawag (Wrocław), 1957–1971, named after Yuri Gagarin's 1961 first manned spaceflight. **EU05** = Bo'Bo' express passenger (1962–1963, only 30 units built). **ET21** = Co-Co heavy freight (1957–1971, ~174 units built). **EP05** = EU05 reclassified for passenger duties (same physical loco). Disambiguation rules cover wheel-arrangement discrimination (Bo'Bo' = EU05, Co-Co = ET21), explicit prohibitions against returning Czech Škoda or Soviet ChS / Lugansk attributions, and builder enforcement (Pafawag, never Škoda or Lugansk). When metadata or class string contains the colloquial nickname "Gagarin", prefer EU05 unless wheel count or fleet number indicates ET21.
+- **Newag Dragon (E6ACT / E6ACTa / E6ACTadb)**: modern Polish heavy freight Co-Co electric, Newag (Nowy Sącz) 2010+, the contemporary replacement for the ET22 in PKP Cargo / Lotos Kolej / CTL Logistics / DB Cargo Polska freight service. Disambiguation against ET22 (older Pafawag boxy 1969-1990 design) and Pesa Gama (passenger-spec Bydgoszcz build). Builder always "Newag (Nowy Sącz)" — never Pafawag, Pesa, Bombardier, or Siemens. Adding proper coverage so we recognise the loco we already reference in our own ET22 ad caption.
+
+**Spec entries (`backend/src/services/trainSpecs.ts`):**
+- ET21 / PKP ET21: 125 km/h, 2,400 kW, Pafawag, 174 built, 3 kV DC
+- EU05 / PKP EU05 / EP05 / PKP EP05: 125 km/h, 2,000 kW, Pafawag, 30 built, 3 kV DC
+- Newag Dragon / Dragon / Dragon 2 / E6ACT / E6ACTa: 120 km/h, 5,000 kW, Newag, 50 built, 3 kV DC
+- E6ACTadb (dual-mode): 120 km/h, 5,800 kW, Newag, 50 built, 3 kV DC + Diesel
+
+**Rarity overrides (`backend/src/services/rarity.ts`):**
+- **EU05 / EP05**: legendary — 30-unit class, mostly retired, only museum-preserved units occasionally roll out
+- **ET21**: epic — ~174 units originally, functionally extinct from commercial service
+- **Newag Dragon**: uncommon — ~50-unit modern fleet across multiple operators
+- **E6ACTadb**: rare (smaller dual-mode sub-fleet)
+
+**Ship chain:**
+- Committed on `feat/v1.0.24-imagepicker-recovery` branch as `9e21341`.
+- Branch merged into `main` as `406bf4c` — same merge brought v1.0.24 frontend (already LIVE on stores), Phase 2-5 design + implementation plans, session handovers 2026-05-01/02/03 onto `main`. CHANGELOG conflict resolved by taking the feature-branch version (more comprehensive).
+- Pushed to `origin/main` — Render auto-deployed.
+
+**TikTok reply chain:** four-message exchange with `@fuckhypocrisy_` followed the canonical 3-step pattern (concede → reframe to collection → close door). Final reply listed 24 Polish models LocoSnap recognises (EU07/EP07/EP09 family, ET22, EN57, Newag Impuls/Elf, Pesa Elf 2/Gama, ED72/78, EU47, ST44 + livery rules KMŁ/KM/POLREGIO/ŁKA/SKPL) and committed to "ET21 (Gagarin) dziś dodaję" — promise honored same-day by `9e21341`. fuckhypocrisy_ engaged constructively after the substantive reply ("trafnie — mamy ~32k tokenów własnych reguł na każdy scan, nie surowy model") and closed with a thumbs-up.
+
+113/113 backend tests pass.
+
+### Phase 2 leaderboard backend — verification PERSONAL/UNVERIFIED split (commits `2cbd5c6` + `bd4c3f3`)
+
+Splits the existing single `unverified` catch-all tier into two:
+
+- **personal** — legit but no recency proof: weak GPS, stale EXIF, no GPS with intact EXIF, etc. visible everywhere; NOT in League XP. Backwards-compat: all pre-v1.0.25 spots without a tier are grandfathered as PERSONAL via the migration backfill heuristic.
+- **unverified** — actively suspicious: stripped EXIF on gallery uploads, mock-location flag, implausible EXIF date (>5y old or in the future). Private to user only; NOT in League XP.
+
+VERIFIED tiers (`verified-live`, `verified-recent-gallery`) are unchanged and continue to count for League XP. This is the verification foundation for the leaderboard Phase 2 XP gate (Section C): only VERIFIED scans earn weekly League XP.
+
+**Migration 013 changes (still NOT applied):**
+- Check constraint expanded to 4 values: `verified-live`, `verified-recent-gallery`, `personal`, `unverified`.
+- Backfill heuristic: `verified=true` rows split as before; `verified=false` rows now become `personal` (preserving visibility for grandfathered spots) instead of `unverified`.
+
+**Type union changes:**
+- `frontend/types/index.ts` + `backend/src/types/index.ts`: `VerificationTier` union adds `'personal'`. `VerificationResult.riskFlags` adds `implausibleDate?: boolean` for the new suspicious-date branch.
+- `backend/src/types/index.ts` `IdentifyResponse`: `verification.tier` now references `VerificationTier` (was inline literal — would have drifted).
+
+**Config (`backend/src/config/verification.ts` + `frontend/constants/verification.ts`):**
+- New `implausibleEXIFAgeYears: 5` threshold. EXIF older than 5 years (or in the future) → suspicious → UNVERIFIED.
+
+**Classifier (`backend/src/services/verification.ts` + `frontend/services/verification.ts`):**
+- New decision tree: suspicious gates first (mock loc / stripped EXIF / implausible date) → verified gates → personal fallback. Frontend mirror kept in sync with backend canonical.
+- 22 unit tests in `backend/src/__tests__/services/verification.test.ts` covering all branches including the new UNVERIFIED implausible-date guards and PERSONAL downgrade cases for legit-but-weak signals (DSLR AirDrop with intact EXIF + no GPS → PERSONAL; iOS share-sheet stripping both signals → UNVERIFIED).
+
+### Phase 2 leaderboard backend — UNVERIFIED → PERSONAL manual override (commit `bd4c3f3`)
+
+Owner-attestation "I took this photo myself" flow that promotes an UNVERIFIED spot to PERSONAL, restoring its visibility in the public feed (still no League XP).
+
+**Frontend (`frontend/app/card-reveal.tsx`):**
+- Badge now distinguishes 3 tiers visually:
+  - `verified-live` / `verified-recent-gallery`: green checkmark, "VERIFIED"
+  - `personal`: dark image-outline, "PERSONAL"
+  - `unverified`: red lock, "UNVERIFIED"
+- Override block (help text + button) renders only for an UNVERIFIED spot in history mode (we need a persisted spot id). Confirm Alert → RPC → local tier flip + toast on success. Owner check is enforced server-side; we additionally require `historyItem.id` locally so freshly-scanned-not-yet-saved spots do not show the button.
+
+**Backend (`frontend/services/supabase.ts`):**
+- `promoteUnverifiedToPersonal(spotId)` helper wrapping the SECURITY DEFINER RPC.
+
+**Database (migration 013, still NOT applied):**
+- `profiles.manual_overrides_count int DEFAULT 0` — abuse telemetry. Sentry breadcrumb on count > 50 deferred to post-launch ops task.
+- `public.promote_unverified_to_personal(p_spot_id uuid) RETURNS void`. SECURITY DEFINER, search_path locked. Validates ownership (`auth.uid() = spots.user_id`) with errcode 42501 on mismatch. Idempotent: PERSONAL/VERIFIED spots return without bumping the counter so legitimate retries do not inflate telemetry.
+
+**i18n:** 9 new keys EN + DE under `card.verification.*` + `card.badge.unverified`. Parity verified.
+**Analytics:** New event `verification_promoted_personal { train_class, spot_id }`.
+
+### Phase 2 leaderboard backend — leagues.ts XP service (commits `dd08c05` + `50aa9aa`)
+
+Phase 2 leaderboard core: computes weekly League XP for a verified scan and persists an audit row to `weekly_xp_events`. Failure-tolerant: no-op when migration 013 isn't applied (table missing) or any DB error occurs — the scan response always succeeds, XP just doesn't accrue for that row.
+
+**Pure helpers (unit-testable, no DB) in `backend/src/services/leagues.ts`:**
+- `weekStartUtc`: ISO Monday boundary matching `date_trunc('week', ...)` in Postgres.
+- `resolveBaseXp`: rarity → XP table with override.
+- `isVerifiedForXp`: VERIFIED-only gate.
+- `rarityThemedMultiplier`: 2× for rare/epic/legendary on Tuesdays (UTC).
+- `computeFinalXp`: composes base → diminishing-returns → themed.
+- `BASE_XP_BY_RARITY` constants: 10/25/50/100/250 for common→legendary.
+- `THEMED_DAYS` schedule: Tuesday rare-tier (active), Saturday heritage (deferred — needs operator-country lookup at call time).
+
+**DB-touching wrappers (mockable supabase client):**
+- `computeWeeklyXp`: VERIFIED gate, per-class diminishing-returns query against `weekly_xp_events`, themed multiplier composition. Returns zeroed output for non-VERIFIED or when the migration is missing.
+- `persistXpEvent`: inserts `weekly_xp_events` row + calls `increment_weekly_xp` RPC for atomic `league_membership.weekly_xp` bump.
+
+**SQL RPCs added to migration 013:**
+- `increment_weekly_xp(p_user_id, p_week_start, p_xp_delta)`: SECURITY DEFINER, owner-validated atomic XP increment.
+- `award_weekly_xp_for_spot(p_spot_id uuid) RETURNS jsonb`: full server-side computation that mirrors `leagues.ts` decision tree in PL/pgSQL. Reads `spot.user_id / class / rarity_tier / verification_tier / created_at` directly so the client cannot fake values. Validates ownership. Idempotent: re-calling for the same spot returns the existing event without double-bumping `league_membership`. Bumps `weekly_unique_classes` only on first scan of class this week.
+- `apply_boost_card(p_card_id bigint) RETURNS jsonb`: owner-validated, atomic. `flat_100` instantly adds 100 XP to the user's current-week `league_membership` row + marks the inventory row used. `next_scan_2x` is wired in but returns `applied:false` until queued-state machinery lands in v1.0.26 (avoids consuming inventory while feature is dark).
+
+**Migration 013 schema additions:**
+- `weekly_xp_events.class_key text not null` + composite index `idx_weekly_xp_events_dim_returns(user_id, week_start_utc, class_key)` for the per-class diminishing-returns lookup. Removed `'unverified'` from `verification_tier` check since UNVERIFIED scans never write to this audit table.
+
+**Frontend wrappers (`frontend/services/supabase.ts`):**
+- `awardWeeklyXpForSpot(spotId)`: RPC wrapper, returns `null` on migration-not-yet-applied (PostgREST 42883 / PGRST202).
+- `applyBoostCard(cardId)`: same shape.
+
+**Wire-up (`frontend/store/trainStore.ts`):**
+- After `saveSpot` returns a real `spotId`, `awardWeeklyXpForSpot` is invoked. New state `lastLeagueXpDelta: number | null` holds the result for the card-reveal toast. Reset on `startScan`.
+
+**UI (`frontend/app/card-reveal.tsx`):**
+- New mount effect shows `+{xp} XP toward your league` toast for 3s on fresh scans where `lastLeagueXpDelta > 0`. Skipped in history mode.
+- 2 new i18n keys (`card.league.xpAwarded`) EN + DE. Parity 191/191.
+
+**Test coverage:** 22 unit tests for the pure helpers covering all rarity/weekday/diminishing-returns combinations.
+
+**Section C complete (C.1-C.8). Sections D (cron), E (frontend tabs), F (featured cards), G (freeze + boost UI), H (i18n + QA) still pending.**
+
+Tests at session close: **137/137 backend, 106/106 frontend, TSC clean both sides, i18n 191/191 parity**. Migration 013 still NOT applied to staging or production.
 
 ### Frontend — Weiter button overlap with Android 3-button nav fixed (YXNSST report)
 
