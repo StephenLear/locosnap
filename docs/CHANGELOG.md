@@ -7,6 +7,16 @@ Format: newest first within each date block.
 
 ## 2026-05-04
 
+### Release — v1.0.25 SUBMITTED (hotfix scope: Weiter Android-nav fix + BLUEPRINT_TIMEOUT bump)
+
+Cut as a hotfix for tester YXNSST who has been blocked on the identity onboarding flow since v1.0.24. Original v1.0.25 plan (leaderboard Phase 2-5: weekly leagues, verification UNVERIFIED tier, cron coordinator, tab restructure, featured cards, freeze + boost UI) defers to **v1.0.26**. Migration `013_leaderboard_phase2.sql` remains staged but **NOT applied** to either staging or production — leaderboard work resumes after v1.0.25 ships.
+
+**v1.0.25 scope:**
+- Weiter button safe-area fix on Android 3-button nav (this entry below)
+- `BLUEPRINT_TIMEOUT` 120s → 240s (Christian fix from 2026-05-03 PM session)
+
+`app.json` version bumped 1.0.24 → 1.0.25. EAS production build + submit triggered.
+
 ### Frontend — Weiter button overlap with Android 3-button nav fixed (YXNSST report)
 
 #### `frontend/app/onboarding-identity.tsx` — bottom safe-area inset on KeyboardAvoidingView
