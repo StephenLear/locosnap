@@ -142,18 +142,24 @@ create table if not exists public.weekly_xp_events (
   id                  bigserial primary key,
   user_id             uuid not null references public.profiles(id) on delete cascade,
   spot_id             uuid not null references public.spots(id) on delete cascade,
+  class_key           text not null,
   week_start_utc      timestamptz not null,
   base_xp             int  not null,
   diminished_xp       int  not null,
   themed_multiplier   numeric(3,2) not null default 1.00,
   boost_card_applied  text,
   final_xp            int  not null,
-  verification_tier   text not null check (verification_tier in ('verified-live', 'verified-recent-gallery', 'unverified')),
+  verification_tier   text not null check (verification_tier in ('verified-live', 'verified-recent-gallery')),
   created_at          timestamptz not null default now()
 );
 
 create index if not exists idx_weekly_xp_events_user_week
   on public.weekly_xp_events(user_id, week_start_utc);
+
+-- Diminishing-returns lookup: "did this user already earn XP for this
+-- class this week?" Used by leagues.ts computeWeeklyXp.
+create index if not exists idx_weekly_xp_events_dim_returns
+  on public.weekly_xp_events(user_id, week_start_utc, class_key);
 
 
 -- ─── 5. Boost card inventory ──────────────────────────────────
@@ -345,3 +351,36 @@ $$;
 
 revoke all on function public.promote_unverified_to_personal(uuid) from public;
 grant execute on function public.promote_unverified_to_personal(uuid) to authenticated;
+
+
+-- ─── 10. Weekly XP increment RPC (atomic) ─────────────────────
+-- Avoids the read-modify-write race when two scans for the same user
+-- land in the same instant. Authenticated callers only — service
+-- role bypasses this entirely; the cron resets weekly_xp via direct
+-- update.
+
+create or replace function public.increment_weekly_xp(
+  p_user_id    uuid,
+  p_week_start timestamptz,
+  p_xp_delta   int
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_user_id <> auth.uid() then
+    raise exception 'not your row' using errcode = '42501';
+  end if;
+
+  update public.league_membership
+     set weekly_xp = weekly_xp + p_xp_delta,
+         updated_at = now()
+   where user_id = p_user_id
+     and week_start_utc = p_week_start;
+end;
+$$;
+
+revoke all on function public.increment_weekly_xp(uuid, timestamptz, int) from public;
+grant execute on function public.increment_weekly_xp(uuid, timestamptz, int) to authenticated;
