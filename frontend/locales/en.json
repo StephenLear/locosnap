@@ -61,6 +61,9 @@
       "promoteConfirmCancel": "Cancel",
       "promoted": "Promoted to Personal",
       "promoteFailed": "Could not promote — please try again later"
+    },
+    "league": {
+      "xpAwarded": "+{{xp}} XP toward your league"
     }
   },
   "results": {

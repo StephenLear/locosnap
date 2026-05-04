@@ -104,6 +104,7 @@ export default function CardRevealScreen() {
     currentPhotoUri: scanPhotoUri,
     currentLocation: scanLocation,
     currentVerification: scanVerification,
+    lastLeagueXpDelta,
     history,
   } = useTrainStore();
 
@@ -202,6 +203,17 @@ export default function CardRevealScreen() {
       });
     }
   }, []);
+
+  // Phase 2 — show "+45 XP" toast on fresh scans with a real league
+  // XP delta. Skipped in history mode (already-seen scans don't fire
+  // a new XP event) and when delta is null (non-VERIFIED scan, repeat
+  // class, or migration 013 not yet applied).
+  useEffect(() => {
+    if (isHistoryMode || !lastLeagueXpDelta || lastLeagueXpDelta <= 0) return;
+    setSaveConfirm(t("card.league.xpAwarded", { xp: lastLeagueXpDelta }));
+    const id = setTimeout(() => setSaveConfirm(null), 3000);
+    return () => clearTimeout(id);
+  }, [isHistoryMode, lastLeagueXpDelta, t]);
 
   // Reverse-geocode stored location to a readable city name for share text
   useEffect(() => {

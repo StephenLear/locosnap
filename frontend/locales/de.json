@@ -61,6 +61,9 @@
       "promoteConfirmCancel": "Abbrechen",
       "promoted": "Auf „Privat“ umgestellt",
       "promoteFailed": "Umstellung fehlgeschlagen — bitte später erneut versuchen"
+    },
+    "league": {
+      "xpAwarded": "+{{xp}} XP für deine Liga"
     }
   },
   "results": {

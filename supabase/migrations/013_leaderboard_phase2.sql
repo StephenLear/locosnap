@@ -384,3 +384,249 @@ $$;
 
 revoke all on function public.increment_weekly_xp(uuid, timestamptz, int) from public;
 grant execute on function public.increment_weekly_xp(uuid, timestamptz, int) to authenticated;
+
+
+-- ─── 11. Award weekly XP for a spot (C.8 server-side wiring) ──
+-- Single round-trip from the frontend after saveSpot succeeds.
+-- Reads the spot row directly so the client cannot fake XP values.
+-- Mirrors backend/src/services/leagues.ts logic in PL/pgSQL.
+--
+-- Returns:
+--   final_xp        — XP credited (0 for non-VERIFIED, dim, or already-awarded)
+--   diminished_xp   — XP after the per-class diminishing-returns mod
+--   themed_multiplier — 1.00 normally, 2.00 on Tuesdays for rare+
+--   week_start_utc  — ISO Monday of the credited week
+--
+-- Rules (must stay in sync with leagues.ts):
+--   - Only verified-live and verified-recent-gallery scans earn XP.
+--   - Per-class diminishing returns: second+ scan of same class in
+--     the same week earns 25% of base.
+--   - Tuesday rare-tier bonus: rare/epic/legendary scans on UTC
+--     weekday=2 earn 2x (compounds with diminishing returns).
+--   - Idempotent: if a weekly_xp_events row already exists for this
+--     spot, returns it without double-bumping league_membership.
+
+create or replace function public.award_weekly_xp_for_spot(p_spot_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_owner            uuid;
+  v_class_key        text;
+  v_rarity_tier      text;
+  v_verification_tier text;
+  v_scan_date        timestamptz;
+  v_week_start       timestamptz;
+  v_base_xp          int;
+  v_has_prior        boolean;
+  v_themed_mult      numeric(3,2) := 1.00;
+  v_diminished_xp    int;
+  v_final_xp         int;
+  v_existing_event   record;
+begin
+  -- Read spot row.
+  select user_id, class, rarity_tier, verification_tier, created_at
+    into v_owner, v_class_key, v_rarity_tier, v_verification_tier, v_scan_date
+    from public.spots
+   where id = p_spot_id;
+
+  if v_owner is null then
+    raise exception 'spot not found' using errcode = 'P0002';
+  end if;
+
+  if v_owner <> auth.uid() then
+    raise exception 'not your spot' using errcode = '42501';
+  end if;
+
+  -- Idempotency: if a weekly_xp_events row already exists for this
+  -- spot, return that instead of double-bumping.
+  select base_xp, diminished_xp, themed_multiplier, final_xp, week_start_utc
+    into v_existing_event
+    from public.weekly_xp_events
+   where spot_id = p_spot_id;
+
+  if v_existing_event.base_xp is not null then
+    return jsonb_build_object(
+      'final_xp',         v_existing_event.final_xp,
+      'diminished_xp',    v_existing_event.diminished_xp,
+      'themed_multiplier', v_existing_event.themed_multiplier,
+      'week_start_utc',   v_existing_event.week_start_utc,
+      'already_awarded',  true
+    );
+  end if;
+
+  -- Verification gate: only VERIFIED scans earn XP. PERSONAL and
+  -- UNVERIFIED return zeroed output without writing an event row.
+  if v_verification_tier not in ('verified-live', 'verified-recent-gallery') then
+    return jsonb_build_object(
+      'final_xp',         0,
+      'diminished_xp',    0,
+      'themed_multiplier', 1.00,
+      'week_start_utc',   date_trunc('week', v_scan_date at time zone 'UTC'),
+      'reason',           'not_verified'
+    );
+  end if;
+
+  -- Base XP from rarity (mirrors BASE_XP_BY_RARITY in leagues.ts).
+  v_base_xp := case v_rarity_tier
+    when 'common'    then 10
+    when 'uncommon'  then 25
+    when 'rare'      then 50
+    when 'epic'      then 100
+    when 'legendary' then 250
+    else 0
+  end;
+
+  if v_base_xp = 0 then
+    return jsonb_build_object(
+      'final_xp',         0,
+      'diminished_xp',    0,
+      'themed_multiplier', 1.00,
+      'week_start_utc',   date_trunc('week', v_scan_date at time zone 'UTC'),
+      'reason',           'unknown_rarity'
+    );
+  end if;
+
+  v_week_start := date_trunc('week', v_scan_date at time zone 'UTC');
+
+  -- Per-class diminishing-returns lookup.
+  select exists (
+    select 1
+      from public.weekly_xp_events
+     where user_id = v_owner
+       and class_key = v_class_key
+       and week_start_utc = v_week_start
+  ) into v_has_prior;
+
+  v_diminished_xp := case
+    when v_has_prior then floor(v_base_xp * 0.25)::int
+    else v_base_xp
+  end;
+
+  -- Tuesday rare-tier themed bonus (UTC weekday 2 = Tuesday).
+  if extract(dow from v_scan_date at time zone 'UTC') = 2
+     and v_rarity_tier in ('rare', 'epic', 'legendary') then
+    v_themed_mult := 2.00;
+  end if;
+
+  v_final_xp := floor(v_diminished_xp * v_themed_mult)::int;
+
+  -- Audit row + atomic XP increment.
+  insert into public.weekly_xp_events (
+    user_id, spot_id, class_key, week_start_utc,
+    base_xp, diminished_xp, themed_multiplier,
+    boost_card_applied, final_xp, verification_tier
+  ) values (
+    v_owner, p_spot_id, v_class_key, v_week_start,
+    v_base_xp, v_diminished_xp, v_themed_mult,
+    null, v_final_xp, v_verification_tier
+  );
+
+  update public.league_membership
+     set weekly_xp = weekly_xp + v_final_xp,
+         weekly_unique_classes = case
+           when v_has_prior then weekly_unique_classes
+           else weekly_unique_classes + 1
+         end,
+         updated_at = now()
+   where user_id = v_owner
+     and week_start_utc = v_week_start;
+
+  return jsonb_build_object(
+    'final_xp',         v_final_xp,
+    'diminished_xp',    v_diminished_xp,
+    'themed_multiplier', v_themed_mult,
+    'week_start_utc',   v_week_start,
+    'already_awarded',  false
+  );
+end;
+$$;
+
+revoke all on function public.award_weekly_xp_for_spot(uuid) from public;
+grant execute on function public.award_weekly_xp_for_spot(uuid) to authenticated;
+
+
+-- ─── 12. Apply boost card (C.6) ──────────────────────────────
+-- flat_100: instantly adds 100 XP to the user's current-week
+-- league_membership.weekly_xp + marks the inventory row used.
+-- Owner-validated, idempotent (already-used cards no-op silently),
+-- atomic (single transaction).
+--
+-- next_scan_2x is deferred — it requires queued-state machinery
+-- (pending_boost_card_id on profiles, consumed by the next
+-- award_weekly_xp_for_spot call). Will land in v1.0.26 follow-up
+-- once flat_100 is proven in production.
+
+create or replace function public.apply_boost_card(p_card_id bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_owner       uuid;
+  v_card_type   text;
+  v_used_at     timestamptz;
+  v_week_start  timestamptz;
+begin
+  select user_id, card_type, used_at
+    into v_owner, v_card_type, v_used_at
+    from public.user_boost_inventory
+   where id = p_card_id;
+
+  if v_owner is null then
+    raise exception 'card not found' using errcode = 'P0002';
+  end if;
+
+  if v_owner <> auth.uid() then
+    raise exception 'not your card' using errcode = '42501';
+  end if;
+
+  if v_used_at is not null then
+    -- Idempotent no-op for already-used cards.
+    return jsonb_build_object(
+      'applied',    false,
+      'reason',     'already_used',
+      'card_type',  v_card_type
+    );
+  end if;
+
+  if v_card_type = 'flat_100' then
+    v_week_start := date_trunc('week', now() at time zone 'UTC');
+
+    update public.user_boost_inventory
+       set used_at = now()
+     where id = p_card_id;
+
+    update public.league_membership
+       set weekly_xp = weekly_xp + 100,
+           updated_at = now()
+     where user_id = v_owner
+       and week_start_utc = v_week_start;
+
+    return jsonb_build_object(
+      'applied',   true,
+      'card_type', v_card_type,
+      'xp_added',  100
+    );
+  end if;
+
+  if v_card_type = 'next_scan_2x' then
+    -- Deferred to v1.0.26 — requires queued-state machinery on
+    -- profiles. Return without consuming the card so users don't
+    -- lose inventory while the feature is dark.
+    return jsonb_build_object(
+      'applied',  false,
+      'reason',   'next_scan_2x_not_yet_implemented',
+      'card_type', v_card_type
+    );
+  end if;
+
+  raise exception 'unknown card_type %', v_card_type using errcode = '22023';
+end;
+$$;
+
+revoke all on function public.apply_boost_card(bigint) from public;
+grant execute on function public.apply_boost_card(bigint) to authenticated;
