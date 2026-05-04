@@ -5,6 +5,17 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-04
+
+### Frontend — Weiter button overlap with Android 3-button nav fixed (YXNSST report)
+
+#### `frontend/app/onboarding-identity.tsx` — bottom safe-area inset on KeyboardAvoidingView
+- **Cause**: Tester YXNSST reported on the BR 110 ad TikTok thread that pressing "Weiter" on the identity onboarding flow closed the app instead of advancing through the steps. Diagnosis after their follow-up: the Weiter button rendered too close to the bottom of the screen, falling within the Android 3-button-nav system bar tap area. Pressing the button registered as the system back button, exiting the app. The earlier swipe-gesture-nav workaround suggested by another commenter did not help — the issue is layout-level, not navigation-mode-level.
+- **Fix**: imported `useSafeAreaInsets` from `react-native-safe-area-context` and applied `paddingBottom: Math.max(insets.bottom, spacing.xl + spacing.md)` (36px floor) to the KeyboardAvoidingView container. Same pattern as `frontend/app/blueprint.tsx`, but with a larger floor tuned for the Android 3-button-nav case where `insets.bottom` returns 0 without edge-to-edge config. iOS still gets the home-indicator inset when present.
+- **Tests**: TSC clean, 106/106 frontend tests pass.
+
+---
+
 ## 2026-05-03 (PM session — v1.0.25 work begins on feat/v1.0.25-leaderboard-phase2 worktree)
 
 ### Frontend — BLUEPRINT_TIMEOUT bump (Christian fix bundled into v1.0.25)
