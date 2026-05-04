@@ -7,7 +7,7 @@ Format: newest first within each date block.
 
 ## 2026-05-04
 
-### Release — v1.0.25 SUBMITTED to BOTH stores (Android Play Console + iOS App Store Connect)
+### Release — v1.0.25 Android LIVE on Google Play (approved + pushed for publication 2026-05-04 evening); iOS still in Apple review
 
 Cut as a hotfix for tester YXNSST who was blocked on the identity onboarding flow since v1.0.24. Original v1.0.25 plan (leaderboard Phase 2-5) reduced to two surgical fixes; full leaderboard scope continues as **v1.0.26** work on the same `feat/v1.0.25-leaderboard-phase2` worktree branch.
 
@@ -20,6 +20,7 @@ Cut as a hotfix for tester YXNSST who was blocked on the identity onboarding flo
 - Android build `ddae1cc6-5130-48ad-936b-84155019b983` finished 19:25 UTC, AAB at https://expo.dev/artifacts/eas/tnGagSoRAmokXe6fcQMBEk.aab — submitted via `eas submit --platform android --profile production --non-interactive --latest` (submission `8c105c4e-aef4-4455-858d-6051af54a309`). Landed in Play Console Production track as draft (per `releaseStatus: draft`).
 - iOS build `870dad5e-61ef-44c6-ba53-c634c31e1c19` finished ~19:35 UTC, IPA at https://expo.dev/artifacts/eas/hFgkwXr6xFMxsu54x6gFdv.ipa — submitted via `eas submit --platform ios` (submission `f4ecb20b-2442-4a11-b917-03cfc8618e8e`). Apple processing 5-10 min, then attached to v1.0.25 in App Store Connect.
 - User manually added EN + DE release notes on both stores and clicked Send for review on Play Console + Submit for Review on App Store Connect simultaneously, so both review clocks start together. Confirmed by user 2026-05-04 evening.
+- **Google Play approved + user pushed for publication 2026-05-04 evening** — versionCode 15 rolling out to production track. Apple still processing iOS at session close.
 
 **Release notes (EN):**
 > Bug fixes:
