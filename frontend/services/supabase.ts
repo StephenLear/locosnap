@@ -272,6 +272,28 @@ export async function updateSpotBlueprint(
 }
 
 /**
+ * Promote an UNVERIFIED spot to PERSONAL via owner attestation.
+ * Calls the SECURITY DEFINER RPC `promote_unverified_to_personal`,
+ * which validates ownership server-side (auth.uid() = spots.user_id),
+ * flips the tier, and bumps profiles.manual_overrides_count for
+ * abuse telemetry. Returns true on success.
+ */
+export async function promoteUnverifiedToPersonal(
+  spotId: string
+): Promise<boolean> {
+  const { error } = await supabase.rpc("promote_unverified_to_personal", {
+    p_spot_id: spotId,
+  });
+
+  if (error) {
+    console.warn("Failed to promote spot:", error.message);
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Submit a wrong-ID report to the misidentification triage table.
  * Both anonymous and authenticated users can submit. RLS allows
  * INSERT-only; SELECT is blocked at the policy level (admin-only via

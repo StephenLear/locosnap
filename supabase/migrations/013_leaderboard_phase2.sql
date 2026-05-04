@@ -293,3 +293,55 @@ alter table public.league_cycle_state enable row level security;
 drop policy if exists league_cycle_state_read on public.league_cycle_state;
 create policy league_cycle_state_read on public.league_cycle_state
   for select using (auth.role() = 'authenticated');
+
+
+-- ─── 9. Manual UNVERIFIED → PERSONAL promotion RPC + telemetry ─
+-- "I took this photo myself" honor-system override. Owner-only.
+-- Bumps profiles.manual_overrides_count for abuse telemetry — Sentry
+-- breadcrumb wired post-launch when count > 50 for any single user.
+-- Idempotent: PERSONAL spots stay PERSONAL (no double-bump); only
+-- UNVERIFIED → PERSONAL fires the counter.
+
+alter table public.profiles
+  add column if not exists manual_overrides_count int not null default 0;
+
+create or replace function public.promote_unverified_to_personal(p_spot_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_owner uuid;
+  v_tier  text;
+begin
+  select user_id, verification_tier
+    into v_owner, v_tier
+    from public.spots
+   where id = p_spot_id;
+
+  if v_owner is null then
+    raise exception 'spot not found' using errcode = 'P0002';
+  end if;
+
+  if v_owner <> auth.uid() then
+    raise exception 'not your spot' using errcode = '42501';
+  end if;
+
+  if v_tier <> 'unverified' then
+    -- No-op: already PERSONAL or VERIFIED. Idempotent return.
+    return;
+  end if;
+
+  update public.spots
+     set verification_tier = 'personal'
+   where id = p_spot_id;
+
+  update public.profiles
+     set manual_overrides_count = manual_overrides_count + 1
+   where id = auth.uid();
+end;
+$$;
+
+revoke all on function public.promote_unverified_to_personal(uuid) from public;
+grant execute on function public.promote_unverified_to_personal(uuid) to authenticated;
