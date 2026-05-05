@@ -323,6 +323,41 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "db class 248": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
   "vectron dual mode": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
   "siemens vectron dual mode": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  // BR 247 (Siemens Vectron DE — single-mode diesel) — added 2026-05-05 after a screen recording
+  // for the TrainVibez sponsor video showed the card returning "Builder: Electro-Motive Diesel" and
+  // facts framing the loco as "Vectron Dual Mode". BR 247 is the diesel-only Vectron variant — NOT
+  // Dual Mode (that's BR 248), NOT electric (that's BR 193). Bo-Bo, 160 km/h, 2,400 kW Caterpillar
+  // C175-16 V16 diesel, ~80 in service as of 2026 for DB Cargo / RDC Autozug Sylt / ELL / MRCE /
+  // Lokomotion on non-electrified routes including the Hindenburgdamm to Sylt. Builder is ALWAYS
+  // Siemens Mobility (Munich-Allach), NEVER Electro-Motive Diesel / EMD.
+  "br 247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "br247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "db 247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "db class 247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "vectron de": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "siemens vectron de": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  // ČD class 753 / 754 ("Brejlovec" — Czech for "goggle-eyed", named for the round headlights set
+  // in oval recesses) — added 2026-05-05 after the same TrainVibez screen-recording session
+  // flagged that Czech cross-border diesels in DE/Saxony had no codebase coverage. Originally
+  // built by ČKD Praha 1968-1977 (753 = freight, ~322 built) and 1979+ (754 = passenger version
+  // with electric train heating, ~86 built). The 753.7 sub-class is the modern CZ Loko rebuild
+  // (Caterpillar engine, ~60+ rebuilt). Bo-Bo, 100 km/h, 1,460 kW. Frequent cross-border into
+  // Germany (Saxony, Bavaria) on freight + heritage runs. Operators: ČD, ČD Cargo, AŽD, RegioJet,
+  // Unipetrol, plus several private freight operators. Builder is ALWAYS ČKD Praha (originals)
+  // or CZ Loko (rebuilds), NEVER Siemens, NEVER Škoda.
+  "753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "čd 753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "čd 754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "cd 753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "cd 754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "čd class 753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "čd class 754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "class 753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "class 754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "brejlovec": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "753.7": { maxSpeed: "100 km/h", power: "1,500 kW", builder: "CZ Loko (rebuild from ČKD T478.3)", numberBuilt: 60, fuelType: "Diesel-Electric (Caterpillar)" },
   // SD85 (Pesa-built diesel multiple unit, SKPL operator) — added 2026-04-29 after pafawag.w.obiektywie
   // round-2 + round-3 corrections. The SD85 was being returned as "Pesa Elf 2 SD85" with Pesa Elf 2 specs
   // bleeding through. SD85 is a separate Pesa-built class — NOT Pesa Elf 2. Specs verified against
