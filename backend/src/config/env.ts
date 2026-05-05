@@ -80,4 +80,11 @@ export const config = {
   get hasRedis(): boolean {
     return this.upstashRedisRestUrl.length > 0 && this.upstashRedisRestToken.length > 0;
   },
+
+  // Admin token gating /api/admin/* (manual league reset replay etc.)
+  adminSecret: optionalEnv("ADMIN_SECRET", ""),
+
+  get hasAdminSecret(): boolean {
+    return this.adminSecret.length > 0;
+  },
 };

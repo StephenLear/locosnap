@@ -16,7 +16,52 @@ Apple approved overnight (hotfix-class diff). v1.0.25 is now LIVE on both stores
 - YXNSST: Play staged rollout should surface the update within 24–48h. Follow-up DM queued asking them to update + retest the Weiter button on Redmi Note 13 Pro 5G / HyperOS.
 - Other Redmi/HyperOS users hit by the same safe-area bug (silent victims who didn't report) auto-fixed on update.
 
-No code changes today — release-status update only.
+### Backend — Phase 2 Section D: weekly league cron coordinator (code-only, migration-tolerant)
+
+Continues the v1.0.26 leaderboard Phase 2 work on `feat/v1.0.25-leaderboard-phase2` worktree branch. **Hosting decision: Render cron** (D.1) — same deployment surface as the API, simpler debug + existing patterns. Considered Supabase pg_cron and rejected as a second operational surface for ~30s/week of work.
+
+**New files:**
+- `backend/src/cron/leagueWeeklyReset.ts` (≈400 LOC) — pure helpers (`computeTierMoves`, `decideFreezeAward`, `computeGhostMove`, `shouldAwardPromotionBoost`, `nextWeekBoundaries`) + DB-touching orchestrator `runLeagueWeeklyReset(supabase, weekStartUtc)`. Idempotent against `weekStartUtc` (re-run for already-completed week returns `status: "skipped_already_run"`); migration-tolerant (returns `status: "skipped_no_migration"` on missing-table error 42P01/PGRST205); failure-tolerant (sets `last_reset_status='failed'` on the cycle-state row + still resolves the promise).
+- `backend/src/cron/runLeagueWeeklyReset.ts` — thin Render entrypoint. `node dist/cron/runLeagueWeeklyReset.js` invokes `runLeagueWeeklyReset(currentWeekStartUtc)`. Exits 0 on success/skip, 1 on failure.
+- `backend/src/routes/admin.ts` — admin endpoint router gated on `Bearer ${ADMIN_SECRET}`. Returns 503 when `ADMIN_SECRET` is unset (default → never accidentally exposed in dev).
+- `backend/src/__tests__/cron/leagueWeeklyReset.test.ts` — **23 unit tests** covering tier math (top/bottom 10% with min-1 floor, Bronze never demotes, Vectron never promotes, tie-breaking by `updated_at asc`, zero-XP no-promote rule, 1-user collision guard), freeze awards (Pro auto-replenish + cap, Free 4-week-streak threshold + cap, infinite-trigger guard), ghost cleanup (4-week threshold drop, freeze auto-burn, Bronze floor), promotion-boost cap, week boundary math.
+- `backend/src/__tests__/routes/admin.test.ts` — **7 tests** covering auth gate (401 wrong/missing token, 503 disabled), Monday-boundary validation (400 on non-Monday with canonical hint), 503 on missing supabase, happy-path replay invocation.
+
+**Endpoint:** `POST /api/admin/league-reset/:weekStartUtc` — manual replay of the cron for a Monday-boundary ISO date. Auth-gated to `Bearer ${ADMIN_SECRET}`. Validates Monday boundary explicitly (returns 400 with `expected: <canonical>` rather than silently snapping). Idempotent — re-running for a completed week returns `skipped_already_run`.
+
+**Promotion/demotion rules** (per design doc D6):
+- Top 10% per tier promote (minimum 1, except Vectron tier 8 which never promotes; zero-XP scans never promote even if they're alone in an otherwise-empty league).
+- Bottom 10% per tier demote (minimum 1, except Bronze tier 1 which never demotes).
+- 1-user league: promotion wins (collision guard against same user being both promoted and demoted).
+- Tie-break by `weekly_xp DESC, updated_at ASC` — earlier-updated wins (Duolingo loss-aversion rule).
+
+**Freeze rules** (per design doc D8):
+- Pro: +1 freeze every week, capped at 3 banked.
+- Free: +1 freeze when `consecutive_active_weeks >= 4`, capped at 2 banked. Earning resets the active streak counter to 0. Hitting threshold while at cap still resets the counter (prevents infinite-trigger when cap frees up).
+
+**Ghost cleanup** (per design doc D7):
+- Active week (`weekly_xp > 0`): inactive counter reset to 0.
+- Inactive with freeze available: burn 1 freeze, counter reset to 0, no tier drop.
+- Inactive, counter < 4: increment counter.
+- Inactive, counter would hit 4: drop one tier (unless Bronze), reset counter to 0.
+
+**Boost cards** (per design doc D11):
+- 1 `flat_100` per league promotion, capped at 3 banked. Awarded inline during the per-user write loop.
+- `next_scan_2x` (4-week active streak award) deferred to v1.0.26 alongside the queued-state machinery (`pending_boost_card_id` on profiles).
+
+**Migration-tolerance pattern:** every DB call wrapped — code path returns `status: "skipped_no_migration"` cleanly when `league_cycle_state` doesn't exist. Same pattern as the rest of Phase 2 backend: ship code now, turn on after migration 013 is applied to production.
+
+**Env config:** `ADMIN_SECRET` added to `backend/src/config/env.ts` as `optionalEnv("ADMIN_SECRET", "")` with `hasAdminSecret` getter. Default-disabled in dev.
+
+**Render scheduling** (D.5 — user-action when migration 013 is applied):
+1. Render dashboard → Cron Jobs → Add new
+2. Schedule: `59 23 * * 0` (Sunday 23:59 UTC)
+3. Command: `node dist/cron/runLeagueWeeklyReset.js`
+4. Set `ADMIN_SECRET` env var on the cron service so the admin replay endpoint also has it.
+
+**Tests at session close:** **167/167 backend** (was 137; +23 cron + 7 admin = +30 new). TSC clean. Not yet pushed.
+
+No frontend changes. Sections E–H still pending and gated on migration 013 application.
 
 ---
 
