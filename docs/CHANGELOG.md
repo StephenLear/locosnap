@@ -7,6 +7,41 @@ Format: newest first within each date block.
 
 ## 2026-05-05
 
+### v1.0.28 — tiered achievements + weekly rarity champions SHIPPED to both stores (`051f71e`)
+
+End-to-end ship of two Phase 2 depth features in a single release. Both iOS (build 50) and Android (versionCode 16) auto-submitted via EAS. iOS in Apple review queue; Android in Play Console production track as draft.
+
+**Tiered achievements** — replaces the 8 first-week achievements with progression depth. New tiers added on top of existing achievements:
+- `ten_unique_silver` (50 unique classes), `ten_unique_gold` (200)
+- `fifty_spots_silver` (250 spots), `fifty_spots_gold` (1000) — "500 Club" and "Thousand Yard"
+- `seven_day_streak_silver` (30 days), `seven_day_streak_gold` (100)
+- `copped_legendary_silver` (5 legendary scans)
+- `heritage_hunter_silver` (50 steam scans)
+
+Implementation: extended `Achievement` type union in `frontend/types/index.ts`; added 8 new check entries to the unlock array in `frontend/services/supabase.ts:1114`; added EN+DE i18n keys for each new title/description; tracked legendary count via `rarityTiers` map populated during scan persistence. Existing achievement check pattern (DB upsert + frontend check) reused — no schema changes required.
+
+**Weekly Rare-Find Champion card** — new mini-card on the Country tab showing the top user per country with the highest-rarity verified scan this week. Drives social sharing + retention beyond the league tier system.
+
+- Migration 014 (`014_weekly_rarity_champions.sql`) — SECURITY DEFINER function `get_weekly_rarity_champion(p_country_code text)`. Reads `spots`+`trains`+`profiles`, filters to rare/epic/legendary AND verified-live/verified-recent-gallery scans this week (date_trunc to UTC Monday), picks each user's best find (rarity rank desc, scan_date asc), returns top user per country. Granted to `authenticated` only. Applied to production Supabase 2026-05-05 17:23. First champion: TrainFan_0680 with DR Baureihe 35.10 (legendary) — verified the function works against live data.
+- New service helper `getWeeklyRarityChampion(countryCode)` in `frontend/services/supabase.ts` calls the RPC.
+- New component `frontend/components/WeeklyChampionCard.tsx` — gold-trimmed card with crown emoji, username, train class, and rarity badge. Renders only when champion exists (silently absent otherwise).
+- Wired into `frontend/components/leaderboard/CountryTab.tsx` above the leaderboard list.
+- 7 new EN+DE i18n keys: `leaderboard.country.weeklyChampion.*` (title, subtitle, badge labels). Diacritics verified — Wöchentlicher, Länder.
+
+**Backend EL2/EL3 fix** (earlier commit `4b3c7e5` same day, pushed before v1.0.28 frontend work): vision disambiguation rules now lock EL2 to 1435mm gauge + LEW Hennigsdorf builder (catches the @ostdeutscher_bahner2009 correction where EL3 was being misidentified as EL2). Render auto-deployed. User-facing improvement to Polish electric loco identification.
+
+**Tests at session close**: frontend **135/135**, TSC clean. No breaking changes.
+
+**Migration audit** (per `feedback_migration_column_audit.md`): every column reference in 014 verified against schema — `s.train_id`, `s.verification_tier`, `s.created_at`, `t.id`, `t.class`, `t.rarity_tier`, `p.id`, `p.username`, `p.spotter_emoji`, `p.country_code` all confirmed against migrations 001 / 010 / 011 / 013.
+
+**Builds**:
+- iOS build 50, EAS `77ef2bf1-41c1-4057-b2cb-402b8114c9a6`, submitted to App Store Connect → in Apple review queue
+- Android versionCode 16, EAS `37de5d5f-4e7c-4e28-80b4-973e1138f8a4`, submitted to Play Console production → draft awaiting send-for-review
+
+**Release notes shipped (EN + DE)**:
+- EN: 8 new tiered achievements, Weekly Rare-Find Champion card, improved Polish EL2/EL3 identification
+- DE: 8 neue gestufte Erfolge, Wöchentlicher Rare-Find-Champion Karte, verbesserte EL2/EL3 Erkennung
+
 ### Phase 2 leaderboard — frontend SHIPPED + cron deployed to Render (v1.0.26 work)
 
 End-to-end Phase 2 ship across 6 commits on `main` (385175b → 3d6b0ab → 55ddc7e → e7626ba → e85a3f4, plus the earlier d6ec35f + 3cc8e72 hotfixes). Migration 013 applied to production Supabase, 206 profiles backfilled 1:1 into league_membership at tier 1 (Bronze) for week 2026-05-04. Render cron `locosnap-league-cron` scheduled at `59 23 * * 0` (Sunday 23:59 UTC), command `node dist/cron/runLeagueWeeklyReset.js`. First manual replay run 2026-05-05 12:18 PM UTC completed in 10 seconds — 0 promotions / 0 demotions / 26 freezes awarded (= 26 Pro users got their weekly +1 freeze). Cycle state advanced to 2026-05-11.
