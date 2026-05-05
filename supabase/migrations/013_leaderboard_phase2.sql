@@ -82,10 +82,11 @@ update public.profiles p
 set featured_spot_id = (
   select s.id
   from public.spots s
+  join public.trains t on t.id = s.train_id
   where s.user_id = p.id
     and s.verification_tier in ('verified-live', 'verified-recent-gallery')
   order by
-    case s.rarity_tier
+    case t.rarity_tier
       when 'legendary' then 5
       when 'epic'      then 4
       when 'rare'      then 3
@@ -426,11 +427,12 @@ declare
   v_final_xp         int;
   v_existing_event   record;
 begin
-  -- Read spot row.
-  select user_id, class, rarity_tier, verification_tier, created_at
+  -- Read spot row joined to its train (rarity_tier + class live on trains).
+  select s.user_id, t.class, t.rarity_tier, s.verification_tier, s.created_at
     into v_owner, v_class_key, v_rarity_tier, v_verification_tier, v_scan_date
-    from public.spots
-   where id = p_spot_id;
+    from public.spots s
+    join public.trains t on t.id = s.train_id
+   where s.id = p_spot_id;
 
   if v_owner is null then
     raise exception 'spot not found' using errcode = 'P0002';
