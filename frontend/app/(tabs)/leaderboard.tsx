@@ -17,9 +17,9 @@ import {
   useLeaderboardStore,
   type LeaderboardTab,
 } from "../../store/leaderboardStore";
-import { MyLeagueTab } from "./leaderboard/MyLeagueTab";
-import { CountryTab } from "./leaderboard/CountryTab";
-import { CollectionTab } from "./leaderboard/CollectionTab";
+import { MyLeagueTab } from "../../components/leaderboard/MyLeagueTab";
+import { CountryTab } from "../../components/leaderboard/CountryTab";
+import { CollectionTab } from "../../components/leaderboard/CollectionTab";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 
 const TABS: ReadonlyArray<{ key: LeaderboardTab; i18nKey: string }> = [

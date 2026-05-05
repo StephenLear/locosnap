@@ -19,16 +19,16 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useAuthStore } from "../../../store/authStore";
-import { useLeaderboardStore } from "../../../store/leaderboardStore";
+import { useAuthStore } from "../../store/authStore";
+import { useLeaderboardStore } from "../../store/leaderboardStore";
 import {
   fetchCountryLeaderboard,
   fetchKnownCountryCodes,
   type LeaderboardEntry,
-} from "../../../services/supabase";
-import { getCountryByCode } from "../../../data/countries";
-import { colors, fonts, spacing, borderRadius } from "../../../constants/theme";
-import { IdentityBadge } from "../../../components/IdentityBadge";
+} from "../../services/supabase";
+import { getCountryByCode } from "../../data/countries";
+import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
+import { IdentityBadge } from "../IdentityBadge";
 
 const FALLBACK_COUNTRY = "DE"; // project's #1 market
 
@@ -96,6 +96,7 @@ export function CountryTab() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.pillScroll}
         contentContainerStyle={styles.pillRow}
       >
         {orderedCountries.map((c) => {
@@ -215,10 +216,15 @@ function CountryRow({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  pillScroll: {
+    flexGrow: 0,
+    maxHeight: 56,
+  },
   pillRow: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.xs,
+    alignItems: "center",
   },
   pill: {
     flexDirection: "row",

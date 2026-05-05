@@ -21,16 +21,16 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useAuthStore } from "../../../store/authStore";
-import { useLeaderboardStore } from "../../../store/leaderboardStore";
+import { useAuthStore } from "../../store/authStore";
+import { useLeaderboardStore } from "../../store/leaderboardStore";
 import {
   fetchLeaderboard,
   fetchRarityLeaderboard,
   type LeaderboardEntry,
-} from "../../../services/supabase";
-import { computeRarityScore } from "../../../constants/rarityScore";
-import { colors, fonts, spacing, borderRadius } from "../../../constants/theme";
-import { IdentityBadge } from "../../../components/IdentityBadge";
+} from "../../services/supabase";
+import { computeRarityScore } from "../../constants/rarityScore";
+import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
+import { IdentityBadge } from "../IdentityBadge";
 
 type SubToggle = "unique_classes" | "rarity_score" | "streak_days";
 

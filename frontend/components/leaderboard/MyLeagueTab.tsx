@@ -23,26 +23,26 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { useAuthStore } from "../../../store/authStore";
+import { useAuthStore } from "../../store/authStore";
 import {
   fetchLeagueRankings,
   fetchMyLeagueMembership,
   fetchSpotPhotoUrls,
   type LeagueMembership,
   type LeagueRankingRow,
-} from "../../../services/supabase";
+} from "../../services/supabase";
 import {
   BRONZE_TIER,
   VECTRON_TIER,
   demotionSlots,
   getTier,
   promotionSlots,
-} from "../../../constants/leagues";
-import { colors, fonts, spacing, borderRadius } from "../../../constants/theme";
-import { IdentityBadge } from "../../../components/IdentityBadge";
-import { FreezeCounter } from "../../../components/FreezeCounter";
-import { ThemedDayBanner } from "../../../components/ThemedDayBanner";
-import { BoostInventory } from "../../../components/BoostInventory";
+} from "../../constants/leagues";
+import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
+import { IdentityBadge } from "../IdentityBadge";
+import { FreezeCounter } from "../FreezeCounter";
+import { ThemedDayBanner } from "../ThemedDayBanner";
+import { BoostInventory } from "../BoostInventory";
 
 export function MyLeagueTab() {
   const { t } = useTranslation();

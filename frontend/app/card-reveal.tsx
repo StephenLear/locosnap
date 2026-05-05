@@ -812,11 +812,13 @@ export default function CardRevealScreen() {
                 )}
 
                 {/* F.2 — set as featured card. Visible for verified or
-                    personal tier in history mode (need persisted spotId). */}
+                    personal tier in history mode (need persisted spotId).
+                    Legacy items pre-dating the verification fields have
+                    null tier — those are PERSONAL-equivalent per migration
+                    013 backfill, so we show the button for null too. Only
+                    UNVERIFIED is excluded (privacy by default). */}
                 {historyItem?.id &&
-                  (displayVerificationTier === "verified-live" ||
-                    displayVerificationTier === "verified-recent-gallery" ||
-                    displayVerificationTier === "personal") && (
+                  displayVerificationTier !== "unverified" && (
                     <TouchableOpacity
                       style={[
                         styles.featuredBtn,
