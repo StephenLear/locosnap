@@ -330,13 +330,13 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // C175-16 V16 diesel, ~80 in service as of 2026 for DB Cargo / RDC Autozug Sylt / ELL / MRCE /
   // Lokomotion on non-electrified routes including the Hindenburgdamm to Sylt. Builder is ALWAYS
   // Siemens Mobility (Munich-Allach), NEVER Electro-Motive Diesel / EMD.
-  "br 247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
-  "br247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
-  "247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
-  "db 247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
-  "db class 247": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
-  "vectron de": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
-  "siemens vectron de": { maxSpeed: "160 km/h", power: "2,400 kW", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "br 247": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "br247": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "247": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "db 247": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "db class 247": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "vectron de": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  "siemens vectron de": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
   // ČD class 753 / 754 ("Brejlovec" — Czech for "goggle-eyed", named for the round headlights set
   // in oval recesses) — added 2026-05-05 after the same TrainVibez screen-recording session
   // flagged that Czech cross-border diesels in DE/Saxony had no codebase coverage. Originally
@@ -346,18 +346,20 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // Germany (Saxony, Bavaria) on freight + heritage runs. Operators: ČD, ČD Cargo, AŽD, RegioJet,
   // Unipetrol, plus several private freight operators. Builder is ALWAYS ČKD Praha (originals)
   // or CZ Loko (rebuilds), NEVER Siemens, NEVER Škoda.
-  "753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
-  "754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
-  "čd 753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
-  "čd 754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
-  "cd 753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
-  "cd 754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
-  "čd class 753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
-  "čd class 754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
-  "class 753": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
-  "class 754": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
-  "brejlovec": { maxSpeed: "100 km/h", power: "1,460 kW", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
-  "753.7": { maxSpeed: "100 km/h", power: "1,500 kW", builder: "CZ Loko (rebuild from ČKD T478.3)", numberBuilt: 60, fuelType: "Diesel-Electric (Caterpillar)" },
+  "753": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "754": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "čd 753": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "čd 754": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "cd 753": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "cd 754": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "čd class 753": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "čd class 754": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "čd class 753.7": { maxSpeed: "100 km/h", power: "1,500 kW", weight: "74 tonnes", builder: "CZ Loko (rebuild from ČKD T478.3)", numberBuilt: 60, fuelType: "Diesel-Electric (Caterpillar)" },
+  "class 753": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "class 754": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 86, fuelType: "Diesel-Electric (with electric train heating)" },
+  "class 753.7": { maxSpeed: "100 km/h", power: "1,500 kW", weight: "74 tonnes", builder: "CZ Loko (rebuild from ČKD T478.3)", numberBuilt: 60, fuelType: "Diesel-Electric (Caterpillar)" },
+  "brejlovec": { maxSpeed: "100 km/h", power: "1,460 kW", weight: "74 tonnes", builder: "ČKD Praha", numberBuilt: 322, fuelType: "Diesel-Electric" },
+  "753.7": { maxSpeed: "100 km/h", power: "1,500 kW", weight: "74 tonnes", builder: "CZ Loko (rebuild from ČKD T478.3)", numberBuilt: 60, fuelType: "Diesel-Electric (Caterpillar)" },
   // SD85 (Pesa-built diesel multiple unit, SKPL operator) — added 2026-04-29 after pafawag.w.obiektywie
   // round-2 + round-3 corrections. The SD85 was being returned as "Pesa Elf 2 SD85" with Pesa Elf 2 specs
   // bleeding through. SD85 is a separate Pesa-built class — NOT Pesa Elf 2. Specs verified against
