@@ -148,6 +148,7 @@ export interface VerificationResult {
 // ── Achievement definitions ──────────────────────────────────
 
 export type AchievementType =
+  // Bronze tier (the original 8 — first-week onboarding)
   | "first_cop"
   | "ten_unique"
   | "copped_legendary"
@@ -155,7 +156,16 @@ export type AchievementType =
   | "shed_full"
   | "heritage_hunter"
   | "fifty_spots"
-  | "rarity_collector";
+  | "rarity_collector"
+  // Silver / Gold tier (added 2026-05-05 for engaged users who maxed Bronze)
+  | "unique_century"        // 100 unique classes
+  | "unique_master"         // 200 unique classes
+  | "five_hundred_club"     // 500 total spots
+  | "thousand_spots"        // 1000 total spots
+  | "streak_thirty"         // 30-day streak
+  | "streak_hundred"        // 100-day streak
+  | "legendary_five"        // 5 legendary scans
+  | "heritage_master";      // 50 steam locomotives
 
 export interface AchievementDefinition {
   type: AchievementType;
@@ -221,5 +231,62 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: "Spot at least one train of every rarity tier",
     icon: "prism",
     color: "#e879f9",
+  },
+  // ── Silver / Gold tier ──────────────────────────────────────
+  {
+    type: "unique_century",
+    name: "Century Collector",
+    description: "Collect 100 unique train classes",
+    icon: "trophy",
+    color: "#94a3b8",
+  },
+  {
+    type: "unique_master",
+    name: "Master Spotter",
+    description: "Collect 200 unique train classes",
+    icon: "trophy",
+    color: "#fbbf24",
+  },
+  {
+    type: "five_hundred_club",
+    name: "500 Club",
+    description: "Log 500 total spots",
+    icon: "albums",
+    color: "#38bdf8",
+  },
+  {
+    type: "thousand_spots",
+    name: "Thousand Yard",
+    description: "Log 1,000 total spots",
+    icon: "albums",
+    color: "#fbbf24",
+  },
+  {
+    type: "streak_thirty",
+    name: "Month on the Rails",
+    description: "Spot a train every day for 30 days",
+    icon: "flame",
+    color: "#f97316",
+  },
+  {
+    type: "streak_hundred",
+    name: "Century Streak",
+    description: "Spot a train every day for 100 days",
+    icon: "flame",
+    color: "#dc2626",
+  },
+  {
+    type: "legendary_five",
+    name: "Legend Hunter",
+    description: "Spot 5 Legendary-tier trains",
+    icon: "star",
+    color: "#fbbf24",
+  },
+  {
+    type: "heritage_master",
+    name: "Heritage Master",
+    description: "Spot 50 steam locomotives",
+    icon: "leaf",
+    color: "#0d9488",
   },
 ];

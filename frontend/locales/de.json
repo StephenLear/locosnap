@@ -181,6 +181,15 @@
       "rare_tier": "Rare-Tier-Dienstag — heute {{multiplier}}× XP für seltene Klassen",
       "heritage": "Heritage-Samstag — heute {{multiplier}}× XP für Klassen deines Landes"
     },
+    "weeklyChampion": {
+      "heading": "Wochenmeister Rare Finds",
+      "find": "Bester Fund: {{class}} ({{tier}})",
+      "tier": {
+        "rare": "Selten",
+        "epic": "Episch",
+        "legendary": "Legendär"
+      }
+    },
     "boost": {
       "heading": "Boost-Karten",
       "useCta": "Einsetzen",

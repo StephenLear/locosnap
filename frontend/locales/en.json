@@ -181,6 +181,15 @@
       "rare_tier": "Rare-Tier Tuesday — {{multiplier}}× XP for rare and above today",
       "heritage": "Heritage Saturday — {{multiplier}}× XP for your country's classes today"
     },
+    "weeklyChampion": {
+      "heading": "Weekly rare-find champion",
+      "find": "Best find: {{class}} ({{tier}})",
+      "tier": {
+        "rare": "Rare",
+        "epic": "Epic",
+        "legendary": "Legendary"
+      }
+    },
     "boost": {
       "heading": "Boost cards",
       "useCta": "Use",

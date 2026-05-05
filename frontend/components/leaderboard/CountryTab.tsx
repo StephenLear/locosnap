@@ -29,6 +29,7 @@ import {
 import { getCountryByCode } from "../../data/countries";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { IdentityBadge } from "../IdentityBadge";
+import { WeeklyChampionCard } from "./WeeklyChampionCard";
 
 const FALLBACK_COUNTRY = "DE"; // project's #1 market
 
@@ -137,6 +138,10 @@ export function CountryTab() {
           );
         })}
       </View>
+
+      {/* Weekly rarity champion card (only when there's a verified
+          rare/epic/legendary scan in this country this week) */}
+      <WeeklyChampionCard countryCode={activeCode} />
 
       {/* List */}
       {loading ? (

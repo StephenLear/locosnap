@@ -449,6 +449,54 @@ export async function fetchLeagueRankings(
   }));
 }
 
+// ────────────────────────────────────────────────────────────
+// Weekly rarity champion (Phase 2 — per-country rare-find leader)
+// ────────────────────────────────────────────────────────────
+
+export interface WeeklyRarityChampion {
+  userId: string;
+  username: string;
+  spotterEmoji: string | null;
+  spotId: string;
+  classKey: string;
+  rarityTier: "rare" | "epic" | "legendary";
+  scanDate: string;
+}
+
+/**
+ * Fetch the current week's top rare-find spotter for the given
+ * country. Returns null when the country has no qualifying scans
+ * yet, or when migration 014 hasn't been applied.
+ *
+ * "Qualifying" = verified-live OR verified-recent-gallery scan
+ * of a rare/epic/legendary train, recorded this ISO week. Highest
+ * rarity wins; earliest scan_date is the tiebreaker.
+ */
+export async function fetchWeeklyRarityChampion(
+  countryCode: string
+): Promise<WeeklyRarityChampion | null> {
+  const { data, error } = await supabase.rpc("get_weekly_rarity_champion", {
+    p_country_code: countryCode,
+  });
+  if (error) {
+    if (error.code !== "42883" && error.code !== "PGRST202") {
+      console.warn("Failed to fetch weekly rarity champion:", error.message);
+    }
+    return null;
+  }
+  if (!data || (Array.isArray(data) && data.length === 0)) return null;
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    userId: row.user_id,
+    username: row.username || "Anonymous Spotter",
+    spotterEmoji: row.spotter_emoji,
+    spotId: row.spot_id,
+    classKey: row.class_key,
+    rarityTier: row.rarity_tier,
+    scanDate: row.scan_date,
+  };
+}
+
 /**
  * Bulk-fetch photo URLs for a set of spot IDs. Used by the league
  * leaderboard rows to render featured-card thumbnails. Filters to
@@ -1034,7 +1082,16 @@ export type AchievementType =
   | "shed_full"
   | "heritage_hunter"
   | "fifty_spots"
-  | "rarity_collector";
+  | "rarity_collector"
+  // Silver / Gold tier (2026-05-05)
+  | "unique_century"
+  | "unique_master"
+  | "five_hundred_club"
+  | "thousand_spots"
+  | "streak_thirty"
+  | "streak_hundred"
+  | "legendary_five"
+  | "heritage_master";
 
 export interface Achievement {
   type: AchievementType;
@@ -1111,7 +1168,9 @@ export async function checkAndUnlockAchievements(params: {
     existingAchievements,
   } = params;
 
+  const legendaryCount = params.rarityTiers["legendary"] ?? 0;
   const checks: [AchievementType, boolean][] = [
+    // Bronze tier — first-week onboarding goals
     ["first_cop", totalSpots >= 1],
     ["ten_unique", uniqueClasses >= 10],
     ["copped_legendary", hasLegendary],
@@ -1125,8 +1184,17 @@ export async function checkAndUnlockAchievements(params: {
         (params.rarityTiers["uncommon"] ?? 0) > 0 &&
         (params.rarityTiers["rare"] ?? 0) > 0 &&
         (params.rarityTiers["epic"] ?? 0) > 0 &&
-        (params.rarityTiers["legendary"] ?? 0) > 0,
+        legendaryCount > 0,
     ],
+    // Silver / Gold tier — long-haul retention
+    ["unique_century", uniqueClasses >= 100],
+    ["unique_master", uniqueClasses >= 200],
+    ["five_hundred_club", totalSpots >= 500],
+    ["thousand_spots", totalSpots >= 1000],
+    ["streak_thirty", streakCurrent >= 30],
+    ["streak_hundred", streakCurrent >= 100],
+    ["legendary_five", legendaryCount >= 5],
+    ["heritage_master", steamCount >= 50],
   ];
 
   for (const [type, condition] of checks) {
