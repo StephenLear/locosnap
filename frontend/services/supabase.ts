@@ -353,6 +353,102 @@ export async function applyBoostCard(
   };
 }
 
+// ────────────────────────────────────────────────────────────
+// League membership + rankings (Phase 2 E.x)
+// ────────────────────────────────────────────────────────────
+
+export interface LeagueMembership {
+  userId: string;
+  tierIndex: number;
+  leagueShardId: number;
+  weeklyXp: number;
+  weeklyUniqueClasses: number;
+  weekStartUtc: string;
+  weekEndUtc: string;
+  consecutiveActiveWeeks: number;
+  consecutiveInactiveWeeks: number;
+}
+
+export interface LeagueRankingRow {
+  userId: string;
+  username: string;
+  countryCode: string | null;
+  spotterEmoji: string | null;
+  weeklyXp: number;
+  featuredSpotId: string | null;
+  isPro: boolean;
+}
+
+/**
+ * Read the current user's league_membership row. Returns null when
+ * migration 013 hasn't been applied OR when no row exists for this
+ * user yet (won't happen in practice since the migration backfills
+ * all profiles, but defensive).
+ */
+export async function fetchMyLeagueMembership(
+  userId: string
+): Promise<LeagueMembership | null> {
+  const { data, error } = await supabase
+    .from("league_membership")
+    .select(
+      "user_id, tier_index, league_shard_id, weekly_xp, weekly_unique_classes, week_start_utc, week_end_utc, consecutive_active_weeks, consecutive_inactive_weeks"
+    )
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    if (error.code !== "42P01" && error.code !== "PGRST205") {
+      console.warn("Failed to fetch league membership:", error.message);
+    }
+    return null;
+  }
+  if (!data) return null;
+
+  return {
+    userId: data.user_id,
+    tierIndex: data.tier_index,
+    leagueShardId: data.league_shard_id,
+    weeklyXp: data.weekly_xp,
+    weeklyUniqueClasses: data.weekly_unique_classes,
+    weekStartUtc: data.week_start_utc,
+    weekEndUtc: data.week_end_utc,
+    consecutiveActiveWeeks: data.consecutive_active_weeks,
+    consecutiveInactiveWeeks: data.consecutive_inactive_weeks,
+  };
+}
+
+/**
+ * Fetch the top 100 ranked rows for a given (tier, shard). Calls the
+ * SECURITY DEFINER RPC `get_my_league_rankings` so RLS doesn't expose
+ * every league_membership row to clients.
+ */
+export async function fetchLeagueRankings(
+  tierIndex: number,
+  shardId: number = 0
+): Promise<LeagueRankingRow[]> {
+  const { data, error } = await supabase.rpc("get_my_league_rankings", {
+    target_tier: tierIndex,
+    target_shard: shardId,
+  });
+
+  if (error) {
+    if (error.code !== "42883" && error.code !== "PGRST202") {
+      console.warn("Failed to fetch league rankings:", error.message);
+    }
+    return [];
+  }
+
+  return (data || []).map((row: any) => ({
+    userId: row.user_id,
+    username: row.username || "Anonymous Spotter",
+    countryCode: row.country_code,
+    spotterEmoji: row.spotter_emoji,
+    weeklyXp: row.weekly_xp || 0,
+    featuredSpotId: row.featured_spot_id,
+    isPro: !!row.is_pro,
+  }));
+}
+
 /**
  * Promote an UNVERIFIED spot to PERSONAL via owner attestation.
  * Calls the SECURITY DEFINER RPC `promote_unverified_to_personal`,

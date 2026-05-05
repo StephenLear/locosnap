@@ -126,7 +126,30 @@
     "title": "Bestenliste",
     "rank": "Rang",
     "spotter": "Spotter",
-    "spots": "Spots"
+    "spots": "Spots",
+    "tabs": {
+      "myLeague": "Meine Liga",
+      "country": "Land",
+      "collection": "Sammlung"
+    },
+    "league": {
+      "weeklyXp": "XP diese Woche",
+      "promotionZone": "Aufstiegszone",
+      "demotionZone": "Abstiegszone",
+      "signInPrompt": "Melde dich an, um deiner Liga beizutreten.",
+      "notReady": "Dein Ligaplatz erscheint nach deinem ersten Scan.",
+      "empty": "Noch keine Spotter in deiner Liga — sei der Erste mit XP diese Woche.",
+      "tier": {
+        "bronze": "Bronze",
+        "silver": "Silber",
+        "gold": "Gold",
+        "steam": "Dampf",
+        "diesel": "Diesel",
+        "electric": "Elektro",
+        "ice": "ICE",
+        "vectron": "Vectron"
+      }
+    }
   },
   "auth": {
     "signInWithApple": "Mit Apple anmelden",

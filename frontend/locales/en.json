@@ -126,7 +126,30 @@
     "title": "Leaderboard",
     "rank": "Rank",
     "spotter": "Spotter",
-    "spots": "Spots"
+    "spots": "Spots",
+    "tabs": {
+      "myLeague": "My League",
+      "country": "Country",
+      "collection": "Collection"
+    },
+    "league": {
+      "weeklyXp": "XP this week",
+      "promotionZone": "Promotion zone",
+      "demotionZone": "Demotion zone",
+      "signInPrompt": "Sign in to join your league.",
+      "notReady": "Your league spot will appear after your first scan.",
+      "empty": "No spotters in your league yet — be the first to score XP this week.",
+      "tier": {
+        "bronze": "Bronze",
+        "silver": "Silver",
+        "gold": "Gold",
+        "steam": "Steam",
+        "diesel": "Diesel",
+        "electric": "Electric",
+        "ice": "ICE",
+        "vectron": "Vectron"
+      }
+    }
   },
   "auth": {
     "signInWithApple": "Sign in with Apple",
