@@ -5,9 +5,24 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-05
+
+### Release — v1.0.25 iOS build 47 APPROVED by Apple and LIVE on App Store
+
+Apple approved overnight (hotfix-class diff). v1.0.25 is now LIVE on both stores: Android (versionCode 15) on Google Play since 2026-05-04 evening, iOS (build 47) on App Store as of 2026-05-05.
+
+**What this unlocks:**
+- BR 232 v2 ad post (TikTok + IG) can honestly include "Jetzt im App Store und Google Play" — both stores carry current builds.
+- YXNSST: Play staged rollout should surface the update within 24–48h. Follow-up DM queued asking them to update + retest the Weiter button on Redmi Note 13 Pro 5G / HyperOS.
+- Other Redmi/HyperOS users hit by the same safe-area bug (silent victims who didn't report) auto-fixed on update.
+
+No code changes today — release-status update only.
+
+---
+
 ## 2026-05-04
 
-### Release — v1.0.25 Android LIVE on Google Play (approved + pushed for publication 2026-05-04 evening); iOS still in Apple review
+### Release — v1.0.25 Android LIVE on Google Play (approved + pushed for publication 2026-05-04 evening); iOS submitted same evening, approved + LIVE 2026-05-05 (see entry above)
 
 Cut as a hotfix for tester YXNSST who was blocked on the identity onboarding flow since v1.0.24. Original v1.0.25 plan (leaderboard Phase 2-5) reduced to two surgical fixes; full leaderboard scope continues as **v1.0.26** work on the same `feat/v1.0.25-leaderboard-phase2` worktree branch.
 
