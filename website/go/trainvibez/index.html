@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocoSnap — Weiterleitung</title>
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+    body { background: #080d17; color: #e8edf5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; text-align: center; }
+    .box { max-width: 420px; }
+    h1 { color: #00D4AA; font-size: 24px; margin: 0 0 12px; }
+    p { color: #6b7a94; line-height: 1.5; margin: 0 0 20px; }
+    a.btn { display: inline-block; background: #00D4AA; color: #080d17; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 6px; }
+    a.btn.alt { background: transparent; border: 1px solid #00D4AA; color: #00D4AA; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>LocoSnap</h1>
+    <p>Weiterleitung zum Store…</p>
+    <noscript>
+      <p>Bitte JavaScript aktivieren oder einen der folgenden Links nutzen:</p>
+      <a class="btn" href="https://apps.apple.com/de/app/locosnap-train-identifier/id6759280267?ppid=d3860b78-88a1-43c9-a9f4-1226cafcfddd">App Store</a>
+      <a class="btn alt" href="https://play.google.com/store/apps/details?id=com.locosnap.app&referrer=utm_source%3Dyoutube%26utm_medium%3Dtrainvibez%26utm_campaign%3Dsponsor_2026_05">Google Play</a>
+    </noscript>
+  </div>
+  <script>
+    (function () {
+      var ua = navigator.userAgent || navigator.vendor || window.opera;
+      var iosUrl = 'https://apps.apple.com/de/app/locosnap-train-identifier/id6759280267?ppid=d3860b78-88a1-43c9-a9f4-1226cafcfddd';
+      var androidUrl = 'https://play.google.com/store/apps/details?id=com.locosnap.app&referrer=' + encodeURIComponent('utm_source=youtube&utm_medium=trainvibez&utm_campaign=sponsor_2026_05');
+      var fallbackUrl = 'https://locosnap.app/?utm_source=youtube&utm_medium=trainvibez&utm_campaign=sponsor_2026_05';
+      var target = fallbackUrl;
+      if (/android/i.test(ua)) {
+        target = androidUrl;
+      } else if (/iPad|iPhone|iPod/.test(ua) || (/Mac/.test(ua) && navigator.maxTouchPoints > 1)) {
+        target = iosUrl;
+      }
+      window.location.replace(target);
+    })();
+  </script>
+</body>
+</html>
