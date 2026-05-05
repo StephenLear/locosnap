@@ -687,6 +687,65 @@ export async function fetchWeeklyLeaderboard(
 }
 
 /**
+ * Fetch the all-time or weekly leaderboard filtered by country_code.
+ * Used by the Country tab. Falls back to an empty list on error.
+ */
+export async function fetchCountryLeaderboard(
+  countryCode: string,
+  mode: "this_week" | "all_time",
+  limit: number = 100
+): Promise<LeaderboardEntry[]> {
+  const view = mode === "this_week" ? "leaderboard_weekly" : "leaderboard";
+  const { data, error } = await supabase
+    .from(view)
+    .select("*")
+    .eq("country_code", countryCode)
+    .limit(limit);
+
+  if (error) {
+    console.warn(`Failed to fetch ${view} for ${countryCode}:`, error.message);
+    return [];
+  }
+
+  return (data || []).map((entry: any) => ({
+    id: entry.id || "",
+    username: entry.username || "Anonymous Spotter",
+    avatarUrl: entry.avatar_url || null,
+    level: entry.level || 1,
+    countryCode: entry.country_code || null,
+    spotterEmoji: entry.spotter_emoji || null,
+    totalSpots: entry.total_spots || 0,
+    uniqueTrains: entry.unique_classes || entry.weekly_unique || 0,
+    rareCount: entry.rare_count || 0,
+    lastActive: entry.last_active || null,
+    weeklySpots: entry.weekly_spots,
+    weeklyUnique: entry.weekly_unique,
+  }));
+}
+
+/**
+ * Fetch a list of distinct country codes that have at least one
+ * profile with a non-null country_code. Used to populate the
+ * country selector pill row on the Country tab.
+ */
+export async function fetchKnownCountryCodes(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("country_code")
+    .not("country_code", "is", null);
+
+  if (error) {
+    console.warn("Failed to fetch country codes:", error.message);
+    return [];
+  }
+  const codes = new Set<string>();
+  for (const row of data ?? []) {
+    if (row.country_code) codes.add(row.country_code);
+  }
+  return Array.from(codes).sort();
+}
+
+/**
  * Fetch the rarity leaderboard (most Epic + Legendary cards).
  */
 export async function fetchRarityLeaderboard(

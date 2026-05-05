@@ -149,6 +149,21 @@
         "ice": "ICE",
         "vectron": "Vectron"
       }
+    },
+    "country": {
+      "this_week": "This week",
+      "all_time": "All-time",
+      "classes": "classes",
+      "empty": "No spotters in this country yet."
+    },
+    "collection": {
+      "unique_classes": "Unique",
+      "rarity_score": "Rarity",
+      "streak_days": "Streak",
+      "classes": "classes",
+      "score": "score",
+      "streakSoon": "Streak ranking ships in v1.0.27 — showing unique classes for now.",
+      "empty": "No spotters yet — be the first."
     }
   },
   "auth": {

@@ -149,6 +149,21 @@
         "ice": "ICE",
         "vectron": "Vectron"
       }
+    },
+    "country": {
+      "this_week": "Diese Woche",
+      "all_time": "Gesamt",
+      "classes": "Klassen",
+      "empty": "Noch keine Spotter in diesem Land."
+    },
+    "collection": {
+      "unique_classes": "Klassen",
+      "rarity_score": "Seltenheit",
+      "streak_days": "Streak",
+      "classes": "Klassen",
+      "score": "Punkte",
+      "streakSoon": "Streak-Ranking kommt in v1.0.27 — vorerst zeigen wir die Klassenanzahl.",
+      "empty": "Noch keine Spotter — sei der Erste."
     }
   },
   "auth": {
