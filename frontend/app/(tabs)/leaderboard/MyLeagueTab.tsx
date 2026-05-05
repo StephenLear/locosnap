@@ -40,10 +40,15 @@ import {
 } from "../../../constants/leagues";
 import { colors, fonts, spacing, borderRadius } from "../../../constants/theme";
 import { IdentityBadge } from "../../../components/IdentityBadge";
+import { FreezeCounter } from "../../../components/FreezeCounter";
+import { ThemedDayBanner } from "../../../components/ThemedDayBanner";
+import { BoostInventory } from "../../../components/BoostInventory";
 
 export function MyLeagueTab() {
   const { t } = useTranslation();
-  const { user } = useAuthStore();
+  const { user, profile } = useAuthStore();
+  const freezeCount =
+    (profile as { streak_freezes_available?: number } | null)?.streak_freezes_available ?? 0;
   const [membership, setMembership] = useState<LeagueMembership | null>(null);
   const [rankings, setRankings] = useState<LeagueRankingRow[]>([]);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string | null>>({});
@@ -129,7 +134,17 @@ export function MyLeagueTab() {
       data={rankings}
       keyExtractor={(row, index) => row.userId || `row-${index}`}
       ListHeaderComponent={
-        <LeagueHeader tierKey={tier.key} tierColor={tier.color} membership={membership} t={t} />
+        <View>
+          <LeagueHeader
+            tierKey={tier.key}
+            tierColor={tier.color}
+            membership={membership}
+            freezeCount={freezeCount}
+            t={t}
+          />
+          <ThemedDayBanner />
+          {user && <BoostInventory userId={user.id} />}
+        </View>
       }
       renderItem={({ item, index }) => {
         const rank = index + 1;
@@ -187,11 +202,13 @@ function LeagueHeader({
   tierKey,
   tierColor,
   membership,
+  freezeCount,
   t,
 }: {
   tierKey: string;
   tierColor: string;
   membership: LeagueMembership;
+  freezeCount: number;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
   return (
@@ -201,9 +218,12 @@ function LeagueHeader({
           {t(`leaderboard.league.tier.${tierKey}`)}
         </Text>
       </View>
-      <Text style={styles.weeklyXp}>
-        {membership.weeklyXp} {t("leaderboard.league.weeklyXp")}
-      </Text>
+      <View style={styles.headerRight}>
+        <Text style={styles.weeklyXp}>
+          {membership.weeklyXp} {t("leaderboard.league.weeklyXp")}
+        </Text>
+        <FreezeCounter count={freezeCount} />
+      </View>
     </View>
   );
 }
@@ -297,6 +317,11 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold,
     letterSpacing: 1,
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   weeklyXp: {
     color: colors.textPrimary,

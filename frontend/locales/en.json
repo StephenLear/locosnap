@@ -170,6 +170,38 @@
       "score": "score",
       "streakSoon": "Streak ranking ships in v1.0.27 — showing unique classes for now.",
       "empty": "No spotters yet — be the first."
+    },
+    "freeze": {
+      "a11yLabel": "{{count}} streak freezes available",
+      "title": "Streak freezes",
+      "body": "Freezes protect your league spot when you can't scan. They auto-burn at week close. Pro: +1 every week (max 3). Free: +1 after 4 active weeks (max 2).",
+      "dismiss": "Got it"
+    },
+    "themedDay": {
+      "rare_tier": "Rare-Tier Tuesday — {{multiplier}}× XP for rare and above today",
+      "heritage": "Heritage Saturday — {{multiplier}}× XP for your country's classes today"
+    },
+    "boost": {
+      "heading": "Boost cards",
+      "useCta": "Use",
+      "queuedCta": "Coming soon",
+      "confirmTitle": "Use this boost?",
+      "confirmBody": "Adds 100 XP to your weekly total immediately. This action can't be undone.",
+      "confirmCta": "Use card",
+      "confirmCancel": "Cancel",
+      "applyFailed": "Couldn't apply card — try again later",
+      "notReadyTitle": "Not ready yet",
+      "notReadyBody": "This card type ships in v1.0.27.",
+      "types": {
+        "flat_100": {
+          "title": "+100 XP",
+          "description": "Earned by promoting out of a league"
+        },
+        "next_scan_2x": {
+          "title": "2× next scan",
+          "description": "Earned by 4 active weeks in a row"
+        }
+      }
     }
   },
   "auth": {

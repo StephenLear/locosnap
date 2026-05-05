@@ -170,6 +170,38 @@
       "score": "Punkte",
       "streakSoon": "Streak-Ranking kommt in v1.0.27 — vorerst zeigen wir die Klassenanzahl.",
       "empty": "Noch keine Spotter — sei der Erste."
+    },
+    "freeze": {
+      "a11yLabel": "{{count}} Streak-Freezes verfügbar",
+      "title": "Streak-Freezes",
+      "body": "Freezes schützen deinen Liga-Platz, wenn du nicht scannen kannst. Sie werden am Wochenende automatisch eingelöst. Pro: +1 pro Woche (max 3). Free: +1 nach 4 aktiven Wochen (max 2).",
+      "dismiss": "Verstanden"
+    },
+    "themedDay": {
+      "rare_tier": "Rare-Tier-Dienstag — heute {{multiplier}}× XP für seltene Klassen",
+      "heritage": "Heritage-Samstag — heute {{multiplier}}× XP für Klassen deines Landes"
+    },
+    "boost": {
+      "heading": "Boost-Karten",
+      "useCta": "Einsetzen",
+      "queuedCta": "Bald verfügbar",
+      "confirmTitle": "Boost einsetzen?",
+      "confirmBody": "Fügt sofort 100 XP zu deinem Wochenstand hinzu. Diese Aktion kann nicht rückgängig gemacht werden.",
+      "confirmCta": "Karte einsetzen",
+      "confirmCancel": "Abbrechen",
+      "applyFailed": "Karte konnte nicht eingesetzt werden — bitte später erneut versuchen",
+      "notReadyTitle": "Noch nicht verfügbar",
+      "notReadyBody": "Dieser Kartentyp kommt in v1.0.27.",
+      "types": {
+        "flat_100": {
+          "title": "+100 XP",
+          "description": "Erhalten durch einen Liga-Aufstieg"
+        },
+        "next_scan_2x": {
+          "title": "2× nächster Scan",
+          "description": "Erhalten durch 4 aktive Wochen in Folge"
+        }
+      }
     }
   },
   "auth": {
