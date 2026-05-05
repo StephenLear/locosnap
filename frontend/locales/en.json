@@ -64,6 +64,12 @@
     },
     "league": {
       "xpAwarded": "+{{xp}} XP toward your league"
+    },
+    "featured": {
+      "setCta": "Set as featured card",
+      "alreadySet": "Featured card",
+      "set": "Featured card updated",
+      "failed": "Couldn't update featured card — try again later"
     }
   },
   "results": {

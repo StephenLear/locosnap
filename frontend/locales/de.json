@@ -64,6 +64,12 @@
     },
     "league": {
       "xpAwarded": "+{{xp}} XP für deine Liga"
+    },
+    "featured": {
+      "setCta": "Als Karte des Profils festlegen",
+      "alreadySet": "Karte des Profils",
+      "set": "Karte des Profils aktualisiert",
+      "failed": "Aktualisierung fehlgeschlagen — bitte später erneut versuchen"
     }
   },
   "results": {

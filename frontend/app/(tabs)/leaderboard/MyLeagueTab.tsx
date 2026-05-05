@@ -15,6 +15,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   RefreshControl,
   StyleSheet,
   Text,
@@ -26,6 +27,7 @@ import { useAuthStore } from "../../../store/authStore";
 import {
   fetchLeagueRankings,
   fetchMyLeagueMembership,
+  fetchSpotPhotoUrls,
   type LeagueMembership,
   type LeagueRankingRow,
 } from "../../../services/supabase";
@@ -44,6 +46,7 @@ export function MyLeagueTab() {
   const { user } = useAuthStore();
   const [membership, setMembership] = useState<LeagueMembership | null>(null);
   const [rankings, setRankings] = useState<LeagueRankingRow[]>([]);
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -66,6 +69,16 @@ export function MyLeagueTab() {
             myMembership.leagueShardId
           );
           setRankings(rows);
+
+          const featuredIds = rows
+            .map((r) => r.featuredSpotId)
+            .filter((id): id is string => id != null);
+          if (featuredIds.length > 0) {
+            const urls = await fetchSpotPhotoUrls(featuredIds);
+            setPhotoUrls(urls);
+          } else {
+            setPhotoUrls({});
+          }
         }
       } finally {
         setLoading(false);
@@ -125,6 +138,9 @@ export function MyLeagueTab() {
           membership.tierIndex < VECTRON_TIER && index === promoteIndex;
         const showDemoteSeparatorBefore =
           membership.tierIndex > BRONZE_TIER && index === demoteIndex;
+        const photoUrl = item.featuredSpotId
+          ? photoUrls[item.featuredSpotId] ?? null
+          : null;
         return (
           <>
             {showDemoteSeparatorBefore && (
@@ -133,7 +149,12 @@ export function MyLeagueTab() {
                 color={colors.danger}
               />
             )}
-            <LeagueRow row={item} rank={rank} isMe={isMe} />
+            <LeagueRow
+              row={item}
+              rank={rank}
+              isMe={isMe}
+              featuredPhotoUrl={photoUrl}
+            />
             {showPromoteSeparatorAfter && (
               <ZoneSeparator
                 label={t("leaderboard.league.promotionZone")}
@@ -199,10 +220,12 @@ function LeagueRow({
   row,
   rank,
   isMe,
+  featuredPhotoUrl,
 }: {
   row: LeagueRankingRow;
   rank: number;
   isMe: boolean;
+  featuredPhotoUrl: string | null;
 }) {
   return (
     <View style={[styles.row, isMe && styles.rowMe]}>
@@ -220,6 +243,17 @@ function LeagueRow({
         </View>
         <Text style={styles.rowXp}>{row.weeklyXp} XP</Text>
       </View>
+      {featuredPhotoUrl ? (
+        <Image
+          source={{ uri: featuredPhotoUrl }}
+          style={styles.featuredThumb}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={[styles.featuredThumb, styles.featuredThumbEmpty]}>
+          <Ionicons name="image-outline" size={18} color={colors.textMuted} />
+        </View>
+      )}
     </View>
   );
 }
@@ -327,6 +361,16 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: fonts.sizes.sm,
     marginTop: 2,
+  },
+  featuredThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.surfaceLight,
+  },
+  featuredThumbEmpty: {
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

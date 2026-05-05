@@ -34,7 +34,11 @@ import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import ParticleEffect from "../components/ParticleEffect";
 import { track } from "../services/analytics";
-import { submitWrongIdReport, promoteUnverifiedToPersonal } from "../services/supabase";
+import {
+  submitWrongIdReport,
+  promoteUnverifiedToPersonal,
+  setFeaturedSpot,
+} from "../services/supabase";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 // Cap card width on web/desktop to avoid a massive pixelated card
@@ -115,6 +119,14 @@ export default function CardRevealScreen() {
   const [overriddenTier, setOverriddenTier] = useState<
     "personal" | null
   >(null);
+
+  // Phase 2 F.2 — featured-card picker. Tracks "is this spot the user's
+  // currently-featured card" via local optimistic state mirroring
+  // profile.featured_spot_id. The actual persisted value is on the
+  // profile fetched via authStore; we mirror after a successful update
+  // so the button label flips immediately.
+  const [featuringSubmitting, setFeaturingSubmitting] = useState(false);
+  const [optimisticIsFeatured, setOptimisticIsFeatured] = useState<boolean | null>(null);
 
   const historyItem = useMemo(() => {
     if (!historyId) return null;
@@ -448,6 +460,29 @@ export default function CardRevealScreen() {
     }
   };
 
+  // Phase 2 F.2 — set this spot as the user's featured card. Visible
+  // only for verified or personal tier in history mode. Optimistically
+  // flips local state, then persists via setFeaturedSpot RPC.
+  const handleSetFeatured = async () => {
+    const spotId = historyItem?.id;
+    const userId = session?.user?.id;
+    if (!spotId || !userId || featuringSubmitting) return;
+    setFeaturingSubmitting(true);
+    const ok = await setFeaturedSpot(userId, spotId);
+    setFeaturingSubmitting(false);
+    if (ok) {
+      setOptimisticIsFeatured(true);
+      track("featured_card_set", {
+        train_class: currentTrain?.class,
+        spot_id: spotId,
+      });
+      setSaveConfirm(t("card.featured.set"));
+      setTimeout(() => setSaveConfirm(null), 2500);
+    } else {
+      Alert.alert(t("card.featured.failed"));
+    }
+  };
+
   // UNVERIFIED → PERSONAL override (B.4). Two-step: confirm Alert then
   // RPC. Owner gate is enforced server-side; we additionally require
   // historyItem?.id since the spot must already be persisted.
@@ -775,6 +810,41 @@ export default function CardRevealScreen() {
                     </TouchableOpacity>
                   </View>
                 )}
+
+                {/* F.2 — set as featured card. Visible for verified or
+                    personal tier in history mode (need persisted spotId). */}
+                {historyItem?.id &&
+                  (displayVerificationTier === "verified-live" ||
+                    displayVerificationTier === "verified-recent-gallery" ||
+                    displayVerificationTier === "personal") && (
+                    <TouchableOpacity
+                      style={[
+                        styles.featuredBtn,
+                        (featuringSubmitting || optimisticIsFeatured) &&
+                          styles.featuredBtnDisabled,
+                      ]}
+                      onPress={handleSetFeatured}
+                      disabled={featuringSubmitting || !!optimisticIsFeatured}
+                      accessibilityRole="button"
+                    >
+                      {featuringSubmitting ? (
+                        <ActivityIndicator size="small" color={colors.accent} />
+                      ) : (
+                        <>
+                          <Ionicons
+                            name={optimisticIsFeatured ? "star" : "star-outline"}
+                            size={14}
+                            color={colors.accent}
+                          />
+                          <Text style={styles.featuredBtnText}>
+                            {optimisticIsFeatured
+                              ? t("card.featured.alreadySet")
+                              : t("card.featured.setCta")}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
 
                 {/* Mini stats row */}
                 <View style={styles.cardStatsRow}>
@@ -1272,6 +1342,28 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.bold,
+  },
+  featuredBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    backgroundColor: "transparent",
+    minHeight: 36,
+    marginTop: spacing.xs,
+  },
+  featuredBtnDisabled: {
+    opacity: 0.6,
+  },
+  featuredBtnText: {
+    color: colors.accent,
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
   },
 
   // Front — Info area

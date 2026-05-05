@@ -450,6 +450,56 @@ export async function fetchLeagueRankings(
 }
 
 /**
+ * Bulk-fetch photo URLs for a set of spot IDs. Used by the league
+ * leaderboard rows to render featured-card thumbnails. Filters to
+ * verified-live + verified-recent-gallery + personal at the query
+ * level — UNVERIFIED spots never appear as featured cards even if
+ * a stale featured_spot_id pointer remains on a profile.
+ */
+export async function fetchSpotPhotoUrls(
+  spotIds: string[]
+): Promise<Record<string, string | null>> {
+  if (spotIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from("spots")
+    .select("id, photo_url, verification_tier")
+    .in("id", spotIds);
+  if (error) {
+    if (error.code !== "42703") {
+      console.warn("Failed to fetch spot photos:", error.message);
+    }
+    return {};
+  }
+  const result: Record<string, string | null> = {};
+  for (const row of data ?? []) {
+    const tier = (row as { verification_tier?: string }).verification_tier;
+    if (tier === "unverified") continue;
+    result[row.id] = row.photo_url;
+  }
+  return result;
+}
+
+/**
+ * Update profiles.featured_spot_id for the current user. Returns true
+ * on success, false on failure (RLS reject, network, etc). The caller
+ * is responsible for optimistic local updates.
+ */
+export async function setFeaturedSpot(
+  userId: string,
+  spotId: string | null
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ featured_spot_id: spotId })
+    .eq("id", userId);
+  if (error) {
+    console.warn("Failed to set featured spot:", error.message);
+    return false;
+  }
+  return true;
+}
+
+/**
  * Promote an UNVERIFIED spot to PERSONAL via owner attestation.
  * Calls the SECURITY DEFINER RPC `promote_unverified_to_personal`,
  * which validates ownership server-side (auth.uid() = spots.user_id),
