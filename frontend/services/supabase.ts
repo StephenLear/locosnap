@@ -272,6 +272,110 @@ export async function updateSpotBlueprint(
 }
 
 /**
+ * Award weekly League XP for a spot. Called after saveSpot succeeds.
+ * Server-side computation (SECURITY DEFINER RPC) — client cannot
+ * forge the XP value. Returns final_xp = 0 for non-VERIFIED spots
+ * or when migration 013 isn't applied. Idempotent: re-calling for
+ * the same spot returns the existing event without double-bumping.
+ */
+export interface AwardWeeklyXpResult {
+  finalXp: number;
+  diminishedXp: number;
+  themedMultiplier: number;
+  weekStartUtc: string;
+  alreadyAwarded: boolean;
+  reason?: string;
+}
+
+export async function awardWeeklyXpForSpot(
+  spotId: string
+): Promise<AwardWeeklyXpResult | null> {
+  const { data, error } = await supabase.rpc("award_weekly_xp_for_spot", {
+    p_spot_id: spotId,
+  });
+
+  if (error) {
+    // Migration 013 not yet applied (function does not exist) → silent
+    // no-op. Any other error is genuinely unexpected — log but don't
+    // fail the surrounding scan-save flow.
+    if (error.code !== "42883" && error.code !== "PGRST202") {
+      console.warn("Failed to award weekly XP:", error.message);
+    }
+    return null;
+  }
+
+  if (!data) return null;
+
+  return {
+    finalXp: data.final_xp ?? 0,
+    diminishedXp: data.diminished_xp ?? 0,
+    themedMultiplier: data.themed_multiplier ?? 1.0,
+    weekStartUtc: data.week_start_utc,
+    alreadyAwarded: data.already_awarded ?? false,
+    reason: data.reason,
+  };
+}
+
+/**
+ * Apply a boost card from the user's inventory. flat_100 adds 100 XP
+ * to the current week immediately. next_scan_2x is staged in the SQL
+ * but returns `applied: false` until the queued-state machinery lands
+ * in v1.0.26.
+ */
+export interface ApplyBoostCardResult {
+  applied: boolean;
+  cardType: "flat_100" | "next_scan_2x";
+  xpAdded?: number;
+  reason?: string;
+}
+
+export async function applyBoostCard(
+  cardId: number
+): Promise<ApplyBoostCardResult | null> {
+  const { data, error } = await supabase.rpc("apply_boost_card", {
+    p_card_id: cardId,
+  });
+
+  if (error) {
+    if (error.code !== "42883" && error.code !== "PGRST202") {
+      console.warn("Failed to apply boost card:", error.message);
+    }
+    return null;
+  }
+
+  if (!data) return null;
+
+  return {
+    applied: data.applied ?? false,
+    cardType: data.card_type,
+    xpAdded: data.xp_added,
+    reason: data.reason,
+  };
+}
+
+/**
+ * Promote an UNVERIFIED spot to PERSONAL via owner attestation.
+ * Calls the SECURITY DEFINER RPC `promote_unverified_to_personal`,
+ * which validates ownership server-side (auth.uid() = spots.user_id),
+ * flips the tier, and bumps profiles.manual_overrides_count for
+ * abuse telemetry. Returns true on success.
+ */
+export async function promoteUnverifiedToPersonal(
+  spotId: string
+): Promise<boolean> {
+  const { error } = await supabase.rpc("promote_unverified_to_personal", {
+    p_spot_id: spotId,
+  });
+
+  if (error) {
+    console.warn("Failed to promote spot:", error.message);
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Submit a wrong-ID report to the misidentification triage table.
  * Both anonymous and authenticated users can submit. RLS allows
  * INSERT-only; SELECT is blocked at the policy level (admin-only via

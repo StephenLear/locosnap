@@ -118,6 +118,7 @@ export type CaptureSource = "camera" | "gallery";
 export type VerificationTier =
   | "verified-live"
   | "verified-recent-gallery"
+  | "personal"
   | "unverified";
 
 export interface ProvenanceInput {
@@ -140,6 +141,7 @@ export interface VerificationResult {
     lowAccuracy?: boolean;
     noGps?: boolean;
     screenshot?: boolean;
+    implausibleDate?: boolean;
   };
 }
 

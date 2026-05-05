@@ -21,6 +21,7 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/authStore";
 import { useSettingsStore } from "../store/settingsStore";
@@ -72,6 +73,7 @@ function deriveInitialCountry(
 export default function OnboardingIdentityScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
   const session = useAuthStore((s) => s.session);
   const updateCountryCode = useAuthStore((s) => s.updateCountryCode);
@@ -175,7 +177,13 @@ export default function OnboardingIdentityScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={styles.container}
+      style={[
+        styles.container,
+        // Floor of ~36px keeps tap targets clear of Android 3-button nav,
+        // where insets.bottom is 0 (no edge-to-edge) but the system bar
+        // still steals taps in the lowest screen region.
+        { paddingBottom: Math.max(insets.bottom, spacing.xl + spacing.md) },
+      ]}
     >
       <View style={styles.progressBar}>
         {[1, 2, 3, ...(isAnonymous ? [4] : [])].map((n) => (

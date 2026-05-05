@@ -34,7 +34,7 @@ import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import ParticleEffect from "../components/ParticleEffect";
 import { track } from "../services/analytics";
-import { submitWrongIdReport } from "../services/supabase";
+import { submitWrongIdReport, promoteUnverifiedToPersonal } from "../services/supabase";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 // Cap card width on web/desktop to avoid a massive pixelated card
@@ -104,8 +104,17 @@ export default function CardRevealScreen() {
     currentPhotoUri: scanPhotoUri,
     currentLocation: scanLocation,
     currentVerification: scanVerification,
+    lastLeagueXpDelta,
     history,
   } = useTrainStore();
+
+  // UNVERIFIED → PERSONAL manual override (B.4). Declared early so
+  // `displayVerificationTier` below can pick up the post-promote tier
+  // without a re-fetch. handlePromoteOverride is defined later.
+  const [overrideSubmitting, setOverrideSubmitting] = useState(false);
+  const [overriddenTier, setOverriddenTier] = useState<
+    "personal" | null
+  >(null);
 
   const historyItem = useMemo(() => {
     if (!historyId) return null;
@@ -131,9 +140,11 @@ export default function CardRevealScreen() {
   // provenance block. History items preserve verificationTier / spottedAt
   // from when the spot was first scanned (per c289441). Fresh scans pull
   // from currentVerification; spottedAt = now.
-  const displayVerificationTier = isHistoryMode
-    ? historyItem?.verificationTier ?? null
-    : scanVerification?.tier ?? null;
+  const displayVerificationTier =
+    overriddenTier ??
+    (isHistoryMode
+      ? historyItem?.verificationTier ?? null
+      : scanVerification?.tier ?? null);
   const displaySpottedAt = isHistoryMode
     ? historyItem?.spottedAt ?? null
     : null; // Fresh scan — render relative "Just now" instead of a date
@@ -192,6 +203,17 @@ export default function CardRevealScreen() {
       });
     }
   }, []);
+
+  // Phase 2 — show "+45 XP" toast on fresh scans with a real league
+  // XP delta. Skipped in history mode (already-seen scans don't fire
+  // a new XP event) and when delta is null (non-VERIFIED scan, repeat
+  // class, or migration 013 not yet applied).
+  useEffect(() => {
+    if (isHistoryMode || !lastLeagueXpDelta || lastLeagueXpDelta <= 0) return;
+    setSaveConfirm(t("card.league.xpAwarded", { xp: lastLeagueXpDelta }));
+    const id = setTimeout(() => setSaveConfirm(null), 3000);
+    return () => clearTimeout(id);
+  }, [isHistoryMode, lastLeagueXpDelta, t]);
 
   // Reverse-geocode stored location to a readable city name for share text
   useEffect(() => {
@@ -426,6 +448,41 @@ export default function CardRevealScreen() {
     }
   };
 
+  // UNVERIFIED → PERSONAL override (B.4). Two-step: confirm Alert then
+  // RPC. Owner gate is enforced server-side; we additionally require
+  // historyItem?.id since the spot must already be persisted.
+  const handlePromoteOverride = () => {
+    const spotId = historyItem?.id;
+    if (!spotId || overrideSubmitting) return;
+
+    Alert.alert(
+      t("card.verification.promoteConfirmTitle"),
+      t("card.verification.promoteConfirmBody"),
+      [
+        { text: t("card.verification.promoteConfirmCancel"), style: "cancel" },
+        {
+          text: t("card.verification.promoteConfirmCta"),
+          onPress: async () => {
+            setOverrideSubmitting(true);
+            const ok = await promoteUnverifiedToPersonal(spotId);
+            setOverrideSubmitting(false);
+            if (ok) {
+              setOverriddenTier("personal");
+              track("verification_promoted_personal", {
+                train_class: currentTrain?.class,
+                spot_id: spotId,
+              });
+              setSaveConfirm(t("card.verification.promoted"));
+              setTimeout(() => setSaveConfirm(null), 2500);
+            } else {
+              Alert.alert(t("card.verification.promoteFailed"));
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Interpolations for flip — memoised so they are not recreated on every
   // re-render (e.g. when setIsFlipped fires mid-animation). Recreating
   // interpolation objects while a native-driver animation is in flight
@@ -611,33 +668,41 @@ export default function CardRevealScreen() {
                   </View>
                 )}
 
-                {/* Card v2 P1.3 — Verified / Personal badge.
-                    Only renders when displayVerificationTier is non-null
-                    (older clients pre-v1.0.21 get no badge). Positioned
-                    bottom-left of the photo area to balance the rarity
-                    badge top-right. */}
+                {/* Card v2 P1.3 — Verification tier badge.
+                    Three visual states (verified / personal / unverified).
+                    Positioned bottom-left of the photo area to balance the
+                    rarity badge top-right. */}
                 {displayVerificationTier && (
                   <View
                     style={[
                       styles.verifiedBadge,
-                      displayVerificationTier === "unverified"
+                      displayVerificationTier === "verified-live" ||
+                      displayVerificationTier === "verified-recent-gallery"
+                        ? styles.verifiedBadgeVerified
+                        : displayVerificationTier === "personal"
                         ? styles.verifiedBadgePersonal
-                        : styles.verifiedBadgeVerified,
+                        : styles.verifiedBadgeUnverified,
                     ]}
                   >
                     <Ionicons
                       name={
-                        displayVerificationTier === "unverified"
+                        displayVerificationTier === "verified-live" ||
+                        displayVerificationTier === "verified-recent-gallery"
+                          ? "checkmark-circle"
+                          : displayVerificationTier === "personal"
                           ? "image-outline"
-                          : "checkmark-circle"
+                          : "lock-closed"
                       }
                       size={12}
                       color="#fff"
                     />
                     <Text style={styles.verifiedBadgeText}>
-                      {displayVerificationTier === "unverified"
+                      {displayVerificationTier === "verified-live" ||
+                      displayVerificationTier === "verified-recent-gallery"
+                        ? t("card.badge.verified")
+                        : displayVerificationTier === "personal"
                         ? t("card.badge.personal")
-                        : t("card.badge.verified")}
+                        : t("card.badge.unverified")}
                     </Text>
                   </View>
                 )}
@@ -676,6 +741,39 @@ export default function CardRevealScreen() {
                       ? t("card.provenance.justNow")
                       : ""}
                   </Text>
+                )}
+
+                {/* B.4 — UNVERIFIED override.
+                    Owner attestation: only renders for an UNVERIFIED spot
+                    in history mode (we need a persisted spot id). On
+                    confirm, calls the SECURITY DEFINER RPC which validates
+                    user_id = auth.uid() server-side. */}
+                {displayVerificationTier === "unverified" && historyItem?.id && (
+                  <View style={styles.unverifiedOverrideBlock}>
+                    <Text style={styles.unverifiedHelpText}>
+                      {t("card.verification.unverifiedHelp")}
+                    </Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.unverifiedOverrideBtn,
+                        overrideSubmitting && styles.unverifiedOverrideBtnDisabled,
+                      ]}
+                      onPress={handlePromoteOverride}
+                      disabled={overrideSubmitting}
+                      accessibilityRole="button"
+                    >
+                      {overrideSubmitting ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                      ) : (
+                        <>
+                          <Ionicons name="hand-right" size={14} color="#fff" />
+                          <Text style={styles.unverifiedOverrideBtnText}>
+                            {t("card.verification.iTookThis")}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 )}
 
                 {/* Mini stats row */}
@@ -1134,11 +1232,46 @@ const styles = StyleSheet.create({
   verifiedBadgePersonal: {
     backgroundColor: "rgba(0,0,0,0.55)",
   },
+  verifiedBadgeUnverified: {
+    backgroundColor: colors.danger,
+  },
   verifiedBadgeText: {
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.bold,
     color: "#fff",
     letterSpacing: 1,
+  },
+  // B.4 — UNVERIFIED owner-attestation override block.
+  unverifiedOverrideBlock: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    gap: spacing.sm,
+  },
+  unverifiedHelpText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  unverifiedOverrideBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    minHeight: 36,
+  },
+  unverifiedOverrideBtnDisabled: {
+    opacity: 0.6,
+  },
+  unverifiedOverrideBtnText: {
+    color: "#fff",
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold,
   },
 
   // Front — Info area

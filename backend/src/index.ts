@@ -10,6 +10,7 @@ import identifyRouter from "./routes/identify";
 import blueprintStatusRouter from "./routes/imageStatus";
 import webhooksRouter from "./routes/webhooks";
 import creditsRouter from "./routes/credits";
+import adminRouter from "./routes/admin";
 import { getVisionProvider } from "./services/vision";
 import { getSupabase } from "./config/supabase";
 import { getCacheStats } from "./services/trainCache";
@@ -70,6 +71,7 @@ app.use("/api/identify", identifyRouter);
 app.use("/api/blueprint", blueprintStatusRouter);
 app.use("/api/webhooks", webhooksRouter);
 app.use("/api/credits", creditsRouter);
+app.use("/api/admin", adminRouter);
 
 // ── Error Handling ──────────────────────────────────────────
 app.use(notFoundHandler);

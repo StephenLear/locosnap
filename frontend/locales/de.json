@@ -46,10 +46,24 @@
   "card": {
     "badge": {
       "verified": "VERIFIZIERT",
-      "personal": "PRIVAT"
+      "personal": "PRIVAT",
+      "unverified": "UNVERIFIZIERT"
     },
     "provenance": {
       "justNow": "Gerade eben"
+    },
+    "verification": {
+      "unverifiedHelp": "Diesem Foto fehlen die Metadaten, mit denen wir Sichtungen verifizieren (kein GPS, EXIF entfernt oder unplausibles Datum). Es ist in deiner Sammlung gespeichert, zählt aber nicht für League-XP und erscheint nicht im öffentlichen Feed.",
+      "iTookThis": "Ich habe dieses Foto selbst gemacht",
+      "promoteConfirmTitle": "Auf „Privat“ umstellen?",
+      "promoteConfirmBody": "Mit „Bestätigen“ gibst du an, dass du dieses Foto selbst gemacht hast. Die Sichtung wird im öffentlichen Feed sichtbar (keine League-XP).",
+      "promoteConfirmCta": "Bestätigen",
+      "promoteConfirmCancel": "Abbrechen",
+      "promoted": "Auf „Privat“ umgestellt",
+      "promoteFailed": "Umstellung fehlgeschlagen — bitte später erneut versuchen"
+    },
+    "league": {
+      "xpAwarded": "+{{xp}} XP für deine Liga"
     }
   },
   "results": {

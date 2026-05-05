@@ -56,9 +56,10 @@ export interface RarityInfo {
 export type CaptureSource = "camera" | "gallery";
 
 export type VerificationTier =
-  | "verified-live"            // live camera + GPS + accuracy < threshold
-  | "verified-recent-gallery"  // gallery <=7d EXIF + GPS + accuracy < threshold
-  | "unverified";              // everything else
+  | "verified-live"            // live camera + GPS + accuracy < threshold — counts for League XP
+  | "verified-recent-gallery"  // gallery <=7d EXIF + GPS + accuracy < threshold — counts for League XP
+  | "personal"                 // legit gallery upload, no recency proof — visible everywhere, NO League XP
+  | "unverified";              // stripped EXIF or implausible date — private to user, NO League XP
 
 export interface ProvenanceInput {
   captureSource: CaptureSource;
@@ -79,7 +80,8 @@ export interface VerificationResult {
     staleExif?: boolean;
     lowAccuracy?: boolean;
     noGps?: boolean;
-    screenshot?: boolean;  // heuristic — EXIF Software contains "Screenshot"
+    screenshot?: boolean;       // heuristic — EXIF Software contains "Screenshot"
+    implausibleDate?: boolean;  // EXIF >5 years ago or in the future
   };
 }
 
@@ -113,7 +115,7 @@ export interface IdentifyResponse {
     // the spot row when saveSpot writes to Supabase.
     verification: {
       verified: boolean;
-      tier: "verified-live" | "verified-recent-gallery" | "unverified";
+      tier: VerificationTier;
       riskFlags: Record<string, boolean>;
     } | null;
   } | null;

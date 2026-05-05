@@ -35,6 +35,7 @@ import {
   uploadPhoto,
   uploadBlueprint,
   updateSpotBlueprint,
+  awardWeeklyXpForSpot,
   awardXp,
   calculateXp,
   updateStreak,
@@ -82,6 +83,12 @@ interface TrainState {
   // updated with the server-canonical verification when the response lands.
   currentVerification: CurrentVerification | null;
 
+  // Phase 2 leaderboard XP delta from the most recent saveScan call.
+  // Surfaces in card-reveal as "+45 XP toward Bronze League". null when
+  // the server returned 0 (non-VERIFIED, repeat scan reduced to 0, or
+  // migration 013 not yet applied).
+  lastLeagueXpDelta: number | null;
+
   // Blueprint style (Pro feature)
   selectedBlueprintStyle: BlueprintStyle;
 
@@ -127,6 +134,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
   currentPhotoUri: null,
   currentLocation: null,
   currentVerification: null,
+  lastLeagueXpDelta: null,
   selectedBlueprintStyle: "technical",
   compareItems: null,
 
@@ -142,6 +150,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       currentSpotId: null,
       currentPhotoUri: null,
       currentVerification: null,
+      lastLeagueXpDelta: null,
       // Keep location — it's set before scan starts
     });
   },
@@ -368,6 +377,22 @@ export const useTrainStore = create<TrainState>((set, get) => ({
 
           // Increment daily scans
           auth.incrementDailyScans();
+
+          // ── Phase 2 leaderboard: award weekly League XP (C.8) ──
+          // Server-side computation via SECURITY DEFINER RPC. Returns
+          // null when migration 013 isn't yet applied (function does
+          // not exist) — that's expected during the staging window.
+          // Failure-tolerant: never blocks the scan-save flow.
+          try {
+            const leagueResult = await awardWeeklyXpForSpot(spotId);
+            if (leagueResult && leagueResult.finalXp > 0) {
+              set({ lastLeagueXpDelta: leagueResult.finalXp });
+            } else {
+              set({ lastLeagueXpDelta: null });
+            }
+          } catch {
+            set({ lastLeagueXpDelta: null });
+          }
 
           // ── Gamification: XP + streak + achievements ──
           const rarityTier = (state.currentRarity?.tier || "common") as RarityTier;

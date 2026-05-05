@@ -1,5 +1,5 @@
 // ============================================================
-// Verification — classify a spot as Verified or Unverified.
+// Verification — classify a spot into one of four tiers.
 //
 // Client-side mirror of backend/src/services/verification.ts.
 // Used for optimistic UI at scan time (render Verified badge
@@ -7,9 +7,21 @@
 // on persist and the server result is authoritative — if the
 // server returns a different tier, update the local record.
 //
+// Four tiers (leaderboard Phase 2 split, 2026-05-04):
+//   verified-live           — live camera + GPS + accuracy <= 50m + not mocked
+//                             counts for League XP.
+//   verified-recent-gallery — gallery + GPS + accuracy <= 100m + EXIF <= 7d
+//                             + not mocked. counts for League XP.
+//   personal                — legit but no recency proof: weak GPS, stale
+//                             EXIF, no GPS with intact EXIF, etc. visible
+//                             everywhere; NOT in League XP.
+//   unverified              — actively suspicious: stripped EXIF (gallery),
+//                             mock location, implausible date (>5y or
+//                             future). private to user; NOT in League XP.
+//
 // ⚠ KEEP IN SYNC with backend/src/services/verification.ts.
 // Drift is guarded against by a shared-fixture test at
-// backend/src/__tests__/verification.test.ts. If you change
+// backend/src/__tests__/services/verification.test.ts. If you change
 // the logic here, change it there too, and extend the fixtures.
 // ============================================================
 
@@ -22,6 +34,7 @@ import {
 import { VERIFICATION_CONFIG } from "../constants/verification";
 
 const MS_PER_DAY = 86_400_000;
+const MS_PER_YEAR = 365.25 * MS_PER_DAY;
 
 export function computeVerification(input: ProvenanceInput): VerificationResult {
   const riskFlags: VerificationResult["riskFlags"] = {};
@@ -35,15 +48,28 @@ export function computeVerification(input: ProvenanceInput): VerificationResult 
     accuracy !== null && accuracy <= VERIFICATION_CONFIG.liveCameraMaxAccuracyM;
   const galleryAccuracyOk =
     accuracy !== null && accuracy <= VERIFICATION_CONFIG.galleryMaxAccuracyM;
+  if (accuracy !== null && !galleryAccuracyOk) riskFlags.lowAccuracy = true;
 
   let exifFresh = false;
+  let exifIntact = false;
+  let exifImplausible = false;
   if (input.exifTimestamp) {
     const exifMs = new Date(input.exifTimestamp).getTime();
-    if (!Number.isNaN(exifMs)) {
+    if (Number.isNaN(exifMs)) {
+      if (input.captureSource === "gallery") riskFlags.strippedExif = true;
+    } else {
+      exifIntact = true;
       const ageMs = now - exifMs;
-      const maxAgeMs = VERIFICATION_CONFIG.galleryRecencyDays * MS_PER_DAY;
-      exifFresh = ageMs >= 0 && ageMs <= maxAgeMs;
-      if (!exifFresh && ageMs > maxAgeMs) riskFlags.staleExif = true;
+      const maxFreshMs = VERIFICATION_CONFIG.galleryRecencyDays * MS_PER_DAY;
+      const maxPlausibleAgeMs = VERIFICATION_CONFIG.implausibleEXIFAgeYears * MS_PER_YEAR;
+      if (ageMs < 0 || ageMs > maxPlausibleAgeMs) {
+        exifImplausible = true;
+        riskFlags.implausibleDate = true;
+      } else if (ageMs <= maxFreshMs) {
+        exifFresh = true;
+      } else {
+        riskFlags.staleExif = true;
+      }
     }
   } else if (input.captureSource === "gallery") {
     riskFlags.strippedExif = true;
@@ -53,23 +79,32 @@ export function computeVerification(input: ProvenanceInput): VerificationResult 
 
   let tier: VerificationTier;
 
-  if (input.captureSource === "camera" && hasGps && liveAccuracyOk && !input.mockLocationFlag) {
+  const isSuspicious =
+    input.mockLocationFlag ||
+    exifImplausible ||
+    (input.captureSource === "gallery" && !exifIntact);
+
+  if (isSuspicious) {
+    tier = "unverified";
+  } else if (
+    input.captureSource === "camera" &&
+    hasGps &&
+    liveAccuracyOk
+  ) {
     tier = "verified-live";
   } else if (
     input.captureSource === "gallery" &&
     hasGps &&
     galleryAccuracyOk &&
-    exifFresh &&
-    !input.mockLocationFlag
+    exifFresh
   ) {
     tier = "verified-recent-gallery";
   } else {
-    tier = "unverified";
-    if (accuracy !== null && !galleryAccuracyOk) riskFlags.lowAccuracy = true;
+    tier = "personal";
   }
 
   return {
-    verified: tier !== "unverified",
+    verified: tier === "verified-live" || tier === "verified-recent-gallery",
     tier,
     riskFlags,
   };

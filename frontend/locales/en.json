@@ -46,10 +46,24 @@
   "card": {
     "badge": {
       "verified": "VERIFIED",
-      "personal": "PERSONAL"
+      "personal": "PERSONAL",
+      "unverified": "UNVERIFIED"
     },
     "provenance": {
       "justNow": "Just now"
+    },
+    "verification": {
+      "unverifiedHelp": "This photo lacks the metadata we use to verify a sighting (no GPS, EXIF stripped, or implausible date). It's saved to your collection but won't count for League XP and won't appear in the public feed.",
+      "iTookThis": "I took this photo myself",
+      "promoteConfirmTitle": "Promote to Personal?",
+      "promoteConfirmBody": "By tapping confirm you're stating you took this photo yourself. The spot will become visible in the public feed (no League XP).",
+      "promoteConfirmCta": "Confirm",
+      "promoteConfirmCancel": "Cancel",
+      "promoted": "Promoted to Personal",
+      "promoteFailed": "Could not promote — please try again later"
+    },
+    "league": {
+      "xpAwarded": "+{{xp}} XP toward your league"
     }
   },
   "results": {
