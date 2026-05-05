@@ -332,12 +332,13 @@ export async function runLeagueWeeklyReset(
     boostsAwarded: 0,
   };
 
-  // Idempotency check — read cycle state first.
+  console.log(`[league-cron] reading cycle state...`);
   const cycleRead = await supabase
     .from("league_cycle_state")
     .select("current_week_start, last_reset_at, last_reset_status")
     .eq("id", 1)
     .maybeSingle();
+  console.log(`[league-cron] cycle state read: ${cycleRead.error ? `error=${cycleRead.error.code}` : `data=${JSON.stringify(cycleRead.data)}`}`);
 
   if (cycleRead.error) {
     // 42P01 = relation does not exist → migration not applied.
@@ -357,25 +358,28 @@ export async function runLeagueWeeklyReset(
     return { ...summary, status: "skipped_already_run" };
   }
 
-  // Mark in_progress.
+  console.log(`[league-cron] marking cycle in_progress...`);
   await supabase
     .from("league_cycle_state")
     .update({ last_reset_status: "in_progress" })
     .eq("id", 1);
 
   try {
-    // Pull every league_membership row + the profile fields we need.
+    console.log(`[league-cron] fetching league_membership rows...`);
     const { data: memberships, error: memErr } = await supabase
       .from("league_membership")
       .select(
         "user_id, tier_index, league_shard_id, weekly_xp, consecutive_inactive_weeks, consecutive_active_weeks, updated_at"
       );
     if (memErr) throw memErr;
+    console.log(`[league-cron] fetched ${memberships?.length ?? 0} memberships`);
 
+    console.log(`[league-cron] fetching profiles...`);
     const { data: profiles, error: profErr } = await supabase
       .from("profiles")
       .select("id, is_pro, streak_freezes_available");
     if (profErr) throw profErr;
+    console.log(`[league-cron] fetched ${profiles?.length ?? 0} profiles`);
 
     const profileById = new Map<string, ProfileRow>(
       (profiles ?? []).map((p) => [p.id, p as ProfileRow])
@@ -407,6 +411,9 @@ export async function runLeagueWeeklyReset(
     }
 
     // Per-user write loop.
+    console.log(`[league-cron] starting per-user write loop (${memberships?.length ?? 0} rows)...`);
+    let processedCount = 0;
+    const writeLoopStart = Date.now();
     for (const row of (memberships ?? []) as MembershipRow[]) {
       const profile = profileById.get(row.user_id);
       const move = moveByUser.get(row.user_id) ?? {
@@ -505,9 +512,16 @@ export async function runLeagueWeeklyReset(
           summary.boostsAwarded += 1;
         }
       }
+      processedCount += 1;
+      if (processedCount % 25 === 0) {
+        const elapsed = Date.now() - writeLoopStart;
+        console.log(`[league-cron] processed ${processedCount}/${memberships?.length ?? 0} rows (${elapsed}ms elapsed)`);
+      }
     }
+    console.log(`[league-cron] write loop done: ${processedCount} rows in ${Date.now() - writeLoopStart}ms`);
 
     // Open the next week.
+    console.log(`[league-cron] advancing cycle state...`);
     const { nextStart, nextEnd } = nextWeekBoundaries(weekStart);
     await supabase
       .from("league_cycle_state")
@@ -519,7 +533,7 @@ export async function runLeagueWeeklyReset(
       })
       .eq("id", 1);
 
-    // Roll all league_membership rows forward to next week's boundaries.
+    console.log(`[league-cron] rolling all membership rows to next week boundaries...`);
     await supabase
       .from("league_membership")
       .update({
