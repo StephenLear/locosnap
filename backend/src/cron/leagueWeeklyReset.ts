@@ -349,11 +349,15 @@ export async function runLeagueWeeklyReset(
   }
 
   const cycle = cycleRead.data;
+  // Idempotency: skip if this week (or earlier) has already been closed.
+  // After a successful run, current_week_start advances to weekStart + 7d,
+  // so any future call with weekStart <= current_week_start - 7d means the
+  // week we're being asked to close has already been processed.
   if (
     cycle &&
     cycle.last_reset_at &&
     cycle.last_reset_status === "completed" &&
-    new Date(cycle.current_week_start).getTime() === weekStart.getTime()
+    new Date(cycle.current_week_start).getTime() > weekStart.getTime()
   ) {
     return { ...summary, status: "skipped_already_run" };
   }
