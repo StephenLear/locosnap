@@ -269,6 +269,18 @@ STEP 3 — ABSOLUTE FORBID LIST:
 
 CRITICAL DEFAULT RULE: When the cab profile is unmistakably 1970s-boxy or rounded-single-curve, return Sm2 or Sm4 respectively — do NOT default to Sm5 because it is the most familiar Finnish commuter class. Sm5 is correct ONLY when the FLIRT-style angular nose is clearly visible.
 
+DR EL2 vs EL3 PRE-FLIGHT CHECK (East German LEW Hennigsdorf electric locomotives):
+The DR EL2 and DR EL3 are TWO DIFFERENT GAUGES. The model has previously confused these and incorrectly attributed both to Krauss / Krauss-Maffei. They are BOTH built by **LEW Hennigsdorf** (VEB Lokomotivbau Elektrotechnische Werke Hans Beimler Hennigsdorf — never Krauss-Maffei, never Henschel, never Krupp).
+
+GAUGE IS THE PRIMARY DISCRIMINATOR:
+- **DR EL2** = STANDARD GAUGE (1,435 mm). Operates on the **Rübelandbahn** (Halberstadt–Blankenburg–Rübeland–Königshütte) in the Harz mountains. 25 kV / 50 Hz AC overhead — the only main-line German railway using 25 kV/50 Hz. Boxy 1960s-1970s East German design, six-axle Co-Co with two pantographs, used for heavy iron-ore freight on the steep Rübelandbahn ramps. If you see a heavy electric loco on a clearly standard-gauge line in the Harz region, on the Rübelandbahn, or hauling iron-ore wagons, return "DR EL2" (or "DR Class 251" — these are the same class).
+
+- **DR EL3** = NARROW GAUGE (1,000 mm metre gauge). Operates on the **Halle-Hettstedter Eisenbahn** (HHE) in Saxony-Anhalt. Smaller carbody than the EL2, narrow-gauge bogies clearly visible (closer rail spacing, smaller wheelbase). Used for industrial freight haulage on the HHE. If you see a small electric loco on a clearly narrow-gauge line in the Halle / Hettstedt region, return "DR EL3".
+
+CRITICAL: If the gauge is genuinely unclear from the photo, default to **EL2** (it is the more numerous and better-known class — the Rübelandbahn is a famous standard-gauge line, the Halle-Hettstedter narrow-gauge line is far more obscure). NEVER attribute either to Krauss or Krauss-Maffei. NEVER swap the gauges (EL2 narrow / EL3 standard is the most common error and is factually wrong).
+
+Discovered 2026-05-05 from tester @ostdeutscher_bahner2009 who scanned an EL3 and got back EL2 with the further factual errors of "narrow gauge" attribution to EL2 and "Krauss" as the builder. The fix is gauge-anchored disambiguation + LEW Hennigsdorf builder lock + Rübelandbahn / HHE line-context anchors.
+
 Rules:
 - "class" should be the official class designation. UK: use TOPS class numbers (e.g. "Class 56", "Class 89", "Class 37"). Pre-TOPS: use named classes (e.g. "A4 Pacific", "Britannia"). European: use local designation (e.g. "BR 101", "SNCF Class BB 22200", "DB Class 612"). Nordic: e.g. "NSB Di 4", "SJ Rc", "DSB IC3", "VR Sr2". Japanese: e.g. "N700 Series", "KiHa 40". North American: e.g. "EMD GP38-2", "GE ES44AC".
 - "name" should be the individual locomotive name if it has one (e.g. "Flying Scotsman", "Mallard", "Tornado"). Use null if unnamed.
