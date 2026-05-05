@@ -7,6 +7,59 @@ Format: newest first within each date block.
 
 ## 2026-05-05
 
+### Phase 2 leaderboard — frontend SHIPPED + cron deployed to Render (v1.0.26 work)
+
+End-to-end Phase 2 ship across 6 commits on `main` (385175b → 3d6b0ab → 55ddc7e → e7626ba → e85a3f4, plus the earlier d6ec35f + 3cc8e72 hotfixes). Migration 013 applied to production Supabase, 206 profiles backfilled 1:1 into league_membership at tier 1 (Bronze) for week 2026-05-04. Render cron `locosnap-league-cron` scheduled at `59 23 * * 0` (Sunday 23:59 UTC), command `node dist/cron/runLeagueWeeklyReset.js`. First manual replay run 2026-05-05 12:18 PM UTC completed in 10 seconds — 0 promotions / 0 demotions / 26 freezes awarded (= 26 Pro users got their weekly +1 freeze). Cycle state advanced to 2026-05-11.
+
+**Cron idempotency hotfix** (`385175b`): the `current_week_start === weekStart` check was wrong — after a successful run `current_week_start` advances by 7 days, so strict equality could never match for re-runs. Changed to `>` so any call for a week earlier than `current_week_start` returns `skipped_already_run`. Caught after the manual trigger run when I traced what would happen on the next Sunday cron — without the fix, it would have re-processed week 2026-05-04 and double-bumped consecutive_inactive_weeks + Pro freezes.
+
+**Migration 013 schema-correctness hotfix** (`3cc8e72`): first apply attempt failed on `s.rarity_tier` because rarity_tier lives on `trains`, not `spots` — spots joins via `train_id`. Two fixes: (1) the featured_spot_id backfill now joins `spots s → trains t on t.id = s.train_id` and uses `t.rarity_tier`; (2) the `award_weekly_xp_for_spot` RPC selects `s.user_id, t.class, t.rarity_tier` from a joined query instead of reading from `spots` directly. Failure caught BEFORE I told the user the migration was ready, but I didn't audit column references — that mistake is now `feedback_migration_column_audit.md` in memory.
+
+**E.1 — useLeaderboardStore** (`385175b`): in-memory Zustand store managing `activeTab` (my_league / country / collection) + per-tab sub-toggles + selectedCountry. 9 unit tests cover initial state, tab switching, sub-toggle independence, country selection, reset.
+
+**E.2 — MyLeagueTab** (`3d6b0ab`): renders the user's current tier badge (Bronze→Vectron, color-coded), weekly XP, and top 100 of their league shard via SECURITY DEFINER `get_my_league_rankings` RPC. Promotion zone separator at top-10% slot (hidden for Vectron); demotion zone separator at bottom-10% slot (hidden for Bronze). Self-row pinned and accent-highlighted. New service helpers: `fetchMyLeagueMembership(userId)`, `fetchLeagueRankings(tier, shard)`. New constants: `constants/leagues.ts` with TIERS metadata + `promotionSlots()` / `demotionSlots()` math (12 unit tests).
+
+**E.3 — CountryTab** (`55ddc7e`): country selector pill row (defaults to user's country or DE fallback), This week / All-time sub-toggle. Reads `leaderboard_weekly` or `leaderboard` view filtered by `country_code`. New helpers: `fetchCountryLeaderboard(code, mode)`, `fetchKnownCountryCodes()`.
+
+**E.4 — CollectionTab** (`55ddc7e`): three sub-toggles (Unique / Rarity / Streak). Unique = unique_classes ranking from `leaderboard` view. Rarity = computed via `computeRarityScore({legendary*15, epic*8, rare*5, uncommon*2})` over `leaderboard_rarity` view. Streak deferred to v1.0.27 (no `streak_days` column yet) — falls back to unique_classes with an honest "Coming soon" notice. 4 unit tests for `computeRarityScore`.
+
+**E.5 — leaderboard.tsx router** (`55ddc7e`): replaces the previous 681-LOC 4-tab implementation (Global / Weekly / Rarity / Regional) with a ~100-LOC tab router that selects between `MyLeagueTab` / `CountryTab` / `CollectionTab` from `useLeaderboardStore.activeTab`. The legacy `LeaderboardEntry` type + view helpers are retained — internally consumed by Country and Collection tabs.
+
+**E.6 — obsolete tests**: nothing to migrate. The only existing leaderboard test was the new `leaderboardStore.test.ts` from E.1.
+
+**F.1 — featured-card thumbnails** (`e7626ba`): MyLeagueTab rows now show a 48px featured-card thumbnail on the right edge, fetched via bulk `fetchSpotPhotoUrls(ids)` against the `featured_spot_id` returned by the rankings RPC. UNVERIFIED spots filtered at query level (defensive — backend already enforces this in the migration 013 backfill). Empty state shows a placeholder icon. CountryTab and CollectionTab don't get thumbnails yet — those views need a separate migration to expose `featured_spot_id`. Deferred to v1.0.27.
+
+**F.2 — featured-card picker** (`e7626ba`): card-reveal.tsx adds a "Set as featured card" button visible for verified-live / verified-recent-gallery / personal tiers in history mode (need a persisted spotId). Calls `setFeaturedSpot(userId, spotId)`, optimistically flips local UI state, fires `featured_card_set` analytics event, shows toast confirmation. The button hides for UNVERIFIED tier (privacy-by-default — UNVERIFIED can never be featured).
+
+**G.1 — FreezeCounter** (`e85a3f4`): snowflake badge on the league header showing `profiles.streak_freezes_available`. Tap → modal explainer covering the freeze rules (Pro: +1/week max 3; Free: +1 per 4 active weeks max 2; auto-burn at week close).
+
+**G.2 — ThemedDayBanner** (`e85a3f4`): renders above the leaderboard list when today is a themed day. Pure resolver in `constants/themedDay.ts` (4 unit tests) — currently active: Tuesday Rare-Tier 2× XP. Heritage-Saturday 1.5× is defined in the backend constants but stays hidden in the banner until country-match introspection ships in v1.0.27.
+
+**G.3 — BoostInventory** (`e85a3f4`): inline section in MyLeagueTab listing un-used `user_boost_inventory` rows. flat_100 cards apply via `apply_boost_card` RPC with confirm Alert; next_scan_2x renders disabled with "Coming soon" label (queued-state machinery lands in v1.0.27). Hidden when no cards. Test 26-Pro-freeze-award run validates the RPC was wired correctly even before any cards exist.
+
+**G.4 — push notifications**: deferred to v1.0.27. Daily-schedule infrastructure is bigger than the rest of Phase 2 combined; the in-app banner already covers "user opens the league tab on a themed day" which is the high-leverage path.
+
+**H — i18n + parity**: 39 new EN+DE keys across `leaderboard.tabs.*`, `leaderboard.league.*`, `leaderboard.country.*`, `leaderboard.collection.*`, `leaderboard.freeze.*`, `leaderboard.themedDay.*`, `leaderboard.boost.*`, `card.featured.*`. All German diacritics verified (Wochenstand, Verstanden, Klassen, Karte des Profils, Streak-Karten). Parity 243/243.
+
+**Tests at session close**: backend **169/169**, frontend **135/135** (was 106 baseline — added 9 leaderboardStore + 12 leagues + 4 rarityScore + 4 themedDay = 29 new). TSC clean both sides. No breaking changes to existing tests.
+
+**Pending v1.0.26 build**:
+- countdown timer on league header (Sunday-23:59 reset)
+- featured-card thumbnails on Country + Collection rows (needs view migration)
+- streak_days collection mode (needs `profiles.streak_days` schema)
+- `next_scan_2x` boost queued-state machinery
+- push notifications for themed days
+- manual QA on a real device against production
+- v1.0.26 EAS build trigger + store submit
+
+**Next-step gates**: device QA must run before EAS — Phase 2 frontend hasn't been seen on hardware yet, only run through TS + Jest.
+
+### Tester engagement — BR 232 v2 ad day-1
+
+BR 232 v2 ad posted to TikTok + IG morning 2026-05-05. Two substantive comment chains tracked:
+- @Gotha Trainspotter: "Gestern EBS in Gotha richtung Emleben" → reply re EBS being one of the last private 232 operators → he promised a video → DM'd a TikTok link to @buliaviation footage of 241 353-2 in Bahnservice livery. Honest follow-up "direkt jetzt nich schon bisschen älter" softens the implicit-ownership signal. Replied warmly with a soft ask for original footage if he ever has any. Logged to `footage_source_gotha_trainspotter.md` memory.
+- @Virox_Bloodfang: Hoyerswerda-Polen cross-border BR 232 sighting → reply confirming Polish private operators (LOTOS, CTL, Orlen) still run ex-DR 232s.
+
 ### Release — v1.0.25 iOS build 47 APPROVED by Apple and LIVE on App Store
 
 Apple approved overnight (hotfix-class diff). v1.0.25 is now LIVE on both stores: Android (versionCode 15) on Google Play since 2026-05-04 evening, iOS (build 47) on App Store as of 2026-05-05.
