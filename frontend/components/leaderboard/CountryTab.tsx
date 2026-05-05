@@ -48,8 +48,7 @@ export function CountryTab() {
   // Default-select the user's country (or fallback) on first mount.
   useEffect(() => {
     if (selected) return;
-    const fromProfile = (profile as { country_code?: string } | null)?.country_code;
-    setSelected(fromProfile || FALLBACK_COUNTRY);
+    setSelected(profile?.country_code || FALLBACK_COUNTRY);
   }, [selected, profile, setSelected]);
 
   // Load the list of known country codes once.

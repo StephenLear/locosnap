@@ -122,11 +122,16 @@ export default function CardRevealScreen() {
 
   // Phase 2 F.2 — featured-card picker. Tracks "is this spot the user's
   // currently-featured card" via local optimistic state mirroring
-  // profile.featured_spot_id. The actual persisted value is on the
-  // profile fetched via authStore; we mirror after a successful update
-  // so the button label flips immediately.
+  // profile.featured_spot_id. Initialized from authStore profile so the
+  // button label is correct on first paint (otherwise revisiting a card
+  // that's already the featured one shows "Set as featured" stale text).
+  const profile = useAuthStore((s) => s.profile);
   const [featuringSubmitting, setFeaturingSubmitting] = useState(false);
-  const [optimisticIsFeatured, setOptimisticIsFeatured] = useState<boolean | null>(null);
+  const initialIsFeatured =
+    !!historyId && profile?.featured_spot_id === historyId;
+  const [optimisticIsFeatured, setOptimisticIsFeatured] = useState<boolean>(
+    initialIsFeatured
+  );
 
   const historyItem = useMemo(() => {
     if (!historyId) return null;
@@ -472,6 +477,15 @@ export default function CardRevealScreen() {
     setFeaturingSubmitting(false);
     if (ok) {
       setOptimisticIsFeatured(true);
+      // Persist into authStore so subsequent re-renders / revisits to
+      // this card-reveal screen show "Featured card" instead of
+      // re-asking. Profile is otherwise only refreshed on app open.
+      const currentProfile = useAuthStore.getState().profile;
+      if (currentProfile) {
+        useAuthStore.setState({
+          profile: { ...currentProfile, featured_spot_id: spotId },
+        });
+      }
       track("featured_card_set", {
         train_class: currentTrain?.class,
         spot_id: spotId,

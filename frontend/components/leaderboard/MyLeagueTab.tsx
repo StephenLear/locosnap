@@ -47,8 +47,7 @@ import { BoostInventory } from "../BoostInventory";
 export function MyLeagueTab() {
   const { t } = useTranslation();
   const { user, profile } = useAuthStore();
-  const freezeCount =
-    (profile as { streak_freezes_available?: number } | null)?.streak_freezes_available ?? 0;
+  const freezeCount = profile?.streak_freezes_available ?? 0;
   const [membership, setMembership] = useState<LeagueMembership | null>(null);
   const [rankings, setRankings] = useState<LeagueRankingRow[]>([]);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string | null>>({});

@@ -33,6 +33,8 @@ export interface Profile {
   country_code: string | null;
   spotter_emoji: string | null;
   has_completed_identity_onboarding: boolean;
+  featured_spot_id?: string | null;
+  streak_freezes_available?: number;
 }
 
 interface AuthState {
