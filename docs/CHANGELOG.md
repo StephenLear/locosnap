@@ -5,6 +5,39 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-06
+
+### iOS v1.0.28 build 50 APPROVED + LIVE on App Store
+
+Apple approved iOS build 50 overnight from the 2026-05-05 EAS submission. v1.0.28 is now LIVE on BOTH stores — Android (versionCode 16) since 2026-05-05 evening, iOS (build 50) since this morning. Same release notes as Android: 8 new tiered achievements, Weekly Rare-Find Champion card, improved Polish EL2/EL3 identification.
+
+### Backend — BR 185 (TRAXX F140 AC) vs EU45 (Siemens ES64F4) platform disambiguation
+
+German tester `mx.2dox` correctly flagged that an earlier LocoSnap ad treated PKP Cargo EU45 footage and DB BR 185 footage as if they were the same loco — they are completely different platforms from different manufacturers (EU45 = Siemens Eurosprinter F4 / ES64F4 multi-system, same physical platform as DB BR 189; BR 185 = Bombardier TRAXX F140 AC1/AC2). No prior backend coverage existed for either class.
+
+`backend/src/services/trainSpecs.ts`:
+- New BR 185 spec entries across 10 lookup keys (`br 185`, `br185`, `185`, `db 185`, `class 185`, `db class 185`, `baureihe 185`, `traxx f140 ac`, `traxx f140 ac2`, `bombardier traxx f140 ac2`): 140 km/h / 5,600 kW / 84 t / Bombardier Transportation (Kassel) / 600 built (BR 185.1 + BR 185.2 combined) / 15 kV AC + 25 kV AC on BR 185.2.
+- New EU45 spec entries across 7 lookup keys (`eu45`, `eu 45`, `pkp eu45`, `pkp cargo eu45`, `es64f4`, `siemens es64f4`, `eurosprinter f4`): 140 km/h / 6,400 kW / 87 t / Siemens Mobility (Munich-Allach) / 25 PKP units / multi-system 15 kV AC + 25 kV AC + 1.5 kV DC + 3 kV DC.
+
+`backend/src/services/vision.ts`:
+- New disambiguation rule pinned right before the Hamburg DT4/DT5 block. Codifies builder as the discriminator (Bombardier Kassel for BR 185, Siemens Munich-Allach for EU45/BR 189). Reinforces the existing `project_cross_border_loco_correctness.md` rule: BR 185 is single-system AC and CANNOT operate in Poland under wire — any cross-border PL freight must be BR 186 / BR 189 / EU45 / Vectron MS / TRAXX MS3, never BR 185. Statistical default rule explicit: flat TRAXX-2-era cab without sloped nose or roof strip = BR 185; squared Eurosprinter-era Siemens cab on PKP Cargo livery = EU45.
+
+Tests 169/169 pass, tsc clean. Render auto-deploys on push. **Newag Dragon (Benji Coleman comment) — NO change.** His "Bo-Bo 5 MW vs Co-Co 8 MW" claim doesn't match published Newag specs: all Dragon variants (E6ACT, E6ACTa, E6ACTadb / Dragon 2) are Co-Co at 5,000–5,800 kW per Newag and Wikipedia. Existing backend coverage at lines 765-777 of `trainSpecs.ts` is correct; no spec entries adjusted.
+
+### Backend `50af690` — BR 247 weight hotfix + ČD 753.7 lookup-key gap
+
+TrainVibez tester Mattis (`@br232ost`) caught the BR 247 reveal card showing **195 tonnes** weight — hallucinated by the model. Real Vectron DE Bo-Bo service weight is ~90 tonnes. Single-file patch to `backend/src/services/trainSpecs.ts`:
+
+- Added explicit `weight: "90 tonnes"` to all 7 BR 247 lookup keys (`br 247`, `br247`, `247`, `db 247`, `db class 247`, `vectron de`, `siemens vectron de`).
+- Added `weight: "74 tonnes"` to ČD 753 / 754 / 753.7 entries (Bo-Bo Brejlovec) to pre-empt the same hallucination class on the Czech locos shipped yesterday in `52f4e6b`.
+- Closed the lookup-key gap from yesterday's known follow-up by adding `čd class 753.7`, `class 753.7`, `class 753`, `class 754` keys so the model's exact returned class strings ("ČD Class 753.7" etc.) now hit our overrides instead of falling through to model-default specs.
+
+Render auto-deployed. DM reply drafted to Mattis in DE+EN acknowledging the catch and confirming the 2-3 min deploy window. Re-scan after deploy will show corrected 90 t.
+
+Pattern note: BR 247 is the second tester catch on the same class in the same evening (the first was the EMD/Dual-Mode/709 disaster from yesterday's `52f4e6b`). Vectron DE is undercovered in the model's training data — every spec field needs explicit override. Mattis is now an active evangelist on the same profile as Steph (project_tester_evangelist_pattern.md memory) — second substantive technical correction in 24 hours.
+
+---
+
 ## 2026-05-05
 
 ### Evening session — Android v1.0.28 LIVE, BR 247 + ČD 753/754 backend, TrainVibez sponsor activation, Newag Dragon ad

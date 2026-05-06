@@ -790,6 +790,47 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "baureihe 182": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "6190": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "siemens es64u2": { maxSpeed: "230 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 382, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // DB BR 185 / Bombardier TRAXX F140 AC1 / AC2 — Bo-Bo electric
+  // freight loco, Bombardier Transportation (Kassel) 2000–2014,
+  // ~400 BR 185.1 (AC1, 15 kV AC only) + ~200 BR 185.2 (AC2, 15 kV
+  // + 25 kV AC). 140 km/h, 5,600 kW, 84 t. Operated by DB Cargo
+  // and many private freight operators across Germany / Austria /
+  // Switzerland (NOT into Poland under wire — BR 185 is AC-only,
+  // PL is 3 kV DC; cross-border PL traffic uses BR 186 / BR 189 /
+  // Vectron MS multi-system instead). Added 2026-05-06 after
+  // mx.2dox correctly flagged that EU45 (Siemens ES64F4) and BR
+  // 185 (Bombardier TRAXX F140 AC2) had been conflated in an ad —
+  // they are completely different platforms from different
+  // manufacturers.
+  "br 185": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  "br185": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  "185": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  "db 185": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  "class 185": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  "db class 185": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  "baureihe 185": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  "traxx f140 ac": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  "traxx f140 ac2": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  "bombardier traxx f140 ac2": { maxSpeed: "140 km/h", power: "5,600 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 600, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC on BR 185.2)" },
+  // PKP Cargo EU45 / Siemens ES64F4 (Eurosprinter F4 multi-system,
+  // same platform as DB BR 189) — Bo-Bo multi-system electric
+  // freight loco, Siemens Mobility (Munich-Allach), 25 PKP Cargo
+  // units (EU45-001…EU45-025) built 2008–2009. 140 km/h freight
+  // (160 km/h passenger), 6,400 kW continuous, 87 t. Multi-system:
+  // 15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC,
+  // designed for unrestricted PL↔DE↔CZ cross-border freight.
+  // Visually a Eurosprinter F4 — similar squared-off cab to
+  // Vectron but distinguishable by Eurosprinter-era detailing
+  // and the "EU45-xxx" PKP fleet number. Added 2026-05-06 after
+  // mx.2dox correctly flagged that EU45 had been conflated with
+  // BR 185 in an ad.
+  "eu45": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
+  "eu 45": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
+  "pkp eu45": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
+  "pkp cargo eu45": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
+  "es64f4": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
+  "siemens es64f4": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
+  "eurosprinter f4": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
   // ÖBB 4020 — Vienna S-Bahn 3-car articulated EMU, Bombardier
   // (formerly SGP / Jenbacher Werke) 1978–1987, ~120 units total.
   // Max 120 km/h, 15 kV 16.7 Hz AC. THERE IS NO ÖBB 9020 — that's a
