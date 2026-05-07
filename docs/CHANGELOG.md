@@ -5,6 +5,23 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-07
+
+### Backend — EU07 / EP07 / EP08 / EU07A / EU160 (Newag Griffin) hardcoded specs
+
+Polish TikTok commenter `inspiro` corrected an EA6 Dragon ad reply that mashed the EU07/EP07/EP08 family to "160 km/h" — the correct figures are EP07 125, EP08 140, EU07 125, with only the EU07A modernised variant and the EU160 / Newag Griffin successor at 160. No prior hardcoded coverage for any of these classes — fall-through LLM specs were at risk of drifting to 160 km/h since EP09 (160) and EU07A (160) are family neighbours.
+
+`backend/src/services/trainSpecs.ts`:
+- New EU07 / PKP EU07: 125 km/h / 2,000 kW / Pafawag (Wrocław) + HCP Poznań / 3 kV DC.
+- New EU07A / PKP EU07A (303E modernised): 160 km/h / 3,200 kW / HCP Poznań / 3 kV DC. The only EU07-family member at 160.
+- New EP07 / PKP EP07 (EU07 reclassified for passenger): 125 km/h / 2,000 kW.
+- New EP08 / PKP EP08 (Pafawag, uprated EP07): 140 km/h / 2,000 kW.
+- New EU160 / PKP EU160 / Newag Griffin / Griffin / E4MCU / E4MSU: 160 km/h / 5,600 kW / Newag (Nowy Sącz) / multi-system 3 kV DC + 15 kV 16.7 Hz AC. The actual EP07/EP08 successor at 160 — PKP Intercity Newag Griffin variant.
+
+13 new lookup keys total. Block inserted right after the EU05/EP05 "Gagarin" cluster, before the Newag Dragon E6ACT block. Tests 169/169 pass, tsc clean. Cache version unchanged (v7) — these classes are not ad-target volume so cached drift is minimal; new scans pick up hardcoded specs immediately.
+
+---
+
 ## 2026-05-06
 
 ### iOS v1.0.28 build 50 APPROVED + LIVE on App Store

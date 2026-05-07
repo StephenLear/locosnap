@@ -762,6 +762,34 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "pkp eu05": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 30, fuelType: "Electric (3 kV DC)" },
   "ep05": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 30, fuelType: "Electric (3 kV DC)" },
   "pkp ep05": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław)", numberBuilt: 30, fuelType: "Electric (3 kV DC)" },
+  // EU07 / EP07 / EP08 / EU07A — Polish Bo'Bo' electric family based
+  // on the British Class 83/84 design. EU07 (Pafawag 4E + HCP 303E,
+  // 1965-1992, ~500 built, 125 km/h, 2,000 kW, 3 kV DC). EP07 is the
+  // SAME loco reclassified for passenger-only duty — physical loco
+  // identical, max speed 125 km/h, NEVER 160. EP08 (Pafawag, derived
+  // from EP07, 140 km/h via uprated gearing — NEVER 160). EU07A
+  // (303E modernised variant) is the only EU07-family member at
+  // 160 km/h / 3,200 kW. Added 2026-05-07 after TikTok commenter
+  // "inspiro" corrected an EA6 Dragon ad reply that mashed
+  // EU/EP07/08 to 160 km/h — EP07/EP08 are 125/140, only the
+  // EU160/Griffin successor is 160. EU160 is the PKP Intercity
+  // Newag Griffin E4MSU multi-system variant — 160 km/h, 5,600 kW,
+  // 3 kV DC + 15 kV AC for cross-border; the actual 160 km/h EP07
+  // /EP08 successor.
+  "eu07": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław) / HCP Poznań", fuelType: "Electric (3 kV DC)" },
+  "pkp eu07": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław) / HCP Poznań", fuelType: "Electric (3 kV DC)" },
+  "eu07a": { maxSpeed: "160 km/h", power: "3,200 kW", builder: "HCP Poznań (303E modernised)", fuelType: "Electric (3 kV DC)" },
+  "pkp eu07a": { maxSpeed: "160 km/h", power: "3,200 kW", builder: "HCP Poznań (303E modernised)", fuelType: "Electric (3 kV DC)" },
+  "ep07": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław) / HCP Poznań", fuelType: "Electric (3 kV DC)" },
+  "pkp ep07": { maxSpeed: "125 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław) / HCP Poznań", fuelType: "Electric (3 kV DC)" },
+  "ep08": { maxSpeed: "140 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław)", fuelType: "Electric (3 kV DC)" },
+  "pkp ep08": { maxSpeed: "140 km/h", power: "2,000 kW", builder: "Pafawag (Wrocław)", fuelType: "Electric (3 kV DC)" },
+  "eu160": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Newag (Nowy Sącz)", fuelType: "Electric (multi-system: 3 kV DC / 15 kV 16.7 Hz AC)" },
+  "pkp eu160": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Newag (Nowy Sącz)", fuelType: "Electric (multi-system: 3 kV DC / 15 kV 16.7 Hz AC)" },
+  "newag griffin": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Newag (Nowy Sącz)", fuelType: "Electric (multi-system: 3 kV DC / 15 kV 16.7 Hz AC)" },
+  "griffin": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Newag (Nowy Sącz)", fuelType: "Electric (multi-system: 3 kV DC / 15 kV 16.7 Hz AC)" },
+  "e4mcu": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Newag (Nowy Sącz)", fuelType: "Electric (multi-system: 3 kV DC / 15 kV 16.7 Hz AC)" },
+  "e4msu": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Newag (Nowy Sącz)", fuelType: "Electric (multi-system: 3 kV DC / 15 kV 16.7 Hz AC)" },
   // Newag Dragon (E6ACT / E6ACTa / E6ACTadb) — modern Polish heavy
   // freight Co-Co electric, Newag (Nowy Sącz) 2010+, 50+ built,
   // 120 km/h, 5,000-5,800 kW depending on variant, 3 kV DC. The
