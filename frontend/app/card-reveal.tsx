@@ -26,6 +26,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
+import { maybePromptReview } from "../services/reviewPrompt";
 import { RarityTier } from "../types";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { captureRef } from "react-native-view-shot";
@@ -283,6 +284,12 @@ export default function CardRevealScreen() {
       }),
     ]).start(() => {
       setRevealComplete(true);
+
+      // Wow-moment review prompt — first Legendary find
+      if (currentRarity?.tier === "legendary") {
+        const scanCount = useTrainStore.getState().history?.length ?? 0;
+        maybePromptReview({ trigger: "legendary_scan", scanCount });
+      }
 
       // Stage 2: Glow pulse for rare+
       if (

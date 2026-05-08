@@ -7,6 +7,47 @@ Format: newest first within each date block.
 
 ## 2026-05-08
 
+### Frontend — Phase 2 of v1.0.29 retention layer: paywall Lifetime row + review prompts
+
+Added Lifetime row to the paywall, intro-offer badge + disclaimer when annual has an `introPrice`, and `expo-store-review`-backed wow-moment review prompts at four trigger points.
+
+**`frontend/app/paywall-helpers.ts` (new)** — pure-logic helpers `getPackageKind`, `sortPaywallPackages` (annual → monthly → lifetime), `findDefaultIndex`. Refactored `paywall.tsx` `loadOfferings` to use them. 8 tests.
+
+**`frontend/app/paywall.tsx`** — render block extended to detect `lifetime` kind (no "/month" suffix, lifetime subtitle line), `annual + introPrice` (replaces "BEST VALUE" badge with "30% OFF FIRST 3 MONTHS" badge, hides "Save 25%" badge to avoid double-billing the user, appends italic disclaimer below package list).
+
+**`frontend/services/reviewPrompt.ts` (new)** — `maybePromptReview({ trigger, scanCount })` whitelisted to four triggers: `legendary_scan`, `achievement_silver_gold`, `streak_7d`, `unique_classes_50`. 90-day local AsyncStorage throttle layered on top of iOS's native 365-day rate limit. Min 3 scans required before any prompt. Silently returns when `expo-store-review` reports unavailable. 10 tests.
+
+**Trigger wiring:**
+- `app/card-reveal.tsx` — fires `legendary_scan` after the rarity glow animation starts when `currentRarity.tier === "legendary"`
+- `store/trainStore.ts` — in the post-sync achievement loop:
+  - 8 silver/gold types (`unique_century`, `unique_master`, `five_hundred_club`, `thousand_spots`, `streak_thirty`, `streak_hundred`, `legendary_five`, `heritage_master`) fire `achievement_silver_gold`
+  - `seven_day_streak` fires `streak_7d`
+  - `ten_unique` fires `unique_classes_50` (closest existing milestone — spec called for "50 unique classes" but the codebase has no such achievement; `ten_unique` is the first major unique-class wow moment)
+
+**Locale strings (EN + DE):** added `paywall.lifetimeTitle` / `lifetimeSubtitle` / `lifetimePrice` / `introBadge` / `introDisclaimer` / `unlockLifetime` to both `locales/en.json` and `locales/de.json`. PL not added — codebase only has EN + DE locales currently.
+
+**Dependency:** `expo-store-review ~9.0.9` added via `npx expo install`. Native module — requires a fresh native build. Mock at `__mocks__/expo-store-review.ts` and `moduleNameMapper` entry in `jest.config.js` so non-reviewPrompt tests that transitively pull the module don't break.
+
+Tests: 153/153 (was 135 + 18 new), tsc clean.
+
+Files changed:
+- `frontend/app/paywall-helpers.ts` (new)
+- `frontend/app/paywall.tsx` (loadOfferings + render block + 2 new style entries)
+- `frontend/app/card-reveal.tsx` (import + legendary trigger)
+- `frontend/services/reviewPrompt.ts` (new)
+- `frontend/store/trainStore.ts` (import + achievement-loop trigger logic)
+- `frontend/locales/en.json` (6 new keys)
+- `frontend/locales/de.json` (6 new keys)
+- `frontend/jest.config.js` (moduleNameMapper)
+- `frontend/__mocks__/expo-store-review.ts` (new)
+- `frontend/__tests__/paywall-helpers.test.ts` (new, 8 tests)
+- `frontend/__tests__/reviewPrompt.test.ts` (new, 10 tests)
+- `frontend/package.json` + `package-lock.json` (expo-store-review)
+
+Refs: `docs/plans/2026-05-07-retention-and-offers-implementation.md` Tasks 9-20.
+
+---
+
 ### Backend — Phase 1 of v1.0.29 retention layer: cancellation_reasons table + CANCELLATION webhook handler
 
 Migration `015_cancellation_reasons.sql` adds `public.cancellation_reasons` table to log RevenueCat CANCELLATION events for closed-loop save-rate measurement on Apple Retention Messaging + Play Win-back. Columns: `user_id`, `rc_event_id` (unique), `product_id`, `cancellation_reason`, `store` (`app_store` | `play_store`), `was_in_trial`, `hours_since_purchase`, `hours_since_trial_start`, `retention_offer_shown`, `retention_offer_redeemed`, `raw_event` (jsonb). Two indexes on `user_id` and `created_at desc`. RLS enabled with no policies — server-write only via service role.

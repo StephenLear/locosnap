@@ -46,6 +46,7 @@ import {
 } from "../services/supabase";
 import { useAuthStore } from "./authStore";
 import { RarityTier, ACHIEVEMENT_DEFINITIONS } from "../types";
+import { maybePromptReview } from "../services/reviewPrompt";
 import {
   notifyBlueprintReady,
   notifyAchievementUnlocked,
@@ -448,12 +449,32 @@ export const useTrainStore = create<TrainState>((set, get) => ({
 
           if (newAchievements.length > 0) {
             console.log("[GAMIFICATION] New achievements unlocked:", newAchievements);
-            // Send push notification for each new achievement
+
+            const SILVER_GOLD: ReadonlySet<AchievementType> = new Set<AchievementType>([
+              "unique_century",
+              "unique_master",
+              "five_hundred_club",
+              "thousand_spots",
+              "streak_thirty",
+              "streak_hundred",
+              "legendary_five",
+              "heritage_master",
+            ]);
+
             for (const type of newAchievements) {
               const def = ACHIEVEMENT_DEFINITIONS.find((d) => d.type === type);
               if (def) {
                 track("achievement_unlocked", { achievement: def.name, type });
                 notifyAchievementUnlocked(def.name, def.description).catch(() => {});
+              }
+
+              const scanCount = allHistory.length;
+              if (SILVER_GOLD.has(type)) {
+                maybePromptReview({ trigger: "achievement_silver_gold", scanCount });
+              } else if (type === "seven_day_streak") {
+                maybePromptReview({ trigger: "streak_7d", scanCount });
+              } else if (type === "ten_unique") {
+                maybePromptReview({ trigger: "unique_classes_50", scanCount });
               }
             }
           }
