@@ -5,6 +5,62 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-08
+
+### Backend — Phase 1 of v1.0.29 retention layer: cancellation_reasons table + CANCELLATION webhook handler
+
+Migration `015_cancellation_reasons.sql` adds `public.cancellation_reasons` table to log RevenueCat CANCELLATION events for closed-loop save-rate measurement on Apple Retention Messaging + Play Win-back. Columns: `user_id`, `rc_event_id` (unique), `product_id`, `cancellation_reason`, `store` (`app_store` | `play_store`), `was_in_trial`, `hours_since_purchase`, `hours_since_trial_start`, `retention_offer_shown`, `retention_offer_redeemed`, `raw_event` (jsonb). Two indexes on `user_id` and `created_at desc`. RLS enabled with no policies — server-write only via service role.
+
+`backend/src/routes/webhooks.ts` extended with a CANCELLATION handler block. Access is NOT revoked on CANCELLATION (EXPIRATION still does that when the period ends) — this is purely an analytics log. Maps RC `event.store` to canonical `app_store` / `play_store`, computes `hours_since_purchase` from `purchased_at_ms`, flags `was_in_trial` when `period_type === "TRIAL"`. Anonymous (`$RCAnonymousID:*`) app_user_ids are skipped via the existing UUID gate before any DB write.
+
+New test file `backend/src/__tests__/routes/webhooks-cancellation.test.ts` covers: insert into cancellation_reasons, trial flag mapping, hours_since_purchase math, anonymous-user skip. Mock disambiguates the cancellation_reasons insert from the existing `subscription_events` audit insert by checking `store` field presence.
+
+Tests: 173/173 (was 169 + 4 new). tsc clean.
+
+**Not yet deployed — needs a push to go live on Render. Migration 015 also pending — must be applied via Supabase SQL Editor before the new code's CANCELLATION inserts will succeed.**
+
+Files changed:
+- `supabase/migrations/015_cancellation_reasons.sql` (new)
+- `backend/src/routes/webhooks.ts` (CANCELLATION handler block added)
+- `backend/src/__tests__/routes/webhooks-cancellation.test.ts` (new)
+
+Refs: `docs/plans/2026-05-07-retention-and-offers-design.md`, `docs/plans/2026-05-07-retention-and-offers-implementation.md` Tasks 4-6.
+
+---
+
+### v1.0.29 Phase 0 — Apple + Play + RevenueCat store config (no code changes)
+
+Configured the offer architecture across all three platforms in preparation for the v1.0.29 binary. Captured to `~/.claude/projects/.../memory/project_revenuecat_topology.md` for future-session reference.
+
+**Apple App Store:**
+- Intro offer `intro_3mo_30off` on `pro_annual` — Pay Up Front, 3 months at £3.99 (~36% effective discount; "Pay as you go" rejected sub-year durations on annual subs, so Pay Up Front was the cleanest match)
+- Win-Back offer `winback_3mo_30off` on `pro_monthly` — Pay as you go, 3 months at £1.99/mo. Eligibility: min 1mo paid duration, lapsed 1d–6mo, 12mo wait between offers
+- Lifetime non-consumable IAP `pro_lifetime` — £89.99 GB / €99 / 399 zł / $99.99 US. Status "Ready to Submit" pending v1.0.29 binary attachment
+
+**Google Play Console:**
+- Discovered both `pro_annual` and `pro_monthly` were configured as **prepaid** base plans (user pays upfront, no auto-renew). Prepaid plans cannot have offers attached. Created new **auto-renewing** base plans `annual-autorenew` (yearly, £24.99) and `monthly-autorenew` (monthly, £2.99) alongside the existing prepaid plans. Existing prepaid subscribers continue undisturbed; new purchases route to auto-renewing plans
+- `intro-3mo-30off` (note hyphens — Play offer IDs reject underscores) attached to `pro_annual:annual-autorenew` — Single payment, 3 months, £3.99, "New customer acquisition" eligibility
+- `winback-3mo-30off` attached to `pro_monthly:monthly-autorenew` — Pay as you go, 3 months, £1.99/mo, "Developer determined" eligibility (RevenueCat enforces lapsed-subscriber rules client-side)
+- Lifetime managed product `pro_lifetime` — £89.99 GB
+
+**RevenueCat (project `a90c6f7d`):**
+- Imported all new SKUs from both stores
+- Attached `pro` entitlement to: `pro_lifetime` (Apple + Play), `pro_monthly:monthly-autorenew`, `pro_annual:annual-autorenew`
+- Added `$rc_lifetime` package to default offering with both `pro_lifetime` SKUs attached
+- Added new auto-renewing Play SKUs to existing `$rc_monthly` and `$rc_annual` packages (alongside the legacy prepaid SKUs which cannot be Made Inactive while still attached, and cannot be Deleted while transactions reference them — known issue documented in `project_revenuecat_topology.md`, deferred to post-v1.0.29 cleanup)
+
+**Architectural finding worth flagging:** Play's prepaid base plans likely caused historical "cancellation" classification confusion in `project_churn_patterns.md` — prepaid term-end non-renewals may have been logged as voluntary cancels. Once v1.0.29 ships and Play purchases land on auto-renewing SKUs, future `cancellation_reasons` data will be a cleaner signal. Re-evaluate the LubieWoka 13h-cancel case and similar after 30 days of v1.0.29 in production.
+
+---
+
+### TikTok comment replies — BR 232 video
+
+- **airbus.a3200** (BR 103 v3, ICE TD speed correction) — DE concession reply per halsi07 template
+- **trainspotter_leander** (BR 232 / DDR video, "only 3 scans" complaint) — DE update-prompt reply (free tier raised 3→6 in v1.0.21; user likely on old build)
+- **Steffan23** (BR 232 / Nordbahn follow-up "how do you know?") — DE warm reply with footage-source ask
+
+---
+
 ## 2026-05-07
 
 ### Backend — EU07 / EP07 / EP08 / EU07A / EU160 (Newag Griffin) hardcoded specs

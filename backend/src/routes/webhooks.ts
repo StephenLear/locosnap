@@ -162,6 +162,64 @@ router.post(
         return;
       }
 
+      // 4a. Log CANCELLATION events for save-rate analytics.
+      // Access is NOT revoked here — EXPIRATION handles that when
+      // the current period ends. We just capture the cancellation
+      // signal for closed-loop measurement on Retention Messaging.
+      if (eventType === "CANCELLATION") {
+        const purchasedAtMs: number = event.purchased_at_ms || 0;
+        const eventTsMs: number = event.event_timestamp_ms || Date.now();
+        const periodType: string = event.period_type || "NORMAL";
+        const cancelReason: string | null = event.cancel_reason || null;
+        const rcStore: string = event.store || "";
+
+        const storeNormalized =
+          rcStore === "APP_STORE" || rcStore === "MAC_APP_STORE"
+            ? "app_store"
+            : rcStore === "PLAY_STORE"
+              ? "play_store"
+              : "app_store";
+
+        const hoursSincePurchase = purchasedAtMs
+          ? (eventTsMs - purchasedAtMs) / (1000 * 60 * 60)
+          : null;
+
+        const { error: cancelError } = await supabase
+          .from("cancellation_reasons")
+          .insert({
+            user_id: appUserId,
+            rc_event_id: eventId,
+            product_id: productId,
+            cancellation_reason: cancelReason,
+            store: storeNormalized,
+            was_in_trial: periodType === "TRIAL",
+            hours_since_purchase: hoursSincePurchase,
+            hours_since_trial_start:
+              periodType === "TRIAL" ? hoursSincePurchase : null,
+            retention_offer_shown: false,
+            retention_offer_redeemed: false,
+            raw_event: event,
+          });
+
+        if (cancelError) {
+          captureServerError(new Error(cancelError.message), {
+            context: "cancellation_log_failed",
+            rc_event_id: eventId,
+            user_id: appUserId,
+          });
+        }
+
+        trackServerEvent("cancellation_logged", appUserId, {
+          product_id: productId,
+          was_in_trial: periodType === "TRIAL",
+          hours_since_purchase: hoursSincePurchase,
+          store: storeNormalized,
+        });
+
+        res.status(200).json({ status: "ok", logged: true });
+        return;
+      }
+
       // 4. Update is_pro based on event type (subscription events)
       let newProStatus: boolean | null = null;
 
