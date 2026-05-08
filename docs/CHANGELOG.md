@@ -7,6 +7,18 @@ Format: newest first within each date block.
 
 ## 2026-05-08
 
+### v1.0.29 SUBMITTED to both stores
+
+EAS production builds for v1.0.29 triggered + uploaded via `eas submit --platform all --profile production --non-interactive --latest`:
+- **iOS:** build 51 (`79e5f4f4-a3f5-4528-a883-029985a73c8e`), .ipa `g43ESZ2JHNuKmxLzjjwLLo.ipa`. Processed by Apple, smoke-tested in TestFlight on a new sandbox account (paywall 3 rows render correctly, intro badge "30% OFF FIRST 3 MONTHS" appears on Annual for new subscribers, "Save 25%" badge correctly hidden when intro shown, italic disclaimer below package list, Lifetime row at $99.99 sandbox = £89.99 GB production override). Submitted for App Store review with EN release notes.
+- **Android:** versionCode 17 (`6bf90129-2862-4cd4-b44e-6bc49bf72003`), .aab `ekiXSNpWXbXzTzW1qR8NfX.aab`. Tight ≤450-char EN+DE release notes pasted in Play Console (Google's 500-char per-language hard cap), rolled out to production track — now in Google review.
+
+App Store Connect promo image for `pro_lifetime` IAP cropped from TestFlight screenshot at 1024×1024 (`~/Desktop/v1.0.29_offers/pro_lifetime_promo.png` — Pro badge + rocket icon + "Go Pro" headline + tagline). Three iPhone screenshots resized 1206×2622 → 1290×2796 for App Store iPhone 6.7" submission slot (`~/Desktop/v1.0.29_screenshots/`).
+
+Sentry alert `REACT-NATIVE-P` (Could not connect to LocoSnap servers, Samsung A56 Android 16, release 1.0.28) — single event, single user, coincided with Render cold-start window after Phase 1 backend deploy. Per `single-data-point-discipline`: monitor, don't act unless 5+ events recur in 24-48h.
+
+---
+
 ### Frontend — Phase 2 of v1.0.29 retention layer: paywall Lifetime row + review prompts
 
 Added Lifetime row to the paywall, intro-offer badge + disclaimer when annual has an `introPrice`, and `expo-store-review`-backed wow-moment review prompts at four trigger points.
