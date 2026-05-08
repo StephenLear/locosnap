@@ -7,6 +7,56 @@ Format: newest first within each date block.
 
 ## 2026-05-08
 
+### Ad production — three videos rendered for the weekend post slate
+
+**BR 140 v5 (DE)** — `~/Desktop/BR140_ad/locosnap_br140_v2.mp4`. Wirtschaftswunder framing (5 iterations to land — see `feedback_ad_build_pipeline.md`). Beat sources: Waldheim red 140 head-on (Beat 1, NEW source not in Apr 20 ad), Hamburg blue private operator with containers (Beat 2), Straubing PEF heritage dusk (Beat 3, "879 / gebaut."), Waldheim red 140 platform close-up (Beat 4). Saved DE endcard. Posting: Saturday DE morning peak.
+
+**Class 91 v3 (UK)** — `~/Desktop/Class91_ad/locosnap_class91_v2.mp4`. "Made in Britain. Killed by Hitachi." framing — Hitachi Azuma replacement angle. Beat sources: Ryan Windridge compilation t=70 (LNER red sunset hero), t=90 (NSE-style fleet 91127 close-up), t=30 (LNER side-on urban), t=40 (LNER head-on platform). Saved EN endcard with App Store + Google Play CTA. Posting: Saturday UK afternoon peak. First UK-targeted ad in 21 days.
+
+**v1.0.29 launch ad — DE + EN versions** — `~/Desktop/v1029_launch_ad/locosnap_v1029_launch_de.mp4` + `_en.mp4`. Country-sweep format (PL → DE → UK) + paywall reveal + endcard. Beat sources: ET22 Byczka 676 station pass (PL), BR 151 073-4 Bundesbahn Göppingen Hbf head-on (DE), v1.0.29 paywall screenshot static crop (Lifetime row visible alongside intro-discounted annual), Class 37 37425 Max Power head-on (UK). Text overlay tells: Foto vom Zug → Klasse + Daten → Lebenslang. Werbefrei. → Pro für immer. Posting: Sunday DE morning peak, EN ~30 min stagger. Skipping PL version (last PL launch ad underperformed). Captions include "Werbefrei" / "Completely ad-free" callout (verified — LocoSnap has no AdMob/ads infrastructure in either tier).
+
+**Reusable endcards** committed at `/Users/StephenLear/Projects/locosnap/ad_assets/endcards/` — `endcard_de.mp4` / `endcard_en.mp4` / `endcard_pl.mp4` (720×1280, 30fps, 2s, ~30KB each). Format: black background, LocoSnap icon (300×300) + name (80px white) + tagline (44px yellow) + CTA (42px white) "Free on App Store + Google Play" (locale-specific). Concat as beat 5 of any future 10s ad — never regenerate per-ad. See `~/.claude/projects/.../memory/ad_assets_endcards.md`.
+
+### Comment replies posted on DDR / BR 156 ad
+
+- **trainspotter_leander** (DE) — "only 3 scans" complaint resolved with update prompt + 6-scan correction
+- **airbus.a3200** (DE) — BR 103 ICE TD speed concession reply
+- **Steffan23** (DE) — Nordbahn warm reply asking for fleet number / footage offer
+- **Wickser-aus-Kassel commenter** (DE) — Hennigsdorf vs Kassel rail-industry consolidation acknowledgement (warm, no political engagement)
+- **"eine in Pressig gesehen 🥰"** (DE) — fleet-number ask for spotted unit
+
+### TrainVibez follow-up sent
+
+Mattis replied 2026-05-08: *"Hi, ich versuche es diese Woche umzusetzen. Melde mich dann für genaueres."* — actively working on the YouTube sponsor video. Quick warm acknowledgement reply sent ("kein Druck, alles vorbereitet").
+
+### Sentry alert REACT-NATIVE-P resolution
+
+Three discrete checks of the same `services/api.ts:273` timeout-retry alert across the day: 1 event/1 user → 2/2 → 3/3 over 8 hours. One v1.0.29 event among three. Below the 5-event/48h threshold per `feedback_play_billing_diagnosis.md`. Marked Resolved. Render health checks all green throughout. Pattern: real-world network-tail surface, not a v1.0.29 regression.
+
+### Stats sweep — multi-source dashboard review
+
+Captured ~17:00 across TikTok / Instagram / Apple / Google Play / RevenueCat / Supabase / Anthropic. Key reads:
+
+- **TikTok BR 156 24h** — 1.5K views, 5.67s avg watch, 15.5% full, 2 followers. Underperforming BR 232 v2 baseline (4.3K / 22% / 31 follows) on volume + follower conversion.
+- **TikTok BR 232 v2** — settled at 4.8K all-time / 26 follows in 7d (was 4.3K when last reviewed) — the standout of the period.
+- **TikTok 7d account** — 10.8K views (+196), 708 likes (+165), 100 comments (+25), 4.8K total viewers. DE 58.5% / PL 22.1% / India 5.7%.
+- **IG BR 156** — 135 views / 39.8% skip rate (BEST skip rate of any LocoSnap reel — 64.8% on BR 103 prior). Low absolute volume but quality signal strong.
+- **Apple App Store 30d** — 143 units (+38%), 4 IAPs (+100%), $108 sales (+399%), 12.6% conversion rate, $66 proceeds. Strong but small.
+- **Google Play 28d** — 109 device acquisitions (+990% vs flattered pre-launch comparison), 80 first opens, 104 MAU. Geography: DE 55.8% / PL 20.2% / UK 8.7% / AT 6.7%. PL +5x growth post-launch, UK FLAT post-launch (real signal — UK content/audience mismatch).
+- **RevenueCat** — 8 active subs, MRR $32, $129 28d revenue, 366 active customers. Two recent transactions visible (DE Play Store annual subs).
+- **Anthropic caching** — 97.6% cache read ratio / 4.34× write amortisation. Mature.
+- **Supabase** — 1,363 requests last 24h, healthy, no operational issues.
+
+### Reflect session — four memory rules updated/created
+
+Per `/reflect` skill: `feedback_ad_build_pipeline.md` (MUST-DO-FIRST checklist prepended), `feedback_play_billing_diagnosis.md` (low-volume response template added), `feedback_ad_text_width_rule.md` (rule of thumb → hard caps), `feedback_browser_click_strikes.md` (NEW — 2-strike rule on Chrome MCP coordinate clicks).
+
+---
+
+### v1.0.29 LIVE on both App Store + Google Play (same-day approval)
+
+Apple approved iOS build 51 on the evening of 2026-05-08 — same day as Google approved Android versionCode 17. Fastest dual-store turnaround in LocoSnap history (matches v1.0.24's same-day record). Both stores now serve v1.0.29 with: Lifetime Pro IAP (£89.99 / $99.99 / €99 / 399 zł), 30% intro on annual subscriptions, 30% win-back on monthly cancellations, expo-store-review wow-moment prompts at four trigger points, cancellation_reasons backend logging.
+
 ### v1.0.29 SUBMITTED to both stores
 
 EAS production builds for v1.0.29 triggered + uploaded via `eas submit --platform all --profile production --non-interactive --latest`:
