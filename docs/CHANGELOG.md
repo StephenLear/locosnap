@@ -7,6 +7,34 @@ Format: newest first within each date block.
 
 ## 2026-05-09
 
+### Backend `e564811` — Steph feedback batch: Class 57/73, Class 70/66, Class 59/66, BR Class 52 Western disambiguation (DEPLOYED)
+
+UK tester Steph (canonical evangelist per `project_tester_evangelist_pattern.md`) sent four screenshots from a Chastleton (Cotswold Line) scanning session, all four were misIDs. Pushed to Render at the same time as the housekeeping commits below; backend live within auto-deploy window.
+
+**Vision rules added in `backend/src/services/vision.ts`** (block placed right after the existing Class 33 vs Class 73 rule):
+
+1. **Class 57 vs Class 73** — yellow Network Rail Thunderbird (57/3) was returning as Class 73. New rule pins NR yellow + Co-Co + Class 47-derived bodyshell to Class 57. Wheel arrangement is now the deciding cue: Class 57 is Co-Co (6 axles), Class 73 is Bo-Bo (4 axles). Active mainline Class 73 fleet is ~10 units vs 16 active 57/3 Thunderbirds — statistical default favours 57. Fleet number ranges (57301-57316 = NR Thunderbirds), third-rail-shoes presence on 73 only, and length difference (19.4 m vs 16.4 m) all enumerated.
+
+2. **Class 66 vs Class 70 (Colas Rail yellow)** — Colas Class 70 returning as Class 66. The existing Colas livery rule covered the family but the model still defaulted to Class 66. Strengthened with explicit cab-profile contrast (Class 66 sloped angular EMD F-unit nose vs Class 70 upright boxy GE cab), prominent Class 70 roof exhaust stacks, larger Class 70 cab windows, single horizontal headlight cluster on 70 vs EMD pair on 66. Statistical default for "Colas Co-Co freight diesel" flipped to Class 70 (17 in fleet, fleet range 70801-70817) over Class 66.
+
+3. **Class 66 vs Class 59 (GBRf heavy haul)** — GBRf Class 59 returning as Class 66. New rule pinning the older blockier 59 cab profile (smaller cab windows, no front cab access door — engineers use bodyside doors only) vs modern sloped 66 cab with central front door. Mendip Rail silver-grey livery lock-down, fleet number ranges (59001-59005 / 59101-59104 / 59201-59206), Foster Yeoman → ARC → National Power → GBRf → DB Cargo operator pattern. Only 15 Class 59s exist worldwide vs 500+ Class 66s — but Class 59 is uniquely visible on Mendip Rail / Foster Yeoman / GBRf heavy-haul services and any heavy stone train in those liveries should be checked for 59 first.
+
+4. **BR Class 52 (Western Diesel Hydraulic, UK) vs DRB Baureihe 52 (Kriegslok, Germany)** — D1015 Western Champion (Pathfinder Tours / DTG / WCRC) was correctly identified as "Class 52" but the spec card was returning **German wartime Kriegslok specs** (80 km/h / Borsig / Coal-Steam) because the trainSpecs lookup for bare "class 52" was hardcoded to the much-more-numerous German DR BR 52 (~6,719 built). New rule requires UK contexts to return "BR Class 52" or "Class 52 Western" specifically (not bare "Class 52"), routing the spec lookup to the correct UK Western. Country/livery context is the decisive cue. Bare "class 52" key intentionally retained as Kriegslok default since global numerosity favours it.
+
+**`backend/src/services/trainSpecs.ts` — 24 new lookup keys total**, block placed right after the Class 70 GE PowerHaul cluster:
+- Class 57 (7 keys): "class 57", "br class 57", "british rail class 57", "class 57/0", "class 57/3", "class 57/6", "thunderbird" — Brush Traction Loughborough / 33 built / 95 mph / 1,860 kW / Diesel-Electric.
+- Class 59 (7 keys): "class 59", "br class 59", "british rail class 59", "class 59/0", "class 59/1", "class 59/2", "emd jt26cw-ss" — EMD La Grange / 15 built / 60 mph / 2,386 kW / Diesel-Electric.
+- Class 73 (3 keys): "class 73", "br class 73", "british rail class 73" — English Electric Vulcan Foundry / BR Eastleigh / 49 built / 90 mph / 1,200 kW / Electro-Diesel (750 V DC third rail + diesel).
+- BR Class 52 Western (7 keys): "br class 52", "british rail class 52", "class 52 western", "br class 52 western", "western", "western diesel hydraulic", "western champion" — BRCW Crewe / BR Swindon Works / 74 built / 90 mph / 2,013 kW / Diesel-Hydraulic.
+
+Tests 173/173, tsc clean. Cache version unchanged (v7) — these are corrective entries that take effect on the next scan without invalidating prior caches.
+
+**Reply to Steph drafted + sent** acknowledging all four catches with technical specifics on each fix. Leaderboard UX critique acknowledged separately as a larger rework item — not in this commit, on the design list.
+
+Files changed:
+- `backend/src/services/vision.ts` (4 new disambiguation rules)
+- `backend/src/services/trainSpecs.ts` (24 new lookup keys across Class 57 / Class 59 / Class 73 / BR Class 52 Western)
+
 ### Repo housekeeping — v1.0.29 ship branch merged into `main`
 
 The v1.0.29 frontend ship work had lived on branch `claude/sad-ritchie-cdab5f` and was never merged to `main`, leaving `main`'s `frontend/app.json` stuck at 1.0.28 and the Lifetime/intro/review-prompt code absent from the trunk despite the binary being approved on both stores 2026-05-08. Merge commit `3a3e9a5` brings the branch into `main`. Single conflict in `docs/CHANGELOG.md` (both sides had populated `## 2026-05-08` sections) — resolved by keeping the branch's full v1.0.29 ship entries. The branch's backend commit `6256436` (cancellation_reasons table + CANCELLATION webhook) was content-identical to `b08e556` already on `main` (cherry-pick), so git auto-resolved the duplicate. Pushed to `origin/main`. No new Render deploy triggered — `b08e556` was already deployed on its prior push.
