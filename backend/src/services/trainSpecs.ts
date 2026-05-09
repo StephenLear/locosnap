@@ -752,6 +752,37 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "western": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
   "western diesel hydraulic": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
   "western champion": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
+  // Class 45 "Peak" (BRCW Smethwick + BR Derby Works, 1960-62) —
+  // 1Co-Co1 BR Sulzer Type 4, 127 built, Sulzer 12LDA28-B engine, 90 mph,
+  // 2,500 hp / 1,860 kW. ~10 units preserved including 45112 / 45118 /
+  // 45125 / 45133 / 45135. Mainline-certified preserved fleet operates
+  // on heritage railtours with West Coast Railways and DTG. Added
+  // 2026-05-09 after UK tester Steph reported 45118 "Royal Artilleryman"
+  // being misidentified as Class 37.
+  "class 45": { maxSpeed: "90 mph", power: "1,860 kW", builder: "BRCW Smethwick / BR Derby Works", numberBuilt: 127, fuelType: "Diesel-Electric" },
+  "br class 45": { maxSpeed: "90 mph", power: "1,860 kW", builder: "BRCW Smethwick / BR Derby Works", numberBuilt: 127, fuelType: "Diesel-Electric" },
+  "british rail class 45": { maxSpeed: "90 mph", power: "1,860 kW", builder: "BRCW Smethwick / BR Derby Works", numberBuilt: 127, fuelType: "Diesel-Electric" },
+  "class 45/0": { maxSpeed: "90 mph", power: "1,860 kW", builder: "BRCW Smethwick / BR Derby Works", numberBuilt: 127, fuelType: "Diesel-Electric" },
+  "class 45/1": { maxSpeed: "90 mph", power: "1,860 kW", builder: "BRCW Smethwick / BR Derby Works", numberBuilt: 127, fuelType: "Diesel-Electric" },
+  "peak": { maxSpeed: "90 mph", power: "1,860 kW", builder: "BRCW Smethwick / BR Derby Works", numberBuilt: 127, fuelType: "Diesel-Electric" },
+  "br sulzer type 4": { maxSpeed: "90 mph", power: "1,860 kW", builder: "BRCW Smethwick / BR Derby Works", numberBuilt: 127, fuelType: "Diesel-Electric" },
+  "royal artilleryman": { maxSpeed: "90 mph", power: "1,860 kW", builder: "BRCW Smethwick / BR Derby Works", numberBuilt: 127, fuelType: "Diesel-Electric" },
+  // Loram C21 series rail grinder — Network Rail-contracted track
+  // maintenance vehicle (NOT a locomotive). Three-machine fleet
+  // C2101/C2102/C2103, painted yellow with prominent Loram logos.
+  // Often paired with Control Car 79237. Used for rail surface
+  // grinding and re-profiling, principally on the Lancaster & Carlisle
+  // line and South West routes near Okehampton, with engineering
+  // reporting numbers in the 6Z08 series. Added 2026-05-09 after
+  // UK tester Steph corrected the previous Class 70 / Colas Rail
+  // misidentification — the vehicle is a track maintenance machine,
+  // not a locomotive at all.
+  "loram c21": { maxSpeed: "60 mph", builder: "Loram Maintenance of Way (USA / UK)", numberBuilt: 3, fuelType: "Diesel" },
+  "loram c21 rail grinder": { maxSpeed: "60 mph", builder: "Loram Maintenance of Way (USA / UK)", numberBuilt: 3, fuelType: "Diesel" },
+  "loram rail grinder": { maxSpeed: "60 mph", builder: "Loram Maintenance of Way (USA / UK)", numberBuilt: 3, fuelType: "Diesel" },
+  "c2101": { maxSpeed: "60 mph", builder: "Loram Maintenance of Way (USA / UK)", numberBuilt: 3, fuelType: "Diesel" },
+  "c2102": { maxSpeed: "60 mph", builder: "Loram Maintenance of Way (USA / UK)", numberBuilt: 3, fuelType: "Diesel" },
+  "c2103": { maxSpeed: "60 mph", builder: "Loram Maintenance of Way (USA / UK)", numberBuilt: 3, fuelType: "Diesel" },
   // Class 455 (BR-built BREL York 1982-85) — Southern Region 4-car
   // suburban EMU, 137 units (455/7, 455/8, 455/9 sub-classes). Long
   // primary fleet on SWR Wessex Lines (Waterloo - SW London suburban).
