@@ -5,6 +5,38 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-09
+
+### Repo housekeeping — v1.0.29 ship branch merged into `main`
+
+The v1.0.29 frontend ship work had lived on branch `claude/sad-ritchie-cdab5f` and was never merged to `main`, leaving `main`'s `frontend/app.json` stuck at 1.0.28 and the Lifetime/intro/review-prompt code absent from the trunk despite the binary being approved on both stores 2026-05-08. Merge commit `3a3e9a5` brings the branch into `main`. Single conflict in `docs/CHANGELOG.md` (both sides had populated `## 2026-05-08` sections) — resolved by keeping the branch's full v1.0.29 ship entries. The branch's backend commit `6256436` (cancellation_reasons table + CANCELLATION webhook) was content-identical to `b08e556` already on `main` (cherry-pick), so git auto-resolved the duplicate. Pushed to `origin/main`. No new Render deploy triggered — `b08e556` was already deployed on its prior push.
+
+Files merged into `main`:
+- `frontend/app.json` (1.0.28 → 1.0.29)
+- `frontend/app/paywall.tsx` + `frontend/app/paywall-helpers.ts` (Lifetime row + intro badge + sortPaywallPackages)
+- `frontend/services/reviewPrompt.ts` + `frontend/__mocks__/expo-store-review.ts` (expo-store-review wow-moment prompts)
+- `frontend/store/trainStore.ts` + `frontend/app/card-reveal.tsx` (review-prompt trigger wiring)
+- `frontend/locales/en.json` + `de.json` (6 new paywall keys each)
+- `frontend/__tests__/paywall-helpers.test.ts` + `reviewPrompt.test.ts` (18 new tests)
+- `frontend/jest.config.js` + `package.json` + `package-lock.json` (expo-store-review dep)
+- `docs/ARCHITECTURE.md` + `docs/CHANGELOG.md` (v1.0.29 ship documentation from the branch)
+
+### App Store Connect — `pro_lifetime` IAP image rejected, resubmitted
+
+Apple rejected the `pro_lifetime` IAP image. Boilerplate notification, no detailed reason — pattern indicates the original image (an app screenshot showing the blueprint screen with iOS status bar visible at the top) violated Apple's unwritten rule against using app UI screenshots for IAP review images. Separately, an earlier Guideline 3.1.1 review note had flagged the non-consumable IAP business-model change as needing a binary to verify against — that concern is now moot since v1.0.29 is Ready for Distribution and contains the live Lifetime row.
+
+Replacement image generated as a 1024×1024 RGB PNG (no alpha, no ICC profile) at `~/Desktop/locosnap_iap_image/locosnap_lifetime_iap_v1.png`. Composition: 2×2 grid of the four existing demo blueprints from `frontend/assets/blueprints/` (technical / vintage / cinematic / schematic) on a dark navy (#0a1628) canvas with 8px gap between tiles. Represents the unlocked Pro content (full collection + four blueprint art styles) without using the app icon or any UI screenshot or promotional text overlay.
+
+Submission flow gotcha worth recording: after uploading a new image, the App Store Connect "Submit for Review" button stayed greyed out because the `English (U.S.)` localization was still in `Rejected` status with no pending edits. Resolution was to open the localization, make a trivial edit (remove and re-add a full stop in the description), and Save. That cleared the localization rejected state and re-enabled Submit. The `~/Desktop/locosnap_iap_image/` PNG is worth retaining in case a follow-up rejection requires a tweaked variant.
+
+Expected turnaround on the IAP-only re-review: 12–48h. No code or binary changes — pure App Store Connect metadata.
+
+### Ad — BR 140 v5 (DE Wirtschaftswunder) posted on TikTok + Instagram
+
+Posted Saturday DE morning peak per the planned slate. Performance tracking deferred until 24h post-mark (~2026-05-10 AM) to avoid bloating `tiktok_stats.md` with a stub entry. Will be benchmarked against BR 232 v2 baseline (4.8K views all-time / 22% full watch / 26 followers in 7d) and the BR 156 underperformance (1.5K / 15.5% / 2 followers at 24h).
+
+---
+
 ## 2026-05-08
 
 ### Ad production — three videos rendered for the weekend post slate
