@@ -698,6 +698,60 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "br 70": { maxSpeed: "75 mph", power: "2,750 kW", builder: "GE Transportation (Erie, PA)", numberBuilt: 19, fuelType: "Diesel-Electric" },
   "ge powerhaul": { maxSpeed: "75 mph", power: "2,750 kW", builder: "GE Transportation (Erie, PA)", numberBuilt: 19, fuelType: "Diesel-Electric" },
   "powerhaul": { maxSpeed: "75 mph", power: "2,750 kW", builder: "GE Transportation (Erie, PA)", numberBuilt: 19, fuelType: "Diesel-Electric" },
+  // Class 57 (Brush Traction Loughborough rebuild of withdrawn Class 47
+  // hulks, 1998-2004) — Co-Co diesel-electric, 33 units across three
+  // sub-classes. 57/0 freight (Freightliner originally), 57/3 "Thunderbird"
+  // rescue locos in Network Rail yellow (currently 57301-57316), 57/6 GWR
+  // sleeper service. Added 2026-05-09 after UK tester Steph reported a
+  // 57/3 in NR yellow being misidentified as Class 73.
+  "class 57": { maxSpeed: "95 mph", power: "1,860 kW", builder: "Brush Traction Loughborough", numberBuilt: 33, fuelType: "Diesel-Electric" },
+  "br class 57": { maxSpeed: "95 mph", power: "1,860 kW", builder: "Brush Traction Loughborough", numberBuilt: 33, fuelType: "Diesel-Electric" },
+  "british rail class 57": { maxSpeed: "95 mph", power: "1,860 kW", builder: "Brush Traction Loughborough", numberBuilt: 33, fuelType: "Diesel-Electric" },
+  "class 57/0": { maxSpeed: "95 mph", power: "1,860 kW", builder: "Brush Traction Loughborough", numberBuilt: 33, fuelType: "Diesel-Electric" },
+  "class 57/3": { maxSpeed: "95 mph", power: "1,860 kW", builder: "Brush Traction Loughborough", numberBuilt: 33, fuelType: "Diesel-Electric" },
+  "class 57/6": { maxSpeed: "95 mph", power: "1,860 kW", builder: "Brush Traction Loughborough", numberBuilt: 33, fuelType: "Diesel-Electric" },
+  "thunderbird": { maxSpeed: "95 mph", power: "1,860 kW", builder: "Brush Traction Loughborough", numberBuilt: 33, fuelType: "Diesel-Electric" },
+  // Class 59 (EMD La Grange, 1985-1995) — Co-Co heavy-haul diesel, the
+  // first foreign-built mainline diesels ever permitted on UK metals.
+  // 15 units across three sub-classes: 59/0 (59001-59005, Foster Yeoman),
+  // 59/1 (59101-59104, ARC then GBRf), 59/2 (59201-59206, National Power
+  // then DB Cargo). Class 66 was developed as the lower-cost successor.
+  // Added 2026-05-09 after UK tester Steph reported a Class 59 in GBRf
+  // service being misidentified as Class 66.
+  "class 59": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
+  "br class 59": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
+  "british rail class 59": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
+  "class 59/0": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
+  "class 59/1": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
+  "class 59/2": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
+  "emd jt26cw-ss": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
+  // Class 73 (English Electric Vulcan Foundry / BR Eastleigh, 1962-67) —
+  // Bo-Bo electro-diesel, 49 built. Third-rail 750 V DC primary plus a
+  // small auxiliary diesel engine for non-electrified spurs. Active
+  // mainline fleet now ~10 units across GBRf and heritage operations.
+  // Added 2026-05-09 alongside the Class 57/73 disambiguation work.
+  "class 73": { maxSpeed: "90 mph", power: "1,200 kW", builder: "English Electric Vulcan Foundry / BR Eastleigh", numberBuilt: 49, fuelType: "Electro-Diesel (750 V DC third rail + diesel)" },
+  "br class 73": { maxSpeed: "90 mph", power: "1,200 kW", builder: "English Electric Vulcan Foundry / BR Eastleigh", numberBuilt: 49, fuelType: "Electro-Diesel (750 V DC third rail + diesel)" },
+  "british rail class 73": { maxSpeed: "90 mph", power: "1,200 kW", builder: "English Electric Vulcan Foundry / BR Eastleigh", numberBuilt: 49, fuelType: "Electro-Diesel (750 V DC third rail + diesel)" },
+  // BR Class 52 "Western" (BRCW Crewe + BR Swindon Works, 1961-64) —
+  // C-C diesel-hydraulic with twin Maybach MD655 engines, 74 built.
+  // All withdrawn from BR service by February 1977; 7 units preserved
+  // (D1010 / D1013 / D1015 / D1023 / D1041 / D1048 / D1062), all named
+  // "Western [X]". Class-name collision: the bare "class 52" key in
+  // this lookup is intentionally Kriegslok (German DR BR 52, ~6,719
+  // built, far more numerous globally). The UK Western must be looked
+  // up via "br class 52" / "western" / "class 52 western". Added
+  // 2026-05-09 after UK tester Steph reported D1015 Western Champion
+  // returning Kriegslok specs (80 km/h / Borsig / Coal-Steam) on a
+  // UK heritage scan. Vision rule pinned to ensure the model returns
+  // the disambiguating class string, not bare "Class 52".
+  "br class 52": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
+  "british rail class 52": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
+  "class 52 western": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
+  "br class 52 western": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
+  "western": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
+  "western diesel hydraulic": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
+  "western champion": { maxSpeed: "90 mph", power: "2,013 kW", builder: "BRCW Crewe / BR Swindon Works", numberBuilt: 74, fuelType: "Diesel-Hydraulic" },
   // Class 455 (BR-built BREL York 1982-85) — Southern Region 4-car
   // suburban EMU, 137 units (455/7, 455/8, 455/9 sub-classes). Long
   // primary fleet on SWR Wessex Lines (Waterloo - SW London suburban).
