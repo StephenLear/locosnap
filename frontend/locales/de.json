@@ -234,7 +234,13 @@
     "yearlyPrice": "{{price}} / Jahr",
     "signInGateTitle": "Zum Abonnieren anmelden",
     "signInGateBody": "Pro bleibt bei deinem Account, nicht beim Gerät. Einmal per E-Mail anmelden — dein Abo läuft auf jedem Telefon, mit dem du dich anmeldest.",
-    "signInGateCta": "Anmelden, um fortzufahren"
+    "signInGateCta": "Anmelden, um fortzufahren",
+    "lifetimeTitle": "Lebenslang",
+    "lifetimeSubtitle": "Einmalzahlung, keine Folgekosten",
+    "lifetimePrice": "{{price}}",
+    "introBadge": "30% RABATT FÜR 3 MONATE",
+    "introDisclaimer": "Nach 3 Monaten gilt der reguläre Preis. Jederzeit kündbar.",
+    "unlockLifetime": "Lebenslang freischalten"
   },
   "rarity": {
     "common": "Häufig",

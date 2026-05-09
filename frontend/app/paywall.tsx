@@ -33,6 +33,11 @@ import {
 import { track } from "../services/analytics";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 import { useLocalSearchParams } from "expo-router";
+import {
+  getPackageKind,
+  sortPaywallPackages,
+  findDefaultIndex,
+} from "./paywall-helpers";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH * 0.58;
@@ -176,18 +181,11 @@ export default function PaywallScreen() {
     const offerings = await getOfferings();
 
     if (offerings?.current?.availablePackages) {
-      // Sort: annual first (anchor effect — makes monthly look like a downgrade)
-      const sorted = [...offerings.current.availablePackages].sort((a, b) => {
-        if (a.packageType === "ANNUAL" || a.identifier.includes("annual")) return -1;
-        if (b.packageType === "ANNUAL" || b.identifier.includes("annual")) return 1;
-        return 0;
-      });
+      // Sort: annual (anchor) → monthly → lifetime. Lifetime last because it's
+      // a high-commitment alternative; we want the eye to land on annual first.
+      const sorted = sortPaywallPackages(offerings.current.availablePackages);
       setPackages(sorted);
-      // Default to annual if available, otherwise first package
-      const annualIdx = sorted.findIndex(
-        (p) => p.packageType === "ANNUAL" || p.identifier.includes("annual")
-      );
-      setSelectedIndex(annualIdx >= 0 ? annualIdx : 0);
+      setSelectedIndex(findDefaultIndex(sorted));
 
       // Capture blueprint credit price from RevenueCat
       const creditPkg = offerings?.all?.["blueprint_credits"]?.availablePackages?.[0];
@@ -425,9 +423,25 @@ export default function PaywallScreen() {
             <Text style={styles.sectionLabel}>CHOOSE YOUR PLAN</Text>
             {packages.map((pkg, index) => {
               const isSelected = index === selectedIndex;
-              const isAnnual =
-                pkg.packageType === "ANNUAL" ||
-                pkg.identifier.includes("annual");
+              const kind = getPackageKind(pkg);
+              const isAnnual = kind === "annual";
+              const isLifetime = kind === "lifetime";
+              const hasIntroOffer =
+                isAnnual && Boolean((pkg.product as any).introPrice);
+
+              const title =
+                pkg.product.title ||
+                (isLifetime
+                  ? t("paywall.lifetimeTitle")
+                  : isAnnual
+                    ? "Annual"
+                    : "Monthly");
+
+              const priceSuffix = isLifetime
+                ? ""
+                : isAnnual
+                  ? "/year"
+                  : "/month";
 
               return (
                 <TouchableOpacity
@@ -442,7 +456,9 @@ export default function PaywallScreen() {
                   {/* Best value badge */}
                   {isAnnual && (
                     <View style={styles.bestValueBadge}>
-                      <Text style={styles.bestValueText}>BEST VALUE</Text>
+                      <Text style={styles.bestValueText}>
+                        {hasIntroOffer ? t("paywall.introBadge") : "BEST VALUE"}
+                      </Text>
                     </View>
                   )}
 
@@ -465,16 +481,21 @@ export default function PaywallScreen() {
                         isSelected && styles.packageTitleSelected,
                       ]}
                     >
-                      {pkg.product.title || (isAnnual ? "Annual" : "Monthly")}
+                      {title}
                     </Text>
                     <Text style={styles.packagePrice}>
                       {pkg.product.priceString}
-                      {isAnnual ? "/year" : "/month"}
+                      {priceSuffix}
                     </Text>
+                    {isLifetime && (
+                      <Text style={styles.packageSubtitle}>
+                        {t("paywall.lifetimeSubtitle")}
+                      </Text>
+                    )}
                   </View>
 
-                  {/* Savings badge */}
-                  {isAnnual && (
+                  {/* Savings badge — annual only, hidden when intro offer is showing */}
+                  {isAnnual && !hasIntroOffer && (
                     <View style={styles.savingsBadge}>
                       <Text style={styles.savingsBadgeText}>Save 25%</Text>
                     </View>
@@ -482,6 +503,16 @@ export default function PaywallScreen() {
                 </TouchableOpacity>
               );
             })}
+            {/* Intro offer disclaimer — shown below the package list when annual has an intro offer */}
+            {packages.some(
+              (p) =>
+                getPackageKind(p) === "annual" &&
+                Boolean((p.product as any).introPrice)
+            ) && (
+              <Text style={styles.introDisclaimer}>
+                {t("paywall.introDisclaimer")}
+              </Text>
+            )}
           </View>
         ) : null}
 
@@ -968,6 +999,18 @@ const styles = StyleSheet.create({
   packagePrice: {
     fontSize: fonts.sizes.sm,
     color: colors.textSecondary,
+  },
+  packageSubtitle: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  introDisclaimer: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: spacing.sm,
+    fontStyle: "italic",
   },
   savingsBadge: {
     backgroundColor: colors.success,

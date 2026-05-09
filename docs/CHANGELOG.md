@@ -7,6 +7,109 @@ Format: newest first within each date block.
 
 ## 2026-05-08
 
+### Ad production — three videos rendered for the weekend post slate
+
+**BR 140 v5 (DE)** — `~/Desktop/BR140_ad/locosnap_br140_v2.mp4`. Wirtschaftswunder framing (5 iterations to land — see `feedback_ad_build_pipeline.md`). Beat sources: Waldheim red 140 head-on (Beat 1, NEW source not in Apr 20 ad), Hamburg blue private operator with containers (Beat 2), Straubing PEF heritage dusk (Beat 3, "879 / gebaut."), Waldheim red 140 platform close-up (Beat 4). Saved DE endcard. Posting: Saturday DE morning peak.
+
+**Class 91 v3 (UK)** — `~/Desktop/Class91_ad/locosnap_class91_v2.mp4`. "Made in Britain. Killed by Hitachi." framing — Hitachi Azuma replacement angle. Beat sources: Ryan Windridge compilation t=70 (LNER red sunset hero), t=90 (NSE-style fleet 91127 close-up), t=30 (LNER side-on urban), t=40 (LNER head-on platform). Saved EN endcard with App Store + Google Play CTA. Posting: Saturday UK afternoon peak. First UK-targeted ad in 21 days.
+
+**v1.0.29 launch ad — DE + EN versions** — `~/Desktop/v1029_launch_ad/locosnap_v1029_launch_de.mp4` + `_en.mp4`. Country-sweep format (PL → DE → UK) + paywall reveal + endcard. Beat sources: ET22 Byczka 676 station pass (PL), BR 151 073-4 Bundesbahn Göppingen Hbf head-on (DE), v1.0.29 paywall screenshot static crop (Lifetime row visible alongside intro-discounted annual), Class 37 37425 Max Power head-on (UK). Text overlay tells: Foto vom Zug → Klasse + Daten → Lebenslang. Werbefrei. → Pro für immer. Posting: Sunday DE morning peak, EN ~30 min stagger. Skipping PL version (last PL launch ad underperformed). Captions include "Werbefrei" / "Completely ad-free" callout (verified — LocoSnap has no AdMob/ads infrastructure in either tier).
+
+**Reusable endcards** committed at `/Users/StephenLear/Projects/locosnap/ad_assets/endcards/` — `endcard_de.mp4` / `endcard_en.mp4` / `endcard_pl.mp4` (720×1280, 30fps, 2s, ~30KB each). Format: black background, LocoSnap icon (300×300) + name (80px white) + tagline (44px yellow) + CTA (42px white) "Free on App Store + Google Play" (locale-specific). Concat as beat 5 of any future 10s ad — never regenerate per-ad. See `~/.claude/projects/.../memory/ad_assets_endcards.md`.
+
+### Comment replies posted on DDR / BR 156 ad
+
+- **trainspotter_leander** (DE) — "only 3 scans" complaint resolved with update prompt + 6-scan correction
+- **airbus.a3200** (DE) — BR 103 ICE TD speed concession reply
+- **Steffan23** (DE) — Nordbahn warm reply asking for fleet number / footage offer
+- **Wickser-aus-Kassel commenter** (DE) — Hennigsdorf vs Kassel rail-industry consolidation acknowledgement (warm, no political engagement)
+- **"eine in Pressig gesehen 🥰"** (DE) — fleet-number ask for spotted unit
+
+### TrainVibez follow-up sent
+
+Mattis replied 2026-05-08: *"Hi, ich versuche es diese Woche umzusetzen. Melde mich dann für genaueres."* — actively working on the YouTube sponsor video. Quick warm acknowledgement reply sent ("kein Druck, alles vorbereitet").
+
+### Sentry alert REACT-NATIVE-P resolution
+
+Three discrete checks of the same `services/api.ts:273` timeout-retry alert across the day: 1 event/1 user → 2/2 → 3/3 over 8 hours. One v1.0.29 event among three. Below the 5-event/48h threshold per `feedback_play_billing_diagnosis.md`. Marked Resolved. Render health checks all green throughout. Pattern: real-world network-tail surface, not a v1.0.29 regression.
+
+### Stats sweep — multi-source dashboard review
+
+Captured ~17:00 across TikTok / Instagram / Apple / Google Play / RevenueCat / Supabase / Anthropic. Key reads:
+
+- **TikTok BR 156 24h** — 1.5K views, 5.67s avg watch, 15.5% full, 2 followers. Underperforming BR 232 v2 baseline (4.3K / 22% / 31 follows) on volume + follower conversion.
+- **TikTok BR 232 v2** — settled at 4.8K all-time / 26 follows in 7d (was 4.3K when last reviewed) — the standout of the period.
+- **TikTok 7d account** — 10.8K views (+196), 708 likes (+165), 100 comments (+25), 4.8K total viewers. DE 58.5% / PL 22.1% / India 5.7%.
+- **IG BR 156** — 135 views / 39.8% skip rate (BEST skip rate of any LocoSnap reel — 64.8% on BR 103 prior). Low absolute volume but quality signal strong.
+- **Apple App Store 30d** — 143 units (+38%), 4 IAPs (+100%), $108 sales (+399%), 12.6% conversion rate, $66 proceeds. Strong but small.
+- **Google Play 28d** — 109 device acquisitions (+990% vs flattered pre-launch comparison), 80 first opens, 104 MAU. Geography: DE 55.8% / PL 20.2% / UK 8.7% / AT 6.7%. PL +5x growth post-launch, UK FLAT post-launch (real signal — UK content/audience mismatch).
+- **RevenueCat** — 8 active subs, MRR $32, $129 28d revenue, 366 active customers. Two recent transactions visible (DE Play Store annual subs).
+- **Anthropic caching** — 97.6% cache read ratio / 4.34× write amortisation. Mature.
+- **Supabase** — 1,363 requests last 24h, healthy, no operational issues.
+
+### Reflect session — four memory rules updated/created
+
+Per `/reflect` skill: `feedback_ad_build_pipeline.md` (MUST-DO-FIRST checklist prepended), `feedback_play_billing_diagnosis.md` (low-volume response template added), `feedback_ad_text_width_rule.md` (rule of thumb → hard caps), `feedback_browser_click_strikes.md` (NEW — 2-strike rule on Chrome MCP coordinate clicks).
+
+---
+
+### v1.0.29 LIVE on both App Store + Google Play (same-day approval)
+
+Apple approved iOS build 51 on the evening of 2026-05-08 — same day as Google approved Android versionCode 17. Fastest dual-store turnaround in LocoSnap history (matches v1.0.24's same-day record). Both stores now serve v1.0.29 with: Lifetime Pro IAP (£89.99 / $99.99 / €99 / 399 zł), 30% intro on annual subscriptions, 30% win-back on monthly cancellations, expo-store-review wow-moment prompts at four trigger points, cancellation_reasons backend logging.
+
+### v1.0.29 SUBMITTED to both stores
+
+EAS production builds for v1.0.29 triggered + uploaded via `eas submit --platform all --profile production --non-interactive --latest`:
+- **iOS:** build 51 (`79e5f4f4-a3f5-4528-a883-029985a73c8e`), .ipa `g43ESZ2JHNuKmxLzjjwLLo.ipa`. Processed by Apple, smoke-tested in TestFlight on a new sandbox account (paywall 3 rows render correctly, intro badge "30% OFF FIRST 3 MONTHS" appears on Annual for new subscribers, "Save 25%" badge correctly hidden when intro shown, italic disclaimer below package list, Lifetime row at $99.99 sandbox = £89.99 GB production override). Submitted for App Store review with EN release notes.
+- **Android:** versionCode 17 (`6bf90129-2862-4cd4-b44e-6bc49bf72003`), .aab `ekiXSNpWXbXzTzW1qR8NfX.aab`. Tight ≤450-char EN+DE release notes pasted in Play Console (Google's 500-char per-language hard cap), rolled out to production track — now in Google review.
+
+App Store Connect promo image for `pro_lifetime` IAP cropped from TestFlight screenshot at 1024×1024 (`~/Desktop/v1.0.29_offers/pro_lifetime_promo.png` — Pro badge + rocket icon + "Go Pro" headline + tagline). Three iPhone screenshots resized 1206×2622 → 1290×2796 for App Store iPhone 6.7" submission slot (`~/Desktop/v1.0.29_screenshots/`).
+
+Sentry alert `REACT-NATIVE-P` (Could not connect to LocoSnap servers, Samsung A56 Android 16, release 1.0.28) — single event, single user, coincided with Render cold-start window after Phase 1 backend deploy. Per `single-data-point-discipline`: monitor, don't act unless 5+ events recur in 24-48h.
+
+---
+
+### Frontend — Phase 2 of v1.0.29 retention layer: paywall Lifetime row + review prompts
+
+Added Lifetime row to the paywall, intro-offer badge + disclaimer when annual has an `introPrice`, and `expo-store-review`-backed wow-moment review prompts at four trigger points.
+
+**`frontend/app/paywall-helpers.ts` (new)** — pure-logic helpers `getPackageKind`, `sortPaywallPackages` (annual → monthly → lifetime), `findDefaultIndex`. Refactored `paywall.tsx` `loadOfferings` to use them. 8 tests.
+
+**`frontend/app/paywall.tsx`** — render block extended to detect `lifetime` kind (no "/month" suffix, lifetime subtitle line), `annual + introPrice` (replaces "BEST VALUE" badge with "30% OFF FIRST 3 MONTHS" badge, hides "Save 25%" badge to avoid double-billing the user, appends italic disclaimer below package list).
+
+**`frontend/services/reviewPrompt.ts` (new)** — `maybePromptReview({ trigger, scanCount })` whitelisted to four triggers: `legendary_scan`, `achievement_silver_gold`, `streak_7d`, `unique_classes_50`. 90-day local AsyncStorage throttle layered on top of iOS's native 365-day rate limit. Min 3 scans required before any prompt. Silently returns when `expo-store-review` reports unavailable. 10 tests.
+
+**Trigger wiring:**
+- `app/card-reveal.tsx` — fires `legendary_scan` after the rarity glow animation starts when `currentRarity.tier === "legendary"`
+- `store/trainStore.ts` — in the post-sync achievement loop:
+  - 8 silver/gold types (`unique_century`, `unique_master`, `five_hundred_club`, `thousand_spots`, `streak_thirty`, `streak_hundred`, `legendary_five`, `heritage_master`) fire `achievement_silver_gold`
+  - `seven_day_streak` fires `streak_7d`
+  - `ten_unique` fires `unique_classes_50` (closest existing milestone — spec called for "50 unique classes" but the codebase has no such achievement; `ten_unique` is the first major unique-class wow moment)
+
+**Locale strings (EN + DE):** added `paywall.lifetimeTitle` / `lifetimeSubtitle` / `lifetimePrice` / `introBadge` / `introDisclaimer` / `unlockLifetime` to both `locales/en.json` and `locales/de.json`. PL not added — codebase only has EN + DE locales currently.
+
+**Dependency:** `expo-store-review ~9.0.9` added via `npx expo install`. Native module — requires a fresh native build. Mock at `__mocks__/expo-store-review.ts` and `moduleNameMapper` entry in `jest.config.js` so non-reviewPrompt tests that transitively pull the module don't break.
+
+Tests: 153/153 (was 135 + 18 new), tsc clean.
+
+Files changed:
+- `frontend/app/paywall-helpers.ts` (new)
+- `frontend/app/paywall.tsx` (loadOfferings + render block + 2 new style entries)
+- `frontend/app/card-reveal.tsx` (import + legendary trigger)
+- `frontend/services/reviewPrompt.ts` (new)
+- `frontend/store/trainStore.ts` (import + achievement-loop trigger logic)
+- `frontend/locales/en.json` (6 new keys)
+- `frontend/locales/de.json` (6 new keys)
+- `frontend/jest.config.js` (moduleNameMapper)
+- `frontend/__mocks__/expo-store-review.ts` (new)
+- `frontend/__tests__/paywall-helpers.test.ts` (new, 8 tests)
+- `frontend/__tests__/reviewPrompt.test.ts` (new, 10 tests)
+- `frontend/package.json` + `package-lock.json` (expo-store-review)
+
+Refs: `docs/plans/2026-05-07-retention-and-offers-implementation.md` Tasks 9-20.
+
+---
+
 ### Backend — Phase 1 of v1.0.29 retention layer: cancellation_reasons table + CANCELLATION webhook handler
 
 Migration `015_cancellation_reasons.sql` adds `public.cancellation_reasons` table to log RevenueCat CANCELLATION events for closed-loop save-rate measurement on Apple Retention Messaging + Play Win-back. Columns: `user_id`, `rc_event_id` (unique), `product_id`, `cancellation_reason`, `store` (`app_store` | `play_store`), `was_in_trial`, `hours_since_purchase`, `hours_since_trial_start`, `retention_offer_shown`, `retention_offer_redeemed`, `raw_event` (jsonb). Two indexes on `user_id` and `created_at desc`. RLS enabled with no policies — server-write only via service role.

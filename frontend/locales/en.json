@@ -234,7 +234,13 @@
     "yearlyPrice": "{{price}} / year",
     "signInGateTitle": "Sign in to subscribe",
     "signInGateBody": "Your Pro stays with your account, not your device. Sign in once with email — your subscription works on any phone you sign into.",
-    "signInGateCta": "Sign in to continue"
+    "signInGateCta": "Sign in to continue",
+    "lifetimeTitle": "Lifetime",
+    "lifetimeSubtitle": "One-time payment, never charged again",
+    "lifetimePrice": "{{price}}",
+    "introBadge": "30% OFF FIRST 3 MONTHS",
+    "introDisclaimer": "After 3 months, regular price applies. Cancel anytime.",
+    "unlockLifetime": "Unlock Lifetime"
   },
   "rarity": {
     "common": "Common",
