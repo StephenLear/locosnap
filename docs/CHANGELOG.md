@@ -7,6 +7,20 @@ Format: newest first within each date block.
 
 ## 2026-05-09
 
+### Backend `5538ef5` — Steph round-2 corrections: Loram C21 rail grinder + Class 37 vs 45 Peak (DEPLOYED)
+
+Tester Steph re-corrected two prior misIDs after this morning's commit `e564811` went live. Two new screenshots in `~/Desktop/feedback/` (IMG_4673 annotated rail-grinder reference, IMG_4674 a Class 45 scan returning Class 37).
+
+**(1) Loram C21 rail grinder mistaken for a locomotive — twice in one day.** The IMG_4671 scan that this morning's commit fixed from Class 66 → Class 70 (Colas Rail) was actually neither. Steph clarified the vehicle is **Loram C2101**, a Network Rail-contracted rail grinding machine (track maintenance vehicle, not a locomotive). Three-machine fleet C2101/C2102/C2103, painted yellow with prominent Loram logos, often paired with Control Car 79237, working in train formations using "6Z08"-series engineering reporting numbers principally on the Lancaster & Carlisle line and South West routes near Okehampton. Both prior identifications (Class 66, then Class 70) were wrong-target — the correct classification is "not a locomotive". Extended the existing track-maintenance-vehicle rule in `backend/src/services/vision.ts` to explicitly cover Loram C21 with the cue list (yellow articulated multi-section + grinding apparatus + no traction-loco silhouette + Loram brand markings) and an explicit forbid list (NEVER Class 66 / 67 / 70). Added 6 new lookup keys in `backend/src/services/trainSpecs.ts` ("loram c21", "loram c21 rail grinder", "loram rail grinder", "c2101", "c2102", "c2103") locked to Loram Maintenance of Way / 3 in fleet / Diesel / 60 mph. **Lesson recorded inline in the new rule:** when a fix doesn't match reality, the rule was a wrong-target — re-classify upstream rather than walking down disambiguation alternatives.
+
+**(2) Class 45 "Peak" 45118 "Royal Artilleryman" returned as Class 37.** Preserved BR-blue Peak in heritage service was misidentified as Class 37 / West Coast Railways. New disambiguation rule in `backend/src/services/vision.ts` pinning the **prominent four-character headcode panel centred high between the windscreens** as the single decisive Class 45 cue (absent on Class 37, which has either split-headcode boxes either side OR a sealed flat beam). Wheel arrangement (1Co-Co1 with smaller trailing pony axles for Class 45 vs Co-Co for Class 37), length (20.7 m vs 18.7 m), and fleet number ranges (45xxx → Class 45, 37xxx → Class 37) all enumerated. Notable preserved Peaks listed by name: 45112 Royal Army Ordnance Corps, 45118 Royal Artilleryman, 45125, 45133, 45135 3rd Carabinier — WCRC and DTG operate both classes on charters so operator alone is NOT a discriminator. Added 8 new lookup keys in `backend/src/services/trainSpecs.ts` ("class 45", "br class 45", "british rail class 45", "class 45/0", "class 45/1", "peak", "br sulzer type 4", "royal artilleryman") locked to BRCW Smethwick + BR Derby Works / 127 built / 90 mph / 1,860 kW / Diesel-Electric.
+
+Tests: 173/173 backend, tsc clean. Cache version unchanged (v7) — corrective entries that take effect on the next scan without invalidating prior caches. Pushed to Render — backend live within auto-deploy window.
+
+Files changed:
+- `backend/src/services/vision.ts` (track-maintenance rule extended for Loram C21; new Class 37 vs Class 45 Peak disambiguation rule)
+- `backend/src/services/trainSpecs.ts` (14 new lookup keys: 6 Loram + 8 Class 45)
+
 ### Backend `e564811` — Steph feedback batch: Class 57/73, Class 70/66, Class 59/66, BR Class 52 Western disambiguation (DEPLOYED)
 
 UK tester Steph (canonical evangelist per `project_tester_evangelist_pattern.md`) sent four screenshots from a Chastleton (Cotswold Line) scanning session, all four were misIDs. Pushed to Render at the same time as the housekeeping commits below; backend live within auto-deploy window.
