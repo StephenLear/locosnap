@@ -7,6 +7,25 @@ Format: newest first within each date block.
 
 ## 2026-05-10
 
+### Backend — BR 426 vs BR 428 vision disambiguation (bahnbilder.bodensee feedback round 3)
+
+After this morning's BR 428 specs fix shipped, tester @bahnbilder.bodensee replied: *"Das ist ja der 426 nur als 428 gekennzeichnet"* — the train in his earlier IMG_4681 screenshot is actually a **BR 426** (Bombardier Adtranz Continental 2-car), and the model was misclassifying it as a **BR 428** (Stadler FLIRT 3-car). The earlier specs fix (Stadler builder + 2008 build year) is correct on its own — it fires when the model legitimately returns BR 428. But the underlying classification was wrong: the model needed a disambiguation rule between the Bombardier-built BR 425/426 family and the Stadler-built BR 428/429 family.
+
+Added new "STEP 5 — DISTINGUISH BR 425/426 (Bombardier Adtranz Continental) FROM BR 428 (Stadler FLIRT 3-car)" rule in `backend/src/services/vision.ts` after the existing BR 423 vs 425/426 step. Decisive cues:
+- **BR 425/426** = BOXY upright flat-fronted cab, TWO flat windscreen panes side-by-side, late-1990s/early-2000s Bombardier/DWA aesthetic. BR 425 is 4-car, BR 426 is 2-car. Bombardier (Salzgitter).
+- **BR 428** = SHARP ANGULAR forward-raked "smiling" cab with SINGLE curved-glass windscreen panel, modern Stadler FLIRT styling. 3-car.
+
+**Critical operator pin** (most important part of the rule): the German rail network has **TWO different BOB operators**, both Transdev-branded but in different regions running different rolling stock:
+- **BOB Bodensee-Oberschwaben-Bahn** (Lake Constance / Friedrichshafen / Lindau, Baden-Württemberg / Bavaria border) operates **BR 426** (Bombardier 2-car, blue+white livery) — NEVER BR 428.
+- **BOB Bayerische Oberlandbahn** (Munich southeast suburbs / Tegernsee / Lenggries / Bayrischzell) operates BR 428 Stadler FLIRT among other stock.
+
+Rule explicitly forbids defaulting BOB Bodensee-Oberschwaben-Bahn to BR 428 — must return BR 426. Credits Luis's catch.
+
+Tests: 173/173 backend, tsc clean. Cache version unchanged (v7) — the BR 426 trainSpecs entry already exists (LHB/Alstom/Bombardier Salzgitter, 160 km/h) so once the vision layer correctly returns BR 426, the spec card will be right.
+
+Files changed:
+- `backend/src/services/vision.ts` (new STEP 5 disambiguation rule, ~10 lines, between existing STEP 4 BR 423/425/426 step and CONFIDENCE FALLBACK)
+
 ### Backend — BR 428 / BR 429 Stadler FLIRT specs correction (bahnbilder.bodensee feedback round 2)
 
 Tester @bahnbilder.bodensee sent two screenshots in `~/Desktop/feedback/IMG_4680.PNG` + `IMG_4681.PNG` — a BOB (Bodensee-Oberschwaben-Bahn / Transdev) BR 428 in blue livery, correctly identified as **BR 428** but returning a wrong spec card with **two factual errors**:
