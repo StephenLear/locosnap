@@ -459,6 +459,34 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "br 426": { builder: "LHB / Alstom / Bombardier (Salzgitter)", maxSpeed: "160 km/h" },
   "426": { builder: "LHB / Alstom / Bombardier (Salzgitter)", maxSpeed: "160 km/h" },
   "class 426": { builder: "LHB / Alstom / Bombardier (Salzgitter)", maxSpeed: "160 km/h" },
+  // BR 428 (Stadler FLIRT 3-car) and BR 429 (Stadler FLIRT 5-car) —
+  // modern multi-system EMUs from Stadler Rail (Bussnang, Switzerland;
+  // assembly for German market also at Stadler Berlin-Pankow / Velten).
+  // 160 km/h, 2,000 kW (3-car BR 428) / ~4,000 kW (5-car BR 429),
+  // 15 kV 16.7 Hz AC. Operated by private regional operators across
+  // Germany — including BOB (Bodensee-Oberschwaben-Bahn / Transdev,
+  // blue livery), Eurobahn, Westfalenbahn, ODEG, Abellio, AKN, vlexx,
+  // National Express, NWB. Entered service from 2008 onwards.
+  // CRITICAL: NEVER classify the builder as Crewe Works, Bombardier,
+  // Siemens, Alstom, or LHB — the BR 428/429 fleet is exclusively
+  // Stadler. NEVER use a 1930 / pre-war build year — that is a
+  // Wikipedia-disambiguation conflation with the older DRB Class 428
+  // family which has no relation to the modern Stadler FLIRT. Added
+  // 2026-05-10 after bahnbilder.bodensee correctly flagged a BOB
+  // BR 428 scan returning "Builder: Crewe Works" and "seit 1930 im
+  // Dienst" / "1930 in Dienst gestellt" — both factually wrong.
+  "br 428": { maxSpeed: "160 km/h", power: "2,000 kW", weight: "125 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "br428": { maxSpeed: "160 km/h", power: "2,000 kW", weight: "125 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "428": { maxSpeed: "160 km/h", power: "2,000 kW", weight: "125 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "class 428": { maxSpeed: "160 km/h", power: "2,000 kW", weight: "125 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "baureihe 428": { maxSpeed: "160 km/h", power: "2,000 kW", weight: "125 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "stadler flirt 3": { maxSpeed: "160 km/h", power: "2,000 kW", weight: "125 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "br 429": { maxSpeed: "160 km/h", power: "4,000 kW", weight: "189 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "br429": { maxSpeed: "160 km/h", power: "4,000 kW", weight: "189 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "429": { maxSpeed: "160 km/h", power: "4,000 kW", weight: "189 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "class 429": { maxSpeed: "160 km/h", power: "4,000 kW", weight: "189 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "baureihe 429": { maxSpeed: "160 km/h", power: "4,000 kW", weight: "189 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "stadler flirt 5": { maxSpeed: "160 km/h", power: "4,000 kW", weight: "189 tonnes", builder: "Stadler Rail (Bussnang)", fuelType: "Electric (15 kV 16.7 Hz AC)" },
   // DRB Baureihe 52 / Kriegslokomotive — 2-10-0 STEAM freight locomotive, coal-fired.
   // Built 1942-1950 by Borsig (first/lead manufacturer) and others. ~6,719 built.
   // CRITICAL: Must NEVER show as Electric/Diesel — it is a STEAM locomotive.

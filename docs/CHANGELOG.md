@@ -7,6 +7,24 @@ Format: newest first within each date block.
 
 ## 2026-05-10
 
+### Backend — BR 428 / BR 429 Stadler FLIRT specs correction (bahnbilder.bodensee feedback round 2)
+
+Tester @bahnbilder.bodensee sent two screenshots in `~/Desktop/feedback/IMG_4680.PNG` + `IMG_4681.PNG` — a BOB (Bodensee-Oberschwaben-Bahn / Transdev) BR 428 in blue livery, correctly identified as **BR 428** but returning a wrong spec card with **two factual errors**:
+
+1. **Builder: "Crewe Works"** — completely wrong. Crewe is a UK railway works that has never built any German rolling stock. The BR 428 / BR 429 fleet is built by **Stadler Rail** (Bussnang, Switzerland; assembly for German market also at Stadler Berlin-Pankow / Velten).
+2. **"seit 1930 im Dienst" / "1930 in Dienst gestellt"** in the description — Wikipedia-disambiguation conflation with the older pre-war DRB Class 428 family. The modern Stadler FLIRT BR 428 entered service in **2008**, not 1930. This is the canonical "1930-vs-2001" conflation pattern Luis flagged conceptually earlier in the day (see his Wikipedia disambig screenshot for BR 245).
+
+Root cause: no hardcoded BR 428 / BR 429 entries in `backend/src/services/trainSpecs.ts` — the lookup fell through to AI generation which conflated multiple `Baureihe 428`-named historical references and produced a builder + year from a completely unrelated pre-war class.
+
+Added 12 new lookup keys total covering BR 428 (3-car FLIRT) and BR 429 (5-car FLIRT) variants, both locked to: 160 km/h / Stadler Rail (Bussnang) / Electric (15 kV 16.7 Hz AC) / weight + power differing by car-count (3-car: 2,000 kW / 125 t; 5-car: 4,000 kW / 189 t). Inline comment forbids classifying builder as "Crewe Works", Bombardier, Siemens, Alstom, or LHB; explicitly forbids the 1930 / pre-war build year framing; credits Luis's catch.
+
+No vision-rule change — class identification was already correct.
+
+Tests: 173/173 backend, tsc clean. Cache version unchanged (v7) — corrective entries take effect on next scan.
+
+Files changed:
+- `backend/src/services/trainSpecs.ts` (12 new lookup keys: 6 BR 428 + 6 BR 429)
+
 ### Backend — BR 245 specs correction (bahnbilder.bodensee feedback)
 
 Tester @bahnbilder.bodensee (DE, Bodensee region) sent two screenshots in `~/Desktop/feedback/IMG_4675.PNG` + `IMG_4676.PNG` — a DB Regio BR 245 (red livery double-header) correctly identified as **BR 245** but returning the wrong spec card: max speed shown as 120 km/h (correct: 160 km/h — the platform is literally TRAXX P160 DE ME, the "P160" meaning passenger-160) and builder shown as "ALSTOM Transportation…" (BR 245 was Bombardier-built; Alstom only owns the IP since the 2021 Bombardier Transportation acquisition).
