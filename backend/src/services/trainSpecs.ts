@@ -337,6 +337,31 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "db class 247": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
   "vectron de": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
   "siemens vectron de": { maxSpeed: "160 km/h", power: "2,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", numberBuilt: 80, fuelType: "Diesel" },
+  // BR 245 / Bombardier TRAXX P160 DE ME — Bo-Bo multi-engine
+  // diesel-electric, Bombardier Transportation (Kassel) 2013–2017,
+  // ~50 units. Four MTU 8V 4000 R43/R44 diesel gensets (4 × 563 kW)
+  // for fuel economy via individual engine shutdown. 160 km/h
+  // (the "P160" in the platform designation is literally "passenger,
+  // 160 km/h"), 2,200 kW total / ~2,090 kW continuous, 84 t.
+  // Operators: DB Regio (Allgäu, Marschbahn Sylt, Südostbayernbahn),
+  // Pressnitztalbahn, Railpool, ELL. Builder is ALWAYS Bombardier
+  // Transportation — Alstom only owns the IP after the 2021 Bombardier
+  // Transportation acquisition; the BR 245 fleet was Bombardier-built.
+  // NEVER classify the builder as Alstom alone, NEVER classify max
+  // speed as 120 km/h (that's the BR 232 figure — confusion with
+  // Russian-built diesel heavy-haul). Added 2026-05-10 after
+  // bahnbilder.bodensee correctly flagged that an app-returned card
+  // was showing 120 km/h + Alstom on a BR 245 (DB Regio red livery
+  // double-header).
+  "br 245": { maxSpeed: "160 km/h", power: "2,200 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 50, fuelType: "Diesel-Electric (4 × MTU 8V 4000 gensets)" },
+  "br245": { maxSpeed: "160 km/h", power: "2,200 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 50, fuelType: "Diesel-Electric (4 × MTU 8V 4000 gensets)" },
+  "245": { maxSpeed: "160 km/h", power: "2,200 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 50, fuelType: "Diesel-Electric (4 × MTU 8V 4000 gensets)" },
+  "db 245": { maxSpeed: "160 km/h", power: "2,200 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 50, fuelType: "Diesel-Electric (4 × MTU 8V 4000 gensets)" },
+  "db class 245": { maxSpeed: "160 km/h", power: "2,200 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 50, fuelType: "Diesel-Electric (4 × MTU 8V 4000 gensets)" },
+  "class 245": { maxSpeed: "160 km/h", power: "2,200 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 50, fuelType: "Diesel-Electric (4 × MTU 8V 4000 gensets)" },
+  "baureihe 245": { maxSpeed: "160 km/h", power: "2,200 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 50, fuelType: "Diesel-Electric (4 × MTU 8V 4000 gensets)" },
+  "traxx p160 de me": { maxSpeed: "160 km/h", power: "2,200 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 50, fuelType: "Diesel-Electric (4 × MTU 8V 4000 gensets)" },
+  "bombardier traxx p160 de me": { maxSpeed: "160 km/h", power: "2,200 kW", weight: "84 tonnes", builder: "Bombardier Transportation (Kassel)", numberBuilt: 50, fuelType: "Diesel-Electric (4 × MTU 8V 4000 gensets)" },
   // ČD class 753 / 754 ("Brejlovec" — Czech for "goggle-eyed", named for the round headlights set
   // in oval recesses) — added 2026-05-05 after the same TrainVibez screen-recording session
   // flagged that Czech cross-border diesels in DE/Saxony had no codebase coverage. Originally

@@ -5,6 +5,23 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-10
+
+### Backend — BR 245 specs correction (bahnbilder.bodensee feedback)
+
+Tester @bahnbilder.bodensee (DE, Bodensee region) sent two screenshots in `~/Desktop/feedback/IMG_4675.PNG` + `IMG_4676.PNG` — a DB Regio BR 245 (red livery double-header) correctly identified as **BR 245** but returning the wrong spec card: max speed shown as 120 km/h (correct: 160 km/h — the platform is literally TRAXX P160 DE ME, the "P160" meaning passenger-160) and builder shown as "ALSTOM Transportation…" (BR 245 was Bombardier-built; Alstom only owns the IP since the 2021 Bombardier Transportation acquisition).
+
+Root cause: no hardcoded BR 245 entry in `backend/src/services/trainSpecs.ts` — the lookup fell through to AI-generated specs which got both the speed and builder wrong. Added 9 new lookup keys ("br 245", "br245", "245", "db 245", "db class 245", "class 245", "baureihe 245", "traxx p160 de me", "bombardier traxx p160 de me") locked to: 160 km/h / 2,200 kW / 84 t / Bombardier Transportation (Kassel) / 50 built / Diesel-Electric (4 × MTU 8V 4000 gensets). Block inserted after the BR 247 Vectron DE cluster (preserves descending 248 → 247 → 245 ordering). Inline comment records the failure mode (NEVER classify builder as Alstom alone, NEVER 120 km/h — that's BR 232) and the tester credit.
+
+No vision-rule change required — the class identification was already correct; only the specs lookup was missing.
+
+Tests: 173/173 backend, tsc clean. Cache version unchanged (v7) — corrective entry takes effect on the next scan.
+
+Files changed:
+- `backend/src/services/trainSpecs.ts` (9 new lookup keys for BR 245 / TRAXX P160 DE ME)
+
+---
+
 ## 2026-05-09
 
 ### Backend `5538ef5` — Steph round-2 corrections: Loram C21 rail grinder + Class 37 vs 45 Peak (DEPLOYED)
