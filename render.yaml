@@ -37,4 +37,15 @@ services:
       - key: REVENUECAT_WEBHOOK_SECRET
         sync: false  # Set in dashboard (optional)
     healthCheckPath: /api/health
-    autoDeploy: true  # Deploy on push to main
+    autoDeploy: true  # Deploy on push to main (filtered to backend changes below)
+    # Only trigger Render deploys when backend files actually change.
+    # Without this, every push to main (including docs-only and frontend-only
+    # commits) fires a Render redeploy window — which manifests as a Sentry
+    # "Could not connect to LocoSnap servers" regression for any in-flight
+    # /api/identify calls. Pattern confirmed 2026-05-10 evening + 2026-05-11
+    # midday. Doc and frontend changes never touch the backend runtime, so
+    # they shouldn't redeploy it.
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
