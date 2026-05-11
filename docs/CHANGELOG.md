@@ -5,6 +5,32 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-11 (later afternoon)
+
+### Frontend — v1.0.31 MAX_HISTORY bump (Steph collection-cap fix)
+
+Steph (UK heritage Pro tester) has 210 spots / 85 unique classes server-side, but the previous `MAX_HISTORY = 200` in `frontend/store/trainStore.ts` capped both the cloud fetch and the local AsyncStorage write. Effect: her oldest 10+ spots fell off the local view even though they exist in the database — same observable symptom as the 2026-05-10 silent-persistence bug, but a different root cause (cap, not constraint violation).
+
+**Change:** raised `MAX_HISTORY` from 200 → 1000 in a single-line update with a comment block explaining the trigger. Memory cost at 1000 spots × ~2 KB per spot = ~2 MB AsyncStorage — negligible. The 4 enforcement points in `trainStore.ts` (declaration + `fetchSpots(.., MAX_HISTORY)` cloud limit + `slice(0, MAX_HISTORY)` merge cap + `slice(0, MAX_HISTORY)` save cap) all pick up the new value automatically.
+
+**Why not pagination:** true infinite-scroll pagination with lazy-load of older entries is the right long-term move but deferred to v1.0.32+. The cap raise buys runway for every current user (heaviest is Steph at 210 spots; nobody is near 1000) at near-zero cost.
+
+**Other v1.0.31 backlog items audited and closed in this session (no code change needed):**
+- **#12 Trading-card flip/spec/rarity** — closed as already-shipped. Audit confirmed: flip animation + native-driver guard at `card-reveal.tsx:192-340`, tap-to-flip hint at line 1019, `track("card_flipped")` analytics, history → card-reveal route at `history.tsx:482`, compare mode banner + 2-train picker + `router.push("/compare")` at `history.tsx:537`, compare button on card BACK with `compare_button_tapped` analytics, and `compare.tsx` (10.7 KB) as the destination — all live. The stale "Medium priority" backlog entry was wrong.
+- **#17 R8 minification + mapping file** — **closed as originally framed AND addressed.** Audit of the v1.0.30 Android build log revealed two things: (a) Sentry source-map upload was already running on Android builds (`:app:createBundleReleaseJsAndAssets_SentryUpload_com.locosnap.app@1.0.30+18_18` task fires, sentry-cli runs with `--release com.locosnap.app@1.0.30+18 --dist 18`); (b) **R8 minification was NOT running** — no `minifyReleaseWithR8` task in the build. The Play Console "no deobfuscation file" warning from v1.0.21 was an informational side effect of R8 being off, not a debugging blocker. JS stack traces were already symbolicated via Sentry source maps; native Java/Kotlin symbols were unobfuscated. Decision: enable R8 anyway for the APK-size benefit (typically ~30-40% smaller download). Added `expo-build-properties` (pinned `~1.0.10`) via `npx expo install`. Plugin config in `app.json` enables both `android.enableProguardInReleaseBuilds` and `android.enableShrinkResourcesInReleaseBuilds`. Effect on next build: `:app:minifyReleaseWithR8` runs, `mapping.txt` is generated, `@sentry/react-native`'s Gradle plugin auto-uploads the ProGuard mapping to Sentry so symbolication stays end-to-end. Resource shrinking has a slight risk for dynamically-referenced resources — if anything breaks in QA we can disable `enableShrinkResourcesInReleaseBuilds` while keeping the minify flag. Play Console mapping upload is a separate channel (Android Vitals); we use Sentry as the primary crash dashboard so Play upload is optional and can be done manually post-build if ever wanted.
+- **#24 Leaderboard Phase 4 boost cards** — closed as effectively shipped. Migration 013 already provides `user_boost_inventory`, `apply_boost_card` RPC, `themed_multiplier` (2× on Tuesdays for rare+), and the `flat_100`/`next_scan_2x` card types. `leagueWeeklyReset.ts` cron awards `flat_100` on promotion + four-week-streak. BoostInventory component is wired into MyLeagueTab. The two remaining mechanics from the original Duolingo-style spec ("New station bonus", "Country pride day") are nice-to-haves with no tester signal — re-open only if asked.
+
+**Backlog hygiene:** items #5 (gamification milestone rewards), #6 (detailed specs per class), #7 (offline spot sync), #16 (hybrid blueprint roadmap) all closed earlier today as "no signal, never escalated" per user direction. `creators_used_without_permission.md` updated with the Samuel @trainspotting101 permission grant. `tiktok_stats.md` got the 2026-05-11 midday baseline snapshot for v1.0.30 before/after comparison.
+
+Files changed:
+- `frontend/app.json` — version bump 1.0.30 → 1.0.31; `expo-build-properties` plugin block added with `android.enableProguardInReleaseBuilds: true` + `android.enableShrinkResourcesInReleaseBuilds: true`
+- `frontend/package.json` + `package-lock.json` — `expo-build-properties: ~1.0.10` added
+- `frontend/store/trainStore.ts` — `MAX_HISTORY` 200 → 1000 + comment block
+
+Tests 153/153 across 22 suites passing. tsc clean.
+
+---
+
 ## 2026-05-11
 
 ### Frontend — v1.0.30 silent-persistence hardening (post-Steph data-loss incident)

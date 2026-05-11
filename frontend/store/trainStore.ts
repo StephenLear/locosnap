@@ -54,7 +54,12 @@ import {
 import { track, addBreadcrumb, captureError } from "../services/analytics";
 
 const HISTORY_KEY = "locosnap_history";
-const MAX_HISTORY = 200;
+// v1.0.31 — bumped 200 → 1000 after Steph (210 spots / 85 unique classes)
+// hit the 200 cap and her oldest entries fell off the local view. Memory
+// cost ~2 MB AsyncStorage at 1000 spots × ~2 KB each — negligible. True
+// infinite-scroll pagination deferred to v1.0.32+ when a real user
+// actually hits 1000.
+const MAX_HISTORY = 1000;
 
 interface TrainState {
   // Current scan state
