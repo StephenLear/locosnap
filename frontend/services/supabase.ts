@@ -10,9 +10,11 @@ import {
   TrainFacts,
   RarityInfo,
   HistoryItem,
+  VerificationTier,
 } from "../types";
 import * as FileSystem from "expo-file-system/legacy";
 import { decode } from "base64-arraybuffer";
+import { captureError } from "./analytics";
 
 // ── Types ───────────────────────────────────────────────────
 
@@ -83,6 +85,14 @@ export async function upsertTrain(
 
   if (error) {
     console.warn("Failed to upsert train:", error.message);
+    captureError(new Error(`supabase upsertTrain failed: ${error.message}`), {
+      op: "upsertTrain",
+      supabaseCode: error.code,
+      supabaseHint: error.hint ?? undefined,
+      trainClass: train.class,
+      trainOperator: train.operator,
+      rarityTier: rarity.tier,
+    });
     return null;
   }
 
@@ -113,6 +123,7 @@ export async function saveSpot(params: {
   captureSource?: "camera" | "gallery";
   exifTimestamp?: string | null;
   verified?: boolean;
+  verificationTier?: VerificationTier;
   photoAccuracyM?: number | null;
   riskFlags?: Record<string, boolean>;
 }): Promise<string | null> {
@@ -145,6 +156,7 @@ export async function saveSpot(params: {
   if (params.captureSource) insertPayload.capture_source = params.captureSource;
   if (params.exifTimestamp !== undefined) insertPayload.exif_timestamp = params.exifTimestamp;
   if (params.verified !== undefined) insertPayload.verified = params.verified;
+  if (params.verificationTier !== undefined) insertPayload.verification_tier = params.verificationTier;
   if (params.photoAccuracyM !== undefined) insertPayload.photo_accuracy_m = params.photoAccuracyM;
   if (params.riskFlags) insertPayload.risk_flags = params.riskFlags;
 
@@ -156,6 +168,19 @@ export async function saveSpot(params: {
 
   if (error) {
     console.warn("Failed to save spot:", error.message);
+    captureError(new Error(`supabase saveSpot failed: ${error.message}`), {
+      op: "saveSpot",
+      supabaseCode: error.code,
+      supabaseHint: error.hint ?? undefined,
+      userId: params.userId,
+      trainId: params.trainId,
+      trainClass: params.train.class,
+      trainOperator: params.train.operator,
+      captureSource: params.captureSource,
+      verificationTier: params.verificationTier,
+      verified: params.verified,
+      payloadKeys: Object.keys(insertPayload),
+    });
     return null;
   }
 
@@ -245,6 +270,12 @@ export async function deleteSpot(spotId: string): Promise<boolean> {
 
   if (error) {
     console.warn("Failed to delete spot:", error.message);
+    captureError(new Error(`supabase deleteSpot failed: ${error.message}`), {
+      op: "deleteSpot",
+      supabaseCode: error.code,
+      supabaseHint: error.hint ?? undefined,
+      spotId,
+    });
     return false;
   }
 
@@ -265,6 +296,12 @@ export async function updateSpotBlueprint(
 
   if (error) {
     console.warn("Failed to update blueprint:", error.message);
+    captureError(new Error(`supabase updateSpotBlueprint failed: ${error.message}`), {
+      op: "updateSpotBlueprint",
+      supabaseCode: error.code,
+      supabaseHint: error.hint ?? undefined,
+      spotId,
+    });
     return false;
   }
 

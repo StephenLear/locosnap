@@ -14,6 +14,7 @@ import {
 import { IdentifyResponse, BlueprintStatus, BlueprintStyle } from "../types";
 import { useSettingsStore } from "../store/settingsStore";
 import { supabase } from "../config/supabase";
+import { captureWarning } from "./analytics";
 
 // Max longest-edge dimension before we resize (keeps detail, cuts file size)
 const MAX_IMAGE_DIMENSION = 1920;
@@ -311,6 +312,11 @@ export function pollBlueprintStatus(
 
   const promise = new Promise<string | null>((resolve) => {
     const startTime = Date.now();
+    // Consecutive network-error count. Resets on any successful poll.
+    // Bail after MAX_CONSECUTIVE_NETWORK_ERRORS so a backend outage
+    // doesn't leave the spinner running until the 240s timeout fires.
+    let consecutiveNetworkErrors = 0;
+    const MAX_CONSECUTIVE_NETWORK_ERRORS = 5;
 
     const poll = async () => {
       if (cancelled) {
@@ -319,6 +325,11 @@ export function pollBlueprintStatus(
       }
 
       if (Date.now() - startTime > BLUEPRINT_TIMEOUT) {
+        captureWarning("blueprint_timeout", {
+          taskId,
+          elapsedMs: Date.now() - startTime,
+          consecutiveNetworkErrors,
+        });
         onUpdate({
           taskId,
           status: "failed",
@@ -331,6 +342,7 @@ export function pollBlueprintStatus(
 
       try {
         const status = await checkBlueprintStatus(taskId);
+        consecutiveNetworkErrors = 0;
         onUpdate(status);
 
         if (status.status === "completed" && status.imageUrl) {
@@ -346,7 +358,23 @@ export function pollBlueprintStatus(
         // Continue polling
         timeoutId = setTimeout(poll, BLUEPRINT_POLL_INTERVAL);
       } catch {
-        // Network error — retry
+        consecutiveNetworkErrors += 1;
+        if (consecutiveNetworkErrors >= MAX_CONSECUTIVE_NETWORK_ERRORS) {
+          captureWarning("blueprint_network_errors_capped", {
+            taskId,
+            elapsedMs: Date.now() - startTime,
+            consecutiveNetworkErrors,
+          });
+          onUpdate({
+            taskId,
+            status: "failed",
+            imageUrl: null,
+            error: "Couldn't reach LocoSnap servers. You can try again later.",
+          });
+          resolve(null);
+          return;
+        }
+        // Network error — retry with backoff
         timeoutId = setTimeout(poll, BLUEPRINT_POLL_INTERVAL * 2);
       }
     };

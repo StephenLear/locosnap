@@ -5,6 +5,44 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-11
+
+### Frontend — v1.0.30 silent-persistence hardening (post-Steph data-loss incident)
+
+Three defensive changes triggered by the 2026-05-10 evening `verification_tier` silent data-loss bug. The dashboard ALTER fixed the immediate cause (column default 'personal' applied), but the architectural defects that made the failure invisible until Steph caught it are still in v1.0.29. This is the v1.0.30 backlog landing.
+
+**1. Explicit `verification_tier` in `saveSpot` payload** — `frontend/services/supabase.ts`. Defense-in-depth: the column DEFAULT 'personal' is the fallback, the frontend should pass the server-canonical tier from `currentVerification.tier` as the primary. If a future migration ever strips the default again, the frontend payload still satisfies the NOT NULL constraint. Threaded through `frontend/store/trainStore.ts` `saveToHistory` so the `verificationTier: v?.tier` reaches the supabase call.
+
+**2. `Sentry.captureError` in all four supabase write paths** — `frontend/services/supabase.ts`. `upsertTrain`, `saveSpot`, `deleteSpot`, `updateSpotBlueprint` now `captureError` with payload context (op, supabase code, supabase hint, ids, class/operator, payload keys) in addition to the existing `console.warn`. Production failures will now surface in Sentry instead of being invisible. The four read-path silent-warns are intentionally left alone — read failures cause stale UI but not data loss.
+
+**3. `loadHistory` MERGE instead of cloud-replace** — `frontend/store/trainStore.ts`. The previous implementation set `history: cloudSpots` when cloud returned ≥1 row, which wiped local-only entries (failed-to-persist scans still in AsyncStorage). New implementation always reads AsyncStorage first, then merges: cloud rows take precedence for IDs that look like UUIDs (length ≥ 32 with dashes), local-only entries (Date.now() string IDs) are kept unless cloud already has the same class+operator within 5 minutes of the local `spottedAt`. Result: a failed-persist scan stays visible in the user's history instead of vanishing on next refresh, while the cloud canonical version still wins when both exist.
+
+**Also bundled (blueprint hang defensive hardening):**
+
+- `frontend/services/api.ts` `pollBlueprintStatus` — cap consecutive network errors at 5 → bail with `failed` status + user-visible "Couldn't reach LocoSnap servers" toast. Previously retried forever on network error, contributing to indefinite spinner during backend outages.
+- `frontend/services/api.ts` `pollBlueprintStatus` — `captureWarning("blueprint_timeout", { taskId, elapsedMs, consecutiveNetworkErrors })` when the 240s `BLUEPRINT_TIMEOUT` fires; analogous `blueprint_network_errors_capped` warning on the network-cap path. Lets us measure real-world hang rate in Sentry.
+- `BLUEPRINT_TIMEOUT` (240s) intentionally NOT shortened — the v1.0.25 bump 120s → 240s was deliberate to cover Replicate's 120-180s latency spikes on schematic-style classes (Christian's Class 4020 repro 2026-05-03). Defensive without regressing.
+
+Source memory: `backend_blueprint_generation_hang.md` (BR 247 hang 2026-05-05 that triggered iOS WatchdogTermination). The same memory also lists backend audits (Replicate dashboard log review, Redis max-age cutoff, backend polling loop) — those remain out of scope for this frontend ship.
+
+**Out of scope** (intentionally deferred per `frontend_backlog.md` #7 — offline spot sync deprioritised 2026-05-01 until tester signal warrants):
+- Retry queue with exponential backoff for failed `saveSpot`
+- Server-side audit job for users with active sessions but zero recent spots
+
+**Test infra:** added `frontend/__mocks__/analytics.ts` stub (noop exports for `captureError`, `track`, `addBreadcrumb`, etc.) so test suites that transitively import `services/supabase.ts` don't blow up on Sentry's ESM. `jest.config.js` `moduleNameMapper` routes `./analytics` and `../services/analytics` to the stub. Tests previously skipped due to the Sentry import (services.identity, services.wrongId) now run: 153/153 passing across 22 suites, up from 146/146 across 20.
+
+Version bumped `1.0.29 → 1.0.30` in `app.json`.
+
+Files changed:
+- `frontend/app.json` — version bump
+- `frontend/services/supabase.ts` — verificationTier param + captureError in four write paths + new VerificationTier import + analytics import
+- `frontend/store/trainStore.ts` — verificationTier wired into saveSpot call + loadHistory rewritten as merge
+- `frontend/services/api.ts` — pollBlueprintStatus network-error cap + captureWarning on timeout + new captureWarning import
+- `frontend/__mocks__/analytics.ts` — new stub
+- `frontend/jest.config.js` — moduleNameMapper rule for the analytics stub
+
+---
+
 ## 2026-05-10
 
 ### Backend — BR 426 vs BR 428 vision disambiguation (bahnbilder.bodensee feedback round 3)

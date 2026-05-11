@@ -235,34 +235,68 @@ export const useTrainStore = create<TrainState>((set, get) => ({
   loadHistory: async () => {
     const auth = useAuthStore.getState();
 
-    // If authenticated, try loading from Supabase first
-    if (auth.user) {
-      try {
-        set({ isSyncing: true });
-        const cloudSpots = await fetchSpots(auth.user.id, MAX_HISTORY);
-        if (cloudSpots.length > 0) {
-          set({ history: cloudSpots, historyLoaded: true, isSyncing: false });
-          return;
-        }
-      } catch {
-        console.warn("Cloud history load failed, falling back to local");
-      } finally {
-        set({ isSyncing: false });
-      }
-    }
-
-    // Fallback: load from AsyncStorage (guests + offline)
+    // Always read local first — cheap and gives us local-only entries
+    // (failed-to-persist scans, offline saves) to preserve when we merge
+    // the cloud snapshot in.
+    let local: HistoryItem[] = [];
     try {
       const stored = await AsyncStorage.getItem(HISTORY_KEY);
-      if (stored) {
-        const history: HistoryItem[] = JSON.parse(stored);
-        set({ history, historyLoaded: true });
-      } else {
-        set({ historyLoaded: true });
-      }
+      if (stored) local = JSON.parse(stored);
     } catch {
-      console.warn("Failed to load history");
-      set({ historyLoaded: true });
+      console.warn("Failed to load local history");
+    }
+
+    if (!auth.user) {
+      set({ history: local, historyLoaded: true });
+      return;
+    }
+
+    // Authenticated: pull cloud and merge with local-only entries.
+    // Cloud is the source of truth for anything that's been persisted;
+    // local-only entries (id is a Date.now() timestamp string, length < 32,
+    // never reached the cloud) are kept so failed-persist scans don't
+    // disappear from the user's view on next refresh. The 2026-05-10
+    // verification_tier silent-data-loss bug exposed how dangerous a
+    // pure cloud-replace strategy is when persistence quietly fails.
+    set({ isSyncing: true });
+    try {
+      const cloudSpots = await fetchSpots(auth.user.id, MAX_HISTORY);
+
+      // Local-only = id doesn't look like a UUID (UUIDs are 36 chars
+      // with dashes). Excludes anything we know reached the cloud.
+      const isLocalOnlyId = (id: string) =>
+        id.length < 32 || !id.includes("-");
+
+      // Don't surface a local-only entry if cloud already has the same
+      // class+operator within 5 minutes of the local spottedAt — that's
+      // the same scan, cloud version wins.
+      const FIVE_MIN = 5 * 60 * 1000;
+      const cloudMatches = (item: HistoryItem) =>
+        cloudSpots.some(
+          (c) =>
+            c.train.class === item.train.class &&
+            c.train.operator === item.train.operator &&
+            Math.abs(
+              new Date(c.spottedAt).getTime() -
+                new Date(item.spottedAt).getTime()
+            ) < FIVE_MIN
+        );
+
+      const localOnly = local.filter(
+        (h) => isLocalOnlyId(h.id) && !cloudMatches(h)
+      );
+
+      // Cloud first (newest), then local-only entries that didn't make
+      // it to the cloud yet — preserves the "scan happened" record even
+      // when the persistence layer is broken.
+      const merged = [...cloudSpots, ...localOnly].slice(0, MAX_HISTORY);
+      set({ history: merged, historyLoaded: true });
+    } catch (err) {
+      console.warn("Cloud history load failed, falling back to local");
+      captureError(err as Error, { op: "loadHistory.fetchSpots" });
+      set({ history: local, historyLoaded: true });
+    } finally {
+      set({ isSyncing: false });
     }
   },
 
@@ -364,6 +398,7 @@ export const useTrainStore = create<TrainState>((set, get) => ({
           captureSource: v?.captureSource,
           exifTimestamp: v?.exifTimestamp,
           verified: v?.verified,
+          verificationTier: v?.tier,
           photoAccuracyM: v?.photoAccuracyM,
           riskFlags: v?.riskFlags,
         });

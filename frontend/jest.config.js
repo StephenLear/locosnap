@@ -8,6 +8,8 @@ module.exports = {
   moduleNameMapper: {
     "^expo-image-manipulator$": "<rootDir>/__mocks__/expo-image-manipulator.ts",
     "^expo-store-review$": "<rootDir>/__mocks__/expo-store-review.ts",
+    "^\\./analytics$": "<rootDir>/__mocks__/analytics.ts",
+    "^\\.\\./services/analytics$": "<rootDir>/__mocks__/analytics.ts",
   },
   // Pure logic tests only (utils, services, store)
   // Component rendering tests (.tsx) require jest-expo + compatible Node
