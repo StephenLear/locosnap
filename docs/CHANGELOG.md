@@ -25,6 +25,19 @@ Three defensive changes triggered by the 2026-05-10 evening `verification_tier` 
 
 Source memory: `backend_blueprint_generation_hang.md` (BR 247 hang 2026-05-05 that triggered iOS WatchdogTermination). The same memory also lists backend audits (Replicate dashboard log review, Redis max-age cutoff, backend polling loop) — those remain out of scope for this frontend ship.
 
+**Also bundled (leaderboard Path A — Steph 2026-05-09 legibility fix):**
+
+Steph reported the leaderboard "makes no sense — doesn't know how it counts or works out." Asked what she'd expect, she said: *"I would think it would be by how many trains you spot then the different classes."* Her natural mental model is total spots + unique classes — both already exist (Country tab All-time + Collection tab Unique mode), just buried under the My League weekly-XP/leagues default tab. Path A is the lightweight fix that tests the legibility hypothesis before any larger rework (Path B = full Spots/Classes/Rarity rebuild, ~10-15h, deferred).
+
+- `frontend/store/leaderboardStore.ts` — default `activeTab` flipped from `my_league` → `collection`. Collection tab opens by default in unique_classes mode, surfacing the "different classes" metric that maps to Steph's mental model. Phase 2 weekly-XP league infrastructure untouched (DB, cron, RPC, components all still live) — it's just no longer the default surface.
+- `frontend/locales/en.json` — tab label `"My League"` → `"This Week"`. Adds new `leaderboard.league.about.*` strings (title, intro, earnTitle, earnBody, tiersTitle, tiersBody, dismiss) for the explainer modal.
+- `frontend/locales/de.json` — `"Meine Liga"` → `"Diese Woche"`. Same `about.*` strings translated.
+- `frontend/components/leaderboard/LeagueAboutButton.tsx` — NEW. Info-icon (Ionicons `information-circle-outline`) in the LeagueHeader top-right. Tapping opens a modal mapping the weekly-XP / league concepts back to the simpler total-spots + unique-classes metrics, and explicitly directs users at the Country / Collection tabs for those alternatives.
+- `frontend/components/leaderboard/MyLeagueTab.tsx` — LeagueHeader's `headerRight` now renders `<LeagueAboutButton />` next to `<FreezeCounter />`.
+- `frontend/__tests__/store/leaderboardStore.test.ts` — two assertions updated from `"my_league"` → `"collection"` (initial default + reset).
+
+**Reversibility:** if Steph still bounces off after Path A, the next session can commit to Path B (drop the league from default surface entirely, ship Spots/Classes/Rarity as the three defaults, demote weekly competition to opt-in in profile/settings). Full Path B scope is in `project_leaderboard_redesign.md`.
+
 **Out of scope** (intentionally deferred per `frontend_backlog.md` #7 — offline spot sync deprioritised 2026-05-01 until tester signal warrants):
 - Retry queue with exponential backoff for failed `saveSpot`
 - Server-side audit job for users with active sessions but zero recent spots
@@ -38,6 +51,11 @@ Files changed:
 - `frontend/services/supabase.ts` — verificationTier param + captureError in four write paths + new VerificationTier import + analytics import
 - `frontend/store/trainStore.ts` — verificationTier wired into saveSpot call + loadHistory rewritten as merge
 - `frontend/services/api.ts` — pollBlueprintStatus network-error cap + captureWarning on timeout + new captureWarning import
+- `frontend/store/leaderboardStore.ts` — default activeTab my_league → collection (Steph legibility)
+- `frontend/locales/en.json` + `frontend/locales/de.json` — "My League" → "This Week" + about.* strings
+- `frontend/components/leaderboard/LeagueAboutButton.tsx` — new "How this works" info button + modal
+- `frontend/components/leaderboard/MyLeagueTab.tsx` — LeagueHeader wires in LeagueAboutButton
+- `frontend/__tests__/store/leaderboardStore.test.ts` — updated default expectations
 - `frontend/__mocks__/analytics.ts` — new stub
 - `frontend/jest.config.js` — moduleNameMapper rule for the analytics stub
 

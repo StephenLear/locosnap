@@ -43,6 +43,7 @@ import { IdentityBadge } from "../IdentityBadge";
 import { FreezeCounter } from "../FreezeCounter";
 import { ThemedDayBanner } from "../ThemedDayBanner";
 import { BoostInventory } from "../BoostInventory";
+import { LeagueAboutButton } from "./LeagueAboutButton";
 
 export function MyLeagueTab() {
   const { t } = useTranslation();
@@ -222,6 +223,7 @@ function LeagueHeader({
           {membership.weeklyXp} {t("leaderboard.league.weeklyXp")}
         </Text>
         <FreezeCounter count={freezeCount} />
+        <LeagueAboutButton />
       </View>
     </View>
   );

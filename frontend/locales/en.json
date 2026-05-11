@@ -134,7 +134,7 @@
     "spotter": "Spotter",
     "spots": "Spots",
     "tabs": {
-      "myLeague": "My League",
+      "myLeague": "This Week",
       "country": "Country",
       "collection": "Collection"
     },
@@ -145,6 +145,16 @@
       "signInPrompt": "Sign in to join your league.",
       "notReady": "Your league spot will appear after your first scan.",
       "empty": "No spotters in your league yet — be the first to score XP this week.",
+      "aboutA11y": "How this leaderboard works",
+      "about": {
+        "title": "How this works",
+        "intro": "This tab ranks spotters by the XP they've earned this week — it resets every Sunday at midnight UTC.",
+        "earnTitle": "How you earn XP",
+        "earnBody": "Every train you scan earns XP. Rarer trains earn more. First-time scans of a class double your XP.",
+        "tiersTitle": "Leagues",
+        "tiersBody": "Top 5 each week get promoted, bottom 5 get demoted. The other tabs (Country, Collection) rank by total spots and unique classes instead — no weekly reset.",
+        "dismiss": "Got it"
+      },
       "tier": {
         "bronze": "Bronze",
         "silver": "Silver",

@@ -1,10 +1,15 @@
 // ============================================================
-// LocoSnap — Leaderboard tab state (Phase 2 E.1)
+// LocoSnap — Leaderboard tab state (Phase 2 E.1, updated v1.0.30)
 //
-// Manages the 3-tab structure (My League / Country / Collection)
+// Manages the 3-tab structure (Collection / Country / This Week)
 // + per-tab sub-toggles + selected country. In-memory only —
-// the user defaults to My League on each app open, which lines
-// up with the Phase 2 narrative goal of "league is the home tab".
+// the user defaults to Collection on each app open, exposing the
+// "unique classes" metric Steph identified as her mental model
+// (2026-05-09 signal: "I would think it would be by how many
+// trains you spot then the different classes"). The Phase 2
+// weekly-XP league system remains accessible via the renamed
+// "This Week" tab (formerly "My League"), with an info-icon
+// explainer modal mapping league concepts back to Steph's model.
 // ============================================================
 
 import { create } from "zustand";
@@ -39,7 +44,7 @@ const INITIAL_STATE: Omit<
   | "setSelectedCountry"
   | "reset"
 > = {
-  activeTab: "my_league",
+  activeTab: "collection",
   myLeagueSubToggle: "this_week",
   countrySubToggle: "this_week",
   collectionSubToggle: "unique_classes",

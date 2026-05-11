@@ -134,7 +134,7 @@
     "spotter": "Spotter",
     "spots": "Spots",
     "tabs": {
-      "myLeague": "Meine Liga",
+      "myLeague": "Diese Woche",
       "country": "Land",
       "collection": "Sammlung"
     },
@@ -145,6 +145,16 @@
       "signInPrompt": "Melde dich an, um deiner Liga beizutreten.",
       "notReady": "Dein Ligaplatz erscheint nach deinem ersten Scan.",
       "empty": "Noch keine Spotter in deiner Liga — sei der Erste mit XP diese Woche.",
+      "aboutA11y": "So funktioniert diese Bestenliste",
+      "about": {
+        "title": "So funktioniert's",
+        "intro": "Dieser Tab sortiert Spotter nach den XP, die sie diese Woche gesammelt haben — Reset jeden Sonntag um Mitternacht UTC.",
+        "earnTitle": "So sammelst du XP",
+        "earnBody": "Jeder gescannte Zug bringt XP. Seltenere Züge bringen mehr. Erstmals-Scans einer Klasse verdoppeln deine XP.",
+        "tiersTitle": "Ligen",
+        "tiersBody": "Top 5 steigen jede Woche auf, die letzten 5 ab. Die anderen Tabs (Land, Sammlung) sortieren nach Gesamt-Spots und Anzahl Klassen — ohne wöchentlichen Reset.",
+        "dismiss": "Verstanden"
+      },
       "tier": {
         "bronze": "Bronze",
         "silver": "Silber",

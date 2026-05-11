@@ -10,8 +10,8 @@ describe("useLeaderboardStore", () => {
   });
 
   describe("initial state", () => {
-    it("defaults activeTab to my_league", () => {
-      expect(useLeaderboardStore.getState().activeTab).toBe("my_league");
+    it("defaults activeTab to collection (v1.0.30 — Steph legibility fix)", () => {
+      expect(useLeaderboardStore.getState().activeTab).toBe("collection");
     });
 
     it("defaults sub-toggles to this_week / unique_classes", () => {
@@ -88,7 +88,7 @@ describe("useLeaderboardStore", () => {
       s.setSelectedCountry("PL");
       s.reset();
       const final = useLeaderboardStore.getState();
-      expect(final.activeTab).toBe("my_league");
+      expect(final.activeTab).toBe("collection");
       expect(final.myLeagueSubToggle).toBe("this_week");
       expect(final.collectionSubToggle).toBe("unique_classes");
       expect(final.selectedCountry).toBeNull();
