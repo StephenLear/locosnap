@@ -7,6 +7,12 @@ Format: newest first within each date block.
 
 ## 2026-05-11 (later afternoon)
 
+### Frontend — v1.0.31 code on main, build/submit DEFERRED
+
+**Build trigger gate:** v1.0.30 is currently in Apple Review. Submitting v1.0.31 now would auto-reject the in-flight v1.0.30 binary. **Do NOT trigger `eas build` for v1.0.31 until v1.0.30 has cleared Apple Review and reached App Store production.** When ready: `eas build --platform all --profile production` then `eas submit --platform all` with v1.0.31-specific release notes (MAX_HISTORY fix + APK size win), then move #8 + #17 from the "awaiting build" section of `frontend_backlog.md` to Completed.
+
+Commit `b4eec9b` (pushed to `origin/main`). Two code changes bundled (#8 and #17), plus two backlog items audited and closed without code (#12, #24). Tests 153/153 across 22 suites, tsc clean.
+
 ### Frontend — v1.0.31 MAX_HISTORY bump (Steph collection-cap fix)
 
 Steph (UK heritage Pro tester) has 210 spots / 85 unique classes server-side, but the previous `MAX_HISTORY = 200` in `frontend/store/trainStore.ts` capped both the cloud fetch and the local AsyncStorage write. Effect: her oldest 10+ spots fell off the local view even though they exist in the database — same observable symptom as the 2026-05-10 silent-persistence bug, but a different root cause (cap, not constraint violation).
