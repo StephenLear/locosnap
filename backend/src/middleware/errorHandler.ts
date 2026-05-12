@@ -17,14 +17,31 @@ export class AppError extends Error {
   }
 }
 
+// Upstream-overload errors from Anthropic/OpenAI SDKs surface as HTTP 529 / 503
+// with "overloaded_error" / "Overloaded" in the body. These are capacity issues
+// on the provider side, not our bugs — return 503 to the client and skip Sentry.
+function isUpstreamOverload(err: Error & { status?: number; statusCode?: number }): boolean {
+  const upstreamStatus = err.status ?? err.statusCode;
+  if (upstreamStatus === 529) return true;
+  const msg = (err.message || "").toLowerCase();
+  return msg.includes("overloaded_error") || msg.includes('"overloaded"');
+}
+
 export function errorHandler(
   err: Error | AppError,
   _req: Request,
   res: Response,
   _next: NextFunction
 ): void {
-  const statusCode = "statusCode" in err ? err.statusCode : 500;
-  const message = err.message || "Internal server error";
+  const upstreamOverloaded = isUpstreamOverload(err as Error & { status?: number; statusCode?: number });
+  const statusCode = upstreamOverloaded
+    ? 503
+    : "statusCode" in err
+      ? err.statusCode
+      : 500;
+  const message = upstreamOverloaded
+    ? "The AI service is temporarily busy. Please try again in a moment."
+    : err.message || "Internal server error";
 
   console.error(`[ERROR] ${statusCode}: ${message}`);
   if (statusCode === 500) {
