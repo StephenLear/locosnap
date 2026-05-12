@@ -157,7 +157,15 @@ export async function saveSpot(params: {
   if (params.exifTimestamp !== undefined) insertPayload.exif_timestamp = params.exifTimestamp;
   if (params.verified !== undefined) insertPayload.verified = params.verified;
   if (params.verificationTier !== undefined) insertPayload.verification_tier = params.verificationTier;
-  if (params.photoAccuracyM !== undefined) insertPayload.photo_accuracy_m = params.photoAccuracyM;
+  if (params.photoAccuracyM !== undefined) {
+    // Column is INTEGER in migration 009 but expo-location returns a float
+    // (e.g. 16.913999...). Round defensively so any caller passing the raw
+    // coords.accuracy can't trip "invalid input syntax for type integer".
+    insertPayload.photo_accuracy_m =
+      typeof params.photoAccuracyM === "number"
+        ? Math.round(params.photoAccuracyM)
+        : params.photoAccuracyM;
+  }
   if (params.riskFlags) insertPayload.risk_flags = params.riskFlags;
 
   const { data, error } = await supabase

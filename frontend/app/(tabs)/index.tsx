@@ -273,7 +273,9 @@ export default function HomeScreen() {
         latitude = loc.coords.latitude;
         longitude = loc.coords.longitude;
         photoAccuracyM =
-          typeof loc.coords.accuracy === "number" ? loc.coords.accuracy : null;
+          typeof loc.coords.accuracy === "number"
+            ? Math.round(loc.coords.accuracy)
+            : null;
         // `mocked` is Android-only; iOS leaves it undefined.
         mockLocationFlag = (loc.coords as { mocked?: boolean }).mocked === true;
         setLocation({ latitude, longitude });
