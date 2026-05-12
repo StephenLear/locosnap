@@ -5,6 +5,31 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-12
+
+### Schema + Frontend — photo_accuracy_m type mismatch fix (Sentry REACT-NATIVE-R)
+
+Sentry caught a new silent-persistence-class failure ~13h after v1.0.30 went live on Google Play. `saveSpot` failed with `invalid input syntax for type integer: "16.913999557495117"` — `expo-location`'s `coords.accuracy` is a float but `spots.photo_accuracy_m` was declared INTEGER in migration 009. 2 events / 1 user / Android 16 / A065 device. Caught only because the v1.0.30 `captureError` instrumentation (commit `56acf08`) made silent-warn failures visible — second class catch in 48h after the 2026-05-10 `verification_tier` incident.
+
+**Live fix (already applied 2026-05-12):** dashboard ALTER on production Supabase:
+```sql
+ALTER TABLE public.spots ALTER COLUMN photo_accuracy_m TYPE numeric USING photo_accuracy_m::numeric;
+```
+Zero-downtime; unblocks every v1.0.30 client in the wild without a new build. GPS accuracy is naturally fractional so `numeric` is the correct type.
+
+**Client patch (commit `fbe77e1`, queued for v1.0.31):**
+- `frontend/app/(tabs)/index.tsx` — `Math.round(loc.coords.accuracy)` at the capture site
+- `frontend/services/supabase.ts` — defensive `Math.round` shim in `saveSpot` with comment explaining the migration-009 history. Belt-and-braces after the schema fix; protects against stale callers / future migrations.
+
+**Audit lesson:** `feedback_supabase_silent_persistence_failures.md` checklist extended — not just NOT NULL constraints, but also INTEGER columns receiving values from float-typed client APIs (expo-location, sensor readings, computed ratios).
+
+### Tester comments (no code yet)
+
+- **Swiss vision batch (aurel, TikTok)** logged in `backend_backlog_corrections.md`: RAe TEE II "Gottardo" 1053 mis-IDed as RAe 4/8 "Churchill-Pfeil"; Ae 8/14 11801 mis-IDed as Ae 4/7. Fix not yet shipped. DE reply sent.
+- **PL E6ACT/ET43 ad-copy critique** acknowledged — "następca" framing wrong; Dragon 1 (E6ACT) vs Dragon 2 (ET43) are siblings in the Newag family, not predecessor/successor. No backend change; future ad copy adjustment only. PL reply sent.
+
+---
+
 ## 2026-05-11 (later afternoon)
 
 ### Frontend — v1.0.31 code on main, build/submit DEFERRED
