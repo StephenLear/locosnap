@@ -311,6 +311,39 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "ae 4 7":              { maxSpeed: "100 km/h", power: "2,300 kW", builder: "SLM / BBC / MFO / SAAS", numberBuilt: 127, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   "ae4/7":               { maxSpeed: "100 km/h", power: "2,300 kW", builder: "SLM / BBC / MFO / SAAS", numberBuilt: 127, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   "sbb ae 4/7":          { maxSpeed: "100 km/h", power: "2,300 kW", builder: "SLM / BBC / MFO / SAAS", numberBuilt: 127, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // SJ Rc family — Swedish electric mainline locomotives, ASEA (later ABB) 1967-1988.
+  // Added 2026-05-12 after tester comment on EN "three classes one camera" ad reported
+  // Rc6 was being identified correctly but spec card returned wrong top speed. No prior
+  // backend coverage — LLM was generating specs from scratch. Common across all variants:
+  // Bo'Bo' arrangement, 15 kV 16.7 Hz AC, ASEA (Västerås). NEVER attribute to Siemens,
+  // Bombardier, Alstom, Stadler. Operators include SJ, Green Cargo, Hector Rail,
+  // Tågåkeriet, and various preserved-operator fleets across Scandinavia.
+  // Top speed is THE discriminator between sub-variants — Rc3 / Rc6 are the 160 km/h
+  // high-speed passenger variants; Rc1 / Rc2 / Rc4 / Rc5 are 135 km/h; Rc7 is 180 km/h
+  // rebuild. The Rc platform was the basis for Amtrak AEM-7 and Norwegian El 16.
+  "sj rc":   { builder: "ASEA (Västerås)", fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc-lok":  { builder: "ASEA (Västerås)", fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc1":     { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 20,  fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc 1":    { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 20,  fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sj rc1":  { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 20,  fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc2":     { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 100, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc 2":    { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 100, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sj rc2":  { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 100, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc3":     { maxSpeed: "160 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 10,  fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc 3":    { maxSpeed: "160 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 10,  fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sj rc3":  { maxSpeed: "160 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 10,  fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc4":     { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 130, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc 4":    { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 130, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sj rc4":  { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 130, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc5":     { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 60,  fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc 5":    { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 60,  fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sj rc5":  { maxSpeed: "135 km/h", power: "3,600 kW", builder: "ASEA (Västerås)", numberBuilt: 60,  fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc6":     { maxSpeed: "160 km/h", power: "3,600 kW", weight: "78 t", builder: "ASEA (Västerås)", numberBuilt: 40, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc 6":    { maxSpeed: "160 km/h", power: "3,600 kW", weight: "78 t", builder: "ASEA (Västerås)", numberBuilt: 40, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sj rc6":  { maxSpeed: "160 km/h", power: "3,600 kW", weight: "78 t", builder: "ASEA (Västerås)", numberBuilt: 40, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc7":     { maxSpeed: "180 km/h", power: "3,600 kW", builder: "ASEA / SJ (rebuild from Rc4/Rc6)", fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rc 7":    { maxSpeed: "180 km/h", power: "3,600 kW", builder: "ASEA / SJ (rebuild from Rc4/Rc6)", fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sj rc7":  { maxSpeed: "180 km/h", power: "3,600 kW", builder: "ASEA / SJ (rebuild from Rc4/Rc6)", fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   // BR 412 (ICE 4) — ensure correct max speed (250 km/h, not 300/320 km/h like ICE 3)
   // Multiple variants because vision may return different class string formats
   "br 412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
