@@ -269,6 +269,48 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // Eisenbahn industrial freight line. NEVER standard gauge (that's EL2), NEVER Krauss-Maffei.
   "dr el3":     { maxSpeed: "50 km/h", builder: "LEW Hennigsdorf", fuelType: "Electric (overhead)", gauge: "Metre (1,000 mm)" },
   "el3":        { maxSpeed: "50 km/h", builder: "LEW Hennigsdorf", fuelType: "Electric (overhead)", gauge: "Metre (1,000 mm)" },
+  // Swiss SBB heritage classes — added 2026-05-12 after TikTok tester "aurel" reported
+  // RAe TEE II "Gottardo" 1053 being mis-IDed as RAe 4/8, and Ae 8/14 11801 mis-IDed as Ae 4/7.
+  // All four are pre-1962 SLM-consortium classes; never attribute to Bombardier / Alstom /
+  // Stadler / Siemens. Operator is "SBB" (or "SBB Historic" for preserved units).
+  //
+  // RAe TEE II "Gottardo" — 5-car articulated multi-current EMU, 1961, 5 units (1051-1055),
+  // SIG / Schindler / MFO / SAAS consortium. Multi-system 15 kV 16.7 Hz AC + 25 kV 50 Hz AC +
+  // 1.5 kV DC + 3 kV DC for cross-border TEE Gottardo (Zurich-Milano) and Cisalpin (Geneva-Milano)
+  // services. TEE red+cream livery. 160 km/h. Unit 1053 preserved by SBB Historic.
+  "rae tee ii":          { maxSpeed: "160 km/h", builder: "SIG / Schindler / MFO / SAAS", numberBuilt: 5, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC / 25 kV 50 Hz AC / 1.5 kV DC / 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "rae ii":              { maxSpeed: "160 km/h", builder: "SIG / Schindler / MFO / SAAS", numberBuilt: 5, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC / 25 kV 50 Hz AC / 1.5 kV DC / 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "sbb rae tee ii":      { maxSpeed: "160 km/h", builder: "SIG / Schindler / MFO / SAAS", numberBuilt: 5, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC / 25 kV 50 Hz AC / 1.5 kV DC / 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "rae tee ii gottardo": { maxSpeed: "160 km/h", builder: "SIG / Schindler / MFO / SAAS", numberBuilt: 5, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC / 25 kV 50 Hz AC / 1.5 kV DC / 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "tee gottardo":        { maxSpeed: "160 km/h", builder: "SIG / Schindler / MFO / SAAS", numberBuilt: 5, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC / 25 kV 50 Hz AC / 1.5 kV DC / 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "rae 1053":            { maxSpeed: "160 km/h", builder: "SIG / Schindler / MFO / SAAS", numberBuilt: 5, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC / 25 kV 50 Hz AC / 1.5 kV DC / 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  // RAe 4/8 "Churchill-Pfeil" / "Red Arrow" — single 4-car articulated railcar, 1939,
+  // 1 unit (fleet number 1021), SLM / BBC / MFO. 15 kV 16.7 Hz AC. 150 km/h. Named after
+  // Winston Churchill chartered it 1946. NEVER multi-system, NEVER 5 cars (that's RAe TEE II).
+  "rae 4/8":             { maxSpeed: "150 km/h", builder: "SLM / BBC / MFO", numberBuilt: 1, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "rae 4 8":             { maxSpeed: "150 km/h", builder: "SLM / BBC / MFO", numberBuilt: 1, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sbb rae 4/8":         { maxSpeed: "150 km/h", builder: "SLM / BBC / MFO", numberBuilt: 1, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "churchill-pfeil":     { maxSpeed: "150 km/h", builder: "SLM / BBC / MFO", numberBuilt: 1, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "churchill pfeil":     { maxSpeed: "150 km/h", builder: "SLM / BBC / MFO", numberBuilt: 1, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // Ae 8/14 — Swiss DOUBLE locomotive (two halves permanently coupled, ~34 m).
+  // 3 units only: 11801 (SLM/BBC 1931 prototype), 11851 (SLM/MFO 1932 different drive),
+  // 11852 "Landilok" (SLM/BBC 1938 — world's most powerful electric loco at build).
+  // 15 kV 16.7 Hz AC. 100-110 km/h depending on unit. All three preserved.
+  // NEVER attribute to Ae 4/7 (single 17 m loco with Buchli drive).
+  "ae 8/14":             { maxSpeed: "100 km/h", builder: "SLM (with BBC / MFO)", numberBuilt: 3, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ae 8 14":             { maxSpeed: "100 km/h", builder: "SLM (with BBC / MFO)", numberBuilt: 3, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ae8/14":              { maxSpeed: "100 km/h", builder: "SLM (with BBC / MFO)", numberBuilt: 3, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sbb ae 8/14":         { maxSpeed: "100 km/h", builder: "SLM (with BBC / MFO)", numberBuilt: 3, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "11801":               { maxSpeed: "100 km/h", builder: "SLM / BBC", numberBuilt: 3, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "landilok":            { maxSpeed: "110 km/h", builder: "SLM / BBC", numberBuilt: 3, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // Ae 4/7 — single 17 m SBB mainline electric with distinctive BUCHLI DRIVE (side-mounted
+  // rod-and-link transmission visible on one side). ~127 units built 1927-1934 by
+  // SLM / BBC / MFO / SAAS consortium. 15 kV 16.7 Hz AC. ~2,300 kW. 100 km/h.
+  // NEVER attribute to Ae 8/14 (double locomotive, ~34 m, only 3 built).
+  "ae 4/7":              { maxSpeed: "100 km/h", power: "2,300 kW", builder: "SLM / BBC / MFO / SAAS", numberBuilt: 127, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ae 4 7":              { maxSpeed: "100 km/h", power: "2,300 kW", builder: "SLM / BBC / MFO / SAAS", numberBuilt: 127, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ae4/7":               { maxSpeed: "100 km/h", power: "2,300 kW", builder: "SLM / BBC / MFO / SAAS", numberBuilt: 127, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "sbb ae 4/7":          { maxSpeed: "100 km/h", power: "2,300 kW", builder: "SLM / BBC / MFO / SAAS", numberBuilt: 127, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   // BR 412 (ICE 4) — ensure correct max speed (250 km/h, not 300/320 km/h like ICE 3)
   // Multiple variants because vision may return different class string formats
   "br 412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
