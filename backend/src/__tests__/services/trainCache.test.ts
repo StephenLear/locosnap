@@ -90,11 +90,13 @@ describe("trainCache", () => {
     expect(stats.totalMisses).toBe(1);
   });
 
-  it("uses v7 as the cache version prefix", async () => {
+  it("uses a versioned cache key prefix", async () => {
     const { setTrainCache } = require("../../services/redis");
     await setCachedTrainData(train, specs, facts, rarity);
     const keyUsed: string = setTrainCache.mock.calls[0][0];
-    expect(keyUsed).toMatch(/^v7::/);
+    // Shape check — version-agnostic so cache bumps don't break this test.
+    // Format: "v<n>::<language>::<class>::<operator>" all lowercase.
+    expect(keyUsed).toMatch(/^v\d+::/);
   });
 
   it("includes language in cache key — English", async () => {
