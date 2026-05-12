@@ -65,7 +65,12 @@ let totalMisses = 0;
 // Bump this version when cached specs/facts data is known to be stale
 // (e.g. after fixing AI prompt or Wikidata corrections). Old entries are
 // automatically orphaned and will be recomputed on next scan.
-const CACHE_VERSION = "v7";
+// v8 — 2026-05-12 — invalidates entries cached before today's SJ Rc family
+// override (Rc1-Rc7) and the Swiss heritage batch (RAe TEE II "Gottardo" /
+// RAe 4/8 "Churchill-Pfeil" / Ae 8/14 / Ae 4/7). Stephen scanned an Rc6 at
+// 17:49 BST that still served the stale LLM-generated 200 km/h / 5,400 kW
+// because the cached entry pre-dated the new WIKIDATA_CORRECTIONS keys.
+const CACHE_VERSION = "v8";
 
 function getCacheKey(train: TrainIdentification, language: string = "en"): string {
   return `${CACHE_VERSION}::${language}::${train.class}::${train.operator}`.toLowerCase().trim();
