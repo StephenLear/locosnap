@@ -389,10 +389,14 @@ export default function HomeScreen() {
     } catch (error) {
       const message = (error as Error).message || "Something went wrong. Please try again.";
       track("scan_failed", { error: message });
-      // "Could not identify" is expected product behaviour (unclear photo, not a train, etc.)
-      // Log as a Sentry warning so it doesn't trigger high-priority alerts.
-      // Everything else (network errors, server errors) is a real exception.
-      if (!message.startsWith("Could not identify")) {
+      // Expected product behaviour — surface to user via setScanError but do NOT
+      // page Sentry. These are paywall / unclear-photo flows, not bugs.
+      //   - "Could not identify"          → unclear photo / not a train
+      //   - "Free scan limit reached"     → 6-scan free-tier cap, paywall surfaces next
+      const isExpectedProductError =
+        message.startsWith("Could not identify") ||
+        message.startsWith("Free scan limit reached");
+      if (!isExpectedProductError) {
         captureError(error as Error, { context: "handleScan" });
       }
       setScanError(message);
