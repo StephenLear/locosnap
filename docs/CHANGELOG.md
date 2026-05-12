@@ -41,6 +41,35 @@ DE reply to aurel sent. Cache version unchanged (additive only).
 
 - **PL E6ACT/ET43 ad-copy critique** acknowledged — "następca" framing wrong; Dragon 1 (E6ACT) vs Dragon 2 (ET43) are siblings in the Newag family, not predecessor/successor. No backend change; future ad copy adjustment only. PL reply sent.
 
+### Frontend — paywall conversion no longer pages Sentry (commit `deac2f3`)
+
+Sentry caught REACT-NATIVE-S on v1.0.30 — a free user hit the 6-scan lifetime cap and the backend's expected `"Free scan limit reached. Upgrade to Pro for unlimited scans."` response was being captured as a Sentry error. This is paywall conversion behaviour, not a bug. Extended the existing `"Could not identify"` expected-error guard in [frontend/app/(tabs)/index.tsx:395](frontend/app/(tabs)/index.tsx:395) to also skip the scan-limit message. User still gets the upgrade prompt via `setScanError` — only Sentry alerts are suppressed. Queued for v1.0.31 build.
+
+### Backend — Anthropic overload no longer pages Sentry, runtime fallback to OpenAI on 402 / 429 / 529 (commits `6c98def` + `36cffc3`)
+
+Sentry fired REACT-NATIVE-B (5 events) + REACT-NATIVE-T (2 events) from `/api/identify` during an Anthropic capacity outage — HTTP 529 with `"overloaded_error"` was being captured as a 500 in our `errorHandler` (Anthropic SDK uses `err.status`, not `err.statusCode`, so the existing `"statusCode" in err` guard fell through).
+
+- [backend/src/middleware/errorHandler.ts](backend/src/middleware/errorHandler.ts): new `isUpstreamOverload` sniffer catches `status === 529` and message containing `"overloaded_error"` / `"Overloaded"`. On match: returns HTTP 503 with `"The AI service is temporarily busy. Please try again in a moment."` and skips Sentry capture.
+- [backend/src/services/vision.ts:516-540](backend/src/services/vision.ts:516): extended the existing 402-only runtime OpenAI fallback to cover 402 + 429 + 529. During Anthropic outages, scans now silently fall through to GPT-4o Vision when both keys are configured. The `429 → "high demand"` user-friendly message is preserved as a fallback of last resort (fires only if OPENAI_API_KEY is not set).
+
+Other AI services (trainSpecs / trainFacts / rarity) use a config-time if/else fallback pattern and have `FALLBACK_SPECS` defaults for parse errors — vision is the critical path so it gets the runtime fallback first. Both backend commits are live on Render.
+
+### Backend — SJ Rc family specs Rc1-Rc7 (commit `d68da41`) + cache version bump v7 → v8 (commit `88be6ab`)
+
+EN tester comment on the "three classes one camera" ad reported Rc6 was identified correctly but the spec card returned the wrong top speed (200 km/h instead of 160). No prior backend coverage of the SJ Rc family existed — LLM was generating specs from scratch and getting variant-specific values wrong. Added 21 lookup keys spanning Rc1 through Rc7 with correct sub-variant top speeds:
+
+- Rc1 / Rc2 / Rc4 / Rc5: 135 km/h (standard)
+- Rc3 / Rc6: 160 km/h (high-speed passenger)
+- Rc7: 180 km/h (rebuilds from Rc4 / Rc6)
+
+All variants pinned to ASEA (Västerås), 15 kV 16.7 Hz AC, Bo'Bo' standard gauge, 3,600 kW. Rc6 also has weight 78 t locked.
+
+**Cache version bumped v7 → v8** in [backend/src/services/trainCache.ts:68](backend/src/services/trainCache.ts:68). First scan after the SJ Rc ship still served the wrong cached entry — the existing cached Rc6 (200 km/h / 5,400 kW from prior LLM generation) hit before the new `WIKIDATA_CORRECTIONS` was consulted. Bumping the cache version is the standard invalidation mechanism. Side effect: also invalidates entries cached before today's Swiss heritage batch (`bf9156a`) so RAe TEE II / Ae 8/14 corrections also propagate to any pre-cached users.
+
+### Test fix — version-agnostic cache key prefix assertion (commit `57484c0`)
+
+CI broke on `88be6ab` because [backend/src/__tests__/services/trainCache.test.ts:93](backend/src/__tests__/services/trainCache.test.ts:93) hardcoded `expect(keyUsed).toMatch(/^v7::/)`. Replaced with version-agnostic `/^v\d+::/` regex so future cache bumps don't break this test. Render auto-deploy already shipped `88be6ab` (Render doesn't gate on CI) — this commit is just to make CI green again.
+
 ---
 
 ## 2026-05-11 (later afternoon)
