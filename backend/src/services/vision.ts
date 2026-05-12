@@ -513,17 +513,29 @@ async function identifyWithClaude(
     const status = error.status ?? error.response?.status;
     console.error(`[VISION] Anthropic API error (${status}):`, error.message);
 
+    // Transient upstream issues from Anthropic — fall back to OpenAI when available.
+    // Covers:
+    //   402 = billing limit hit
+    //   429 = rate limit (too many requests for this minute)
+    //   529 = overloaded (Anthropic-wide capacity issue, returned with
+    //         `{"type":"overloaded_error","message":"Overloaded"}` body)
+    // The fallback is silent from the user's perspective — they get an OpenAI
+    // identification instead of a Claude one. Both providers have the same
+    // train-ID schema so the result is interchangeable.
+    if ((status === 402 || status === 429 || status === 529) && config.hasOpenAI) {
+      console.warn(
+        `[VISION] Anthropic returned ${status} — falling back to OpenAI`
+      );
+      return identifyWithOpenAI(imageBuffer, mimeType);
+    }
+
+    // No OpenAI fallback configured and Anthropic is rate-limited — surface a
+    // user-friendly retry message.
     if (status === 429) {
       throw new AppError(
         "LocoSnap is experiencing high demand. Please try again in a moment.",
         429
       );
-    }
-
-    // Billing limit hit — silently fall back to OpenAI if available
-    if (status === 402 && config.hasOpenAI) {
-      console.warn("[VISION] Anthropic billing limit reached — falling back to OpenAI");
-      return identifyWithOpenAI(imageBuffer, mimeType);
     }
 
     throw error;
