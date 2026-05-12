@@ -23,9 +23,22 @@ Zero-downtime; unblocks every v1.0.30 client in the wild without a new build. GP
 
 **Audit lesson:** `feedback_supabase_silent_persistence_failures.md` checklist extended — not just NOT NULL constraints, but also INTEGER columns receiving values from float-typed client APIs (expo-location, sensor readings, computed ratios).
 
-### Tester comments (no code yet)
+### Backend — Swiss SBB heritage disambiguation (commit `bf9156a`, awaiting push)
 
-- **Swiss vision batch (aurel, TikTok)** logged in `backend_backlog_corrections.md`: RAe TEE II "Gottardo" 1053 mis-IDed as RAe 4/8 "Churchill-Pfeil"; Ae 8/14 11801 mis-IDed as Ae 4/7. Fix not yet shipped. DE reply sent.
+Triggered by TikTok comments from aurel on the English "three classes" Swiss ad: RAe TEE II "Gottardo" 1053 was being returned as RAe 4/8 "Churchill-Pfeil"; Ae 8/14 11801 was being returned as Ae 4/7. Both pairs are genuinely different classes (the older / more-famous sibling was winning the vision model's confidence).
+
+**vision.ts**: new disambiguation rule covering both pairs. Decisive cues — fleet numbers (1053 vs 1021; 11801/11851/11852 vs 10901-11027), era (1961 vs 1939; 1931-38 vs 1927-34), formation (5-car TEE multi-system EMU vs single 1939 streamliner railcar; ~34 m double locomotive with articulation joint vs single 17 m loco with Buchli-drive side cover plate), builder consortium (all pre-1962 SLM-era — never Bombardier / Alstom / Stadler / Siemens).
+
+**trainSpecs.ts**: 24 new lookup keys across the four classes:
+- RAe TEE II "Gottardo" — 5 units (1051-1055), SIG/Schindler/MFO/SAAS, 160 km/h, multi-system (15 kV / 25 kV / 1.5 kV DC / 3 kV DC)
+- RAe 4/8 "Churchill-Pfeil" — 1 unit (1021), SLM/BBC/MFO, 1939, 150 km/h, 15 kV 16.7 Hz AC
+- Ae 8/14 — 3 units (11801, 11851, 11852 "Landilok"), SLM/BBC or SLM/MFO, 100-110 km/h, double locomotive
+- Ae 4/7 — ~127 units, SLM/BBC/MFO/SAAS, 1927-34, 2,300 kW, 100 km/h, Buchli drive
+
+DE reply to aurel sent. Cache version unchanged (additive only).
+
+### Tester comments (acknowledged, no code change)
+
 - **PL E6ACT/ET43 ad-copy critique** acknowledged — "następca" framing wrong; Dragon 1 (E6ACT) vs Dragon 2 (ET43) are siblings in the Newag family, not predecessor/successor. No backend change; future ad copy adjustment only. PL reply sent.
 
 ---
