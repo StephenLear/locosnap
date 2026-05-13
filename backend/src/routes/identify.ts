@@ -30,6 +30,7 @@ import { trackServerEvent } from "../services/analytics";
 import { getSupabase } from "../config/supabase";
 import {
   IdentifyResponse,
+  TrainIdentification,
   TrainSpecs,
   TrainFacts,
   RarityInfo,
@@ -165,6 +166,32 @@ const identifyRateLimit = rateLimit({
   },
 });
 
+// Per-user limiter for authenticated traffic. Caps a single account
+// (including a compromised Pro JWT) at 60 scans/hour so it can't drain
+// unbounded Vision/Replicate spend. Keyed by the raw bearer token —
+// resolving to user_id would require an extra Supabase round-trip per
+// request, and the token uniquely identifies a session well enough.
+// Anonymous requests are handled by `identifyRateLimit` above.
+const identifyUserRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const auth = req.headers.authorization ?? "";
+    return auth.startsWith("Bearer ") ? auth.substring(7) : (req.ip ?? "anon");
+  },
+  skip: (req) => {
+    const auth = req.headers.authorization;
+    return !(typeof auth === "string" && auth.startsWith("Bearer "));
+  },
+  message: {
+    success: false,
+    error: "Hourly scan limit reached. Please try again later.",
+    data: null,
+  },
+});
+
 // Configure multer for image uploads (max 10MB)
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -195,6 +222,7 @@ const upload = multer({
 router.post(
   "/",
   identifyRateLimit,
+  identifyUserRateLimit,
   upload.single("image"),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const startTime = Date.now();
@@ -443,7 +471,7 @@ import { getTaskStatus } from "../services/imageGen";
 
 function monitorBlueprintForCache(
   taskId: string,
-  train: any,
+  train: TrainIdentification,
   style: BlueprintStyle = "technical",
   language: string = "en"
 ): void {

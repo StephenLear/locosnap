@@ -88,3 +88,23 @@ export const config = {
     return this.adminSecret.length > 0;
   },
 };
+
+// ── Production startup invariants ───────────────────────────
+// Skipped for tests (NODE_ENV=test) and local dev where partial
+// configs are intentional. In production, a missing critical
+// secret should crash loud, not silently boot a half-broken app.
+export function assertProductionConfig(): void {
+  if (config.nodeEnv !== "production") return;
+
+  const missing: string[] = [];
+  if (!config.hasVision) missing.push("ANTHROPIC_API_KEY or OPENAI_API_KEY");
+  if (!config.hasSupabase) missing.push("SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY");
+  if (!config.hasRevenueCat) missing.push("REVENUECAT_WEBHOOK_SECRET");
+  if (!config.hasAdminSecret) missing.push("ADMIN_SECRET");
+
+  if (missing.length > 0) {
+    console.error("FATAL: missing required production env vars:");
+    for (const k of missing) console.error(`  - ${k}`);
+    process.exit(1);
+  }
+}

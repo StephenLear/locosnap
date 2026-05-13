@@ -29,6 +29,23 @@ Triggered by transportlife (TikTok, likely same person as rail_gaze — name cha
 
 **Reply to transportlife pending** — drafted but not yet sent, awaiting Stephen's approval.
 
+### Security/quality audit — 20-point hardening pass (backend live; frontend queued for v1.0.31)
+
+Response to a 20-point security checklist review. Concrete fixes applied across backend and frontend; six PASS verdicts confirmed; one PARTIAL (#18 logging) judged not-actually-leaking and deferred. Backend: `npx tsc --noEmit` clean, all 17 test suites / 173 tests green.
+
+- **Backend `src/config/env.ts`** — new `assertProductionConfig()` exported. Iterates required production secrets (Vision key, Supabase, RevenueCat webhook, admin secret) and `process.exit(1)` if any are missing when `NODE_ENV=production`. Closes the silent-half-broken-prod risk from prior `optionalEnv` defaults.
+- **Backend `src/index.ts`** — calls `assertProductionConfig()` before analytics init. CORS rewritten from exact-match list (the dead `"exp://"` string never fired) to a function origin matcher accepting `exp://` and `exps://` prefixes plus the production allowlist. `/api/health` now performs a HEAD `count` on `trains` to verify Supabase reachability and returns 503 when degraded, so uptime monitors actually catch Supabase outages.
+- **Backend `src/routes/webhooks.ts`** — RevenueCat handler now hard-fails with 503 in production when `REVENUECAT_WEBHOOK_SECRET` is unset, instead of silently accepting unauthenticated POSTs that could grant `is_pro=true` to any UUID. Token comparison switched to `crypto.timingSafeEqual` to defeat timing side-channels. Dev/test behaviour unchanged.
+- **Backend `src/routes/identify.ts`** — added `identifyUserRateLimit` (60 scans / hour, keyed by bearer token) so a single compromised or abusive authenticated session cannot drain unbounded Vision/Replicate spend. The existing anonymous 20/hr IP limiter still applies to unauthenticated traffic. `monitorBlueprintForCache` `train: any` typed as `TrainIdentification`.
+- **Frontend `config/secureStorage.ts`** (new) — chunked SecureStore adapter (iOS Keychain / Android Keystore) with a 1800-byte chunk size to work around iOS's per-value limit. On first read it migrates any existing session out of AsyncStorage transparently, so signed-in users stay signed in across the upgrade.
+- **Frontend `config/supabase.ts`** — auth `storage` swapped from `AsyncStorage` to the SecureStore adapter. 60-day refresh tokens are no longer readable from app-private storage on rooted/jailbroken devices.
+- **Frontend `services/supabase.ts`** — `fetchSpots()` now takes an `offset` parameter and uses `.range()` instead of `.limit()` so users with >50 spots can page through their history. Backwards-compatible: default offset=0.
+- **Frontend `package.json`** — `expo-secure-store ~15.0.0` added; needs `npm install` before next build.
+
+**Audited PASS (no action needed):** SQL injection (Supabase query builder), hardcoded frontend keys (only public anon key), DB indexing (`idx_trains_class_operator` + comprehensive per-table indexes across migrations 001–015), error boundaries (Sentry ErrorBoundary at root layout), session expiry (Supabase defaults), password reset expiry (Supabase 1h default), synchronous email sends (no inline SMTP in request path), DB connection pooling (PostgREST handles it), admin route role checks (Bearer-secret gate, fail-closed).
+
+**Deferred:** #18 production logging — re-read of all `console.log` call sites confirmed no auth headers or GPS coordinates are logged (only `hasGps` boolean and filename/size); structured-logger swap is scope creep without a real leak. #19 DB backup is out-of-repo (verify Supabase PITR tier in dashboard).
+
 ---
 
 ## 2026-05-12

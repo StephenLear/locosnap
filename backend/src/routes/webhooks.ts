@@ -7,6 +7,7 @@
 // ============================================================
 
 import { Router, Request, Response } from "express";
+import { timingSafeEqual } from "crypto";
 import { config } from "../config/env";
 import { getSupabase } from "../config/supabase";
 import { trackServerEvent, captureServerError } from "../services/analytics";
@@ -49,11 +50,28 @@ function isCreditProduct(productId: string): boolean {
 router.post(
   "/revenuecat",
   async (req: Request, res: Response): Promise<void> => {
-    // 1. Verify webhook secret
-    const authHeader = req.headers.authorization;
-
-    if (config.hasRevenueCat) {
-      if (authHeader !== `Bearer ${config.revenuecatWebhookSecret}`) {
+    // 1. Verify webhook secret.
+    // In production we hard-fail if the secret isn't configured —
+    // otherwise anyone who finds the URL can grant Pro to any user.
+    // In dev/test we allow it to pass through unauthenticated for
+    // local webhook replay.
+    if (!config.hasRevenueCat) {
+      if (config.nodeEnv === "production") {
+        console.error(
+          "[WEBHOOK] REVENUECAT_WEBHOOK_SECRET not set in production — rejecting"
+        );
+        res.status(503).json({ error: "Webhook not configured" });
+        return;
+      }
+    } else {
+      const authHeader = req.headers.authorization;
+      const expected = `Bearer ${config.revenuecatWebhookSecret}`;
+      const provided = typeof authHeader === "string" ? authHeader : "";
+      // Constant-time comparison to defeat timing side-channels.
+      const a = Buffer.from(provided);
+      const b = Buffer.from(expected);
+      const valid = a.length === b.length && timingSafeEqual(a, b);
+      if (!valid) {
         console.warn("[WEBHOOK] Invalid authorization header");
         res.status(401).json({ error: "Unauthorized" });
         return;

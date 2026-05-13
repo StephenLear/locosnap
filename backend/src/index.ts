@@ -4,7 +4,7 @@
 
 import express from "express";
 import cors from "cors";
-import { config } from "./config/env";
+import { config, assertProductionConfig } from "./config/env";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import identifyRouter from "./routes/identify";
 import blueprintStatusRouter from "./routes/imageStatus";
@@ -16,6 +16,9 @@ import { getSupabase } from "./config/supabase";
 import { getCacheStats } from "./services/trainCache";
 import { initAnalytics, Sentry, flushAnalytics } from "./services/analytics";
 import { initRedis, getRedisStatus, pingRedis } from "./services/redis";
+
+// ── Production env invariants — crash loud on misconfig ─────
+assertProductionConfig();
 
 // ── Analytics + Error Tracking ───────────────────────────────
 initAnalytics();
@@ -29,21 +32,29 @@ const app = express();
 // Sentry request handler must be the first middleware
 Sentry.setupExpressErrorHandler(app);
 
-// Build allowed origins — always include Expo dev URLs
-const allowedOrigins: string[] = [
+// Build allowed origins — always include Expo dev URLs.
+// `cors` does exact string match, so `exp://` schemes need a function matcher.
+const exactOrigins: string[] = [
   config.frontendUrl,
-  "exp://",
   "http://localhost:19006",
   "http://localhost:8081",
 ];
-// In production, also allow the Render URL and any custom domain
 if (config.nodeEnv === "production") {
-  allowedOrigins.push("https://locosnap.app");
+  exactOrigins.push("https://locosnap.app");
 }
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // No-origin requests (server-to-server, native fetch, curl) are allowed.
+      if (!origin) return callback(null, true);
+      if (exactOrigins.includes(origin)) return callback(null, true);
+      // Expo dev clients send exp:// scheme origins.
+      if (origin.startsWith("exp://") || origin.startsWith("exps://")) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
+    },
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -54,12 +65,30 @@ app.use(express.json({ limit: "1mb" }));
 // ── Routes ──────────────────────────────────────────────────
 app.get("/api/health", async (_req, res) => {
   await pingRedis(); // keeps Upstash alive — must send real traffic
-  res.json({
-    status: "ok",
+
+  // Verify Supabase is actually reachable (not just configured).
+  // A cheap RLS-safe ping on a single row that requires no auth context.
+  let supabaseStatus: "ok" | "down" | "not_configured" = "not_configured";
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from("trains")
+        .select("id", { count: "exact", head: true })
+        .limit(1);
+      supabaseStatus = error ? "down" : "ok";
+    } catch {
+      supabaseStatus = "down";
+    }
+  }
+
+  const overall = supabaseStatus === "down" ? "degraded" : "ok";
+  res.status(overall === "ok" ? 200 : 503).json({
+    status: overall,
     service: "LocoSnap API",
     version: "1.0.0",
     visionProvider: getVisionProvider(),
-    supabase: config.hasSupabase ? "connected" : "not configured",
+    supabase: supabaseStatus,
     blueprintGenAvailable: config.hasImageGen,
     redis: getRedisStatus(),
     cache: getCacheStats(),
