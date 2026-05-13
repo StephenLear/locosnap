@@ -196,11 +196,14 @@ export async function saveSpot(params: {
 }
 
 /**
- * Fetch all spots for a user, most recent first.
+ * Fetch spots for a user, most recent first. Supports cursor-style
+ * paging via `offset` — users with >limit spots get truncated unless
+ * the caller pages through.
  */
 export async function fetchSpots(
   userId: string,
-  limit: number = 50
+  limit: number = 50,
+  offset: number = 0
 ): Promise<HistoryItem[]> {
   const { data, error } = await supabase
     .from("spots")
@@ -227,7 +230,7 @@ export async function fetchSpots(
     `)
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .range(offset, offset + limit - 1);
 
   if (error) {
     console.warn("Failed to fetch spots:", error.message);
