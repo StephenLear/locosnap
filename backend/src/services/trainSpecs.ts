@@ -344,6 +344,15 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "rc7":     { maxSpeed: "180 km/h", power: "3,600 kW", builder: "ASEA / SJ (rebuild from Rc4/Rc6)", fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   "rc 7":    { maxSpeed: "180 km/h", power: "3,600 kW", builder: "ASEA / SJ (rebuild from Rc4/Rc6)", fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   "sj rc7":  { maxSpeed: "180 km/h", power: "3,600 kW", builder: "ASEA / SJ (rebuild from Rc4/Rc6)", fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // SJ Y1 / Fiat Y1 — Swedish single-car diesel railcar, Fiat Ferroviaria 1981-1986.
+  // 82 units in Sweden (Y1 1201-1282). Also operated in Norway (BM 92/93) and other
+  // Scandinavian networks. Diesel hydraulic with Fiat 8461 engine. Being progressively
+  // retired in Sweden — several now with heritage operators or exported.
+  // Do NOT assign BR 628 / VT 98 / Class 153 specs — completely different builder/country.
+  "sj y1":        { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
+  "y1":           { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
+  "fiat y1":      { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
+  "sj class y1":  { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
   // BR 412 (ICE 4) — ensure correct max speed (250 km/h, not 300/320 km/h like ICE 3)
   // Multiple variants because vision may return different class string formats
   "br 412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },

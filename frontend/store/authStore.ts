@@ -93,6 +93,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (session) {
         set({ session, user: session.user, isLoading: false });
         loginRevenueCat(session.user.id);
+        identifyUser(session.user.id, { email: session.user.email ?? undefined });
         get().fetchProfile();
       } else {
         set({ isLoading: false });
@@ -134,6 +135,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
         if (session) {
           loginRevenueCat(session.user.id);
+          identifyUser(session.user.id, { email: session.user.email ?? undefined });
           get().fetchProfile();
         } else {
           set({ profile: null });
@@ -204,6 +206,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           blueprint_credits: data.blueprint_credits ?? 0,
           level: data.level,
           region: data.region,
+          email: user.email ?? undefined,
         });
 
         // Lifetime scan limit — no monthly reset. daily_scans_used is now
