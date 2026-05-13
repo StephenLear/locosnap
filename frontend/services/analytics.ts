@@ -108,11 +108,13 @@ export function identifyUser(
     blueprint_credits?: number;
     level?: number;
     region?: string | null;
+    email?: string;
   }
 ) {
   try {
-    posthog?.identify(userId, traits);
-    Sentry.setUser({ id: userId });
+    const { email, ...posthogTraits } = traits;
+    posthog?.identify(userId, posthogTraits);
+    Sentry.setUser({ id: userId, ...(email ? { email } : {}) });
   } catch {}
 }
 
