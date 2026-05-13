@@ -250,7 +250,29 @@
     "lifetimePrice": "{{price}}",
     "introBadge": "30% OFF FIRST 3 MONTHS",
     "introDisclaimer": "After 3 months, regular price applies. Cancel anytime.",
-    "unlockLifetime": "Unlock Lifetime"
+    "unlockLifetime": "Unlock Lifetime",
+    "softPrompt": {
+      "scan_2": {
+        "title": "Enjoying LocoSnap?",
+        "body": "See what you unlock with Pro — full specs, blueprints, your whole collection.",
+        "cta": "See Pro"
+      },
+      "scan_4": {
+        "title": "Never lose a spot again",
+        "body": "Your full collection, every spec, every blueprint. Special intro pricing available.",
+        "cta": "See Pro"
+      },
+      "scan_5": {
+        "title": "1 free scan left",
+        "body": "Keep scanning every train you see — go Pro to continue without limits.",
+        "cta": "Continue"
+      },
+      "default": {
+        "title": "Grow your collection",
+        "body": "Unlimited scans, cards, and blueprints",
+        "cta": "See Pro"
+      }
+    }
   },
   "rarity": {
     "common": "Common",

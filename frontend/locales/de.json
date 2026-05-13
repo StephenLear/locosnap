@@ -250,7 +250,29 @@
     "lifetimePrice": "{{price}}",
     "introBadge": "30% RABATT FÜR 3 MONATE",
     "introDisclaimer": "Nach 3 Monaten gilt der reguläre Preis. Jederzeit kündbar.",
-    "unlockLifetime": "Lebenslang freischalten"
+    "unlockLifetime": "Lebenslang freischalten",
+    "softPrompt": {
+      "scan_2": {
+        "title": "Gefällt dir LocoSnap?",
+        "body": "Entdecke Pro — alle technischen Daten, Blueprints und deine ganze Sammlung.",
+        "cta": "Pro entdecken"
+      },
+      "scan_4": {
+        "title": "Kein Zug bleibt unerkannt",
+        "body": "Deine ganze Sammlung, alle Daten, jeder Blueprint. Einführungspreis aktuell verfügbar.",
+        "cta": "Pro entdecken"
+      },
+      "scan_5": {
+        "title": "Noch 1 kostenloser Scan",
+        "body": "Mit Pro ohne Limit jeden Zug weiterscannen.",
+        "cta": "Weiter"
+      },
+      "default": {
+        "title": "Erweitere deine Sammlung",
+        "body": "Unbegrenzte Scans, Karten und Blueprints",
+        "cta": "Pro entdecken"
+      }
+    }
   },
   "rarity": {
     "common": "Häufig",

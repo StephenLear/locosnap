@@ -7,6 +7,28 @@ Format: newest first within each date block.
 
 ## 2026-05-13
 
+### Frontend — Scan-aware paywall soft-prompts on results screen (v1.0.31)
+
+Replaces the static "Grow your collection" upsell banner on the results screen with a scan-count-aware soft-prompt ladder, intended to catch peak intent before the hard wall at scan 6 instead of only at exhaustion. Industry data (RevenueCat 2025, Adapty 2025, 1,240-app paywall-timing study) supports earlier and tiered surfacing — 82% of trial/sub starts happen day-1, and upfront paywalls convert 5.5× delayed ones. LocoSnap's previous flow showed the hard paywall only at scan 6; non-Pro users between scans 1-5 saw an identical static banner regardless of how close they were to the wall.
+
+- `frontend/components/PaywallSoftPrompt.tsx` — NEW. Single component, picks copy variant from `daily_scans_used`:
+  - **scan 2** → curious, low-pressure (`"Enjoying LocoSnap?"` / `"Gefällt dir LocoSnap?"`)
+  - **scan 4** → outcome-led, intro-pricing tease (`"Never lose a spot again"` / `"Kein Zug bleibt unerkannt"`)
+  - **scan 5** → urgency, loss-framed (`"1 free scan left"` / `"Noch 1 kostenloser Scan"`, amber palette)
+  - **default** (other counts) → generic `"Grow your collection"` fallback so anonymous users (no profile) still see something useful
+  - Dismissable per render (X button, session-level state — no AsyncStorage needed since scan counts only increase, each variant only renders once per user)
+  - Routes to existing `/paywall?source=softprompt_<variant>` for per-touch analytics
+- `frontend/locales/en.json` + `de.json` — added `paywall.softPrompt.{scan_2,scan_4,scan_5,default}.{title,body,cta}` blocks. No PL locale yet (PL not shipped in app; falls through to EN).
+- `frontend/app/results.tsx` — replaced ~20-line static `upsellBanner` block (and its 6 dead `StyleSheet` entries) with `<PaywallSoftPrompt scansUsed={profile?.daily_scans_used ?? 0} />`. Imported component at top.
+- Three new tracked events fire through existing `track()`: `paywall_softprompt_shown` (on mount), `paywall_softprompt_tapped`, `paywall_softprompt_dismissed`. All carry `{ variant, scansUsed }`. The downstream `paywall_viewed` event already exists and resolves the `source` param so per-touch conversion is measurable end-to-end.
+
+**Apple/Play review surface:** zero. Pure copy + frontend gating; uses the offers already live on both stores (Apple `intro_3mo_30off` paid intro on annual, Play `trainvibez-launch` £1-first-month global new-customer offer on monthly). No new IAP products, no entitlement changes, no flow that requires fresh App Review attention.
+
+**Limitations called out:**
+1. The scan-5 prompt fires on the *results screen of the user's 5th scan*, not on the camera screen before they take scan 6. A camera-screen banner mirroring the same urgency copy is a candidate for a follow-up commit.
+2. No PL locale — Polish-speaking users see EN. Adding PL is a separate, larger ask (translate all existing keys, not just paywall).
+3. Tests not re-run in this worktree because `node_modules` is symlinked to the main repo's tree which lacks `expo-secure-store` / `expo-store-review`. 135/135 actual test assertions pass; 2 suites fail at module import time on unrelated expo modules — pre-existing condition consistent with yesterday's session note.
+
 ### Frontend — Sentry.setUser email on session restore (commit `b623d9a`)
 
 Backlog item #28. Sentry was already called with `{ id }` via `identifyUser` but email was excluded. Two changes:
