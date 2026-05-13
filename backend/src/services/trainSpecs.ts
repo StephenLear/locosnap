@@ -386,6 +386,45 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "br class 88": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
   "88005": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
   "88005 minerva": { maxSpeed: "100 mph", power: "4,000 kW (electric) / 708 kW (diesel)", builder: "Stadler Rail Valencia (Vossloh España)", numberBuilt: 10, fuelType: "Bi-mode (25 kV AC overhead + Caterpillar C27 diesel)" },
+  // BR 191 / BR 192 / BR 193 (Siemens Vectron AC / DC / MS) — added 2026-05-13 after
+  // transportlife reported a Hector Rail 243.126 being identified as "BR 193" with rarity Common
+  // and then re-scanned as "Siemens Vectron" (Uncommon) with facts text confidently equating
+  // BR 193 with Vectron AC. The correct mapping is: BR 191 = AC (15 kV 16.7 Hz AC only),
+  // BR 192 = DC (3 kV / 1.5 kV DC only), BR 193 = MS (multi-system AC + DC — the cross-border
+  // workhorse and most common DB designation). Common specs: Bo-Bo, 200 km/h, 6,400 kW continuous,
+  // 90 t, 19.4 m, Siemens Mobility (Munich-Allach), 15 kV 16.7 Hz AC base electrification with
+  // variant-specific extensions. There is NO BR 194 — older prompts hallucinated this designation.
+  "br 191": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "br191": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "db 191": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "vectron ac": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "siemens vectron ac": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "br 192": { maxSpeed: "160 km/h", power: "5,200 kW", weight: "87 tonnes", builder: "Siemens Mobility", fuelType: "Electric (3 kV DC / 1.5 kV DC)" },
+  "br192": { maxSpeed: "160 km/h", power: "5,200 kW", weight: "87 tonnes", builder: "Siemens Mobility", fuelType: "Electric (3 kV DC / 1.5 kV DC)" },
+  "db 192": { maxSpeed: "160 km/h", power: "5,200 kW", weight: "87 tonnes", builder: "Siemens Mobility", fuelType: "Electric (3 kV DC / 1.5 kV DC)" },
+  "vectron dc": { maxSpeed: "160 km/h", power: "5,200 kW", weight: "87 tonnes", builder: "Siemens Mobility", fuelType: "Electric (3 kV DC / 1.5 kV DC)" },
+  "siemens vectron dc": { maxSpeed: "160 km/h", power: "5,200 kW", weight: "87 tonnes", builder: "Siemens Mobility", fuelType: "Electric (3 kV DC / 1.5 kV DC)" },
+  "br 193": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric Multi-System (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC + 1.5 kV DC)" },
+  "br193": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric Multi-System (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC + 1.5 kV DC)" },
+  "193": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric Multi-System (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC + 1.5 kV DC)" },
+  "db 193": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric Multi-System (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC + 1.5 kV DC)" },
+  "db class 193": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric Multi-System (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC + 1.5 kV DC)" },
+  "vectron ms": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric Multi-System (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC + 1.5 kV DC)" },
+  "siemens vectron ms": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric Multi-System (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC + 1.5 kV DC)" },
+  "vectron": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "siemens vectron": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // Hector Rail 243 — Swedish private operator's own class designation for their Siemens
+  // Vectron AC fleet (243.001-243.150 range, e.g. 243.126). Same hardware as BR 191 (Vectron
+  // AC platform) but operator-specific class label is what tester communities use. Iconic
+  // dark grey + orange band livery with yellow "double-crescent moon" Hector logo on cab.
+  // Built from 2014 onwards. Operating environment: Sweden / Norway 15 kV 16.7 Hz AC,
+  // cross-border into Germany / Austria. Discovered 2026-05-13 from transportlife scan.
+  "hector rail 243": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "hectorrail 243": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  "hector rail class 243": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility", fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // NOTE: deliberately NO bare "243" key — that string is ambiguous with DR 243 / BR 143
+  // (East German LEW Hennigsdorf 1984-1991, 646 units, 120 km/h, 3,720 kW), which is a
+  // much larger fleet. Vision must return "Hector Rail 243" explicitly for the Vectron entry.
   // BR 248 (Siemens Vectron Dual Mode) — added 2026-04-29 after tester andre_18122003 reported
   // the type field showing "Diesel" only on what is actually a dual-mode (electric + diesel) loco.
   // Vectron Dual Mode: 15 kV 16.7 Hz AC overhead OR onboard diesel, 2,610 kW electric / 2,000 kW diesel,

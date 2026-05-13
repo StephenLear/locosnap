@@ -70,7 +70,14 @@ let totalMisses = 0;
 // RAe 4/8 "Churchill-Pfeil" / Ae 8/14 / Ae 4/7). Stephen scanned an Rc6 at
 // 17:49 BST that still served the stale LLM-generated 200 km/h / 5,400 kW
 // because the cached entry pre-dated the new WIKIDATA_CORRECTIONS keys.
-const CACHE_VERSION = "v8";
+// v9 — 2026-05-13 — invalidates entries cached before today's Vectron family
+// fixes: corrected the wrong AC/MS/DC BR mapping in vision.ts + trainFacts.ts
+// (BR 193 = MS not AC, BR 191 = AC, BR 192 = DC, no BR 194), added Hector
+// Rail 243 disambiguation rule, added WIKIDATA_CORRECTIONS entries for the
+// full Vectron variant family + Hector Rail 243.xxx. transportlife re-scan
+// served stale "BR 193 = Vectron AC" facts even after vision returned the
+// Vectron correctly because the cached entry pre-dated the corrections.
+const CACHE_VERSION = "v9";
 
 function getCacheKey(train: TrainIdentification, language: string = "en"): string {
   return `${CACHE_VERSION}::${language}::${train.class}::${train.operator}`.toLowerCase().trim();

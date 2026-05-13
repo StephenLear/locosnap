@@ -5,6 +5,32 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-13
+
+### Backend — Siemens Vectron family corrections + Hector Rail 243 disambiguation (cache v8 → v9)
+
+Triggered by transportlife (TikTok, likely same person as rail_gaze — name change in thread) scanning a Hector Rail Vectron 243.126 photographed in Örebro län, Sweden. Two scans of the same locomotive returned different classes (`BR 193` Common, then `Siemens Vectron` Uncommon — creating a duplicate "new class added" collection entry), and the AI-generated facts text confidently equated BR 193 with Vectron AC. **The DB Baureihe ↔ Vectron-variant mapping was wrong in two prompt files** — this was the same bug spilling into multiple Vectron scans across the user base.
+
+**Correct mapping:**
+- BR 191 = Vectron AC (15 kV 16.7 Hz AC only) — relatively uncommon DB designation
+- BR 192 = Vectron DC (3 kV / 1.5 kV DC only) — also uncommon
+- **BR 193 = Vectron MS (Multi-System: 15 kV / 25 kV AC + 3 kV / 1.5 kV DC) — the cross-border workhorse and most common DB designation**
+- BR 247 = Vectron DE (diesel)
+- BR 248 = Vectron Dual Mode
+- **There is no BR 194** (prior prompts hallucinated this)
+
+**Files changed:**
+- `backend/src/services/vision.ts` — corrected the AC/MS/DC mapping in the Vectron variants paragraph; added a dedicated Hector Rail 243 disambiguation rule (243.xxx fleet numbers + dark grey/orange Hector livery + double-crescent moon logo → return class "Hector Rail 243", never "BR 193" or generic "Siemens Vectron").
+- `backend/src/services/trainFacts.ts` — fixed the BR 247 facts block's parenthetical that wrongly said "BR 193 (pure electric Vectron AC, completely different drivetrain)" — now correctly describes BR 193 as Vectron MS multi-system and clarifies BR 191 = AC, BR 192 = DC, no BR 194.
+- `backend/src/services/trainSpecs.ts` — 21 new lookup keys for the Vectron family (`br 191`/`br 192`/`br 193` + DB-prefix variants + `vectron ac`/`vectron dc`/`vectron ms`/`vectron`/`siemens vectron` generic) plus `hector rail 243` / `hectorrail 243` / `hector rail class 243`. Common specs: 200 km/h, 6,400 kW, 90 t, Siemens Mobility. BR 192 entry uses DC-specific 5,200 kW / 87 t / 160 km/h. Deliberately NO bare `"243"` key — that would collide with DR 243 / BR 143 (East German LEW Hennigsdorf, 646 units, 120 km/h, 3,720 kW).
+- `backend/src/services/trainCache.ts` — `CACHE_VERSION` bumped v8 → v9 to invalidate stale Vectron entries (any "BR 193 = Vectron AC" entries cached before today would otherwise continue to serve stale facts).
+
+**Why two-file prompt fix is necessary**: vision.ts shapes which class string is returned (BR 191 vs BR 193 vs Hector Rail 243); trainFacts.ts shapes the AI-generated narrative text. The wrong AC/MS claim lived in both — fixing only one would leave half the user-visible text incorrect.
+
+**Reply to transportlife pending** — drafted but not yet sent, awaiting Stephen's approval.
+
+---
+
 ## 2026-05-12
 
 ### Schema + Frontend — photo_accuracy_m type mismatch fix (Sentry REACT-NATIVE-R)
