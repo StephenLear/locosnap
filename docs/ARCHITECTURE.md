@@ -1,6 +1,6 @@
 # LocoSnap — Full Architecture Reference
 
-> Last updated: 2026-05-13 evening (security/quality 20-point hardening pass — backend changes shipped (env-validation, RevenueCat webhook hard-fail, per-user identify rate limit, CORS exp:// matcher, /api/health Supabase ping); frontend changes (SecureStore for auth tokens, fetchSpots pagination) queued for v1.0.31. See §2 "Hardening" subsection and the 2026-05-13 CHANGELOG entry for the full list.) — earlier 2026-05-13 morning header follows:
+> Last updated: 2026-05-13 evening (**v1.0.31 READY TO BUILD.** All code on `main` at `b623d9a`. v1.0.31 contents: (1) `MAX_HISTORY` 200→1000 (`b4eec9b`); (2) Android R8 minification via `expo-build-properties` (`fbe77e1`); (3) `Math.round` on `photo_accuracy_m` + `saveSpot` shim (`fbe77e1`); (4) Scan-limit Sentry filter (`deac2f3`); (5) Sentry.setUser email on session restore (`b623d9a`). Also in this evening's session: security/quality 20-point hardening pass — backend changes shipped (env-validation, RevenueCat webhook hard-fail, per-user identify rate limit, CORS exp:// matcher, /api/health Supabase ping); frontend changes (SecureStore for auth tokens, fetchSpots pagination) queued for v1.0.31. Trigger `eas build --platform all --profile production` on user approval. — earlier 2026-05-13 morning header follows:
 >
 > 2026-05-13 morning (Vectron family corrections shipped: vision.ts AC/MS/DC mapping fix + Hector Rail 243 disambiguation rule + trainFacts.ts BR 247 parenthetical fix + 21 new trainSpecs keys covering Vectron AC/DC/MS variants and Hector Rail 243. **Cache version bumped v8 → v9** to invalidate stale entries that confidently mis-stated BR 193 as Vectron AC. Triggered by transportlife / rail_gaze re-scan of Hector Rail 243.126.) — previous 2026-05-12 evening header follows:
 >
@@ -176,7 +176,7 @@ Estimated impact of the Sonnet→Haiku flip on the three structured services: ro
 | Backend language param | Frontend sends `language` field in FormData on every `/api/identify` POST |
 | Backend validation | `backend/src/routes/identify.ts` — `VALID_LANGUAGES = ["en", "de"]`, defaults to `"en"` for invalid/missing |
 | AI content in German | When `language === "de"`, a German instruction is prepended to facts, specs, and rarity prompts. Narrative fields (descriptions, reasoning) return in German. Technical values (numbers, units, speed) remain in standard international format. Train identification (vision) always runs in English regardless of language setting. |
-| Cache per language | Cache key includes language segment: `v8::{language}::{class}::{operator}`. EN and DE results stored as separate entries. |
+| Cache per language | Cache key includes language segment: `v9::{language}::{class}::{operator}`. EN and DE results stored as separate entries. |
 
 **Language detection on first launch:** `settingsStore.initialize()` reads `locosnap_language` from AsyncStorage. If not set, checks device locale via `expo-localization`. If device locale matches a supported language, that language is pre-selected. Otherwise defaults to `"en"`. The language picker screen is shown on first launch; subsequent launches skip it.
 
@@ -242,7 +242,7 @@ RLS is enabled on all tables. Users can only read/write their own data.
 
 Cache entries are lazy-loaded from Redis on first access. `trainCache.ts` functions (`getCachedTrainData`, `setCachedTrainData`, `setCachedBlueprint`) are all async. Saves ~84% of AI costs on repeat scans (£0.005 cached vs £0.031 fresh).
 
-**Cache version: v8** (as of 2026-05-12 evening — bumped from v7 in `88be6ab`). Version is embedded in all cache keys. Key format: `v8::{language}::{class}::{operator}` — language segment added so EN and DE results for the same train are stored as separate entries. Bump the version in `trainCache.ts` whenever wrong identification data may have been cached during iterative prompt/model fixes, or when the cache key format changes — this orphans all stale Redis entries and forces fresh AI calls on next scan. Every version bump means the first scan of every class will miss cache and run the full AI pipeline.
+**Cache version: v9** (as of 2026-05-13 — bumped from v8 in `8998fe2` to invalidate stale Vectron AC/MS mis-labelled entries). Version is embedded in all cache keys. Key format: `v9::{language}::{class}::{operator}` — language segment added so EN and DE results for the same train are stored as separate entries. Bump the version in `trainCache.ts` whenever wrong identification data may have been cached during iterative prompt/model fixes, or when the cache key format changes — this orphans all stale Redis entries and forces fresh AI calls on next scan. Every version bump means the first scan of every class will miss cache and run the full AI pipeline.
 
 ---
 

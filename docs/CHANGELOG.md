@@ -7,6 +7,19 @@ Format: newest first within each date block.
 
 ## 2026-05-13
 
+### Frontend — Sentry.setUser email on session restore (commit `b623d9a`)
+
+Backlog item #28. Sentry was already called with `{ id }` via `identifyUser` but email was excluded. Two changes:
+
+- `frontend/services/analytics.ts` — `identifyUser` signature extended to accept optional `email`; email passed to `Sentry.setUser`, excluded from PostHog `identify` call (PostHog should not receive PII).
+- `frontend/store/authStore.ts` — added `identifyUser(session.user.id, { email: session.user.email ?? undefined })` immediately after session restore in `initialize()` (before `fetchProfile()` completes). Same call added on fresh sign-in in `onAuthStateChange`. `fetchProfile`'s existing `identifyUser` call now threads `email` through. Effect: every crash from a signed-in user now carries Supabase UUID + email in Sentry — traceable to `profiles` table. Crashes before `fetchProfile` completes are no longer anonymous.
+
+### Backend — SJ Y1 / Fiat Y1 spec entries (commit `b623d9a`)
+
+No prior coverage existed for the Swedish single-car diesel railcar series. 4 lookup keys added to `backend/src/services/trainSpecs.ts` after the SJ Rc family block: `"sj y1"`, `"y1"`, `"fiat y1"`, `"sj class y1"`. Specs: 130 km/h, 220 kW, 49 tonnes, Fiat Ferroviaria (Savigliano, Italy), 82 units (Y1 1201-1282), diesel hydraulic. Comment block includes disambiguation note vs BR 628 / VT 98 / Class 153. No cache version bump required (new class, no stale cached entries to invalidate).
+
+---
+
 ### Backend — Siemens Vectron family corrections + Hector Rail 243 disambiguation (cache v8 → v9)
 
 Triggered by transportlife (TikTok, likely same person as rail_gaze — name change in thread) scanning a Hector Rail Vectron 243.126 photographed in Örebro län, Sweden. Two scans of the same locomotive returned different classes (`BR 193` Common, then `Siemens Vectron` Uncommon — creating a duplicate "new class added" collection entry), and the AI-generated facts text confidently equated BR 193 with Vectron AC. **The DB Baureihe ↔ Vectron-variant mapping was wrong in two prompt files** — this was the same bug spilling into multiple Vectron scans across the user base.
