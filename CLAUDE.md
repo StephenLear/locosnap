@@ -266,6 +266,35 @@ When a memory file or prior-session note says "needs push to Render", "not yet d
 
 **Why:** discovered 2026-04-23 when project_status memory claimed the BR 648 backend commits were unpushed. A quick git check showed they'd been pushed days earlier. Never trust memory about git state cold — it decays fastest of all memory types.
 
+### Supabase migration template — every new `CREATE TABLE public.X` must include explicit GRANTs
+
+Starting 2026-10-30, Supabase removes default Data API grants on tables created in the `public` schema. Tables created without explicit `GRANT` statements after that date will return 42501 errors from supabase-js / PostgREST / GraphQL — Sentry catches them but only post-deploy. Existing tables (migrations 001-015) keep their current grants permanently; this rule applies only to new tables.
+
+**Every migration adding a table to `public` MUST follow this template:**
+
+```sql
+create table public.x (
+  ...
+);
+
+grant select on public.x to anon;
+grant select, insert, update, delete on public.x to authenticated;
+grant select, insert, update, delete on public.x to service_role;
+
+alter table public.x enable row level security;
+
+create policy "..." on public.x
+  for select to authenticated
+  using (auth.uid() = user_id);
+-- ... further policies
+```
+
+**Tighten the GRANTs per table:** if a table should be read-only to clients (e.g. a static lookup), drop the `insert, update, delete` from the `authenticated` and `anon` grants. `service_role` should generally retain full access — backend writes go through it. If a table should NOT be exposed to the Data API at all, omit the GRANTs entirely and access only via direct Postgres connection from the backend.
+
+**Before committing any new migration, verify:** (a) all three GRANT lines present, (b) RLS enabled, (c) at least one policy for each role that needs access. The Supabase Security Advisor (Dashboard → Advisors → Security) flags missing grants — run it before merge if uncertain.
+
+**Why:** discovered 2026-05-14 via Supabase change-notice email. The current migration convention `CREATE TABLE → ENABLE RLS → CREATE POLICY` relies on default grants that go away after 2026-10-30. Updating the template now means the rule is in place before the cutover; backfilling existing migrations is unnecessary (Postgres GRANT is idempotent and existing tables retain their grants).
+
 ### Before every session ends — update changelog and architecture docs
 Before closing any session, both `docs/CHANGELOG.md` and `docs/ARCHITECTURE.md` must be current. This is non-negotiable and applies to every session without exception — even sessions with no code changes (build submissions, stat logging, content work, and decisions still affect build status, scan limits, and distribution state in the architecture doc).
 

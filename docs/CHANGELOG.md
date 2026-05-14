@@ -7,6 +7,20 @@ Format: newest first within each date block.
 
 ## 2026-05-14
 
+### Convention — Supabase Data API grant template (effective 2026-10-30 cutover)
+
+Supabase change-notice email received today: default `public`-schema grants on the Data API are being removed. New projects from 2026-05-30, all existing projects from 2026-10-30. LocoSnap is affected — frontend (supabase-js + anon key) and backend (supabase-js + service_role key) both use the Data API; no direct Postgres connection string anywhere.
+
+**Existing 13 tables (migrations 001-015) retain their current grants permanently.** No backfill needed. The risk is forward-only: any new migration after 2026-10-30 that does `CREATE TABLE public.X` without explicit `GRANT` statements will silently return 42501 errors from the Data API.
+
+**Convention updates:**
+
+- `CLAUDE.md` — new mandatory rule "Supabase migration template — every new `CREATE TABLE public.X` must include explicit GRANTs". Template includes the three role grants (`anon` read-only, `authenticated` full CRUD, `service_role` full CRUD), `ENABLE RLS`, and at least one policy. Tightening per-table notes included (read-only tables drop CRUD from clients; backend-only tables omit grants entirely).
+- `docs/ARCHITECTURE.md` — new "Data API grants — convention change effective 2026-10-30" subsection in Database section with the same template + pre-cutover Security Advisor check note.
+- Memory: new `feedback_supabase_grant_after_2026_10_30.md` entry so the rule survives across sessions.
+
+**Why discovered:** Supabase email 2026-05-14 evening flagged the change. Quick audit of `supabase/migrations/*.sql` confirmed zero existing GRANT statements across 15 migrations — everything currently relies on defaults. Backfilling existing migrations is unnecessary (Postgres GRANT is idempotent and existing tables retain their default-time grants); only future migrations need updating.
+
 ### Release — v1.0.31 built and submitted to both stores
 
 No code changes today. v1.0.31 build artefacts produced from the six queued commits on `main` (ending at `a9dcbfd`) and submitted to both stores.

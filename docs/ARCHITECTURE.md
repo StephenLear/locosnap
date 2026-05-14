@@ -210,6 +210,30 @@ Estimated impact of the Sonnet→Haiku flip on the three structured services: ro
 ### Row Level Security
 RLS is enabled on all tables. Users can only read/write their own data.
 
+### Data API grants — convention change effective 2026-10-30
+
+Supabase is removing default `public`-schema grants on the Data API. Email received 2026-05-14 confirms LocoSnap is affected (frontend + backend both use supabase-js = Data API; backend does NOT use a direct Postgres connection string).
+
+- **Existing 13 tables (migrations 001-015):** retain their current grants permanently. No action needed.
+- **New tables created after 2026-10-30:** must include explicit `GRANT` statements in the migration, or supabase-js / PostgREST / GraphQL will return 42501 errors.
+- **Convention enforced via CLAUDE.md "Supabase migration template" rule** (added 2026-05-14). Every new migration with `CREATE TABLE public.X` must follow the template:
+
+```sql
+create table public.x (...);
+
+grant select on public.x to anon;
+grant select, insert, update, delete on public.x to authenticated;
+grant select, insert, update, delete on public.x to service_role;
+
+alter table public.x enable row level security;
+
+create policy "..." on public.x ...;
+```
+
+Tighten per-table: read-only tables drop `insert, update, delete` from `authenticated` / `anon`; tables NOT exposed to Data API omit grants entirely (backend-only via direct Postgres). `service_role` generally retains full access.
+
+**Pre-cutover check (before 2026-10-30):** run Supabase Dashboard → Advisors → Security Advisor. It flags missing grants on tables exposed to the Data API. No warnings expected for the current 13-table state.
+
 ---
 
 ## 5. Auth — Supabase Auth
