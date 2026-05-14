@@ -5,6 +5,59 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-14
+
+### Release — v1.0.31 built and submitted to both stores
+
+No code changes today. v1.0.31 build artefacts produced from the six queued commits on `main` (ending at `a9dcbfd`) and submitted to both stores.
+
+- **Android:** `eas build --platform all --profile production` triggered ~20:16 UTC. versionCode 18 → 19 auto-bumped by EAS. Build ID `1af7dfa0-9f8b-4f70-84be-2b5d168a52cf`. Queue time 42 min (EAS reported a partial Android-side outage at trigger), build duration 20 min. AAB: https://expo.dev/artifacts/eas/4k9DfiEUWtrD74jrSivQKZ.aab. R8 minification + resource shrinking visibly effective — new-install size 22.2 MB (-6.35 MB vs v1.0.30 28.55 MB); download time -2s; update size 7.2 MB. Submitted to Play production track at ~22:48 UTC via `eas submit --platform android --id 1af7dfa0...`; release saved as DRAFT, EN+DE release notes pasted in Play Console, sent for Google review same session. Submission ID `ef712894-312d-47ea-8deb-9310bd919163`.
+- **iOS:** same `eas build` call. buildNumber 52 → 53 auto-bumped. Build ID `44bcab5b-f995-4d80-892c-ddb32e9884aa`. IPA: https://expo.dev/artifacts/eas/9uiqgQrWqJfZwuQiCEmEZG.ipa. Submitted to ASC at ~22:38 UTC via `eas submit --platform ios --id 44bcab5b...`; eas-cli upload + ASC notarisation took ~24 min end-to-end (longer than usual but within ASC's normal variance). Submission ID `f9713015-d7eb-4e25-9444-af350909b9f6`. Awaiting Apple binary processing for TestFlight (typically 10-30 min), then manual "Submit for Review" step in ASC App Store tab with the same EN+DE notes.
+
+**Release notes (identical for both stores, fits 500-char Play limit):**
+
+EN:
+```
+Bug fixes and improvements:
+
+• Fixed Siemens Vectron identification (BR 191 AC, BR 192 DC, BR 193 MS)
+• Fixed Hector Rail 243 identification
+• Added Swedish SJ Y1 / Fiat Y1 railcar coverage
+• View your full scan history beyond 50 spots
+• Smarter upgrade prompts on the results screen
+• More secure sign-in storage
+```
+
+DE:
+```
+Fehlerbehebungen und Verbesserungen:
+
+• Erkennung der Siemens Vectron korrigiert (BR 191 AC, BR 192 DC, BR 193 MS)
+• Erkennung der Hector Rail 243 korrigiert
+• Schwedische SJ Y1 / Fiat Y1 ergänzt
+• Vollständiger Scan-Verlauf über 50 Einträge hinaus sichtbar
+• Intelligentere Upgrade-Hinweise auf der Ergebnisseite
+• Sicherere Speicherung der Anmeldedaten
+```
+
+**v1.0.31 carries (all already on `main`):**
+- `b4eec9b` MAX_HISTORY 200 → 1000 + Android R8 minification via `expo-build-properties`
+- `fbe77e1` `Math.round` on `photo_accuracy_m` + `saveSpot` shim
+- `deac2f3` scan-limit Sentry filter
+- `b623d9a` `Sentry.setUser` email on session restore + SJ Y1 / Fiat Y1 specs
+- `88e9af6` `PaywallSoftPrompt` component + scan-aware soft-prompts on results screen + EN/DE locale blocks
+- `ff748ae` + `a9dcbfd` ARCHITECTURE / CHANGELOG / handover docs
+
+### Store config — Apple `pro_lifetime` IAP approved
+
+Apple App Store review approved the `pro_lifetime` non-consumable IAP on 2026-05-14. SKU was in "Ready to Submit" since v1.0.29 setup (2026-05-08) and submitted for review attached to a v1.0.29 binary; approval landed today.
+
+- **Effect:** `pro_lifetime` is now sellable on both Apple and Play (Play side approved + live since v1.0.29). RC `autorenew_v1` offering (Default since 2026-05-10) already has `$rc_lifetime` package wired with both Apple `pro_lifetime` and Play `pro_lifetime` → `getOfferings().current.lifetime` returns a valid package for any v1.0.29+ install.
+- **Remaining work to make it user-visible:** `frontend/app/paywall.tsx` currently renders monthly + annual tiles only. No third tile reads `offerings.current.lifetime`. Adding a lifetime tile is queued as a v1.0.32 candidate (~2-3h: third tile + EN+DE copy + analytics dimension for `package_id=lifetime`).
+- **Memory updated:** `project_lifetime_pro_demand.md` flipped from "demand tracker, no SKU" to "SKU live on iOS + Play, only paywall UI surfacing remains." `project_revenuecat_topology.md` Apple `pro_lifetime` row status moved from "Ready to Submit" → "Approved 2026-05-14".
+
+---
+
 ## 2026-05-13
 
 ### Frontend — Scan-aware paywall soft-prompts on results screen (v1.0.31)
