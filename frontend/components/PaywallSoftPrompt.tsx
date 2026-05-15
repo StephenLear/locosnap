@@ -29,26 +29,41 @@ function variantFor(scansUsed: number): Variant {
   return "default";
 }
 
-export function PaywallSoftPrompt({ scansUsed }: { scansUsed: number }) {
+type Surface = "results" | "camera";
+
+export function PaywallSoftPrompt({
+  scansUsed,
+  surface = "results",
+}: {
+  scansUsed: number;
+  surface?: Surface;
+}) {
   const { t } = useTranslation();
   const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
   const variant = variantFor(scansUsed);
   const isUrgent = variant === "scan_5";
 
+  // Reset dismissed state when the variant escalates so a dismiss at
+  // scan 2 does not silence the scan_5 urgent banner on a persistent
+  // surface (the camera tab stays mounted across scans).
   useEffect(() => {
-    track("paywall_softprompt_shown", { variant, scansUsed });
-  }, [variant, scansUsed]);
+    setDismissed(false);
+  }, [variant]);
+
+  useEffect(() => {
+    track("paywall_softprompt_shown", { variant, scansUsed, surface });
+  }, [variant, scansUsed, surface]);
 
   if (dismissed) return null;
 
   const onTap = () => {
-    track("paywall_softprompt_tapped", { variant, scansUsed });
-    router.push(`/paywall?source=softprompt_${variant}` as any);
+    track("paywall_softprompt_tapped", { variant, scansUsed, surface });
+    router.push(`/paywall?source=softprompt_${variant}_${surface}` as any);
   };
 
   const onDismiss = () => {
-    track("paywall_softprompt_dismissed", { variant, scansUsed });
+    track("paywall_softprompt_dismissed", { variant, scansUsed, surface });
     setDismissed(true);
   };
 

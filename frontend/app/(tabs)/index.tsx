@@ -29,6 +29,7 @@ import { identifyTrain, pollBlueprintStatus, healthCheck } from "../../services/
 import { submitWrongIdReport } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track, captureError, addBreadcrumb } from "../../services/analytics";
+import { PaywallSoftPrompt } from "../../components/PaywallSoftPrompt";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -669,6 +670,14 @@ export default function HomeScreen() {
           </Text>
           <Ionicons name="chevron-forward" size={13} color={colors.textMuted} />
         </TouchableOpacity>
+      )}
+
+      {/* ── Scan-aware paywall soft-prompt (signed-in free users, scans 2/4/5) ── */}
+      {session && !profile?.is_pro && [2, 4, 5].includes(profile?.daily_scans_used ?? -1) && (
+        <PaywallSoftPrompt
+          scansUsed={profile?.daily_scans_used ?? 0}
+          surface="camera"
+        />
       )}
 
       {/* ── Scanner Hero ── */}

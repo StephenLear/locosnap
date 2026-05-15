@@ -5,6 +5,25 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-15
+
+### Frontend — v1.0.32 scan-aware soft-prompt on camera screen
+
+Mirrored the `PaywallSoftPrompt` urgency frame onto the camera screen (between header and scanner hero) so the scan_5 amber banner fires *before* the user attempts scan 6, not only after scan 5 results. Pairs with the scan-aware soft-prompts shipped 2026-05-13 in `88e9af6`.
+
+**Changes:**
+
+- `frontend/components/PaywallSoftPrompt.tsx` — added optional `surface?: "results" | "camera"` prop (default `"results"`, non-breaking for existing results-screen caller). Variant-reset `useEffect` added so a dismiss at scan 2 does not silence the scan 5 urgent banner on the persistent camera tab. Analytics events (`paywall_softprompt_shown` / `_tapped` / `_dismissed`) now include `surface`. Paywall route source param is now `softprompt_${variant}_${surface}` for RC purchase-attribution split-by-surface.
+- `frontend/app/(tabs)/index.tsx` — mounted `<PaywallSoftPrompt surface="camera" />` between header and Scanner Hero. Gated to signed-in non-Pro users at `daily_scans_used` ∈ {2, 4, 5} so the generic "Grow your collection" `default` variant stays on results-only. Pre-signup trial users continue to see the existing trial banner; Pro users see nothing.
+
+**Why:** results-only soft-prompt fires after the scan, but the user's next action — returning to camera and tapping shutter — happens without any reminder. Mirroring to camera adds the reminder at the moment of highest conversion intent (just before scan 6). DE + EN i18n keys reused (`paywall.softPrompt.scan_2/4/5`); no new copy.
+
+**Out of scope (deliberate):** no pre-signup trial-user variant ladder; no banner on history/collection/profile tabs; no A/B feature flag (can be added later if v1.0.32 telemetry is ambiguous).
+
+Design doc: `docs/plans/2026-05-15-scan-banner-design.md`.
+
+---
+
 ## 2026-05-14
 
 ### Convention — Supabase Data API grant template (effective 2026-10-30 cutover)
