@@ -808,6 +808,47 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "br class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
   "british rail class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
   "lms class 11": { maxSpeed: "20 mph (32 km/h)", power: "350 hp (261 kW)", weight: "47 tonnes", builder: "LMS / BR Derby", numberBuilt: 120, fuelType: "Diesel-electric (English Electric 6KT)" },
+  // British Rail Class 07 — 14 0-6-0 diesel-electric shunters built 1962 by
+  // Ruston & Hornsby for Southampton Docks. Fleet D2985–D2998. Paxman 6RPH
+  // 275 hp. ~7 preserved on UK heritage railways. D2996 relocated to Severn
+  // Valley Railway April 2026. Discovered 2026-05-16 when UK tester Steph
+  // scanned the preserved D2996 and the app returned "Class 03 D 2986" —
+  // OCR misread of fleet number + no Class 07 anchor in the model.
+  "class 07": { maxSpeed: "20 mph (32 km/h)", power: "275 hp (205 kW)", weight: "42 tonnes", builder: "Ruston & Hornsby", numberBuilt: 14, fuelType: "Diesel-electric (Paxman 6RPH)" },
+  "class 7": { maxSpeed: "20 mph (32 km/h)", power: "275 hp (205 kW)", weight: "42 tonnes", builder: "Ruston & Hornsby", numberBuilt: 14, fuelType: "Diesel-electric (Paxman 6RPH)" },
+  "br class 07": { maxSpeed: "20 mph (32 km/h)", power: "275 hp (205 kW)", weight: "42 tonnes", builder: "Ruston & Hornsby", numberBuilt: 14, fuelType: "Diesel-electric (Paxman 6RPH)" },
+  "british rail class 07": { maxSpeed: "20 mph (32 km/h)", power: "275 hp (205 kW)", weight: "42 tonnes", builder: "Ruston & Hornsby", numberBuilt: 14, fuelType: "Diesel-electric (Paxman 6RPH)" },
+  // British Rail Class 03 — 230 0-6-0 diesel-mechanical shunters built
+  // 1957–1962 at BR Swindon and Doncaster. Gardner 8L3 204 hp. Fleet
+  // D2000–D2199 (later 03001–03399). Most preserved. The classic small
+  // BR jackshaft shunter. NOT to be confused with Class 07 (D2985–D2998
+  // fleet, different builder, different engine).
+  "class 03": { maxSpeed: "28 mph (45 km/h)", power: "204 hp (152 kW)", weight: "31 tonnes", builder: "BR Swindon / Doncaster", numberBuilt: 230, fuelType: "Diesel-mechanical (Gardner 8L3)" },
+  "class 3": { maxSpeed: "28 mph (45 km/h)", power: "204 hp (152 kW)", weight: "31 tonnes", builder: "BR Swindon / Doncaster", numberBuilt: 230, fuelType: "Diesel-mechanical (Gardner 8L3)" },
+  "br class 03": { maxSpeed: "28 mph (45 km/h)", power: "204 hp (152 kW)", weight: "31 tonnes", builder: "BR Swindon / Doncaster", numberBuilt: 230, fuelType: "Diesel-mechanical (Gardner 8L3)" },
+  "british rail class 03": { maxSpeed: "28 mph (45 km/h)", power: "204 hp (152 kW)", weight: "31 tonnes", builder: "BR Swindon / Doncaster", numberBuilt: 230, fuelType: "Diesel-mechanical (Gardner 8L3)" },
+  // British Rail Class 20 "Chopper" — 228 English Electric Type 1
+  // single-cab Bo-Bo diesel-electrics built 1957–1968 at Vulcan Foundry
+  // (Newton-le-Willows) and Robert Stephenson and Hawthorns (Darlington).
+  // Fleet D8000–D8199 + D8300–D8327. 1,000 hp, 75 mph. Iconic single-cab
+  // hood-unit silhouette, frequently run nose-first in cab-to-cab pairs.
+  // Still operationally active 2026 with DRS, GBRf, LSL, WCR, and many
+  // preserved on heritage lines.
+  "class 20": { maxSpeed: "75 mph (121 km/h)", power: "1,000 hp (746 kW)", weight: "73 tonnes", builder: "English Electric (Vulcan Foundry / RSH)", numberBuilt: 228, fuelType: "Diesel-electric (English Electric 8SVT)" },
+  "br class 20": { maxSpeed: "75 mph (121 km/h)", power: "1,000 hp (746 kW)", weight: "73 tonnes", builder: "English Electric (Vulcan Foundry / RSH)", numberBuilt: 228, fuelType: "Diesel-electric (English Electric 8SVT)" },
+  "british rail class 20": { maxSpeed: "75 mph (121 km/h)", power: "1,000 hp (746 kW)", weight: "73 tonnes", builder: "English Electric (Vulcan Foundry / RSH)", numberBuilt: 228, fuelType: "Diesel-electric (English Electric 8SVT)" },
+  // British Rail Class 26 — 47 BRCW Type 2 double-cab Bo-Bo diesel-electrics
+  // built 1958–1959 at Birmingham Railway Carriage and Wagon Co. for the
+  // Scottish Region. Sulzer 6LDA28 1,160 hp engine. Fleet D5300–D5346.
+  // 75 mph. NOT 90 mph and NOT 1,750 hp (those are Class 37 specs and have
+  // been wrongly returned by the model). ~7 preserved. Distinct from
+  // Class 20 (single-cab) and Class 33 (Type 3, 1,550 hp). Discovered
+  // 2026-05-16 when UK tester Steph scanned a Class 20 (single-cab) and
+  // the app returned "Class 26 / 90 mph / 1,750 HP" — wrong class AND
+  // wrong specs even for Class 26 itself.
+  "class 26": { maxSpeed: "75 mph (121 km/h)", power: "1,160 hp (865 kW)", weight: "75 tonnes", builder: "Birmingham Railway Carriage and Wagon Co.", numberBuilt: 47, fuelType: "Diesel-electric (Sulzer 6LDA28)" },
+  "br class 26": { maxSpeed: "75 mph (121 km/h)", power: "1,160 hp (865 kW)", weight: "75 tonnes", builder: "Birmingham Railway Carriage and Wagon Co.", numberBuilt: 47, fuelType: "Diesel-electric (Sulzer 6LDA28)" },
+  "british rail class 26": { maxSpeed: "75 mph (121 km/h)", power: "1,160 hp (865 kW)", weight: "75 tonnes", builder: "Birmingham Railway Carriage and Wagon Co.", numberBuilt: 47, fuelType: "Diesel-electric (Sulzer 6LDA28)" },
   // DB Baureihe 430 — Bombardier-Alstom Coradia Continental S-Bahn variant,
   // 4-car EMU built 2011–2024, 253 units. Used by S-Bahn Rhein-Main, Stuttgart,
   // Mitteldeutschland, Nürnberg. Top speed 140 km/h (NOT 160 — common AI

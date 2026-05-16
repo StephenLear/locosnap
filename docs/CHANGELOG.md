@@ -5,6 +5,36 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-16
+
+### Backend — Class 07 + Class 20 vision rules and spec entries (from Steph tester report)
+
+UK tester Steph reported two misidentifications:
+
+1. **D2996 at Severn Valley Railway** identified as "Class 03 D 2986" — should be **Class 07** (Ruston & Hornsby, Paxman 6RPH engine, 14 built 1962 for Southampton Docks, ~7 preserved). Vision likely misread "D2996" OCR as "D2986" AND lacked a Class 07 anchor entirely.
+2. **Red WCR-livery loco** identified as "Class 26 / 90 mph / 1,750 HP" — Steph confirmed it is **Class 20** (single-cab English Electric Type 1 "chopper", 228 built 1957-68, 1,000 hp / 75 mph). The returned Class 26 stats were also wrong even for Class 26 itself (real figures: 1,160 hp / 75 mph; the 1,750 hp / 90 mph were Class 37 numbers).
+
+Applied fix pattern (vision rule + spec override):
+
+- `backend/src/services/vision.ts` — two new disambiguation bullets near the Class 11 / Class 14 UK shunter rules: (a) "British Rail Class 07 vs Class 03/04 shunter disambiguation" with fleet-number-definitive rule (D2985–D2998 = Class 07, D2000–D2199 = Class 03), builder cue (Ruston & Hornsby vs BR works), engine cue (Paxman 6RPH vs Gardner 8L3); (b) "British Rail Class 20 vs Class 26/27/33 mainline Type 1/2 disambiguation" — single-cab vs double-cab as primary visual cue, fleet number ranges for all four classes, WCR red-livery operator-context note pointing toward Class 33 as the secondary candidate when double-cab.
+- `backend/src/services/trainSpecs.ts` — added KNOWN_SPECS entries for Class 07 (20 mph / 275 hp / 14 built / Ruston & Hornsby / Paxman 6RPH), Class 03 (28 mph / 204 hp / 230 built / BR Swindon-Doncaster / Gardner 8L3), Class 20 (75 mph / 1,000 hp / 228 built / English Electric Vulcan Foundry-RSH / EE 8SVT), Class 26 (75 mph / 1,160 hp / 47 built / BRCW / Sulzer 6LDA28). Multiple alias keys per class (bare class number, `br class N`, `british rail class N`).
+
+Cache version unchanged. Memory entry logged in `backend_backlog_corrections.md`. Steph reply DM drafted but held until push deploys fix to Render.
+
+### Content — BR 101 v2 ad posted (TikTok + Instagram, DE)
+
+New 10-second class ad built and posted on TikTok + Instagram. Subject: **DB Baureihe 101** — 145 built by Adtranz, ~51 still in DB Fernverkehr service as of April 2026 per German Wikipedia fleet table. 101 001-6 wears the special purpurrot/beige heritage livery (1960s F-Zug colour scheme), operational.
+
+- Hook structure: visual paradox lead — Beat 1 "Sieht aus wie 1962." over 101 001 heritage hero, Beat 2 "Ist aus 1996." over heritage coach pan, Beat 3 "145 gebaut." over standard 101 in verkehrsrot, Beat 4 "Nur 51 fahren noch." over IC coach pan, Beat 5 saved DE endcard.
+- Footage: two clips from Samuel @trainspotting101 (blanket permission per `footage_source_trainspotting101.md`): heritage 101 001 climbing (joint spot with @railspottingbayern) + standard 101 in verkehrsrot at speed.
+- Output: `~/Desktop/locosnap_br101_v2_de.mp4`, 720×1280, 10.000s, 1.74 MB. Built per `feedback_ad_build_pipeline.md` (frame-sampled both clips, top text placement, frame-checked each beat, used saved `endcard_de.mp4`).
+- Credit attribution: Samuel @trainspotting101 + courtesy tag @railspottingbayern. Both DM'd post-publish.
+- Posting slot: Saturday 16 May late afternoon. Third ad in 7 days after the BR 142 / cooling-WoW diagnosis. Intended to re-trigger algorithm with proven channel-formula content after Roter Elch (BR 221) under-performance.
+
+A/B comparison from previous BR 101 ad (2026-04-12): 1,500 views / 25.9% full-watch / 12 new followers / DE 83.9%. Tomorrow's 24h read will compare heritage-hero-first restructure against those figures.
+
+---
+
 ## 2026-05-14
 
 ### Convention — Supabase Data API grant template (effective 2026-10-30 cutover)
