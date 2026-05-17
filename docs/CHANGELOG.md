@@ -7,6 +7,12 @@ Format: newest first within each date block.
 
 ## 2026-05-17
 
+### Release — v1.0.32 LIVE on Google Play (Apple still in review)
+
+**Android approved + published 2026-05-17 evening** — ~5h turnaround from 13:42 UTC submission. Polish locale, Polish Play Store listing, and new Play pricing (PL annual 89.99 zł / CZ Kč 499 / IT/ES €24.99 / DE €34.99 / UK held at £24.99) all live to Android users immediately. iOS still in Apple Review.
+
+---
+
 ### Release — v1.0.32 built, submitted to both stores, localised pricing rolled out across 9 countries
 
 **EAS builds (2026-05-17 12:12 UTC):**
