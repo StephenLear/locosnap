@@ -97,6 +97,12 @@
     "signOut": "Abmelden",
     "pro": "Pro",
     "free": "Kostenlos",
+    "countryBanner": {
+      "title": "Länderflagge hinzufügen",
+      "body": "Wähle dein Land, um in der Länderrangliste zu erscheinen.",
+      "cta": "Land wählen",
+      "dismissA11y": "Länder-Hinweis ausblenden"
+    },
     "scansThisMonth": "Scans diesen Monat",
     "totalSpots": "Gesamt-Spots",
     "level": "Level {{number}}",

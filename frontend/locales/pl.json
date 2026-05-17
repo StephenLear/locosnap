@@ -101,6 +101,12 @@
     "signOut": "Wyloguj się",
     "pro": "Pro",
     "free": "Darmowe",
+    "countryBanner": {
+      "title": "Dodaj flagę kraju",
+      "body": "Wybierz swój kraj, aby pojawić się w rankingu krajów.",
+      "cta": "Wybierz kraj",
+      "dismissA11y": "Ukryj prompt o kraju"
+    },
     "scansThisMonth": "Skany w tym miesiącu",
     "totalSpots": "Wszystkie obserwacje",
     "level": "Poziom {{number}}",

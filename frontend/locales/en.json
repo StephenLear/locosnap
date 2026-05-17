@@ -97,6 +97,12 @@
     "signOut": "Sign Out",
     "pro": "Pro",
     "free": "Free",
+    "countryBanner": {
+      "title": "Add your country flag",
+      "body": "Pick your country to join the country leaderboard.",
+      "cta": "Pick country",
+      "dismissA11y": "Dismiss country prompt"
+    },
     "scansThisMonth": "Scans this month",
     "totalSpots": "Total spots",
     "level": "Level {{number}}",

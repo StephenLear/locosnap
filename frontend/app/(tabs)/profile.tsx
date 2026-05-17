@@ -15,6 +15,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import * as Application from "expo-application";
 import { Ionicons } from "@expo/vector-icons";
@@ -108,6 +109,23 @@ export default function ProfileScreen() {
   const [draftCountry, setDraftCountry] = useState<string | null>(null);
   const [draftEmoji, setDraftEmoji] = useState<string | null>(null);
   const [identitySaving, setIdentitySaving] = useState(false);
+
+  // ── Country-flag backfill banner (legacy users without country_code) ──
+  // Hidden once dismissed (per-device, AsyncStorage). Re-appears if user
+  // signs out + back in only if they uninstall — keeping it simple.
+  const COUNTRY_BANNER_DISMISSED_KEY = "locosnap_country_banner_dismissed";
+  const [countryBannerDismissed, setCountryBannerDismissed] = useState(true); // default-hide while loading
+  useEffect(() => {
+    AsyncStorage.getItem(COUNTRY_BANNER_DISMISSED_KEY)
+      .then((v) => setCountryBannerDismissed(v === "true"))
+      .catch(() => setCountryBannerDismissed(false));
+  }, []);
+  const dismissCountryBanner = async () => {
+    setCountryBannerDismissed(true);
+    try { await AsyncStorage.setItem(COUNTRY_BANNER_DISMISSED_KEY, "true"); } catch {}
+  };
+  const shouldShowCountryBanner =
+    !!user && !profile?.country_code && !countryBannerDismissed;
 
   const handleOpenIdentityModal = () => {
     setDraftCountry(profile?.country_code ?? null);
@@ -318,6 +336,33 @@ export default function ProfileScreen() {
       style={styles.container}
       contentContainerStyle={styles.content}
     >
+      {/* ── Country-flag backfill banner (legacy users only) ── */}
+      {shouldShowCountryBanner && (
+        <View style={styles.countryBanner}>
+          <TouchableOpacity
+            style={styles.countryBannerContent}
+            onPress={handleOpenIdentityModal}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="flag-outline" size={20} color={colors.accent} />
+            <View style={styles.countryBannerText}>
+              <Text style={styles.countryBannerTitle}>{t("profile.countryBanner.title")}</Text>
+              <Text style={styles.countryBannerBody}>{t("profile.countryBanner.body")}</Text>
+            </View>
+            <Text style={styles.countryBannerCta}>{t("profile.countryBanner.cta")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.countryBannerDismiss}
+            onPress={dismissCountryBanner}
+            accessibilityRole="button"
+            accessibilityLabel={t("profile.countryBanner.dismissA11y")}
+            hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
+          >
+            <Ionicons name="close" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* ── User header ──────────────────────────────────── */}
       <View style={styles.userHeader}>
         <View style={styles.avatarCircle}>
@@ -819,6 +864,49 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
     paddingBottom: 40,
+  },
+
+  // Country-flag backfill banner
+  countryBanner: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.accent + "33",
+    marginBottom: spacing.md,
+    overflow: "hidden",
+  },
+  countryBannerContent: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    gap: spacing.md,
+  },
+  countryBannerText: {
+    flex: 1,
+  },
+  countryBannerTitle: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold,
+    color: colors.textPrimary,
+  },
+  countryBannerBody: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  countryBannerCta: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold,
+    color: colors.accent,
+  },
+  countryBannerDismiss: {
+    paddingHorizontal: spacing.sm,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   // User header

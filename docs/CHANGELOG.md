@@ -7,6 +7,23 @@ Format: newest first within each date block.
 
 ## 2026-05-17
 
+### Frontend — Country-flag backfill banner on Profile tab (queued for v1.0.33)
+
+Adds a dismissible banner at the top of the Profile screen for users whose `country_code` is NULL (legacy/pre-onboarding cohort + recent payers who bounced through subscribe before completing identity onboarding). Triggered by the 2026-05-17 Supabase audit which surfaced 149 users (the largest single bucket) with no country_code — almost all signed up before identity onboarding shipped (~late April), plus 2 confirmed real paying customers (marcel.weiss + mau.cavelius) who paid within 7-14 minutes of first launch then never scanned.
+
+Applied:
+
+- `frontend/app/(tabs)/profile.tsx` — added `AsyncStorage` import, added `countryBannerDismissed` state + `useEffect` that reads `locosnap_country_banner_dismissed` on mount, `dismissCountryBanner` handler that persists dismissal, `shouldShowCountryBanner` derived flag (`!!user && !profile?.country_code && !countryBannerDismissed`). JSX banner rendered above `userHeader` View: flag icon + title + body + CTA (full row tappable → opens existing `handleOpenIdentityModal`), plus a separate close `X` button that dismisses persistently. Added `countryBanner*` styles to the StyleSheet block.
+- `frontend/locales/en.json` + `de.json` + `pl.json` — added `profile.countryBanner.{title,body,cta,dismissA11y}` keys in all three locales. Reuses existing accent colour with 33% alpha for the border (matches the app's other accent-tinted callouts).
+
+153/153 frontend tests passing. No backend changes. No new dependencies — uses existing `@react-native-async-storage/async-storage`, existing `Ionicons` set, existing identity-edit modal flow.
+
+**Why a banner, not a forced flow:** the audit also showed real paying customers (marcel.weiss / mau.cavelius) hit subscribe BEFORE completing identity onboarding. A forced flow would interrupt them again at the Profile tab. A dismissible banner respects user agency while making the capture path obvious for those who want to appear on the country leaderboard.
+
+Ships in v1.0.33. No version bump in this commit — bundling with other v1.0.33 candidates as they accumulate.
+
+---
+
 ### Release — v1.0.32 LIVE on Google Play (Apple still in review)
 
 **Android approved + published 2026-05-17 evening** — ~5h turnaround from 13:42 UTC submission. Polish locale, Polish Play Store listing, and new Play pricing (PL annual 89.99 zł / CZ Kč 499 / IT/ES €24.99 / DE €34.99 / UK held at £24.99) all live to Android users immediately. iOS still in Apple Review.
