@@ -295,6 +295,21 @@ create policy "..." on public.x
 
 **Why:** discovered 2026-05-14 via Supabase change-notice email. The current migration convention `CREATE TABLE → ENABLE RLS → CREATE POLICY` relies on default grants that go away after 2026-10-30. Updating the template now means the rule is in place before the cutover; backfilling existing migrations is unnecessary (Postgres GRANT is idempotent and existing tables retain their grants).
 
+### At every session start — read handover and audit stale memory
+At the start of every session, before doing anything else:
+
+1. Read the newest file in `docs/handoffs/` (newest by filename date)
+2. For every item listed in **Next Steps**, cross-check it — do not trust it at face value:
+   - "Pending corrections" → check `docs/CHANGELOG.md` to confirm they haven't already shipped
+   - "Not yet deployed" / "commit pending" → run `git log origin/main..HEAD --oneline` to verify
+   - "Store review in progress" → note it but do not assume — build status decays fast
+3. For every memory file referenced in the handover, flag any item marked "TOMORROW", "pending", or "queue" that is more than 7 days old — these are almost certainly stale
+4. Surface a short list to the user at session open: "Outstanding items from last session: X, Y, Z — shall I verify these?" Do this BEFORE taking any action
+
+**Why:** stale memory items (e.g. corrections marked "pending" that shipped weeks ago, deploy states that changed overnight) were repeatedly surfaced as live tasks, wasting time and causing confusion. The handover is the entry point — audit it, don't just read it.
+
+---
+
 ### Before every session ends — update changelog and architecture docs
 Before closing any session, both `docs/CHANGELOG.md` and `docs/ARCHITECTURE.md` must be current. This is non-negotiable and applies to every session without exception — even sessions with no code changes (build submissions, stat logging, content work, and decisions still affect build status, scan limits, and distribution state in the architecture doc).
 
