@@ -7,6 +7,24 @@ Format: newest first within each date block.
 
 ## 2026-05-17
 
+### Backend — Class 390 Pendolino + Class 66 operator livery disambiguation (RailUK forum corrections)
+
+Two misidentifications reported on RailUK forums by GRALISTAIR (screenshots) and confirmed by AlterEgo (Verified Rep):
+
+1. **Class 390 Pendolino returned as "Class 800 / Avanti West Coast"** — Class 800 is an IET/Azuma (GWR/LNER/TransPennine); Avanti have never operated it. No Class 390 rule existed in the vision layer, so the model was pattern-matching to Class 805/807 Avanti + Hitachi AT300 context and returning Class 800 as the base class.
+
+2. **GBRf Class 66 returned as "Freightliner" with wrong hp (3,200 instead of 3,300)** — No Class 66 entries existed in KNOWN_SPECS, so the AI defaulted to Freightliner (largest historical Class 66 operator, over-represented in training data). Operator livery discrimination was absent.
+
+Applied:
+
+- `backend/src/services/vision.ts` — (a) Added dedicated Class 390 Pendolino disambiguation rule: tilting ETR-derived body profile, Alstom-built (Savigliano/Washwood Heath), WCML-only, fleet 390001–390030 / 390101–390157, 125 mph, Class 800 explicitly blocked as return for any Pendolino. (b) Added Class 66 operator livery rule: GBRf = dark grey + orange/yellow cabs; Freightliner = powder blue/bright green; DB Cargo UK = red; Colas = vivid orange; DRS = dark blue/indigo. Power corrected to 3,300 hp.
+- `backend/src/services/trainSpecs.ts` — Added 7 KNOWN_SPECS keys for Class 390 (`class 390`, `class 390/0`, `class 390/1`, `class 390/2`, `pendolino`, `avanti pendolino`, `virgin pendolino`) locking 125 mph / 5,760 kW (9-car) or 7,050 kW (11-car) / Alstom builder. Added 5 KNOWN_SPECS keys for Class 66 (`class 66`, `br class 66`, `british rail class 66`, `class 66/0`, `class 66/7`) locking 3,300 hp / EMD 710G3B.
+- `backend/src/__tests__/services/trainSpecs.test.ts` — 3 error-path tests changed from `makeTrain()` to `makeTrain({ class: "UnknownTestClass" })` — fixture defaults to `class: "Class 390"` which now hits KNOWN_SPECS and returns "125 mph" rather than null; tests verifying fallback/error behaviour need a class absent from KNOWN_SPECS.
+
+173/173 tests passing. Commit `cec1f13`. Fast-forward merged to `origin/main`. Render auto-deploy triggered. Forum replies posted by user on RailUK same session.
+
+---
+
 ### Backend — BR 423 vs BR 442 Bayern disambiguation + Münchner R2.2 builder/Combino fix (Trainpics MUC corrections)
 
 Two TikTok-comment corrections from **Trainpics MUC** on the BR 101 v2 ad thread:
