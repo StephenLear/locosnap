@@ -39,7 +39,9 @@ import {
   VerificationResult,
 } from "../types";
 
-const VALID_LANGUAGES = ["en", "de"] as const;
+// Must stay in sync with SUPPORTED_LANGUAGES in frontend/store/settingsStore.ts
+// and LANGUAGE_INSTRUCTIONS in backend/src/config/languageInstructions.ts.
+const VALID_LANGUAGES = ["en", "de", "pl"] as const;
 type Language = typeof VALID_LANGUAGES[number];
 
 const MAX_FREE_SCANS = 6;
