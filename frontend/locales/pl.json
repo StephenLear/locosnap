@@ -1,0 +1,383 @@
+{
+  "tabs": {
+    "scan": "Skanuj",
+    "history": "Kolekcja",
+    "profile": "Profil",
+    "leaderboard": "Ranking"
+  },
+  "scan": {
+    "title": "LocoSnap",
+    "scanButton": "Skanuj pociąg",
+    "scanning": "Identyfikuję...",
+    "warmingUp": "Rozgrzewam...",
+    "trialBanner_one": "{{remaining}} darmowy skan pozostał",
+    "trialBanner_few": "{{remaining}} darmowe skany pozostały",
+    "trialBanner_many": "{{remaining}} darmowych skanów pozostało",
+    "trialBanner_other": "{{remaining}} darmowych skanów pozostało",
+    "signUpPrompt": "Załóż darmowe konto, aby zapisać swoją kolekcję",
+    "noTrainFound": "Nie udało się zidentyfikować pociągu. Spróbuj wyraźniejszego zdjęcia.",
+    "cameraPermission": "Dostęp do aparatu jest potrzebny, aby skanować pociągi.",
+    "scanBadge_one": "{{count}} skan",
+    "scanBadge_few": "{{count}} skany",
+    "scanBadge_many": "{{count}} skanów",
+    "scanBadge_other": "{{count}} skanów",
+    "pickerError": {
+      "title": "Nie udało się otworzyć galerii",
+      "body": "Telefon nie pozwolił nam teraz otworzyć galerii. Może zrobisz zdjęcie aparatem?",
+      "useCamera": "Użyj aparatu",
+      "cancel": "Anuluj"
+    }
+  },
+  "lowConfidence": {
+    "title": "Hmm, to trudny przypadek",
+    "body": "Nie jesteśmy pewni tego zdjęcia. Spróbuj z innego kąta?",
+    "tryAnother": "Spróbuj innego zdjęcia",
+    "showAnyway": "Pokaż mimo to"
+  },
+  "blueprint": {
+    "aiGenerated": "Ilustracja wygenerowana przez AI"
+  },
+  "wrongId": {
+    "button": "Zła identyfikacja?",
+    "loggedTitle": "Dzięki — odnotowaliśmy to",
+    "loggedBody": "Twoje zgłoszenie pomaga LocoSnap lepiej rozpoznawać ten typ pociągu.",
+    "helpFix": "Pomóż nam to poprawić",
+    "correctionPlaceholder": "Jaka to klasa? (opcjonalnie)",
+    "correctionSubmit": "Wyślij",
+    "correctionCancel": "Pomiń",
+    "correctionThanks": "Dzięki za poprawkę"
+  },
+  "card": {
+    "badge": {
+      "verified": "ZWERYFIKOWANE",
+      "personal": "WŁASNE",
+      "unverified": "NIEZWERYFIKOWANE"
+    },
+    "provenance": {
+      "justNow": "Przed chwilą"
+    },
+    "verification": {
+      "unverifiedHelp": "To zdjęcie nie zawiera metadanych potrzebnych do weryfikacji obserwacji (brak GPS, usunięte EXIF lub nieprawdopodobna data). Zostało zapisane w Twojej kolekcji, ale nie liczy się do XP w lidze i nie pojawi się w publicznym kanale.",
+      "iTookThis": "To zdjęcie zrobiłem(am) sam(a)",
+      "promoteConfirmTitle": "Oznaczyć jako Własne?",
+      "promoteConfirmBody": "Potwierdzając, oświadczasz, że to zdjęcie zrobiłeś(aś) sam(a). Obserwacja stanie się widoczna w publicznym kanale (bez XP w lidze).",
+      "promoteConfirmCta": "Potwierdź",
+      "promoteConfirmCancel": "Anuluj",
+      "promoted": "Oznaczono jako Własne",
+      "promoteFailed": "Nie udało się — spróbuj ponownie później"
+    },
+    "league": {
+      "xpAwarded": "+{{xp}} XP do Twojej ligi"
+    },
+    "featured": {
+      "setCta": "Ustaw jako kartę wyróżnioną",
+      "alreadySet": "Karta wyróżniona",
+      "set": "Karta wyróżniona zaktualizowana",
+      "failed": "Nie udało się zaktualizować — spróbuj później"
+    }
+  },
+  "results": {
+    "specs": "Dane techniczne",
+    "facts": "Fakty i historia",
+    "rarity": "Rzadkość",
+    "blueprint": "Plan",
+    "maxSpeed": "Prędkość maks.",
+    "power": "Moc",
+    "weight": "Masa",
+    "length": "Długość",
+    "builder": "Producent",
+    "built": "Wyprodukowanych",
+    "status": "Status",
+    "operator": "Przewoźnik",
+    "yearIntroduced": "Wprowadzony",
+    "savePhoto": "Zapisz w zdjęciach",
+    "share": "Udostępnij",
+    "viewBlueprint": "Zobacz plan",
+    "generatingBlueprint": "Generuję plan..."
+  },
+  "profile": {
+    "title": "Profil",
+    "signIn": "Zaloguj się",
+    "signOut": "Wyloguj się",
+    "pro": "Pro",
+    "free": "Darmowe",
+    "scansThisMonth": "Skany w tym miesiącu",
+    "totalSpots": "Wszystkie obserwacje",
+    "level": "Poziom {{number}}",
+    "xp": "XP",
+    "streak": "Dni z rzędu",
+    "upgradeToPro": "Przejdź na Pro",
+    "language": "Język",
+    "settings": "Ustawienia",
+    "usernameModal": {
+      "title": "Zmień nazwę użytkownika",
+      "subtitle": "Litery, cyfry i podkreślenia. 3-20 znaków.",
+      "placeholder": "Twoja nazwa użytkownika",
+      "cancel": "Anuluj",
+      "save": "Zapisz",
+      "errors": {
+        "empty": "Nazwa użytkownika nie może być pusta",
+        "tooShort": "Nazwa musi mieć co najmniej 3 znaki",
+        "tooLong": "Nazwa może mieć maksymalnie 20 znaków",
+        "invalidChars": "Tylko litery, cyfry i podkreślenia",
+        "notAllowed": "Ta nazwa jest niedozwolona",
+        "alreadyTaken": "Nazwa już zajęta",
+        "notSignedIn": "Nie zalogowano",
+        "generic": "Nie udało się zaktualizować nazwy. Spróbuj ponownie."
+      }
+    }
+  },
+  "history": {
+    "title": "Kolekcja",
+    "empty": "Brak zeskanowanych pociągów. Ruszaj w teren!",
+    "scannedOn": "Zeskanowano {{date}}"
+  },
+  "leaderboard": {
+    "title": "Ranking",
+    "rank": "Miejsce",
+    "spotter": "Obserwator",
+    "spots": "Obserwacje",
+    "tabs": {
+      "myLeague": "Ten tydzień",
+      "country": "Kraj",
+      "collection": "Kolekcja"
+    },
+    "league": {
+      "weeklyXp": "XP w tym tygodniu",
+      "promotionZone": "Strefa awansu",
+      "demotionZone": "Strefa spadku",
+      "signInPrompt": "Zaloguj się, aby dołączyć do ligi.",
+      "notReady": "Twoje miejsce w lidze pojawi się po pierwszym skanie.",
+      "empty": "Brak obserwatorów w Twojej lidze — bądź pierwszy w tym tygodniu.",
+      "aboutA11y": "Jak działa ten ranking",
+      "about": {
+        "title": "Jak to działa",
+        "intro": "Ta zakładka pokazuje obserwatorów według XP zdobytych w tym tygodniu — resetuje się w każdą niedzielę o północy UTC.",
+        "earnTitle": "Jak zdobywać XP",
+        "earnBody": "Każdy zeskanowany pociąg daje XP. Rzadsze pociągi dają więcej. Pierwsze zeskanowanie danej klasy podwaja XP.",
+        "tiersTitle": "Ligi",
+        "tiersBody": "Top 5 co tydzień awansuje, ostatnia 5 spada. Pozostałe zakładki (Kraj, Kolekcja) liczą łączne obserwacje i unikalne klasy — bez cotygodniowego resetu.",
+        "dismiss": "Rozumiem"
+      },
+      "tier": {
+        "bronze": "Brąz",
+        "silver": "Srebro",
+        "gold": "Złoto",
+        "steam": "Para",
+        "diesel": "Diesel",
+        "electric": "Elektryczna",
+        "ice": "ICE",
+        "vectron": "Vectron"
+      }
+    },
+    "country": {
+      "this_week": "Ten tydzień",
+      "all_time": "Wszech czasów",
+      "classes": "klas",
+      "empty": "Brak obserwatorów w tym kraju."
+    },
+    "collection": {
+      "unique_classes": "Unikalne",
+      "rarity_score": "Rzadkość",
+      "streak_days": "Seria",
+      "classes": "klas",
+      "score": "wynik",
+      "streakSoon": "Ranking serii pojawi się w v1.0.27 — na razie pokazujemy unikalne klasy.",
+      "empty": "Brak obserwatorów — bądź pierwszy."
+    },
+    "freeze": {
+      "a11yLabel": "{{count}} dostępnych zamrożeń serii",
+      "title": "Zamrożenia serii",
+      "body": "Zamrożenia chronią Twoje miejsce w lidze, gdy nie możesz skanować. Wykorzystywane automatycznie na koniec tygodnia. Pro: +1 co tydzień (maks. 3). Darmowe: +1 po 4 aktywnych tygodniach (maks. 2).",
+      "dismiss": "Rozumiem"
+    },
+    "themedDay": {
+      "rare_tier": "Wtorek z rzadkościami — {{multiplier}}× XP za rzadkie i wyższe dzisiaj",
+      "heritage": "Sobota dziedzictwa — {{multiplier}}× XP za klasy Twojego kraju dzisiaj"
+    },
+    "weeklyChampion": {
+      "heading": "Tygodniowy mistrz rzadkich znalezisk",
+      "find": "Najlepsze znalezisko: {{class}} ({{tier}})",
+      "tier": {
+        "rare": "Rzadkie",
+        "epic": "Epickie",
+        "legendary": "Legendarne"
+      }
+    },
+    "boost": {
+      "heading": "Karty wzmocnień",
+      "useCta": "Użyj",
+      "queuedCta": "Wkrótce",
+      "confirmTitle": "Użyć tego wzmocnienia?",
+      "confirmBody": "Doda 100 XP do Twojego tygodniowego wyniku natychmiast. Tej akcji nie można cofnąć.",
+      "confirmCta": "Użyj karty",
+      "confirmCancel": "Anuluj",
+      "applyFailed": "Nie udało się użyć karty — spróbuj później",
+      "notReadyTitle": "Jeszcze niegotowe",
+      "notReadyBody": "Ten typ karty pojawi się w v1.0.27.",
+      "types": {
+        "flat_100": {
+          "title": "+100 XP",
+          "description": "Zdobywane za awans z ligi"
+        },
+        "next_scan_2x": {
+          "title": "2× następny skan",
+          "description": "Zdobywane za 4 aktywne tygodnie z rzędu"
+        }
+      }
+    }
+  },
+  "auth": {
+    "signInWithApple": "Zaloguj się przez Apple",
+    "signInWithGoogle": "Zaloguj się przez Google",
+    "signInWithEmail": "Zaloguj się e-mailem",
+    "emailPlaceholder": "Podaj swój e-mail",
+    "sendMagicLink": "Wyślij link logowania",
+    "checkEmail": "Sprawdź e-mail, by znaleźć link logowania.",
+    "freeAccountPerks": "Zapisz kolekcję, zdobywaj XP, wspinaj się w rankingu."
+  },
+  "paywall": {
+    "title": "Przejdź na Pro",
+    "unlimitedScans": "Nielimitowane skany",
+    "allBlueprintStyles": "Wszystkie style planów",
+    "leaderboardAccess": "Dostęp do rankingu",
+    "subscribe": "Kontynuuj",
+    "subscribeSignedOut": "Zaloguj się, aby kupić",
+    "restorePurchases": "Przywróć zakupy",
+    "monthlyPrice": "{{price}} / miesiąc",
+    "yearlyPrice": "{{price}} / rok",
+    "signInGateTitle": "Zaloguj się, aby kupić",
+    "signInGateBody": "Twoje Pro jest powiązane z kontem, nie z telefonem. Zaloguj się raz e-mailem — subskrypcja zadziała na każdym telefonie, na którym się zalogujesz.",
+    "signInGateCta": "Zaloguj się, aby kontynuować",
+    "lifetimeTitle": "Dożywotnio",
+    "lifetimeSubtitle": "Jednorazowa płatność, bez kolejnych opłat",
+    "lifetimePrice": "{{price}}",
+    "introBadge": "30% TANIEJ PRZEZ 3 MIESIĄCE",
+    "introDisclaimer": "Po 3 miesiącach obowiązuje cena standardowa. Możesz anulować w każdej chwili.",
+    "unlockLifetime": "Odblokuj dożywotnio",
+    "softPrompt": {
+      "scan_2": {
+        "title": "Podoba Ci się LocoSnap?",
+        "body": "Zobacz, co odblokowuje Pro — pełne dane, plany, cała kolekcja.",
+        "cta": "Zobacz Pro"
+      },
+      "scan_4": {
+        "title": "Nigdy nie strać obserwacji",
+        "body": "Cała kolekcja, każdy parametr, każdy plan. Dostępna specjalna cena startowa.",
+        "cta": "Zobacz Pro"
+      },
+      "scan_5": {
+        "title": "1 darmowy skan pozostał",
+        "body": "Skanuj każdy widziany pociąg — przejdź na Pro, by kontynuować bez limitów.",
+        "cta": "Kontynuuj"
+      },
+      "default": {
+        "title": "Powiększ kolekcję",
+        "body": "Nielimitowane skany, karty i plany",
+        "cta": "Zobacz Pro"
+      }
+    }
+  },
+  "rarity": {
+    "common": "Pospolity",
+    "uncommon": "Niezbyt pospolity",
+    "rare": "Rzadki",
+    "epic": "Epicki",
+    "legendary": "Legendarny"
+  },
+  "compare": {
+    "emptyText": "Nie wybrano pociągów do porównania",
+    "emptyLink": "Wróć i wybierz pociągi",
+    "vs": "VS",
+    "yearBuilt": "Rok produkcji",
+    "gauge": "Rozstaw",
+    "fuel": "Napęd",
+    "surviving": "Zachowane",
+    "unitsCount_one": "{{count}} sztuka",
+    "unitsCount_few": "{{count}} sztuki",
+    "unitsCount_many": "{{count}} sztuk",
+    "unitsCount_other": "{{count}} sztuk"
+  },
+  "errors": {
+    "networkError": "Nie można połączyć się z serwerami LocoSnap. Spróbuj ponownie.",
+    "timeout": "Przekroczono czas oczekiwania. Sprawdź połączenie.",
+    "highDemand": "LocoSnap ma duże obciążenie. Spróbuj ponownie za chwilę.",
+    "generic": "Coś poszło nie tak. Spróbuj ponownie."
+  },
+  "languagePicker": {
+    "title": "Wybierz język",
+    "subtitle": "Możesz to zmienić później w profilu.",
+    "english": "English",
+    "german": "Deutsch",
+    "continue": "Kontynuuj"
+  },
+  "onboardingIdentity": {
+    "welcomeTitle": "Skonfiguruj swój profil obserwatora",
+    "welcomeBody": "Dodaliśmy flagi krajów, osiągnięcia i nowy ranking. Skonfiguruj profil w 30 sekund.",
+    "countryTitle": "Wybierz swój kraj",
+    "countrySubtitle": "Wygląda dobrze? Potwierdź.",
+    "countryChange": "Zmień kraj",
+    "countrySearchPlaceholder": "Szukaj kraju...",
+    "countryNoneSelected": "Nie wybrano kraju",
+    "countryNoMatch": "Brak krajów pasujących do \"{{query}}\"",
+    "emojiTitle": "Wybierz swoje emoji obserwatora",
+    "emojiProSubtitle": "Odblokuj więcej opcji z LocoSnap Pro.",
+    "emojiLocked": "{{label}} (zablokowane, tylko Pro)",
+    "emojiProLockTitle": "Emoji Pro",
+    "emojiProLockBody": "To emoji jest dostępne tylko z LocoSnap Pro. Na razie wybierz darmowe — możesz przejść na Pro w każdej chwili.",
+    "emojiProLockOk": "OK",
+    "emailTitle": "Zapisz obserwacje i dołącz do rankingu",
+    "emailSubtitle": "Wyślemy Ci kod e-mailem. Bez hasła.",
+    "emailPlaceholder": "ty@example.com",
+    "emailSending": "Wysyłanie...",
+    "emailSendCode": "Wyślij kod",
+    "emailSkip": "Kontynuuj bez konta",
+    "emailInvalid": "Podaj poprawny adres e-mail.",
+    "emailErrorTitle": "Nie udało się wysłać kodu",
+    "continueCta": "Kontynuuj",
+    "confirmCta": "Potwierdź",
+    "doneCta": "Gotowe"
+  },
+  "spotterEmojis": {
+    "train_steam": "Lokomotywa parowa",
+    "train_diesel": "Pociąg spalinowy",
+    "train_metro": "Metro",
+    "tram": "Tramwaj",
+    "station": "Stacja",
+    "tracks": "Tory",
+    "ticket": "Bilet",
+    "high_speed": "Pociąg szybki",
+    "monorail": "Kolej jednoszynowa",
+    "railway_car": "Wagon kolejowy",
+    "pro_signal_box": "Nastawnia",
+    "pro_semaphore": "Semafor",
+    "pro_signal_lights": "Sygnalizacja świetlna",
+    "pro_pantograph": "Pantograf",
+    "pro_overhead_line": "Sieć trakcyjna",
+    "pro_buffer_stop": "Kozioł oporowy",
+    "pro_turnout": "Rozjazd",
+    "pro_water_crane": "Żuraw wodny",
+    "pro_roundhouse": "Parowozownia wachlarzowa",
+    "pro_turntable": "Obrotnica",
+    "pro_coal_tender": "Tender węglowy",
+    "pro_ice_4": "ICE 4",
+    "pro_vectron": "Vectron",
+    "pro_class_91": "Class 91",
+    "pro_en57": "EN57",
+    "pro_steam_drg52": "DRG 52 Kriegslok",
+    "pro_uk_signal_box": "Brytyjska nastawnia",
+    "pro_compass": "Kompas",
+    "pro_camera": "Aparat",
+    "pro_clipboard": "Notes obserwatora"
+  },
+  "identityModal": {
+    "title": "Edytuj profil",
+    "subtitle": "Wybierz flagę kraju i emoji obserwatora.",
+    "countryLabel": "Kraj",
+    "emojiLabel": "Emoji obserwatora",
+    "addAccount": "Dodaj konto, aby synchronizować urządzenia",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "badgePlaceholder": "Ustaw flagę + emoji"
+  }
+}

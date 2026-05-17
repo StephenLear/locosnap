@@ -14,15 +14,27 @@ import {
   SafeAreaView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useSettingsStore } from "../store/settingsStore";
+import { useSettingsStore, type AppLanguage } from "../store/settingsStore";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
+
+type LanguageOption = {
+  code: AppLanguage;
+  label: string;
+  accessibilityLabel: string;
+};
+
+const LANGUAGE_OPTIONS: LanguageOption[] = [
+  { code: "en", label: "English", accessibilityLabel: "Select English as the app language" },
+  { code: "de", label: "Deutsch", accessibilityLabel: "Deutsch als App-Sprache auswählen" },
+  { code: "pl", label: "Polski", accessibilityLabel: "Wybierz polski jako język aplikacji" },
+];
 
 export default function LanguagePickerScreen() {
   const router = useRouter();
   const { setLanguage, markLanguageChosen } = useSettingsStore();
   const [isSelecting, setIsSelecting] = useState(false);
 
-  const handleSelectLanguage = async (lang: "en" | "de") => {
+  const handleSelectLanguage = async (lang: AppLanguage) => {
     if (isSelecting) return;
     setIsSelecting(true);
     await setLanguage(lang);
@@ -52,29 +64,24 @@ export default function LanguagePickerScreen() {
 
         {/* Language Buttons */}
         <View style={styles.buttons}>
-          <TouchableOpacity
-            style={styles.languageBtn}
-            onPress={() => handleSelectLanguage("en")}
-            activeOpacity={0.8}
-            disabled={isSelecting}
-            accessibilityRole="button"
-            accessibilityLabel="Select English as the app language"
-          >
-            <Text style={styles.languageBtnLabel}>English</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.languageBtn, styles.languageBtnSecondary]}
-            onPress={() => handleSelectLanguage("de")}
-            activeOpacity={0.8}
-            disabled={isSelecting}
-            accessibilityRole="button"
-            accessibilityLabel="Deutsch als App-Sprache auswaehlen"
-          >
-            <Text style={[styles.languageBtnLabel, styles.languageBtnLabelSecondary]}>
-              Deutsch
-            </Text>
-          </TouchableOpacity>
+          {LANGUAGE_OPTIONS.map((opt, idx) => {
+            const isPrimary = idx === 0;
+            return (
+              <TouchableOpacity
+                key={opt.code}
+                style={[styles.languageBtn, !isPrimary && styles.languageBtnSecondary]}
+                onPress={() => handleSelectLanguage(opt.code)}
+                activeOpacity={0.8}
+                disabled={isSelecting}
+                accessibilityRole="button"
+                accessibilityLabel={opt.accessibilityLabel}
+              >
+                <Text style={[styles.languageBtnLabel, !isPrimary && styles.languageBtnLabelSecondary]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     </SafeAreaView>

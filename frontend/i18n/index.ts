@@ -2,8 +2,9 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import en from "../locales/en.json";
 import de from "../locales/de.json";
+import pl from "../locales/pl.json";
 
-export const LANGUAGE_RESOURCES = { en, de };
+export const LANGUAGE_RESOURCES = { en, de, pl };
 
 /**
  * Initialise i18n explicitly — called from _layout.tsx useEffect before
@@ -17,6 +18,7 @@ export function initI18n() {
     resources: {
       en: { translation: en },
       de: { translation: de },
+      pl: { translation: pl },
     },
     lng: "en", // default — overridden immediately by settingsStore.initialize()
     fallbackLng: "en",

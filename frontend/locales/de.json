@@ -274,6 +274,17 @@
       }
     }
   },
+  "compare": {
+    "emptyText": "Keine Züge zum Vergleichen ausgewählt",
+    "emptyLink": "Zurück und Züge auswählen",
+    "vs": "VS",
+    "yearBuilt": "Baujahr",
+    "gauge": "Spurweite",
+    "fuel": "Antrieb",
+    "surviving": "Erhalten",
+    "unitsCount_one": "{{count}} Einheit",
+    "unitsCount_other": "{{count}} Einheiten"
+  },
   "rarity": {
     "common": "Häufig",
     "uncommon": "Ungewöhnlich",

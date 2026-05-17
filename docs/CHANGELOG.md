@@ -7,6 +7,37 @@ Format: newest first within each date block.
 
 ## 2026-05-17
 
+### Frontend + Backend — Polish (`pl`) localisation groundwork + compare-screen i18n cleanup
+
+Triggered by a Twitter thread (Max @maks6361) showing an AI-identifier app 5x'd MRR (€20-30 → €130-150/mo) after a 2-hour localisation pass. Audit of LocoSnap revealed:
+
+- i18n infrastructure was already solid (i18next + react-i18next, 26/29 frontend files using `useTranslation`)
+- Only 3 holdout files: `compare.tsx` (11 hardcoded labels), `language-picker.tsx` (2 hardcoded accessibility labels + German umlaut bug), `_layout-helpers.ts` (no user-facing strings — left as-is)
+- Backend `LANGUAGE_INSTRUCTIONS` already had `pl`, `fr`, `nl`, `fi`, `cs` wired but frontend `SUPPORTED_LANGUAGES` rejected them at the validation gate — someone started this and stopped
+
+Applied:
+
+- `frontend/app/compare.tsx` — added `useTranslation`. All hardcoded English labels (Max Speed, Power, Weight, Length, Builder, Year Built, Gauge, Fuel, Built, Surviving, Status, VS, "No trains selected for comparison", "Go back and select trains") replaced with `t()` calls. Reused existing `results.maxSpeed`/`results.power`/`results.weight`/etc. where they already existed; added a new `compare` namespace for unique-to-compare keys. Rarity badge `tier.toUpperCase()` now goes through `t(\`rarity.${tier}\`).toUpperCase()` so badges read "POSPOLITY" / "GEWÖHNLICH" / "COMMON" depending on locale.
+- `frontend/app/language-picker.tsx` — refactored from two hardcoded `TouchableOpacity` blocks to an array-driven `LANGUAGE_OPTIONS.map(...)`. Adding a locale now takes one line. Polish ("Polski") button added as third option. Fixed `auswaehlen` → `auswählen` umlaut bug in the German accessibility label per CLAUDE.md German rules.
+- `frontend/locales/en.json` + `de.json` — added `compare` namespace (`emptyText`, `emptyLink`, `vs`, `yearBuilt`, `gauge`, `fuel`, `surviving`, `unitsCount_one/other`).
+- `frontend/locales/pl.json` (NEW) — full Polish translation, ~95 keys / 14 namespaces, structurally identical to en.json. Plural rules use Polish's `one` / `few` / `many` / `other` for `trialBanner_*`, `scanBadge_*`, `unitsCount_*`. AI-translated (Claude) at user direction — same quality bar as the German build at launch; first Polish tester signal will be monitored for terminology tuning. Railway-specific Polish terminology choices: Skanuj (Scan), Kolekcja (History/Collection), Ranking (Leaderboard), Obserwator (Spotter), Pociąg (Train), Pospolity / Niezbyt pospolity / Rzadki / Epicki / Legendarny (rarity tiers), Plan (Blueprint), Pantograf, Nastawnia (signal box), Obrotnica (turntable), Tender węglowy (coal tender).
+- `frontend/i18n/index.ts` — imports `pl.json`, adds it to `resources` and `LANGUAGE_RESOURCES`.
+- `frontend/store/settingsStore.ts` — `AppLanguage` widened to `"en" | "de" | "pl"`. `SUPPORTED_LANGUAGES` updated. Added a comment cross-referencing the matching backend constants.
+- `backend/src/routes/identify.ts` — `VALID_LANGUAGES = ["en", "de", "pl"] as const`. Added a comment cross-referencing the frontend constants and `LANGUAGE_INSTRUCTIONS`.
+
+7 files changed, 1 new file. Frontend tests 153/153 passing; backend tests 173/173 passing.
+
+**Discovered while auditing — and almost re-introduced a known crash:** the architecture doc claim "device locale via `expo-localization`" was aspirational. The package was actually **uninstalled in v1.0.11 (2026-04-01)** after it crashed Samsung S24 / Android 16 / Finnish-locale devices at startup before Sentry could initialise (invisible to monitoring). Mid-session I added `import * as Localization from "expo-localization"` back to `settingsStore.ts` as a proposed "quick win" — user caught it before commit. Reverted same-session. Architecture doc updated to reflect the constraint, and a new memory file [`feedback_no_expo_localization.md`] created to prevent this from happening a third time. First launch continues to default to `"en"`; users pick their language on the picker — this is the safe path.
+
+**Not in this commit (needs separate action):**
+- Localised App Store + Play Console pricing per the pricing-strategy research (PL annual 89 zł, CZ annual 499 Kč, DE annual €34.99, lifetime = 2× annual everywhere) — store-config only, no code change. See pricing report from this session.
+- Polish App Store + Play Store metadata (title, subtitle, keywords, screenshots) — needs to happen when v1.0.32 ships.
+- iOS permission strings in `app.json` (`NSCameraUsageDescription` etc.) are still English-only — needs Expo `infoPlist` locale overrides for PL/DE.
+
+Not yet deployed — backend `identify.ts` change needs a push to go live on Render. Frontend pl.json + compare.tsx + language-picker.tsx ship in the next EAS build (v1.0.32).
+
+---
+
 ### Backend — Class 390 Pendolino + Class 66 operator livery disambiguation (RailUK forum corrections)
 
 Two misidentifications reported on RailUK forums by GRALISTAIR (screenshots) and confirmed by AlterEgo (Verified Rep):

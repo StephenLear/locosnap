@@ -173,22 +173,23 @@ Estimated impact of the Sonnet→Haiku flip on the three structured services: ro
 
 | Property | Value |
 |----------|-------|
-| Supported languages | English (`en`), German (`de`) — v1.0.8 |
-| Future languages | Architecture supports FR, NL, PL, CS — add locale file + 6 lines in `i18n/index.ts` |
-| Language preference store | `frontend/store/settingsStore.ts` — `AppLanguage`, `initialize()`, `setLanguage()`, `markLanguageChosen()` |
-| i18n library | i18next + react-i18next + expo-localization |
-| Translation files | `frontend/locales/en.json`, `frontend/locales/de.json` — 80 keys, 11 namespaces |
-| First-launch gate | `frontend/app/language-picker.tsx` — shown once before auth, `router.replace("/(tabs)")` after selection |
+| Supported languages | English (`en`), German (`de`) — v1.0.8. Polish (`pl`) added in v1.0.32 working tree (not yet built/shipped). |
+| Future languages | Backend AI prompt instructions already wired for `fr`, `nl`, `fi`, `cs` (see `backend/src/config/languageInstructions.ts`). To ship: add locale JSON + widen `SUPPORTED_LANGUAGES` + `VALID_LANGUAGES`. |
+| Language preference store | `frontend/store/settingsStore.ts` — `AppLanguage = "en" \| "de" \| "pl"`, `initialize()`, `setLanguage()`, `markLanguageChosen()` |
+| i18n library | i18next + react-i18next. **`expo-localization` was removed in v1.0.11 (2026-04-01)** after it crashed Samsung S24 / Android 16 / Finnish-locale devices at startup, before Sentry could initialise — invisible to monitoring. **Do NOT reintroduce `expo-localization`.** Initial language defaults to `"en"` if `locosnap_language` is unset in AsyncStorage. Users pick their language via the picker on first launch — this is the safe path. If auto-detection is ever revisited, use `Intl.DateTimeFormat().resolvedOptions().locale` (already used in `deriveInitialCountry` for country resolution) rather than the native `expo-localization` module. |
+| Translation files | `frontend/locales/en.json`, `de.json`, `pl.json` — ~95 keys across 14 namespaces (`tabs`, `scan`, `lowConfidence`, `blueprint`, `wrongId`, `card`, `results`, `profile`, `history`, `leaderboard`, `auth`, `paywall`, `rarity`, `compare`, `errors`, `languagePicker`, `onboardingIdentity`, `spotterEmojis`, `identityModal`). All three files structurally identical (i18next falls back to `en` if any key missing in `de`/`pl`). |
+| First-launch gate | `frontend/app/language-picker.tsx` — shown once before auth. Array-driven `LANGUAGE_OPTIONS` (EN / DE / PL) — to add another button, append one entry. |
 | Language gate in layout | `frontend/app/_layout.tsx` — outermost gate: blank loading view → language picker redirect → AuthGate |
-| Language toggle | Profile screen (`(tabs)/profile.tsx`) — toggles EN/DE, persists to AsyncStorage, switches immediately |
+| Language toggle | Profile screen (`(tabs)/profile.tsx`) — toggles language, persists to AsyncStorage, switches immediately |
 | Backend language param | Frontend sends `language` field in FormData on every `/api/identify` POST |
-| Backend validation | `backend/src/routes/identify.ts` — `VALID_LANGUAGES = ["en", "de"]`, defaults to `"en"` for invalid/missing |
-| AI content in German | When `language === "de"`, a German instruction is prepended to facts, specs, and rarity prompts. Narrative fields (descriptions, reasoning) return in German. Technical values (numbers, units, speed) remain in standard international format. Train identification (vision) always runs in English regardless of language setting. |
-| Cache per language | Cache key includes language segment: `v9::{language}::{class}::{operator}`. EN and DE results stored as separate entries. |
+| Backend validation | `backend/src/routes/identify.ts` — `VALID_LANGUAGES = ["en", "de", "pl"]`, defaults to `"en"` for invalid/missing |
+| Backend AI prompt instruction map | `backend/src/config/languageInstructions.ts` — `LANGUAGE_INSTRUCTIONS` record covers `en` (no-op), `de`, `pl`, `fr`, `nl`, `fi`, `cs`. Frontend only exposes en/de/pl today; the other entries are pre-wired so adding a locale is a frontend-only change. |
+| AI content per language | For non-EN languages a per-language instruction is prepended to facts, specs, and rarity prompts (German: formal register; Polish: formal Pan/Pani; etc.). Narrative fields (descriptions, reasoning) return in the requested language. Technical values (numbers, units, speed) remain standard international format. Train identification (vision) always runs in English regardless of language setting. |
+| Cache per language | Cache key includes language segment: `v9::{language}::{class}::{operator}`. EN/DE/PL results stored as separate entries. New languages do NOT require a cache bump — they generate fresh entries on first scan. |
 
-**Language detection on first launch:** `settingsStore.initialize()` reads `locosnap_language` from AsyncStorage. If not set, checks device locale via `expo-localization`. If device locale matches a supported language, that language is pre-selected. Otherwise defaults to `"en"`. The language picker screen is shown on first launch; subsequent launches skip it.
+**Polish translation provenance:** `pl.json` was AI-translated (Claude) from `en.json` in the v1.0.32 session, 2026-05-17. No native review at ship time — user accepted AI translation quality on parity with German. First Polish tester signal should be monitored for terminology corrections (similar to how German railway terminology was tuned in early DE builds). Polish plural rules use `one` / `few` / `many` / `other` — wired into `scan.trialBanner_*`, `scan.scanBadge_*`, and `compare.unitsCount_*`.
 
-**Adding a new language:** (1) Create `frontend/locales/{code}.json` matching the en.json structure. (2) Import it in `frontend/i18n/index.ts` and add to the `resources` object. (3) Add the language code to `SUPPORTED_LANGUAGES` in `settingsStore.ts` and `VALID_LANGUAGES` in `identify.ts`. (4) Add a button to `language-picker.tsx`. (5) Add translations for the new language button in all locale files. (6) Bump backend if the AI prompt needs language-specific tuning.
+**Adding a new language:** (1) Create `frontend/locales/{code}.json` matching the en.json structure. (2) Import it in `frontend/i18n/index.ts` and add to the `resources` object. (3) Add the language code to `SUPPORTED_LANGUAGES` in `settingsStore.ts` and `VALID_LANGUAGES` in `backend/src/routes/identify.ts`. (4) Append an entry to `LANGUAGE_OPTIONS` in `language-picker.tsx`. (5) If not already present, add an entry to `LANGUAGE_INSTRUCTIONS` in `backend/src/config/languageInstructions.ts`. (6) Frontend ships in the next EAS build; backend ships via Render push.
 
 ---
 

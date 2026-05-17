@@ -2,13 +2,23 @@ import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "../i18n";
 
-export type AppLanguage = "en" | "de";
+export type AppLanguage = "en" | "de" | "pl";
 
 const LANGUAGE_KEY = "locosnap_language";
 const LANGUAGE_CHOSEN_KEY = "locosnap_language_chosen";
 
-// Supported languages — add new entries here as new languages ship
-export const SUPPORTED_LANGUAGES: AppLanguage[] = ["en", "de"];
+// Supported languages — add new entries here as new languages ship.
+// Must stay in sync with VALID_LANGUAGES in backend/src/routes/identify.ts
+// and LANGUAGE_INSTRUCTIONS in backend/src/config/languageInstructions.ts.
+//
+// NOTE on device-locale auto-detection: do NOT reintroduce `expo-localization`
+// here. v1.0.8 crashed at startup on Samsung S24 / Android 16 / Finnish locale
+// devices BEFORE Sentry could initialise (invisible to monitoring). The package
+// was uninstalled in v1.0.11. First launch defaults to "en"; the language
+// picker is the safe path. If we ever revisit auto-detection, do it via
+// `Intl.DateTimeFormat().resolvedOptions().locale` (already used elsewhere in
+// the codebase for country resolution) — NOT via expo-localization.
+export const SUPPORTED_LANGUAGES: AppLanguage[] = ["en", "de", "pl"];
 
 
 interface SettingsState {

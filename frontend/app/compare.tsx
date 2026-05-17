@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../store/trainStore";
 import { RarityTier } from "../types";
@@ -71,15 +72,16 @@ function CompRow({
 
 export default function CompareScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { compareItems } = useTrainStore();
 
   if (!compareItems || compareItems.length < 2) {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="swap-horizontal" size={64} color={colors.textMuted} />
-        <Text style={styles.emptyText}>No trains selected for comparison</Text>
+        <Text style={styles.emptyText}>{t("compare.emptyText")}</Text>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.emptyLink}>Go back and select trains</Text>
+          <Text style={styles.emptyLink}>{t("compare.emptyLink")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -113,7 +115,7 @@ export default function CompareScreen() {
         </View>
 
         <View style={styles.vsContainer}>
-          <Text style={styles.vsText}>VS</Text>
+          <Text style={styles.vsText}>{t("compare.vs")}</Text>
         </View>
 
         <View style={[styles.headerCol, styles.headerColRight]}>
@@ -143,7 +145,7 @@ export default function CompareScreen() {
         >
           <Ionicons name="diamond" size={12} color={leftColor} />
           <Text style={[styles.rarityText, { color: leftColor }]}>
-            {left.rarity.tier.toUpperCase()}
+            {t(`rarity.${left.rarity.tier}`).toUpperCase()}
           </Text>
         </View>
         <View
@@ -154,80 +156,84 @@ export default function CompareScreen() {
         >
           <Ionicons name="diamond" size={12} color={rightColor} />
           <Text style={[styles.rarityText, { color: rightColor }]}>
-            {right.rarity.tier.toUpperCase()}
+            {t(`rarity.${right.rarity.tier}`).toUpperCase()}
           </Text>
         </View>
       </View>
 
       {/* ── Spec Comparison Table ─────────────────────── */}
       <View style={styles.compTable}>
-        <Text style={styles.compTableTitle}>Specifications</Text>
+        <Text style={styles.compTableTitle}>{t("results.specs")}</Text>
 
         <CompRow
-          label="Max Speed"
+          label={t("results.maxSpeed")}
           leftVal={left.specs.maxSpeed}
           rightVal={right.specs.maxSpeed}
         />
         <CompRow
-          label="Power"
+          label={t("results.power")}
           leftVal={left.specs.power}
           rightVal={right.specs.power}
         />
         <CompRow
-          label="Weight"
+          label={t("results.weight")}
           leftVal={left.specs.weight}
           rightVal={right.specs.weight}
           higherIsBetter={false}
         />
         <CompRow
-          label="Length"
+          label={t("results.length")}
           leftVal={left.specs.length}
           rightVal={right.specs.length}
         />
         <CompRow
-          label="Builder"
+          label={t("results.builder")}
           leftVal={left.specs.builder}
           rightVal={right.specs.builder}
         />
         <CompRow
-          label="Year Built"
+          label={t("compare.yearBuilt")}
           leftVal={left.train.yearBuilt?.toString() || null}
           rightVal={right.train.yearBuilt?.toString() || null}
         />
         <CompRow
-          label="Gauge"
+          label={t("compare.gauge")}
           leftVal={left.specs.gauge}
           rightVal={right.specs.gauge}
         />
         <CompRow
-          label="Fuel"
+          label={t("compare.fuel")}
           leftVal={left.specs.fuelType}
           rightVal={right.specs.fuelType}
         />
         <CompRow
-          label="Built"
+          label={t("results.built")}
           leftVal={
-            left.specs.numberBuilt ? `${left.specs.numberBuilt} units` : null
+            left.specs.numberBuilt
+              ? t("compare.unitsCount", { count: left.specs.numberBuilt })
+              : null
           }
           rightVal={
-            right.specs.numberBuilt ? `${right.specs.numberBuilt} units` : null
+            right.specs.numberBuilt
+              ? t("compare.unitsCount", { count: right.specs.numberBuilt })
+              : null
           }
         />
         <CompRow
-          label="Surviving"
+          label={t("compare.surviving")}
           leftVal={
             left.specs.numberSurviving
-              ? `${left.specs.numberSurviving} units`
+              ? t("compare.unitsCount", { count: left.specs.numberSurviving })
               : null
           }
           rightVal={
             right.specs.numberSurviving
-              ? `${right.specs.numberSurviving} units`
+              ? t("compare.unitsCount", { count: right.specs.numberSurviving })
               : null
           }
         />
         <CompRow
-          label="Status"
+          label={t("results.status")}
           leftVal={left.specs.status}
           rightVal={right.specs.status}
         />
