@@ -7,6 +7,80 @@ Format: newest first within each date block.
 
 ## 2026-05-17
 
+### Release — v1.0.32 built, submitted to both stores, localised pricing rolled out across 9 countries
+
+**EAS builds (2026-05-17 12:12 UTC):**
+- iOS build `da0720de-3a84-4190-b694-25c74eab8a62` — v1.0.32 build 54 — FINISHED → submitted to App Store Connect 13:42 UTC (Apple submission `978b7ef0-a15c-4f19-94ea-d10cbc9aeb73`, Apple processing 5-10 min then review queue)
+- Android build `416266bb-3ffb-4509-a80a-44298125eae1` — v1.0.32 versionCode 20 — FINISHED → submitted to Google Play 13:42 UTC (Play submission `871a763d-ed20-48dc-954d-3364c7c48bbb`, running checks before review)
+- Backend commit `62778d5` pushed to `origin/main` at 13:43 UTC — Render auto-deploy in flight. Backend `/api/health` confirmed responsive post-push.
+
+**App Store Connect — Pro Annual price changes (scheduled May 18):**
+
+9 country overrides set against existing €29.99 EU / £24.99 UK / €29.99 ES-IT / Kč 699 CZ / zł 99.99 PL baseline:
+
+| Country | Before | After | Direction |
+|---|---|---|---|
+| DE | €29.99 | €34.99 | raise |
+| UK | £24.99 | £27.99 | raise |
+| FI | €29.99 | €34.99 | raise (= DE) |
+| NL | €29.99 | €32.99 | raise |
+| FR | €29.99 | €32.99 | raise |
+| PL | 99.99 zł | 89.99 zł | cut (10%) |
+| CZ | Kč 699 | Kč 499 | cut (29%) |
+| ES | €29.99 | €24.99 | cut (17%) |
+| IT | €29.99 | €24.99 | cut (17%) |
+
+Apple confirms via yellow warning triangle when a change is a decrease. Existing subscribers preserved at old price on renewal (Apple's standard legacy-honour); new sign-ups get new prices.
+
+**App Store Connect — Pro Monthly:**
+
+Only PL changed: 14.99 zł → 13.99 zł (small cut). DE monthly intentionally left at Apple auto-tier €2.99 (anomalously low vs annual €34.99 amortised, but user opted not to raise — defensible: keeps annual looking like a discount via the absolute-£ savings story rather than per-month framing).
+
+**App Store Connect — Lifetime IAP:**
+
+User set DE base at €89.99 (28% above original research recommendation of €69.99 — independent judgement call, defensible). Per-country overrides:
+- PL: 229 zł (~2.55× new PL annual)
+- CZ: 1,299 Kč (~2.60× new CZ annual)
+- Other EU + UK auto-tier from DE base.
+
+**Play Console — Pro Annual auto-renew + prepaid overrides:**
+
+Play's auto-conversion was significantly more aggressive than Apple's (PL 149.99 zł vs Apple's 99.99 zł; CZ 849.99 Kč vs Apple's 699 Kč). Bigger cuts needed:
+
+| Country | Play before | Play after | Direction |
+|---|---|---|---|
+| PL | 149.99 zł | 89.99 zł | cut (40%) |
+| CZ | 849.99 Kč | 499 Kč | cut (41%) |
+| IT | €34.99 | €24.99 | cut |
+| ES | €34.99 | €24.99 | cut |
+| DE | €33.99 | €34.99 | raise (optional, applied for App-Store parity) |
+| UK | £24.99 | held | UK is softening — user judgement call to hold |
+
+Applied to both `annual-autorenew` and `annual` (prepaid) base plans for parity.
+
+Play monthly skipped — Play's monthly auto-conversion was already in the acceptable zone.
+
+Play Lifetime in-app product: same per-country prices as App Store lifetime.
+
+**Polish store-listing metadata added in both stores:**
+
+- App Store Connect: Polish localisation added under App Information. Subtitle `Identyfikator pociągów AI`. Promotional text, keywords, and full description in Polish.
+- Play Console: Polish (pl-PL) translation added under Main store listing. Short description `AI identyfikuje każdy pociąg w sekundę. Klasa, przewoźnik, historia, rzadkość.` Full description ~1450 chars, structured with English copy's voice (lead line → CO OTRZYMUJESZ → POLSKIE POCIĄGI → TWOJA KOLEKCJA → RANKING LIGOWY → LOCOSNAP PRO → WERSJA DARMOWA → PRYWATNOŚĆ). Mentions Polish train classes by name: SU45, SU46, EU07, EP07, ET22, EN57, ED72, EN76, Newag Dragon, Newag Impuls, Pesa Gama, Pesa Bydgostia, ED250 Pendolino, plus operators PKP IC, Koleje Mazowieckie, ŁKA, SKM Trójmiasto.
+- Release notes per locale: simple "Polish language is now supported throughout the app..." style — same line in EN, DE, PL. Within Play 500-char limit.
+- All Polish copy AI-translated (Claude). No native review per user direction — same bar as the in-app `pl.json` and the original DE launch.
+
+**Mid-session lessons (now in memory):**
+
+- Apple's tier system already applies purchasing-power adjustment — pricing recommendations must spot-check the current store baseline, not assume raw FX conversion. Caught after I'd told user to set PL/CZ/DE annual increases against assumed €4.99 base; actually annual base was €29.99 and the changes were directionally correct. Memory file `pricing_localisation.md` rewritten with real baselines + lessons. See "Lessons" section there.
+- Play's tier conversion IS more aggressive than Apple's — Play needs bigger per-country cuts (PL/CZ cuts of 40-41% on Play vs 10-29% on Apple).
+- Almost re-introduced the v1.0.8 Samsung S24 / Android 16 / Finnish-locale silent startup crash by adding `import * as Localization from "expo-localization"` back into `settingsStore.ts` as a proposed "device-locale auto-detection quick win". User caught it before commit. Reverted same-session. New memory file `feedback_no_expo_localization.md` created. The package was uninstalled in v1.0.11 (2026-04-01) for exactly this reason.
+
+**Files touched (committed):**
+- Frontend commit `ac352ce` (10 files): compare.tsx, language-picker.tsx, i18n/index.ts, settingsStore.ts, en.json + de.json + pl.json (NEW), app.json version bump, ARCHITECTURE.md, CHANGELOG.md
+- Backend commit `62778d5` (1 file): identify.ts
+
+---
+
 ### Frontend + Backend — Polish (`pl`) localisation groundwork + compare-screen i18n cleanup
 
 Triggered by a Twitter thread (Max @maks6361) showing an AI-identifier app 5x'd MRR (€20-30 → €130-150/mo) after a 2-hour localisation pass. Audit of LocoSnap revealed:
