@@ -5,6 +5,27 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-17
+
+### Backend — BR 423 vs BR 442 Bayern disambiguation + Münchner R2.2 builder/Combino fix (Trainpics MUC corrections)
+
+Two TikTok-comment corrections from **Trainpics MUC** on the BR 101 v2 ad thread:
+
+1. **BR 423 returned as BR 442** — DB Regio Bayern operates BOTH BR 423 (S-Bahn München) and BR 442 (Werdenfelsbahn) in red/white livery, so operator label was not a discriminator. The existing BR 442 nose-profile rule did not call out Bayern as a shared-livery zone.
+2. **Münchner R2.2 returned with builder "Siemens Mobility"** and described as "basiert auf der bewährten Plattform der Combino-Familie" — both wrong. R2.2 was built by AEG / ADtranz (R2.2a delivered 1994, R2.2b delivered 1996–97) and is NOT a Combino. The Siemens Combino was never delivered to München. The München tram fleet is: R2.2 (AEG/ADtranz), R3.3 (Bombardier Flexity, 2009–11), Avenio (Siemens, 2014+).
+
+Applied:
+
+- `backend/src/services/vision.ts` — (a) added a Bayern-context paragraph to the BR 442 nose-profile rule explaining DB Regio Bayern operates both 423 and 442; decide by cab profile alone; when uncertain in Bavaria, prefer BR 423 (much larger fleet). (b) Added a new R2.2 disambiguation bullet immediately before the existing KT4 vs Combino bullet — builder is AEG/ADtranz, NOT Siemens, NOT Combino, no Combinos have ever run in München, max speed 70 km/h, 6-axle articulated, 70% low-floor, fleet numbers in the 2100s.
+- `backend/src/services/trainSpecs.ts` — added a new R2.2 disambiguation bullet in the system prompt (above the Class 69 entry) AND new KNOWN_SPECS lookup entries for `r2.2`, `r 2.2`, `r2.2a`, `r2.2b`, `mvg r2.2`, `münchner straßenbahn r2.2`, `muenchner strassenbahn r2.2`, `münchen r2.2` — builder pinned to "AEG / ADtranz", max 70 km/h, 600 V DC electric.
+- `backend/src/services/trainFacts.ts` — added a new R2.2 bullet (above the ČD class 753/754 entry) forbidding any "Siemens Mobility" builder claim or Combino-family/Combino-platform framing in free-text facts, with the correct German framing ("von AEG / ADtranz für die MVG München gebaute sechsachsige Niederflur-Straßenbahn der R2.2-Familie").
+
+3 files changed, 17 insertions, 1 deletion. Commit `14a1b37`. Pushed to `claude/epic-hawking-0bd9d3` then fast-forward merged to `origin/main` at user direction. Render auto-deploy in flight.
+
+Cache version unchanged. Memory entry logged in `backend_backlog_corrections.md`. Both TikTok replies (DE) drafted and posted by user same session.
+
+---
+
 ## 2026-05-16
 
 ### Backend — Class 07 + Class 20 vision rules and spec entries (from Steph tester report)
