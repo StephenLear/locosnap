@@ -956,6 +956,28 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "class 59/1": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
   "class 59/2": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
   "emd jt26cw-ss": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
+  // Class 66 (EMD/Progress Rail, 1998+) — most common UK freight diesel.
+  // Co-Co, 3,300 hp (2,460 kW), 75 mph. Operators: DB Cargo UK, Freightliner,
+  // GBRf, Colas Rail, DRS. Operator varies by livery — do not hardcode one.
+  // Added 2026-05-17 after RailUK forum report of Freightliner returned for
+  // a GBRf-liveried unit (wrong operator) and 3,200 hp (wrong — correct is 3,300).
+  "class 66": { maxSpeed: "75 mph", power: "3,300 hp (2,460 kW)", builder: "EMD / Progress Rail (London, Ontario)", numberBuilt: 446, fuelType: "Diesel-Electric (EMD 710G3B)" },
+  "br class 66": { maxSpeed: "75 mph", power: "3,300 hp (2,460 kW)", builder: "EMD / Progress Rail (London, Ontario)", numberBuilt: 446, fuelType: "Diesel-Electric (EMD 710G3B)" },
+  "british rail class 66": { maxSpeed: "75 mph", power: "3,300 hp (2,460 kW)", builder: "EMD / Progress Rail (London, Ontario)", numberBuilt: 446, fuelType: "Diesel-Electric (EMD 710G3B)" },
+  "class 66/0": { maxSpeed: "75 mph", power: "3,300 hp (2,460 kW)", builder: "EMD / Progress Rail (London, Ontario)", numberBuilt: 446, fuelType: "Diesel-Electric (EMD 710G3B)" },
+  "class 66/7": { maxSpeed: "75 mph", power: "3,300 hp (2,460 kW)", builder: "EMD / Progress Rail (London, Ontario)", numberBuilt: 446, fuelType: "Diesel-Electric (EMD 710G3B)" },
+  // Class 390 Pendolino (Alstom, 1999+) — tilting EMU, Avanti West Coast WCML.
+  // 9-car (390/0): 5,760 kW / 125 mph. 11-car (390/1): 7,050 kW / 125 mph.
+  // NEVER return Class 800 specs for a Class 390 — 7,200 kW is Class 800 data.
+  // Added 2026-05-17 after RailUK forum report: Class 390 Pendolino at Preston
+  // returned as "Class 800 / Avanti West Coast" — Class 800 is GWR/LNER only.
+  "class 390": { maxSpeed: "125 mph", power: "5,760 kW", builder: "Alstom (Savigliano, Italy / Washwood Heath)", numberBuilt: 56, fuelType: "Electric (25 kV AC overhead)" },
+  "class 390/0": { maxSpeed: "125 mph", power: "5,760 kW", builder: "Alstom (Savigliano, Italy / Washwood Heath)", numberBuilt: 56, fuelType: "Electric (25 kV AC overhead)" },
+  "class 390/1": { maxSpeed: "125 mph", power: "7,050 kW", builder: "Alstom (Savigliano, Italy / Washwood Heath)", numberBuilt: 56, fuelType: "Electric (25 kV AC overhead)" },
+  "class 390/2": { maxSpeed: "125 mph", power: "7,050 kW", builder: "Alstom (Savigliano, Italy / Washwood Heath)", numberBuilt: 56, fuelType: "Electric (25 kV AC overhead)" },
+  "pendolino": { maxSpeed: "125 mph", power: "5,760 kW", builder: "Alstom (Savigliano, Italy / Washwood Heath)", numberBuilt: 56, fuelType: "Electric (25 kV AC overhead)" },
+  "avanti pendolino": { maxSpeed: "125 mph", power: "5,760 kW", builder: "Alstom (Savigliano, Italy / Washwood Heath)", numberBuilt: 56, fuelType: "Electric (25 kV AC overhead)" },
+  "virgin pendolino": { maxSpeed: "125 mph", power: "5,760 kW", builder: "Alstom (Savigliano, Italy / Washwood Heath)", numberBuilt: 56, fuelType: "Electric (25 kV AC overhead)" },
   // Class 73 (English Electric Vulcan Foundry / BR Eastleigh, 1962-67) —
   // Bo-Bo electro-diesel, 49 built. Third-rail 750 V DC primary plus a
   // small auxiliary diesel engine for non-electrified spurs. Active

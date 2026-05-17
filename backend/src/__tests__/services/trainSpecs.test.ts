@@ -66,7 +66,7 @@ describe("getTrainSpecs", () => {
       ],
     });
 
-    const result = await getTrainSpecs(makeTrain());
+    const result = await getTrainSpecs(makeTrain({ class: "UnknownTestClass" }));
     expect(result.maxSpeed).toBe("100 mph");
     expect(result.power).toBeNull();
     expect(result.builder).toBeNull();
@@ -75,7 +75,7 @@ describe("getTrainSpecs", () => {
   it("returns fallback specs on API error", async () => {
     mockCreate.mockRejectedValue(new Error("Network error"));
 
-    const result = await getTrainSpecs(makeTrain());
+    const result = await getTrainSpecs(makeTrain({ class: "UnknownTestClass" }));
     expect(result.maxSpeed).toBeNull();
     expect(result.power).toBeNull();
   });
@@ -85,7 +85,7 @@ describe("getTrainSpecs", () => {
       content: [{ type: "text", text: "not json" }],
     });
 
-    const result = await getTrainSpecs(makeTrain());
+    const result = await getTrainSpecs(makeTrain({ class: "UnknownTestClass" }));
     expect(result.maxSpeed).toBeNull();
   });
 
