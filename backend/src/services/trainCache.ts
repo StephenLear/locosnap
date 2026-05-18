@@ -77,7 +77,7 @@ let totalMisses = 0;
 // full Vectron variant family + Hector Rail 243.xxx. transportlife re-scan
 // served stale "BR 193 = Vectron AC" facts even after vision returned the
 // Vectron correctly because the cached entry pre-dated the corrections.
-const CACHE_VERSION = "v9";
+const CACHE_VERSION = "v10";
 
 function getCacheKey(train: TrainIdentification, language: string = "en"): string {
   return `${CACHE_VERSION}::${language}::${train.class}::${train.operator}`.toLowerCase().trim();

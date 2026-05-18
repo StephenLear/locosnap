@@ -155,12 +155,19 @@ function parseSpecsResponse(text: string): TrainSpecs {
     return {
       maxSpeed: parsed.maxSpeed ?? null,
       power: parsed.power ?? null,
-      // Guard against AI returning 0 instead of null — parse the numeric value
+      // Reject AI weight hallucinations.
+      // - null / 0 / missing → already covered
+      // - "1 tonnes" type values caught the @airbus.a3200 BR 401 scan 2026-05-18;
+      //   no legitimate rail vehicle weighs under 5 tonnes (lightest are Schienenbus
+      //   single railcars at ~14 t, smallest draisines at ~6 t). 5 t is the safety
+      //   floor — anything below is hallucination, return null and let the override
+      //   layer or facts fill in.
       weight: (() => {
         if (!parsed.weight) return null;
         const match = String(parsed.weight).match(/([\d.]+)/);
         if (!match) return null;
-        return parseFloat(match[1]) > 0 ? parsed.weight : null;
+        const value = parseFloat(match[1]);
+        return value >= 5 ? parsed.weight : null;
       })(),
       length: parsed.length ?? null,
       gauge: parsed.gauge ?? null,
@@ -235,8 +242,8 @@ async function getAISpecs(train: TrainIdentification, language: string = "en"): 
 // apply after merge to ensure trainspotters see correct values.
 type SpecsOverride = Partial<Pick<TrainSpecs, "maxSpeed" | "power" | "weight" | "builder" | "fuelType" | "numberBuilt" | "gauge">>;
 const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
-  // BR 462 (ICE 3neo Velaro MS) — Wikidata matches a wrong entity and returns "Crewe Works"
-  "br 462": { builder: "Siemens" },
+  // NOTE: BR 462 full entry now lives in the ICE family block below — old single-key
+  // builder override removed 2026-05-18.
   // DB Class 642 (Siemens Desiro Classic) — Wikidata returns wrong builder
   "db class 642": { builder: "Siemens" },
   "class 642": { builder: "Siemens" },
@@ -354,15 +361,122 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "y1":           { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
   "fiat y1":      { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
   "sj class y1":  { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
-  // BR 412 (ICE 4) — ensure correct max speed (250 km/h, not 300/320 km/h like ICE 3)
-  // Multiple variants because vision may return different class string formats
-  "br 412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
-  "br412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
-  "ice 4": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
-  "ice4": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
-  "412": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
-  "ice 4 (br 412)": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
-  "br 412 (ice 4)": { maxSpeed: "250 km/h", builder: "Siemens Mobility" },
+  // ── DB ICE family ───────────────────────────────────────────
+  // Added/expanded 2026-05-18 after @airbus.a3200 (TikTok) reported a BR 401 scan
+  // returning "320 km/h" and "1 tonnes" — root cause was the ICE family having
+  // near-zero hardcoded specs, so vision's class string flowed through to AI-generated
+  // specs and hallucinated. Same fix pattern as BR 245 / BR 428 / Vectron / EU07 /
+  // SJ Rc batches. Every ICE class now locked: maxSpeed, power, weight, builder,
+  // numberBuilt, fuelType, gauge. Vision rules in vision.ts (60+ lines) handle
+  // classification; this layer locks the specs even when classification drifts.
+  //
+  // Source: German Wikipedia + DB Fernverkehr fleet pages. Weight values are full
+  // train-set service weight (the customer-visible number on the back-of-card spec).
+  //
+  // BR 401 (ICE 1) — 14-car, 2 power cars, 1991-1996. Operational max 280 km/h
+  // (NOT 320 — that's ICE 3 family / Velaro). Lower nose has a small Notkupplung
+  // emergency flap only. 60 trainsets built. Being progressively withdrawn 2024+.
+  "br 401":        { maxSpeed: "280 km/h", power: "9,600 kW (2× 4,800 kW power cars)", weight: "849 tonnes (full 14-car set)", builder: "AEG / ABB / Siemens / Henschel / Krauss-Maffei / Krupp", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br401":         { maxSpeed: "280 km/h", power: "9,600 kW (2× 4,800 kW power cars)", weight: "849 tonnes (full 14-car set)", builder: "AEG / ABB / Siemens / Henschel / Krauss-Maffei / Krupp", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "401":           { maxSpeed: "280 km/h", power: "9,600 kW (2× 4,800 kW power cars)", weight: "849 tonnes (full 14-car set)", builder: "AEG / ABB / Siemens / Henschel / Krauss-Maffei / Krupp", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db 401":        { maxSpeed: "280 km/h", power: "9,600 kW (2× 4,800 kW power cars)", weight: "849 tonnes (full 14-car set)", builder: "AEG / ABB / Siemens / Henschel / Krauss-Maffei / Krupp", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db br 401":     { maxSpeed: "280 km/h", power: "9,600 kW (2× 4,800 kW power cars)", weight: "849 tonnes (full 14-car set)", builder: "AEG / ABB / Siemens / Henschel / Krauss-Maffei / Krupp", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 401":  { maxSpeed: "280 km/h", power: "9,600 kW (2× 4,800 kW power cars)", weight: "849 tonnes (full 14-car set)", builder: "AEG / ABB / Siemens / Henschel / Krauss-Maffei / Krupp", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice 1":         { maxSpeed: "280 km/h", power: "9,600 kW (2× 4,800 kW power cars)", weight: "849 tonnes (full 14-car set)", builder: "AEG / ABB / Siemens / Henschel / Krauss-Maffei / Krupp", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice1":          { maxSpeed: "280 km/h", power: "9,600 kW (2× 4,800 kW power cars)", weight: "849 tonnes (full 14-car set)", builder: "AEG / ABB / Siemens / Henschel / Krauss-Maffei / Krupp", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // BR 402 (ICE 2) — 8-car half-train, 1 power car + 7 coaches + flat-fronted
+  // Steuerwagen at far end, 1995-1997. Two half-sets couple at Hamm for Berlin-Köln-
+  // Frankfurt then split. Operational max 280 km/h. Distinguished from BR 401 by
+  // full-width Scharfenberg flap across the lower nose. 44 trainsets.
+  "br 402":        { maxSpeed: "280 km/h", power: "4,800 kW", weight: "412 tonnes (8-car half-set)", builder: "AEG / ABB / Siemens / Henschel / Krupp", numberBuilt: 44, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br402":         { maxSpeed: "280 km/h", power: "4,800 kW", weight: "412 tonnes (8-car half-set)", builder: "AEG / ABB / Siemens / Henschel / Krupp", numberBuilt: 44, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "402":           { maxSpeed: "280 km/h", power: "4,800 kW", weight: "412 tonnes (8-car half-set)", builder: "AEG / ABB / Siemens / Henschel / Krupp", numberBuilt: 44, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db 402":        { maxSpeed: "280 km/h", power: "4,800 kW", weight: "412 tonnes (8-car half-set)", builder: "AEG / ABB / Siemens / Henschel / Krupp", numberBuilt: 44, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db br 402":     { maxSpeed: "280 km/h", power: "4,800 kW", weight: "412 tonnes (8-car half-set)", builder: "AEG / ABB / Siemens / Henschel / Krupp", numberBuilt: 44, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 402":  { maxSpeed: "280 km/h", power: "4,800 kW", weight: "412 tonnes (8-car half-set)", builder: "AEG / ABB / Siemens / Henschel / Krupp", numberBuilt: 44, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice 2":         { maxSpeed: "280 km/h", power: "4,800 kW", weight: "412 tonnes (8-car half-set)", builder: "AEG / ABB / Siemens / Henschel / Krupp", numberBuilt: 44, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice2":          { maxSpeed: "280 km/h", power: "4,800 kW", weight: "412 tonnes (8-car half-set)", builder: "AEG / ABB / Siemens / Henschel / Krupp", numberBuilt: 44, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // BR 403 (ICE 3, original Series 1) — 8-car distributed-power EMU, 1999-2000,
+  // 13 units only (Series 1). Operational max 300 km/h (capable 330). Pointed
+  // aerodynamic nose. Siemens / Bombardier. Domestic German routes only —
+  // multi-system sister is BR 406 which goes into NL/CH/FR.
+  "br 403":        { maxSpeed: "300 km/h", power: "8,000 kW", weight: "409 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 13, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br403":         { maxSpeed: "300 km/h", power: "8,000 kW", weight: "409 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 13, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "403":           { maxSpeed: "300 km/h", power: "8,000 kW", weight: "409 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 13, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db 403":        { maxSpeed: "300 km/h", power: "8,000 kW", weight: "409 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 13, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db br 403":     { maxSpeed: "300 km/h", power: "8,000 kW", weight: "409 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 13, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 403":  { maxSpeed: "300 km/h", power: "8,000 kW", weight: "409 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 13, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice 3":         { maxSpeed: "300 km/h", power: "8,000 kW", weight: "409 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 13, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice3":          { maxSpeed: "300 km/h", power: "8,000 kW", weight: "409 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 13, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // BR 406 (ICE 3M / ICE 3MF) — multi-system version of BR 403 for Amsterdam,
+  // Basel, Paris services. 17 units. Same body as BR 403 but multi-system electrics
+  // and pantograph variations. Routes through NL, CH, FR. 300 km/h.
+  "br 406":        { maxSpeed: "300 km/h", power: "8,000 kW", weight: "435 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "br406":         { maxSpeed: "300 km/h", power: "8,000 kW", weight: "435 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "406":           { maxSpeed: "300 km/h", power: "8,000 kW", weight: "435 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "db 406":        { maxSpeed: "300 km/h", power: "8,000 kW", weight: "435 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 406":  { maxSpeed: "300 km/h", power: "8,000 kW", weight: "435 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "ice 3m":        { maxSpeed: "300 km/h", power: "8,000 kW", weight: "435 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "ice 3mf":       { maxSpeed: "300 km/h", power: "8,000 kW", weight: "435 tonnes (8-car set)", builder: "Siemens / Bombardier", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  // BR 407 (Velaro D) — Siemens Velaro platform, 8-car, 17 units, 2013+.
+  // 320 km/h. Diagonal crease lines down the cab front are the visual discriminator.
+  // Cross-border France (Paris-Frankfurt) plus domestic.
+  "br 407":        { maxSpeed: "320 km/h", power: "8,000 kW", weight: "454 tonnes (8-car set)", builder: "Siemens", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC)", gauge: "Standard (1,435 mm)" },
+  "br407":         { maxSpeed: "320 km/h", power: "8,000 kW", weight: "454 tonnes (8-car set)", builder: "Siemens", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC)", gauge: "Standard (1,435 mm)" },
+  "407":           { maxSpeed: "320 km/h", power: "8,000 kW", weight: "454 tonnes (8-car set)", builder: "Siemens", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC)", gauge: "Standard (1,435 mm)" },
+  "db 407":        { maxSpeed: "320 km/h", power: "8,000 kW", weight: "454 tonnes (8-car set)", builder: "Siemens", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 407":  { maxSpeed: "320 km/h", power: "8,000 kW", weight: "454 tonnes (8-car set)", builder: "Siemens", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC)", gauge: "Standard (1,435 mm)" },
+  "velaro d":      { maxSpeed: "320 km/h", power: "8,000 kW", weight: "454 tonnes (8-car set)", builder: "Siemens", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC)", gauge: "Standard (1,435 mm)" },
+  "siemens velaro d": { maxSpeed: "320 km/h", power: "8,000 kW", weight: "454 tonnes (8-car set)", builder: "Siemens", numberBuilt: 17, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC)", gauge: "Standard (1,435 mm)" },
+  // BR 408 (ICE 3neo) — newest Velaro for DB. 320 km/h. 8-car. Order originally 73,
+  // delivery 2022+ with later batches extending the order to ~90. WiFi-improved
+  // bodyshell, modernised cab, updated traction. Vision rules require visible
+  // "408 xxx" fleet number — otherwise default to BR 412.
+  "br 408":        { maxSpeed: "320 km/h", power: "8,000 kW", weight: "450 tonnes (8-car set)", builder: "Siemens", numberBuilt: 73, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br408":         { maxSpeed: "320 km/h", power: "8,000 kW", weight: "450 tonnes (8-car set)", builder: "Siemens", numberBuilt: 73, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "408":           { maxSpeed: "320 km/h", power: "8,000 kW", weight: "450 tonnes (8-car set)", builder: "Siemens", numberBuilt: 73, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db 408":        { maxSpeed: "320 km/h", power: "8,000 kW", weight: "450 tonnes (8-car set)", builder: "Siemens", numberBuilt: 73, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 408":  { maxSpeed: "320 km/h", power: "8,000 kW", weight: "450 tonnes (8-car set)", builder: "Siemens", numberBuilt: 73, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice 3neo":      { maxSpeed: "320 km/h", power: "8,000 kW", weight: "450 tonnes (8-car set)", builder: "Siemens", numberBuilt: 73, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice3neo":       { maxSpeed: "320 km/h", power: "8,000 kW", weight: "450 tonnes (8-car set)", builder: "Siemens", numberBuilt: 73, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // BR 411 (ICE T 7-car) — tilting train, 230 km/h, Munich-Zurich / Frankfurt-Vienna /
+  // Berlin-Munich routes. 60 sets built 1999-2006. Consortium build. Tilt mechanism
+  // fairings visible on bogies — the visual cue versus BR 415 (5-car short variant).
+  "br 411":        { maxSpeed: "230 km/h", power: "4,000 kW", weight: "369 tonnes (7-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br411":         { maxSpeed: "230 km/h", power: "4,000 kW", weight: "369 tonnes (7-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "411":           { maxSpeed: "230 km/h", power: "4,000 kW", weight: "369 tonnes (7-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db 411":        { maxSpeed: "230 km/h", power: "4,000 kW", weight: "369 tonnes (7-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 411":  { maxSpeed: "230 km/h", power: "4,000 kW", weight: "369 tonnes (7-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice t":         { maxSpeed: "230 km/h", power: "4,000 kW", weight: "369 tonnes (7-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice-t":         { maxSpeed: "230 km/h", power: "4,000 kW", weight: "369 tonnes (7-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 60, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // BR 412 (ICE 4) — DB's current high-volume long-distance workhorse. 250 km/h
+  // (NOT 300/320 like ICE 3 family). 7/12/13-car formations. Most common ICE in
+  // Germany since 2019. ~137 units ordered (XXL 13-car variant adds to production).
+  // Wide flat upright nose with prominent horizontal chin edge.
+  "br 412":        { maxSpeed: "250 km/h", power: "9,900 kW (12-car set)", weight: "670 tonnes (12-car set)", builder: "Siemens Mobility / Bombardier", numberBuilt: 137, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br412":         { maxSpeed: "250 km/h", power: "9,900 kW (12-car set)", weight: "670 tonnes (12-car set)", builder: "Siemens Mobility / Bombardier", numberBuilt: 137, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "412":           { maxSpeed: "250 km/h", power: "9,900 kW (12-car set)", weight: "670 tonnes (12-car set)", builder: "Siemens Mobility / Bombardier", numberBuilt: 137, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db 412":        { maxSpeed: "250 km/h", power: "9,900 kW (12-car set)", weight: "670 tonnes (12-car set)", builder: "Siemens Mobility / Bombardier", numberBuilt: 137, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 412":  { maxSpeed: "250 km/h", power: "9,900 kW (12-car set)", weight: "670 tonnes (12-car set)", builder: "Siemens Mobility / Bombardier", numberBuilt: 137, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice 4":         { maxSpeed: "250 km/h", power: "9,900 kW (12-car set)", weight: "670 tonnes (12-car set)", builder: "Siemens Mobility / Bombardier", numberBuilt: 137, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice4":          { maxSpeed: "250 km/h", power: "9,900 kW (12-car set)", weight: "670 tonnes (12-car set)", builder: "Siemens Mobility / Bombardier", numberBuilt: 137, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice 4 (br 412)": { maxSpeed: "250 km/h", power: "9,900 kW (12-car set)", weight: "670 tonnes (12-car set)", builder: "Siemens Mobility / Bombardier", numberBuilt: 137, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br 412 (ice 4)": { maxSpeed: "250 km/h", power: "9,900 kW (12-car set)", weight: "670 tonnes (12-car set)", builder: "Siemens Mobility / Bombardier", numberBuilt: 137, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // BR 415 (ICE T 5-car) — short variant of BR 411. 230 km/h. 11 sets. Same tilt
+  // platform but shorter; restricted to a handful of routes. Visually identical
+  // cab to BR 411 — only formation length distinguishes.
+  "br 415":        { maxSpeed: "230 km/h", power: "3,000 kW", weight: "260 tonnes (5-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 11, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br415":         { maxSpeed: "230 km/h", power: "3,000 kW", weight: "260 tonnes (5-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 11, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "415":           { maxSpeed: "230 km/h", power: "3,000 kW", weight: "260 tonnes (5-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 11, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db 415":        { maxSpeed: "230 km/h", power: "3,000 kW", weight: "260 tonnes (5-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 11, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 415":  { maxSpeed: "230 km/h", power: "3,000 kW", weight: "260 tonnes (5-car set)", builder: "Siemens / Bombardier / Alstom (LHB)", numberBuilt: 11, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // BR 462 (Velaro MS / ICE 3neo MS) — multi-system Velaro for cross-border high-speed.
+  // 320 km/h. Wikidata returns wrong builder "Crewe Works" for this — explicit override.
+  "br 462":        { maxSpeed: "320 km/h", power: "9,200 kW", weight: "446 tonnes (8-car set)", builder: "Siemens", numberBuilt: 30, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "br462":         { maxSpeed: "320 km/h", power: "9,200 kW", weight: "446 tonnes (8-car set)", builder: "Siemens", numberBuilt: 30, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "462":           { maxSpeed: "320 km/h", power: "9,200 kW", weight: "446 tonnes (8-car set)", builder: "Siemens", numberBuilt: 30, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 462":  { maxSpeed: "320 km/h", power: "9,200 kW", weight: "446 tonnes (8-car set)", builder: "Siemens", numberBuilt: 30, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
+  "velaro ms":     { maxSpeed: "320 km/h", power: "9,200 kW", weight: "446 tonnes (8-car set)", builder: "Siemens", numberBuilt: 30, fuelType: "Multi-system Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)", gauge: "Standard (1,435 mm)" },
   // Class 810 Aurora — correct power and unit count
   "class 810": { power: "2,940 kW", numberBuilt: 33 },
   "br 810": { power: "2,940 kW", numberBuilt: 33 },
