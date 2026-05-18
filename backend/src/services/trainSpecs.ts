@@ -677,11 +677,19 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // BR Class 14 "Teddy Bear" — AI returns "BRCW Smethwick"; all 56 built at Swindon Works
   "class 14": { builder: "Swindon Works" },
   "br class 14": { builder: "Swindon Works" },
-  // ICE L (Talgo 230 / ECx) — built by Talgo (Spain), not Siemens. Max speed 230 km/h.
-  "ice l": { builder: "Talgo", maxSpeed: "230 km/h" },
-  "icel": { builder: "Talgo", maxSpeed: "230 km/h" },
-  "ecx": { builder: "Talgo", maxSpeed: "230 km/h" },
-  "talgo 230": { builder: "Talgo", maxSpeed: "230 km/h" },
+  // ICE L (Talgo 230 / ECx) — Talgo 230 push-pull trainset hauled by a Vectron locomotive
+  // (interim BR 193 from DB rental fleet until the BR 105 Talgo Travca is certified).
+  // 17-car formation, ~256 m long, 79 trainsets ordered, deliveries from 2024. Operator
+  // DB Fernverkehr on slow-corridor / ferry-loadable routes (Berlin-Westerland-Sylt and
+  // similar). Power figure reflects the hauling Vectron (6,400 kW); the Talgo coaches
+  // themselves are unpowered. Built by Talgo (Spain); NEVER attribute to Siemens for the
+  // coaches (Siemens only made the interim Vectron) or Bombardier / Alstom (wrong builder).
+  // Expanded 2026-05-18 — same gap as the rest of the ICE family before today.
+  "ice l":      { maxSpeed: "230 km/h", power: "6,400 kW (Vectron haul)", weight: "530 tonnes (17-car set)", builder: "Talgo (coaches) / Siemens (interim Vectron)", numberBuilt: 79, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "icel":       { maxSpeed: "230 km/h", power: "6,400 kW (Vectron haul)", weight: "530 tonnes (17-car set)", builder: "Talgo (coaches) / Siemens (interim Vectron)", numberBuilt: 79, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ice-l":      { maxSpeed: "230 km/h", power: "6,400 kW (Vectron haul)", weight: "530 tonnes (17-car set)", builder: "Talgo (coaches) / Siemens (interim Vectron)", numberBuilt: 79, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "ecx":        { maxSpeed: "230 km/h", power: "6,400 kW (Vectron haul)", weight: "530 tonnes (17-car set)", builder: "Talgo (coaches) / Siemens (interim Vectron)", numberBuilt: 79, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "talgo 230":  { maxSpeed: "230 km/h", power: "6,400 kW (Vectron haul)", weight: "530 tonnes (17-car set)", builder: "Talgo (coaches) / Siemens (interim Vectron)", numberBuilt: 79, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   // DB BR 423 — Frankfurt/Munich/Stuttgart/Hamburg S-Bahn EMU. Built by LHB/Alstom/Bombardier
   // consortium in Salzgitter/Hennigsdorf/Bautzen, NOT Derby. Max speed 140 km/h.
   "br 423": { builder: "LHB / Alstom / Bombardier (Salzgitter)", maxSpeed: "140 km/h" },
