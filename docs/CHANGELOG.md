@@ -7,6 +7,20 @@ Format: newest first within each date block.
 
 ## 2026-05-18
 
+### Backend — ICE family hardcoded specs + weight hallucination guard (`24cd1dc`)
+
+Closes a recurring systemic bug class. Caught by @airbus.a3200's public TikTok bug report 2026-05-18: a BR 401 scan was returning "320 km/h" and "1 tonnes" — neither correct for ICE 1 (real values 280 km/h / 849 tonnes for 14-car set). Root cause: the ICE family had near-zero hardcoded specs (only BR 412 had a partial entry with maxSpeed + builder; no weight, no power), so vision's class string flowed straight through to AI-generated specs and hallucinated. Same fix pattern as prior batches (Class 390+66 in `cec1f13`, BR 423 in `14a1b37`, EU07 in `ee21ed6`, BR 245 in `fda139d`, BR 428 in `789fe0a`, BR 247 in `52f4e6b`).
+
+Applied:
+
+- `backend/src/services/trainSpecs.ts` — full hardcoded specs for the entire ICE family. All ten classes covered: BR 401 (ICE 1), BR 402 (ICE 2), BR 403 (ICE 3), BR 406 (ICE 3M), BR 407 (Velaro D), BR 408 (ICE 3neo), BR 411 (ICE T 7-car), BR 412 (ICE 4), BR 415 (ICE T 5-car), BR 462 (Velaro MS). 5-8 alias keys per class for vision's various class string formats. Weight values are full train-set service weights (the customer-visible number on the back-of-card spec). Old BR 462 single-key builder override removed (superseded by new full entry).
+- `backend/src/services/trainSpecs.ts` — weight validation threshold bumped from `> 0` to `>= 5` tonnes. "1 tonnes" / "0.5 tonnes" type AI hallucinations now return null (let override layer fill in) instead of displaying nonsense on the card. Conservative floor: smallest legitimate rail vehicles are Schienenbus single railcars at ~14 tonnes, smallest draisines ~6 tonnes. Belt-and-braces for any future class not yet hardcoded.
+- `backend/src/services/trainCache.ts` — `CACHE_VERSION` v9 → v10 to invalidate stale ICE entries cached before this fix. Any train scanned and cached with "1 tonnes" weight would otherwise continue to serve stale specs from cache instead of hitting the new override.
+
+173/173 backend tests passing. Typecheck clean. Direct commit to `main` (no PR — same workflow as prior tester-correction batches; Render auto-deploys on push). DE reply pattern available for @airbus.a3200 once deploy is verified.
+
+---
+
 ### Release — v1.0.32 LIVE on iOS App Store (Android already live since 2026-05-17)
 
 Apple approved + published v1.0.32 (was pending review at start of this session). v1.0.32 is now LIVE on both stores. Polish locale, Polish App Store listing, EULA fix (`https://www.apple.com/legal/internet-services/itunes/dev/stdeula/` link in all localisations), and new App Store pricing scheduled to auto-apply 2026-05-18.
