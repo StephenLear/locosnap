@@ -7,6 +7,33 @@ Format: newest first within each date block.
 
 ## 2026-05-18
 
+### Release — v1.0.32 LIVE on iOS App Store (Android already live since 2026-05-17)
+
+Apple approved + published v1.0.32 (was pending review at start of this session). v1.0.32 is now LIVE on both stores. Polish locale, Polish App Store listing, EULA fix (`https://www.apple.com/legal/internet-services/itunes/dev/stdeula/` link in all localisations), and new App Store pricing scheduled to auto-apply 2026-05-18.
+
+---
+
+### Backend — Welcome email LIVE in production (Resend + Supabase trigger)
+
+End-to-end welcome email pipeline shipped, deployed, and verified in production this session. Every new signup now receives the trilingual DE → EN → PL welcome email signed "Stephen" with the founder-voice "I build this alone, around a day job" framing.
+
+What went live in addition to the PR #3 code:
+
+- **Render env vars** — added `RESEND_API_KEY` (`re_YC3hujkh_JKen2ndyPo5aX9hrFcZvWPwE`, from `backend/.env` — architecture doc § 10 had a stale key, now corrected) and `SUPABASE_WEBHOOK_SECRET` (newly generated, 32-byte hex). Save triggered Render redeploy.
+- **Supabase trigger** — Supabase's Database Webhook UI hides system schemas, so `auth.users` wasn't selectable in the table picker. Replaced with a SQL Postgres trigger using `net.http_post`:
+  - Function `public.notify_welcome_email()` (security definer)
+  - Trigger `on_auth_user_welcome_email` AFTER INSERT ON auth.users FOR EACH ROW
+  - Posts `{type, table, record:{id, email}}` to `https://locosnap.onrender.com/api/webhooks/supabase` with the bearer header
+- **Verification** —
+  - 401 returned on missing bearer (auth check works)
+  - 200 + `skipped:wrong_event` on valid bearer + non-matching event (filter works)
+  - 200 + `sent:true` on real-payload curl to `unsunghistories@proton.me` (Resend send works)
+  - Email landed in inbox with DE → EN → PL bodies intact, umlauts + Polish diacritics correct, Reply-To routing confirmed
+
+**Backfill to existing ~470 non-Pro users explicitly deferred** — per the "ship + observe + then backfill" plan agreed earlier in the session. Two-decision rationale: (a) need 1-2 days of real-inbox delivery data before blasting hundreds, (b) Polish/German diacritic rendering should be confirmed across multiple email clients before a one-shot bulk send.
+
+---
+
 ### Backend — Trilingual welcome email on signup (Resend + Supabase Auth webhook)
 
 Adds the first transactional email LocoSnap has ever sent: a welcome email fired on every new signup. Closes the zero-touch-onboarding gap surfaced in this session's research (RevenueCat data shows ~90% of trial starts + ~50% of paid conversions happen on Day 0 — sending nothing leaves the highest-intent window unused).
