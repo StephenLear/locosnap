@@ -1,6 +1,6 @@
 # Welcome Email — Implementation Spec
 
-**Status:** Copy approved 2026-05-18. Ready to implement in a dedicated session.
+**Status:** SHIPPED to branch 2026-05-18 (hybrid: spec copy + branded HTML wrapper with logo). Not yet deployed — pending push + Render env vars + Supabase Auth webhook config. Backfill to ~470 existing non-Pro users deferred to a separate session.
 
 **Origin:** Research session 2026-05-18. Triggered by user observation that LocoSnap sends zero email today. Research agent surveyed comparable freemium identification apps (Merlin, PictureThis, Pl@ntNet, Shazam, Duolingo, Strava) and found that the standard B2B "4-email, no selling until email 4" template is wrong for consumer mobile — Day 0 is when ~50% of paid conversions happen, and comparable apps run sparse event-triggered sends, not scheduled drips. Full research findings live in the 2026-05-18 handover.
 
@@ -100,17 +100,21 @@ No schema change. No frontend change. No new cron. No new migration.
 
 ---
 
-## Open questions for the impl session
+## Open questions — resolved during impl
 
-1. **From address.** Architecture doc § 10 lists `noreply@locosnap.app` for Supabase Auth and `stephen@locosnap.app` for testers. The welcome email is signed "Stephen" so a `stephen@locosnap.app` from-address feels more honest than `noreply@`. Decision: confirm with user before shipping.
+1. **From address.** Resolved → `Stephen from LocoSnap <noreply@locosnap.app>`. Display name is personal; address remains `noreply@` so the brand owns deliverability. Replies routed via Reply-To instead.
 
-2. **Reply-to.** If from is `stephen@locosnap.app`, replies go to a real inbox — good for inbound feedback, bad if it gets swamped. Confirm desired behaviour.
+2. **Reply-to.** Resolved → `hello@locosnap.app` (forwards to founder inbox via ImprovMX). Welcome is the highest-intent moment for inbound feedback — confirmed by user 2026-05-18.
 
-3. **Send latency.** Supabase Auth webhook fires synchronously on signup. Resend send should be fire-and-forget (don't block the webhook response on the email API). Implementation should `await` only the enqueue, not the delivery.
+3. **Send latency.** Implementation awaits the Resend send inside the webhook handler. Resend's `emails.send()` returns once the request is enqueued (not when delivered), so latency is single-digit ms in practice. Re-evaluate if signup latency becomes an issue at scale.
 
-4. **Failure handling.** If Resend send fails, log to Sentry but do NOT retry inside the webhook (Supabase will retry the webhook itself). Confirm this is acceptable.
+4. **Failure handling.** Resolved → Sentry capture on failure; webhook always returns 200 to prevent Supabase retry storms. Same pattern as the RevenueCat webhook.
 
-5. **Testing.** Need one real test signup with a fresh email after deploy to verify the email actually lands. Plan: user creates a test account on a personal address; verify; delete the row from Supabase Auth.
+5. **Testing.** Test signup with a real personal email is the verification step after deploy. Track in handover.
+
+## Format decision — hybrid, not plain text
+
+Original spec called for plain text. User chose hybrid (spec copy verbatim + branded HTML wrapper with logo at top, language separators, footer reply prompt) in the 2026-05-18 impl session. Plain-text fallback is provided in the same email for clients that strip HTML.
 
 ---
 
@@ -132,7 +136,7 @@ No schema change. No frontend change. No new cron. No new migration.
 ## Out of scope (for this spec)
 
 - The other 3 emails in the eventual sequence (first-scan / scan 5-of-6 / 7-day-dormant) — design after this one is live and we have open-rate data from Resend
-- HTML formatting / branded email template — start with plain text; visual polish is a future iteration
+- ~~HTML formatting / branded email template — start with plain text; visual polish is a future iteration~~ → reversed during impl. HTML wrapper with logo shipped; plain-text is the fallback body, not the primary.
 - Locale-aware sends — explicit decision to use one tri-lingual email for all users regardless of country
 - Unsubscribe link — Resend handles this automatically via list-unsubscribe header for transactional sends; if we extend to marketing sends later, revisit
 - Backfilling existing users — this welcome email only fires for NEW signups going forward

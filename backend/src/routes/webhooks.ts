@@ -11,6 +11,7 @@ import { timingSafeEqual } from "crypto";
 import { config } from "../config/env";
 import { getSupabase } from "../config/supabase";
 import { trackServerEvent, captureServerError } from "../services/analytics";
+import { sendWelcomeEmail } from "../services/email";
 
 const router = Router();
 
@@ -282,6 +283,76 @@ router.post(
       console.error("[WEBHOOK] Error processing event:", error);
       captureServerError(error as Error, { context: "revenuecat_webhook" });
       // Always return 200 to prevent RevenueCat from retrying indefinitely
+      res.status(200).json({ status: "error_logged" });
+    }
+  }
+);
+
+// ── Supabase Auth webhook ────────────────────────────────────
+// Fires on auth.users INSERT. Used to send the welcome email.
+// Configure in Supabase Dashboard → Database → Webhooks:
+//   Table: auth.users, Events: INSERT
+//   URL: https://<backend>/api/webhooks/supabase
+//   HTTP Header: Authorization: Bearer <SUPABASE_WEBHOOK_SECRET>
+
+router.post(
+  "/supabase",
+  async (req: Request, res: Response): Promise<void> => {
+    // Auth check — hard fail in production if secret missing.
+    if (!config.hasSupabaseWebhook) {
+      if (config.nodeEnv === "production") {
+        console.error(
+          "[WEBHOOK] SUPABASE_WEBHOOK_SECRET not set in production — rejecting"
+        );
+        res.status(503).json({ error: "Webhook not configured" });
+        return;
+      }
+    } else {
+      const authHeader = req.headers.authorization;
+      const expected = `Bearer ${config.supabaseWebhookSecret}`;
+      const provided = typeof authHeader === "string" ? authHeader : "";
+      const a = Buffer.from(provided);
+      const b = Buffer.from(expected);
+      const valid = a.length === b.length && timingSafeEqual(a, b);
+      if (!valid) {
+        console.warn("[WEBHOOK] Invalid Supabase webhook authorization");
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+    }
+
+    try {
+      const { type, table, record } = req.body || {};
+
+      // Only act on auth.users inserts.
+      if (type !== "INSERT" || table !== "users") {
+        res.status(200).json({ status: "ok", skipped: "wrong_event" });
+        return;
+      }
+
+      const userId: string | undefined = record?.id;
+      const email: string | undefined = record?.email;
+
+      if (!email) {
+        console.log(`[WEBHOOK] Supabase user.created without email (id=${userId}) — skipping`);
+        res.status(200).json({ status: "ok", skipped: "no_email" });
+        return;
+      }
+
+      console.log(`[WEBHOOK] Supabase user.created: ${userId} <${email}>`);
+
+      const ok = await sendWelcomeEmail(email);
+
+      trackServerEvent("welcome_email_sent", userId || "unknown", {
+        recipient: email,
+        success: ok,
+      });
+
+      res.status(200).json({ status: "ok", sent: ok });
+    } catch (error) {
+      console.error("[WEBHOOK] Error processing Supabase event:", error);
+      captureServerError(error as Error, { context: "supabase_webhook" });
+      // Return 200 to prevent retry storms — error already captured.
       res.status(200).json({ status: "error_logged" });
     }
   }

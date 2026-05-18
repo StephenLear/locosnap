@@ -1,6 +1,6 @@
 # LocoSnap — Full Architecture Reference
 
-> Last updated: 2026-05-17 late evening (**v1.0.32 LIVE on Google Play; iOS still in Apple Review.** Google approved + user-published ~5h after submission. Polish in-app, Polish Play Store listing, and new Play pricing (PL 89.99 zł / CZ Kč 499 / IT/ES €24.99 / DE €34.99, UK held) all live to Android users immediately. App Store pricing changes still scheduled to auto-apply 2026-05-18 regardless of iOS binary approval status. — earlier 2026-05-17 evening header follows:
+> Last updated: 2026-05-18 (**Welcome email infra shipped to branch — not yet deployed.** Added `resend@^4.x` SDK + `backend/src/services/email.ts` (trilingual EN/DE/PL welcome template, logo at top, no emojis, Reply-To `hello@locosnap.app`) + `POST /api/webhooks/supabase` for Supabase Auth `user.created` events. Hard-fails 503 in production if `SUPABASE_WEBHOOK_SECRET` unset; bearer auth via `timingSafeEqual` (same pattern as RevenueCat webhook). 173/173 backend tests passing. Push to Render + add `RESEND_API_KEY` + `SUPABASE_WEBHOOK_SECRET` env vars + configure Supabase Auth webhook in Dashboard to go live. Backfill to existing non-Pro users deferred to a follow-up session. — earlier 2026-05-17 late evening header follows: **v1.0.32 LIVE on Google Play; iOS still in Apple Review.** Google approved + user-published ~5h after submission. Polish in-app, Polish Play Store listing, and new Play pricing (PL 89.99 zł / CZ Kč 499 / IT/ES €24.99 / DE €34.99, UK held) all live to Android users immediately. App Store pricing changes still scheduled to auto-apply 2026-05-18 regardless of iOS binary approval status. — earlier 2026-05-17 evening header follows:
 
 > 2026-05-17 evening (**v1.0.32 SHIPPED to both stores — Polish locale + localised pricing.** Frontend commit `ac352ce` pushed; iOS build 54 (`da0720de`) + Android build versionCode 20 (`416266bb`) both FINISHED and submitted to App Store Connect + Google Play same session. Carries new Polish (`pl`) locale (full ~95-key pl.json, AI-translated), compare-screen i18n cleanup (11 hardcoded labels), language-picker refactor with Polski button, German umlaut bug fix. Backend commit `62778d5` widens `VALID_LANGUAGES` to accept `pl` — pushed and Render auto-deploy in flight. Polish store-listing metadata added in both App Store Connect + Play Console (subtitle, short + full descriptions, release notes per locale EN/DE/PL). Localised pricing rolled out same session — App Store Pro Annual changed in 9 countries (DE €34.99, UK £27.99, PL 89.99 zł, CZ Kč 499, ES/IT €24.99, NL/FR €32.99, FI €34.99, scheduled effective 2026-05-18); App Store Pro Monthly PL→13.99 zł; Lifetime DE base €89.99 with PL 229 zł / CZ 1,299 Kč overrides. Play Store annual: PL 89.99 zł, CZ Kč 499, IT/ES €24.99, DE €34.99 (UK held); applied to both autorenew + prepaid base plans. Apple processing → review (24-48h); Play running checks → review (2-24h). Mid-session lessons: (a) Apple's tier system applies purchasing-power adjustment, so pricing recommendations must spot-check current store baseline not assume raw FX (caught a false panic mid-walkthrough — the changes were directionally correct); (b) almost re-introduced the v1.0.8 Samsung S24 / Android 16 / Finnish-locale silent startup crash by adding `expo-localization` back into `settingsStore.ts` — user caught it before commit, package was uninstalled in v1.0.11 for exactly this reason, new memory file `feedback_no_expo_localization.md` to prevent recurrence. — earlier 2026-05-17 evening backend header follows:
 
@@ -68,6 +68,7 @@ LocoSnap is a mobile app that identifies trains from photos using AI. Users take
 | GET | /api/blueprint/:taskId | Poll blueprint generation status |
 | GET | /api/health | Health check — active providers + Redis status + Supabase reachability ping (HEAD count on `trains`). Returns 503 when Supabase is degraded so uptime monitors actually catch DB outages. |
 | POST | /api/webhooks/revenuecat | RevenueCat subscription webhooks |
+| POST | /api/webhooks/supabase | Supabase Auth `user.created` → triggers trilingual welcome email via Resend |
 
 ### Hardening (2026-05-13 audit)
 
@@ -436,6 +437,8 @@ curl -X PATCH "https://vfzudbnmtwgirlrfoxpq.supabase.co/rest/v1/profiles?id=eq.<
 | Dashboard | https://resend.com |
 | Mandatory CC | unsunghistories@proton.me on every outbound email — no exceptions (enforced by email-send-guard skill rule 12) |
 | API endpoint | `POST https://api.resend.com/emails` |
+| Backend SDK | `resend@^4.x` wrapper at `backend/src/services/email.ts` (Node SDK — no User-Agent gotcha) |
+| Automated sends | Welcome email (trilingual EN/DE/PL) on signup, triggered by Supabase Auth `user.created` webhook → `POST /api/webhooks/supabase`. From: `Stephen from LocoSnap <noreply@locosnap.app>`. Reply-To: `hello@locosnap.app`. Logo at top, no emojis, footer invites replies. **No founder CC on automated sends** — the mandatory-CC rule applies only to manual/tester emails; CC'ing every signup would flood the inbox. |
 
 **Resend API gotcha — Cloudflare User-Agent block (discovered 2026-04-11):** The Resend API now sits behind Cloudflare and rejects requests with the default `Python-urllib/3.x` User-Agent with `403 Forbidden` and Cloudflare error code `1010` ("the owner of this website has banned your access based on your browser's signature"). Any script calling the Resend API MUST include a custom `User-Agent` header. Working header set used 2026-04-11 to send 5 tester check-in emails:
 
@@ -585,6 +588,10 @@ SENTRY_DSN=...
 
 # RevenueCat (optional)
 REVENUECAT_WEBHOOK_SECRET=...
+
+# Resend + Supabase Auth webhook (welcome email on signup)
+RESEND_API_KEY=re_...
+SUPABASE_WEBHOOK_SECRET=...
 
 # Server
 PORT=3000

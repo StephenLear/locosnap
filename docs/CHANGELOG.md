@@ -5,6 +5,28 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-18
+
+### Backend — Trilingual welcome email on signup (Resend + Supabase Auth webhook)
+
+Adds the first transactional email LocoSnap has ever sent: a welcome email fired on every new signup. Closes the zero-touch-onboarding gap surfaced in this session's research (RevenueCat data shows ~90% of trial starts + ~50% of paid conversions happen on Day 0 — sending nothing leaves the highest-intent window unused).
+
+Applied:
+
+- `backend/package.json` — added `resend@^4.x` dependency.
+- `backend/src/config/env.ts` — added `RESEND_API_KEY` + `SUPABASE_WEBHOOK_SECRET` env vars with `hasResend` / `hasSupabaseWebhook` feature flags.
+- `backend/src/services/email.ts` (new) — Resend wrapper with `sendWelcomeEmail(toEmail)`. Trilingual DE → EN → PL HTML + plain-text bodies, copy locked to `docs/email-welcome-spec.md` (verbatim, founder-voice "I build this alone, around a day job. Pro is what keeps it alive"). Subject: `Welcome to LocoSnap / Willkommen / Witaj`. Logo at top (`https://locosnap.app/images/icon.png`), no emojis, language separators, footer invites replies. From: `Stephen from LocoSnap <noreply@locosnap.app>`. Reply-To: `hello@locosnap.app` (forwards to founder inbox via ImprovMX). DE first because it's the #1 market; PL second-priority but last in stack for visual rhythm.
+- `backend/src/routes/webhooks.ts` — added `POST /api/webhooks/supabase` handler. Bearer-token auth via `SUPABASE_WEBHOOK_SECRET` with `crypto.timingSafeEqual`; hard-fails 503 in production if secret missing (same pattern as RevenueCat webhook). Filters for `type=INSERT, table=users` only; skips no-email records; tracks `welcome_email_sent` analytics event with success flag. Always returns 200 on errors (after Sentry capture) to prevent retry storms.
+- `backend/src/index.ts` — startup banner shows Resend + SupabaseHook status; endpoint listing includes `/api/webhooks/supabase`.
+
+**No founder CC on automated sends** — the architecture's mandatory-CC rule applies only to manual/tester emails; CC'ing every signup would flood the inbox. Founder still sees feedback via Reply-To routing.
+
+173/173 backend tests passing. Typecheck clean. **Not yet deployed — needs a push to go live on Render.** After push, two manual config steps remain: (a) Render env vars `RESEND_API_KEY` + `SUPABASE_WEBHOOK_SECRET`, (b) Supabase Dashboard → Database → Webhooks → new webhook on `auth.users` INSERT pointing at `https://<backend>/api/webhooks/supabase` with `Authorization: Bearer <SUPABASE_WEBHOOK_SECRET>` header.
+
+Backfill (sending to existing non-Pro users) is deliberately deferred to a separate session — ship the per-signup flow first, observe real-inbox delivery for a day or two, then run a one-off script.
+
+---
+
 ## 2026-05-17
 
 ### Frontend — Country-flag backfill banner on Profile tab (queued for v1.0.33)
