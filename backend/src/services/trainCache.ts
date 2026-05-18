@@ -77,7 +77,15 @@ let totalMisses = 0;
 // full Vectron variant family + Hector Rail 243.xxx. transportlife re-scan
 // served stale "BR 193 = Vectron AC" facts even after vision returned the
 // Vectron correctly because the cached entry pre-dated the corrections.
-const CACHE_VERSION = "v10";
+// 2026-05-18: bumped v10 → v11 to invalidate stale Class 08 entries from the
+// SW1001 misID fix. UK tester Steph reported Merehead's EMD SW1001 No. 44
+// "Western Yeoman II" being misidentified as Class 08 / DB Cargo UK / 350 HP.
+// New vision rule blocks Class 08 for centre-cab yellow industrial shunters
+// in quarry context, and new SW1001 hardcoded specs lock 820 kW / 65 mph /
+// General Motors EMD builder. Any cached "class 08 / DB Cargo UK / 350 HP"
+// entry from a prior SW1001 scan would otherwise continue serving stale
+// data from cache even after the vision fix.
+const CACHE_VERSION = "v11";
 
 function getCacheKey(train: TrainIdentification, language: string = "en"): string {
   return `${CACHE_VERSION}::${language}::${train.class}::${train.operator}`.toLowerCase().trim();

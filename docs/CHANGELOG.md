@@ -7,6 +7,24 @@ Format: newest first within each date block.
 
 ## 2026-05-18
 
+### Backend — EMD SW1001 vision + specs fix (Steph misID: Merehead industrial shunter returned as Class 08)
+
+UK tester Steph the Spotter photographed Merehead Quarry's industrial yard shunter and the app returned "Class 08 / DB Cargo UK / 350 HP / 20 mph / Common, VERIFIED" — confidently wrong. Steph caught it because she knew the visual signature: "08 shunter doesn't have a pointed bit over the engine, it's more of a curve."
+
+Researched and identified: the actual loco is **EMD SW1001 No. 44 "Western Yeoman II"** — American GM-built switcher, 1,100 HP, shipped to UK by Foster Yeoman in 1983, now operated by Aggregate Industries (acquired Foster Yeoman 2006). Critically, this SW1001's reliability hauling 2,500-ton stone trains is what convinced Foster Yeoman to go back to EMD a few years later and order the Class 59s — making it the *direct ancestor* of the famous Mendip Rail Class 59 fleet. The unsung loco that made the Class 59s happen.
+
+Applied:
+
+- `backend/src/services/vision.ts` — new EMD SW1001 vs Class 08 disambiguation rule, inserted before the Class 37 vs Class 45 rule (also from Steph). Encodes the centre-cab + angular wedge hood + Bo-Bo bogies + Aggregate Industries / Mendip Rail / quarry context signature, explicitly blocks Class 08 ID when these features are visible, and includes the historical context. Visual differences from Class 08 spelled out: centre cab vs end cab, wedge hood vs curved hood, bogies vs coupled axles, twin lower exhausts vs tall stacks, no jackshaft rods.
+- `backend/src/services/trainSpecs.ts` — hardcoded specs for `sw1001`, `emd sw1001`, `gm sw1001`, `gm-emd sw1001`, `general motors sw1001`, `western yeoman ii` (6 alias keys). Locks 820 kW / 65 mph / "General Motors EMD (La Grange, Illinois)" / 230 built worldwide / Diesel-Electric.
+- `backend/src/services/trainCache.ts` — `CACHE_VERSION` bumped v10 → v11 to invalidate any stale `class 08 / DB Cargo UK` cache entries from prior SW1001 scans.
+
+Same fix pattern as ICE family (`24cd1dc`), BR 423 (`14a1b37`), Class 390+66 (`cec1f13`), EU07 (`ee21ed6`), BR 245 (`fda139d`), BR 428 (`789fe0a`), BR 247 (`52f4e6b`). 173/173 backend tests passing. Typecheck clean. Steph's 6th confirmed misID-to-fix loop (after Class 45 / Class 57 / Class 59 / Class 70 / Class 11 / Class 52), deepest tester-evangelist loop in the project.
+
+Render auto-deploy in flight on push.
+
+---
+
 ### Ops — DB cleanup: 8 typo/malformed email rows removed from `auth.users`
 
 After the four backfill batches surfaced eight email addresses that can never authenticate (typo or malformed domain), they were removed from `auth.users` via direct SQL in Supabase. Cascading FKs (`ON DELETE CASCADE`) cleaned up dependent rows in `auth.identities`, `auth.sessions`, `auth.refresh_tokens`, `public.profiles`. None were Pro / had purchases.

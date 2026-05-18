@@ -1078,6 +1078,22 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "class 59/1": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
   "class 59/2": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
   "emd jt26cw-ss": { maxSpeed: "60 mph", power: "2,386 kW", builder: "EMD (La Grange, Illinois)", numberBuilt: 15, fuelType: "Diesel-Electric" },
+  // EMD SW1001 (Aggregate Industries / Mendip Rail industrial yard shunter)
+  // — American GM-built switcher. ONE example in regular UK service: No. 44
+  // "Western Yeoman II" at Merehead Quarry (Torr Works), Somerset. Bought by
+  // Foster Yeoman 1980, shipped to UK 1983, now operated by Aggregate
+  // Industries (acquired Foster Yeoman 2006). Bo-Bo, EMD 8-645E V8, 1,100 hp
+  // (820 kW). Whatley historically also had an SW1001. Direct ancestor of
+  // the Class 59 procurement story — its reliability hauling 2,500-ton stone
+  // trains is what convinced Foster Yeoman to order the Class 59s from EMD.
+  // Added 2026-05-18 after UK tester Steph reported the Merehead SW1001 No.
+  // 44 being misidentified as Class 08 / DB Cargo UK / 350 HP.
+  "sw1001": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
+  "emd sw1001": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
+  "gm sw1001": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
+  "gm-emd sw1001": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
+  "general motors sw1001": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
+  "western yeoman ii": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
   // Class 66 (EMD/Progress Rail, 1998+) — most common UK freight diesel.
   // Co-Co, 3,300 hp (2,460 kW), 75 mph. Operators: DB Cargo UK, Freightliner,
   // GBRf, Colas Rail, DRS. Operator varies by livery — do not hardcode one.
