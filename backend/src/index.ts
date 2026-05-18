@@ -122,6 +122,8 @@ app.listen(config.port, () => {
 ║  Replicate:   ${(config.hasReplicate ? "Yes" : "No").padEnd(30)}║
 ║  Supabase:    ${(config.hasSupabase ? "Connected" : "Not configured").padEnd(30)}║
 ║  RevenueCat:  ${(config.hasRevenueCat ? "Webhook ready" : "Not configured").padEnd(30)}║
+║  Resend:      ${(config.hasResend ? "Ready" : "Not configured").padEnd(30)}║
+║  SupabaseHook:${(config.hasSupabaseWebhook ? "Ready" : "Not configured").padEnd(30)}║
 ║  Redis:       ${getRedisStatus().padEnd(30)}║
 ║  Cache:       ${`${stats.totalEntries} trains cached`.padEnd(30)}║
 ╚══════════════════════════════════════════════╝
@@ -130,6 +132,7 @@ Endpoints:
   POST /api/identify        — Upload train photo for identification
   GET  /api/blueprint/:id   — Check blueprint generation status
   POST /api/webhooks/revenuecat — RevenueCat subscription webhook
+  POST /api/webhooks/supabase   — Supabase Auth user.created (welcome email)
   POST /api/credits/deduct      — Deduct 1 blueprint credit
   GET  /api/credits/balance     — Check credit balance
   GET  /api/health              — Health check

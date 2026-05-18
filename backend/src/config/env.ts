@@ -73,6 +73,17 @@ export const config = {
     return this.revenuecatWebhookSecret.length > 0;
   },
 
+  // Resend (transactional email) + Supabase Auth webhook
+  resendApiKey: optionalEnv("RESEND_API_KEY", ""),
+  supabaseWebhookSecret: optionalEnv("SUPABASE_WEBHOOK_SECRET", ""),
+
+  get hasResend(): boolean {
+    return this.resendApiKey.length > 0;
+  },
+  get hasSupabaseWebhook(): boolean {
+    return this.supabaseWebhookSecret.length > 0;
+  },
+
   // Redis (Upstash REST — works on Render free tier, unlike TCP/6379)
   upstashRedisRestUrl: optionalEnv("UPSTASH_REDIS_REST_URL", ""),
   upstashRedisRestToken: optionalEnv("UPSTASH_REDIS_REST_TOKEN", ""),
