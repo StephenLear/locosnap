@@ -7,6 +7,91 @@ Format: newest first within each date block.
 
 ## 2026-05-18
 
+### Ops — DB cleanup: 8 typo/malformed email rows removed from `auth.users`
+
+After the four backfill batches surfaced eight email addresses that can never authenticate (typo or malformed domain), they were removed from `auth.users` via direct SQL in Supabase. Cascading FKs (`ON DELETE CASCADE`) cleaned up dependent rows in `auth.identities`, `auth.sessions`, `auth.refresh_tokens`, `public.profiles`. None were Pro / had purchases.
+
+Removed: `kaspar.ruetenik@icloud`, `loops83@hitmail.co.uk`, `danielmorgancox301@gnail.com`, `jrandall125@outloo.com`, `traingamer2907@gmaio.com`, `hansi.20098@oulook.de`, `rheintalbhnerneo@gmail.com`, `stephstottor@gmail.coms`.
+
+Going-forward rule (added to `docs/welcome-email-backfills.md` and memory): when typo-domain emails surface during a batch, queue them and clean up post-batch with a SELECT-then-DELETE pass.
+
+---
+
+### Ops — Welcome email backfill BATCH 4 (full pre-Google-launch cohort, FINAL backfill) — 75 sent, 4 typo addresses skipped, 3 typo addresses got through
+
+Final backfill batch. Covers the entire pre-Google-launch cohort 2026-03-03 → 2026-04-26 (first signup is day after the 2026-03-02 store upload). After this, every non-Pro signup pre-2026-05-18 has either an automated or backfill welcome on record; the trigger handles all future signups.
+
+- **Recipients:** 79 in CSV, 4 typo-domain addresses skipped pre-send (`loops83@hitmail.co.uk`, `danielmorgancox301@gnail.com`, `jrandall125@outloo.com`, `traingamer2907@gmaio.com` — all same-person duplicates of correctly-spelled addresses in the same dataset), 75 sent.
+- **API accepted:** 75/75. Delivery not verified post-send (per the unlimited-tier rule).
+- **Three more typo addresses got through and got sent.** Not caught by the pre-send filter because they had no in-dataset corrected version to pair against: `hansi.20098@oulook.de` (typo of `outlook.de`), `rheintalbhnerneo@gmail.com` (typo of tester `rheintalbahnerneo@gmail.com` — same person, filtered tester variant), `stephstottor@gmail.coms` (trailing `s`, typo of tester `Stephstottor@gmail.com`). These will bounce. All three queued for the post-batch DB cleanup along with the 4 explicitly-skipped + 1 from batch 2.
+
+**Session totals:** 67 (batch 1) + 79 (batch 2) + 81 (batch 3) + 75 (batch 4) = **302 backfill sends** across signups 2026-03-03 through 2026-05-17. Plus the automated welcome trigger handles 2026-05-18 onwards. Combined with the existing Pro cohort (already opted-in), every user account in the database has now been welcomed.
+
+Full per-recipient log in `docs/welcome-email-backfills.md`.
+
+---
+
+### Ops — Welcome email backfill BATCH 3 (week of Google Play launch, "belated welcome" copy, testers excluded) — 81 sent
+
+Third backfill batch in the same session. Covers signups 2026-04-27 through 2026-05-03 inclusive — the seven days starting with the Google Play public-launch date.
+
+- **First batch using the new exclusion SQL** that filters out all 26 tester emails (per `memory/tester_contacts.md`) and `%@locosnap.app`. Pre-send cross-check confirmed zero testers slipped through.
+- **Recipients:** 81 from CSV, 81 sent (no malformed addresses to skip, no internal duplicates, no overlap with batches 1 or 2). One same-person duplicate (`leon.plattner` on gmx.de + icloud.com) intentionally not deduped; three same-prefix typo variants on @gmx.de (`leandereathgeber`, `leanderathgeber`, `leanderrathgeber`) all sent — distinct mailboxes, three separate signups.
+- **Subject + body:** same as batch 2 — "A belated welcome to LocoSnap / Ein verspätetes Willkommen / Spóźnione powitanie" subject, "since launch I've been working through feedback" opening per language.
+- **API accepted:** 81/81. **Delivery not verified post-send** — operational rule updated this batch: with the unlimited-tier upgrade (no quota cap to suspect) and a fresh-signup cohort (low suppression risk), Resend export cross-reference is no longer mandatory per batch. Pull the export only when there's a specific reason to suspect drops (stale list, prior bounces, sender reputation concern).
+
+Full per-recipient log in `docs/welcome-email-backfills.md`.
+
+Cumulative for the session: 227 sends (67 + 79 + 81), 224 confirmed delivered (batches 1+2), 81 API-accepted unverified (batch 3), 2 suppressed, 1 pending. ~610-ish non-Pro signups now have either an automated or backfill welcome on file.
+
+---
+
+### Ops — Resend plan upgraded to unlimited + two new operational gotchas documented
+
+Three operational changes captured in `docs/ARCHITECTURE.md` § 10 (Email/Sending) and `docs/welcome-email-backfills.md`:
+
+- **Resend plan upgraded** from free tier (100 emails/day, 3,000/month) to the paid unlimited tier. Triggered by the two-batch session crossing the 100/day cap. No daily limit on future batches.
+- **Supabase Auth → Resend interaction** now documented explicitly. Sign-in OTP codes, magic links, and confirmation emails sent by Supabase Auth all flow through this same Resend account and count against the send quota. Visible in the dashboard export as rows with a Supabase-owned `api_key_id`. Sizing future batches needs to account for this background traffic.
+- **Resend suppression-list silent drop** now documented as a known gotcha. When sending to an address on Resend's account-wide suppression list (prior bounce / complaint), the API returns `200 + message_id` (looks like success) but the email is never delivered — only the dashboard export's `last_event: suppressed` reveals it. New operational rule: for any non-trivial batch, pull the dashboard export afterwards and cross-reference `last_event` rather than trusting API-acceptance counts. Surfaced by two real suppressions in batch 2.
+
+No code change. Docs-only.
+
+---
+
+### Ops — Welcome email backfill BATCH 2 (week before, "belated welcome" copy) — 79 sent, 76 delivered, 2 suppressed, 1 pending
+
+Second targeted backfill in the same session, covering signups 2026-05-04 through 2026-05-10 inclusive (UTC) who don't have Pro — the seven days immediately before batch 1's window. 80 rows in the source CSV; one (`kaspar.ruetenik@icloud`, malformed missing TLD) excluded pre-send, leaving 79 recipients.
+
+- **Subject changed:** `A belated welcome to LocoSnap / Ein verspätetes Willkommen / Spóźnione powitanie` (signals the delay in the inbox preview)
+- **Copy diff:** only the opening paragraph of each language was changed — acknowledges the late email and frames recent weeks as working through post-launch feedback. Everything below the opening paragraph stays bit-identical to the verified template.
+- **Delivery confirmed via Resend export** (`~/Desktop/Email/emails-sent-1779122324600.csv`, pulled 18:40 UTC): 76 `delivered`, 2 `suppressed`, 1 `sent` (pending).
+- **Suppressions** (`tobias.trostmann@web.de`, `hobbybundesbahner@outlook.de`) — both addresses are on Resend's account-wide suppression list from prior bounces/complaints. Both same-person variants at neighbouring rows (`tobias_trostmann@web.de`, `hobbybundesbahner1976@outlook.de`) delivered, so neither person is fully missed. Cannot retry — Resend will reject any further send attempts.
+- **Pending** (`n29545473@gmail.com`) — accepted by Resend, attempted, no delivery confirmation yet at export time. May still resolve.
+- **Resend free-tier daily-limit warning** observed mid-session. With batch 1 (67) + batch 2 (79) = 146 today, the account crossed Resend's 100/day free-tier cap. The warning was informational — Resend processed all 146 API calls. Plan was upgraded to unlimited mid-session, so this is not a constraint going forward.
+
+Full per-recipient audit (email + Resend message ID + actual delivery status from the export) in `docs/welcome-email-backfills.md`.
+
+Cumulative for the session: 146 sends, 143 confirmed delivered, 2 suppressed, 1 pending. ~530-ish non-Pro signups now have either an automated or backfill welcome on file; the remaining broader-backfill (~290 from before 2026-05-04) is still queued for a follow-up batch.
+
+---
+
+### Ops — Welcome email backfill BATCH 1 (last-7-days, non-Pro) — 67 sent, 67 delivered, 0 failed
+
+Manual one-off backfill of the trilingual welcome email to all signups 2026-05-11 through 2026-05-17 inclusive (UTC) who don't have Pro. Closes the gap left by the per-signup trigger only going live 2026-05-18 — 67 users from the previous week had signed up without receiving a welcome.
+
+- Source: Supabase SQL query (`auth.users` LEFT JOIN `public.profiles` on `id`, `is_pro = false OR profile missing`, email NOT NULL) exported to CSV
+- Sender: same Resend template as the live automated send (`welcomeHtml()` + `welcomeText()` from `backend/src/services/email.ts`, unchanged)
+- Throttle: 0.55s between sends (2/sec, Resend free-tier safe)
+- CC: none (founder-CC automation exemption applies — Reply-To `hello@locosnap.app` still routes any replies to Proton via ImprovMX)
+- Result: 67/67 API-accepted, 67/67 confirmed `delivered` per Resend export
+- Full per-recipient audit (email + Resend message ID + delivery status): `docs/welcome-email-backfills.md`
+
+No code change. The script was a one-off (`/tmp/send_welcome_backfill.py`, transient — template was embedded verbatim from `email.ts` for an exact match against last night's verified send).
+
+The ~470 broader non-Pro backfill remains deferred per the original "ship + observe 1-2 days, then blast" plan — this 67-user batch is the smaller targeted catch-up for the past week's cohort only.
+
+---
+
 ### Backend — ICE family hardcoded specs + weight hallucination guard (`24cd1dc`)
 
 Closes a recurring systemic bug class. Caught by @airbus.a3200's public TikTok bug report 2026-05-18: a BR 401 scan was returning "320 km/h" and "1 tonnes" — neither correct for ICE 1 (real values 280 km/h / 849 tonnes for 14-car set). Root cause: the ICE family had near-zero hardcoded specs (only BR 412 had a partial entry with maxSpeed + builder; no weight, no power), so vision's class string flowed straight through to AI-generated specs and hallucinated. Same fix pattern as prior batches (Class 390+66 in `cec1f13`, BR 423 in `14a1b37`, EU07 in `ee21ed6`, BR 245 in `fda139d`, BR 428 in `789fe0a`, BR 247 in `52f4e6b`).
