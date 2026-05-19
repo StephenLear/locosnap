@@ -67,6 +67,7 @@
       ],
       "@sentry/react-native",
       "./plugins/withSentryDisableUpload",
+      "./plugins/withDisableExtraTranslationLint",
       "expo-asset",
       [
         "expo-media-library",
@@ -93,7 +94,6 @@
       }
     },
     "locales": {
-      "en": "./locales/ios/en.json",
       "de": "./locales/ios/de.json",
       "pl": "./locales/ios/pl.json"
     }
