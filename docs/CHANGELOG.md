@@ -7,6 +7,30 @@ Format: newest first within each date block.
 
 ## 2026-05-19
 
+### Frontend — scan_2 paywall soft-prompt now leads with intro pricing
+
+The scan_2 prompt previously used value-led copy with no pricing reference ("Enjoying LocoSnap? See what you unlock with Pro…"). Replaced with **intro-price-led copy** to lower the perceived friction at the first paywall touchpoint. €1/month (or per-locale equivalent) is the lowest-effort entry into Pro and looks effectively-free — leading with the number rather than burying it in the paywall screen removes the implicit price-anxiety that may be churning users at scan 2.
+
+Two real intro offers exist:
+- **Play Store:** literal €1/month for the first month (monthly product intro)
+- **App Store:** €3.99 / £3.99 upfront for 3 months on annual ≈ €1.33/month for first 3 months, rounds to "€1/month" defensibly
+
+The **"from / ab / od"** hedge in the copy covers both — accurate for Play (where it's literal €1/month), defensible for Apple (where it's the averaged-down headline price). **"New subscribers"** wording protects against Apple/Play "misleading offer" rejection (the offer is genuinely restricted to first-time subscribers).
+
+Applied:
+
+- `frontend/locales/en.json` — scan_2 title `"Try Pro from just £1/month"`, body `"Special intro for new subscribers. Full specs, blueprints, your whole collection."`
+- `frontend/locales/de.json` — scan_2 title `"Pro testen ab 1 €/Monat"`, body `"Einführungsangebot für Neukunden. Alle Daten, jeder Blueprint, deine ganze Sammlung."`
+- `frontend/locales/pl.json` — scan_2 title `"Wypróbuj Pro od 5,19 zł/miesiąc"`, body `"Oferta startowa dla nowych subskrybentów. Pełne dane, plany, cała kolekcja."` — PL price taken from the actual Google Play Polish intro display (5.19 PLN, user-confirmed).
+
+scan_4 ("Special intro pricing available") and scan_5 (urgent "1 left") unchanged — the funnel still escalates: scan_2 hooks with the price, scan_4 reminds about the offer generically, scan_5 creates urgency, scan_6 locks.
+
+153/153 frontend tests passing. Typecheck clean. Direct to main. Ships in v1.0.33.
+
+**Strategic note:** flagged for cross-promo elsewhere — same €1/month framing should propagate into TikTok ad copy, App Store listing subtitle, onboarding screens, and Win-Back messaging if the data supports it.
+
+---
+
 ### Frontend — Paywall soft-prompt camera-screen mirror + scan_6 lockout variant
 
 Closes the obvious gap in the Pro funnel: previously the scan-aware soft-prompt only appeared on the **results** screen (after a scan), so a non-Pro user looking at the camera screen had no Pro-aware nudge surface before they tapped. And once a user hit 6/6, the only way to discover the lockout was to tap the scan button and read the Alert.
