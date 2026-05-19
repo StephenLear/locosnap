@@ -273,6 +273,11 @@
         "body": "Keep scanning every train you see — go Pro to continue without limits.",
         "cta": "Continue"
       },
+      "scan_6": {
+        "title": "Free scans used",
+        "body": "Go Pro to keep scanning — unlimited spots, full specs, every blueprint.",
+        "cta": "Go Pro"
+      },
       "default": {
         "title": "Grow your collection",
         "body": "Unlimited scans, cards, and blueprints",

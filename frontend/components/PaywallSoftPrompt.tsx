@@ -1,12 +1,14 @@
 // ============================================================
 // LocoSnap — Paywall soft-prompt
 //
-// Non-blocking banner shown on the results screen at scan counts
-// 2, 4, and 5. Replaces the previous static "Grow your collection"
-// banner with scan-aware copy that escalates as the user approaches
-// the hard wall at scan 6. Dismissable per render; routes to the
-// existing /paywall screen with a source param for per-touch
-// analytics.
+// Non-blocking banner shown on the results AND camera screens at
+// scan counts 2, 4, 5 (nudges) and persistently at 6 (lockout state).
+// Scan-aware copy escalates: gentle at 2, value-led at 4, urgent at
+// 5, locked at 6. The scan_6 variant is non-dismissable because it
+// reflects the actual lockout state, not an ignorable nudge.
+//
+// Routes to /paywall with a source param tagging variant + surface
+// for per-touch analytics.
 // ============================================================
 
 import React, { useEffect, useState } from "react";
@@ -20,40 +22,63 @@ import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 const TEAL = "#00D4AA";
 const TEAL_SUBTLE = "rgba(0, 212, 170, 0.08)";
 
-type Variant = "scan_2" | "scan_4" | "scan_5" | "default";
+type Variant = "scan_2" | "scan_4" | "scan_5" | "scan_6" | "default";
+type Surface = "results" | "camera";
 
 function variantFor(scansUsed: number): Variant {
   if (scansUsed === 2) return "scan_2";
   if (scansUsed === 4) return "scan_4";
   if (scansUsed === 5) return "scan_5";
+  if (scansUsed >= 6) return "scan_6";
   return "default";
 }
 
-export function PaywallSoftPrompt({ scansUsed }: { scansUsed: number }) {
+export function PaywallSoftPrompt({
+  scansUsed,
+  surface = "results",
+}: {
+  scansUsed: number;
+  surface?: Surface;
+}) {
   const { t } = useTranslation();
   const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
   const variant = variantFor(scansUsed);
   const isUrgent = variant === "scan_5";
+  const isLocked = variant === "scan_6";
+
+  // Reset dismissed state when the variant escalates so a dismiss at
+  // scan 2 does not silence the scan_5 urgent banner or the scan_6
+  // lockout on a persistent surface (the camera tab stays mounted
+  // across scans).
+  useEffect(() => {
+    setDismissed(false);
+  }, [variant]);
 
   useEffect(() => {
-    track("paywall_softprompt_shown", { variant, scansUsed });
-  }, [variant, scansUsed]);
+    track("paywall_softprompt_shown", { variant, scansUsed, surface });
+  }, [variant, scansUsed, surface]);
 
   if (dismissed) return null;
 
   const onTap = () => {
-    track("paywall_softprompt_tapped", { variant, scansUsed });
-    router.push(`/paywall?source=softprompt_${variant}` as any);
+    track("paywall_softprompt_tapped", { variant, scansUsed, surface });
+    router.push(`/paywall?source=softprompt_${variant}_${surface}` as any);
   };
 
   const onDismiss = () => {
-    track("paywall_softprompt_dismissed", { variant, scansUsed });
+    track("paywall_softprompt_dismissed", { variant, scansUsed, surface });
     setDismissed(true);
   };
 
   return (
-    <View style={[styles.container, isUrgent && styles.containerUrgent]}>
+    <View
+      style={[
+        styles.container,
+        isUrgent && styles.containerUrgent,
+        isLocked && styles.containerLocked,
+      ]}
+    >
       <TouchableOpacity
         style={styles.content}
         onPress={onTap}
@@ -63,12 +88,15 @@ export function PaywallSoftPrompt({ scansUsed }: { scansUsed: number }) {
           style={[
             styles.iconCircle,
             isUrgent && styles.iconCircleUrgent,
+            isLocked && styles.iconCircleLocked,
           ]}
         >
           <Ionicons
-            name={isUrgent ? "alert-circle" : "sparkles"}
+            name={
+              isLocked ? "lock-closed" : isUrgent ? "alert-circle" : "sparkles"
+            }
             size={20}
-            color={isUrgent ? colors.warning : TEAL}
+            color={isLocked ? "#FF6B35" : isUrgent ? colors.warning : TEAL}
           />
         </View>
         <View style={styles.textBlock}>
@@ -81,14 +109,16 @@ export function PaywallSoftPrompt({ scansUsed }: { scansUsed: number }) {
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onDismiss}
-        hitSlop={8}
-        style={styles.dismiss}
-        accessibilityLabel="Dismiss"
-      >
-        <Ionicons name="close" size={14} color={colors.textMuted} />
-      </TouchableOpacity>
+      {!isLocked && (
+        <TouchableOpacity
+          onPress={onDismiss}
+          hitSlop={8}
+          style={styles.dismiss}
+          accessibilityLabel="Dismiss"
+        >
+          <Ionicons name="close" size={14} color={colors.textMuted} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -110,6 +140,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(234, 179, 8, 0.08)",
     borderColor: "rgba(234, 179, 8, 0.25)",
   },
+  containerLocked: {
+    backgroundColor: "rgba(255, 107, 53, 0.10)",
+    borderColor: "rgba(255, 107, 53, 0.35)",
+    borderWidth: 1.5,
+  },
   content: {
     flex: 1,
     flexDirection: "row",
@@ -126,6 +161,9 @@ const styles = StyleSheet.create({
   },
   iconCircleUrgent: {
     backgroundColor: "rgba(234, 179, 8, 0.14)",
+  },
+  iconCircleLocked: {
+    backgroundColor: "rgba(255, 107, 53, 0.16)",
   },
   textBlock: {
     flex: 1,

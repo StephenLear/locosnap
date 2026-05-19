@@ -253,9 +253,13 @@ export default function ResultsScreen() {
         )}
       </View>
 
-      {/* ── Pro soft-prompt (non-Pro only, scan-count aware) ─ */}
+      {/* ── Pro soft-prompt (non-Pro only, scan-count aware) ─
+          Variants render at 2/4/5 (nudges) and persistently at 6 (lockout). */}
       {!isPro && (
-        <PaywallSoftPrompt scansUsed={profile?.daily_scans_used ?? 0} />
+        <PaywallSoftPrompt
+          scansUsed={profile?.daily_scans_used ?? 0}
+          surface="results"
+        />
       )}
 
       {/* ── Blueprint Style Picker (Pro only) ─────────── */}

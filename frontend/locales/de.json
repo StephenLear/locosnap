@@ -273,6 +273,11 @@
         "body": "Mit Pro ohne Limit jeden Zug weiterscannen.",
         "cta": "Weiter"
       },
+      "scan_6": {
+        "title": "Kostenlose Scans aufgebraucht",
+        "body": "Werde Pro und scanne unbegrenzt weiter — alle Daten, jeder Blueprint.",
+        "cta": "Pro werden"
+      },
       "default": {
         "title": "Erweitere deine Sammlung",
         "body": "Unbegrenzte Scans, Karten und Blueprints",

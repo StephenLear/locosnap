@@ -7,6 +7,29 @@ Format: newest first within each date block.
 
 ## 2026-05-19
 
+### Frontend — Paywall soft-prompt camera-screen mirror + scan_6 lockout variant
+
+Closes the obvious gap in the Pro funnel: previously the scan-aware soft-prompt only appeared on the **results** screen (after a scan), so a non-Pro user looking at the camera screen had no Pro-aware nudge surface before they tapped. And once a user hit 6/6, the only way to discover the lockout was to tap the scan button and read the Alert.
+
+Now the prompt mirrors onto the **camera** screen too, with a new persistent **scan_6 (locked)** variant that shows the actual lockout state visually before the user tries to scan.
+
+**Why ship now:** scan_6 is the closing-of-the-funnel piece — without a visible lockout, users at 6/6 hit a silent dead end and may churn. The hard Alert.alert + paywall redirect on tap (`scan_limit` source) stays as a backstop.
+
+**Explicitly NOT shipped (held by strategic decision):** push notifications at 5/6 — fights the documented "generous free tier beats tight gating" insight (see [project_status.md](memory:project_status.md) line 195-196, [project_competitive_positioning.md](memory:project_competitive_positioning.md)). Will revisit only if PostHog data over 2+ weeks shows scan_5/scan_6 surfaces underperforming.
+
+Applied:
+
+- `frontend/components/PaywallSoftPrompt.tsx` — added `surface?: "results" | "camera"` prop (defaults to `"results"`, non-breaking); new `scan_6` variant in `variantFor()` triggering at scans ≥ 6 with lock-icon + orange "free scans used" styling (distinct from teal scan_2/4 and amber scan_5); dismiss button hidden on `scan_6` because it reflects an actual lockout state (not an ignorable nudge); reset-on-variant-change effect so a dismiss at scan_2 doesn't silence the urgent scan_5 / scan_6 banners on persistent surfaces (the camera tab stays mounted across scans); analytics events (`paywall_softprompt_shown / _tapped / _dismissed`) now tag `surface` for per-surface conversion analysis. Routes to `/paywall?source=softprompt_${variant}_${surface}` for granular PostHog funnel breakdown.
+- `frontend/locales/{en,de,pl}.json` — new `softPrompt.scan_6` keys with locked framing ("Free scans used" / "Kostenlose Scans aufgebraucht" / "Darmowe skany wykorzystane").
+- `frontend/app/(tabs)/index.tsx` — new import + mounting block: shows the soft-prompt for signed-in non-Pro users when `daily_scans_used ∈ {2, 4, 5, 6}`, with `surface="camera"`. Pre-signup trial users (3-scan path) + Pro users see nothing.
+- `frontend/app/results.tsx` — passes `surface="results"` explicitly for analytics tagging. The new `scan_6` lockout variant now renders automatically on results too (was implicitly hitting the "default" copy at scans ≥ 6).
+
+**Stale-branch note:** the camera-mirror was originally drafted on `claude/great-cerf-96cc52` (commit `935d226`, 2026-05-15) but that branch is now ~4 days stale and **would be destructive to merge** (deletes the entire welcome email pipeline, SW1001 fix, T3 fix, four handover docs, and ~250 lines of trainSpecs that have all shipped since the branch was cut). The 9-line camera change + the `surface` prop refactor were replicated manually on main instead — no merge, no destructive changes.
+
+153/153 frontend tests passing. Typecheck clean. Direct to main. **NOT triggering an EAS build this session** — per `feedback_build_approval.md`, build trigger is the user's call once they've reviewed.
+
+---
+
 ### Backend — LSWR Adams T3 Class (No. 563) vision + specs fix (Steph misID: sole T3 survivor at Swanage Railway returned as "LSWR Adams O2 Class")
 
 UK tester Steph the Spotter scanned No. 563 (the sole surviving LSWR Adams T3) at the Swanage Railway and the app returned **"LSWR Adams O2 Class" with 87% confidence** — confidently wrong. Steph caught it on a second-day misID review and DMed the screenshot with the correction: "So this is actually a T3 not O2 Class".

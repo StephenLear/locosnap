@@ -277,6 +277,11 @@
         "body": "Skanuj każdy widziany pociąg — przejdź na Pro, by kontynuować bez limitów.",
         "cta": "Kontynuuj"
       },
+      "scan_6": {
+        "title": "Darmowe skany wykorzystane",
+        "body": "Przejdź na Pro, by skanować dalej — pełne dane, każdy plan, cała kolekcja.",
+        "cta": "Przejdź na Pro"
+      },
       "default": {
         "title": "Powiększ kolekcję",
         "body": "Nielimitowane skany, karty i plany",
