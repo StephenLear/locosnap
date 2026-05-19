@@ -1,0 +1,6 @@
+{
+  "NSCameraUsageDescription": "LocoSnap braucht Zugriff auf die Kamera, um Fotos von Zügen für die Erkennung aufzunehmen.",
+  "NSPhotoLibraryUsageDescription": "LocoSnap braucht Zugriff auf deine Mediathek, um Zugfotos für die Erkennung auszuwählen.",
+  "NSPhotoLibraryAddUsageDescription": "LocoSnap speichert deine Zugkarten in deiner Mediathek.",
+  "NSLocationWhenInUseUsageDescription": "LocoSnap nutzt deinen Standort, um zu speichern, wo du jeden Zug gesichtet hast — damit du deine Sammlung auf einer Karte sehen kannst."
+}

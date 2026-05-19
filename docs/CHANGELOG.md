@@ -7,6 +7,24 @@ Format: newest first within each date block.
 
 ## 2026-05-19
 
+### Frontend — iOS permission strings localised for DE + PL (build-time, zero runtime)
+
+Closes a watch-list item explicitly logged in [project_status.md](memory:project_status.md): iOS device-locale users on German and Polish were seeing English-only permission prompts (NSCameraUsageDescription / NSPhotoLibraryUsageDescription / NSPhotoLibraryAddUsageDescription / NSLocationWhenInUseUsageDescription) because the `app.json` `infoPlist` block was EN-only and no `locales` config existed.
+
+Applied via Expo's **build-time** `locales` config — generates per-locale `.lproj/InfoPlist.strings` files baked into the IPA at EAS build. **Zero runtime code execution** — this is NOT the banned `expo-localization` runtime module ([feedback_no_expo_localization.md](memory:feedback_no_expo_localization.md)), it's Continuous Native Generation config evaluated only during `eas build`. Safe.
+
+Applied:
+
+- `frontend/locales/ios/de.json` — German translations of the 4 NSxUsageDescription keys, matching the casual-direct tone used elsewhere in the German app strings ("LocoSnap braucht Zugriff…").
+- `frontend/locales/ios/pl.json` — Polish translations of the same 4 keys, gender-neutral phrasing throughout ("LocoSnap potrzebuje dostępu…" / "LocoSnap używa Twojej lokalizacji…") to avoid the gendered past-tense Polish verb trap.
+- `frontend/app.json` — new `expo.locales` block pointing to the two JSON files.
+
+iOS users on DE or PL device locale will see the translated permission prompts on next install once v1.0.33 ships. iOS users on other locales (EN, FI, IT, ES, NL, FR, CS, etc.) continue to see the EN default. EN users see the existing EN `infoPlist` strings.
+
+Typecheck clean. JSON syntax verified. Locale-only build config — no test coverage to add. Direct to main. Ships in v1.0.33.
+
+---
+
 ### Frontend — scan_2 paywall soft-prompt now leads with intro pricing
 
 The scan_2 prompt previously used value-led copy with no pricing reference ("Enjoying LocoSnap? See what you unlock with Pro…"). Replaced with **intro-price-led copy** to lower the perceived friction at the first paywall touchpoint. €1/month (or per-locale equivalent) is the lowest-effort entry into Pro and looks effectively-free — leading with the number rather than burying it in the paywall screen removes the implicit price-anxiety that may be churning users at scan 2.

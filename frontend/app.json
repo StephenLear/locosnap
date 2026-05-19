@@ -91,6 +91,10 @@
       "eas": {
         "projectId": "84584853-524a-44eb-bdad-3d57e1e4ea28"
       }
+    },
+    "locales": {
+      "de": "./locales/ios/de.json",
+      "pl": "./locales/ios/pl.json"
     }
   }
 }

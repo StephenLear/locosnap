@@ -1,0 +1,6 @@
+{
+  "NSCameraUsageDescription": "LocoSnap potrzebuje dostępu do aparatu, aby wykonywać zdjęcia pociągów do identyfikacji.",
+  "NSPhotoLibraryUsageDescription": "LocoSnap potrzebuje dostępu do biblioteki zdjęć, aby wybierać zdjęcia pociągów do identyfikacji.",
+  "NSPhotoLibraryAddUsageDescription": "LocoSnap zapisuje Twoje karty pociągów w bibliotece zdjęć.",
+  "NSLocationWhenInUseUsageDescription": "LocoSnap używa Twojej lokalizacji, aby zapisywać miejsce każdej obserwacji — możesz zobaczyć swoje obserwacje na mapie."
+}
