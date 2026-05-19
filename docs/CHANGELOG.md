@@ -7,6 +7,28 @@ Format: newest first within each date block.
 
 ## 2026-05-19
 
+### Release ops — v1.0.33 submitted to BOTH stores (iOS in Apple review, Android draft on Play Production track)
+
+After three failed Android builds in this session (21, 22, 23) the lint-disable fix (`d1cd710`) finally got onto an EAS build correctly and **Android build 24 FINISHED**. Sequence of mistakes and what fixed each:
+
+| Build | Commit EAS used | Outcome | Cause |
+|---|---|---|---|
+| 21 | `41107af` | ERRORED at lintVitalRelease (8 errors) | Original Expo locales / Android Lint mismatch — `expo.locales` generates `values-b+<locale>/strings.xml` for iOS-only NSx keys, no default locale → ExtraTranslation |
+| 22 | `26361e8` | ERRORED (12 errors, worse) | Previous session's "add `en` to locales" theory was wrong — `values-b+en/` is still a translation, not a default. Shipped unverified. |
+| 23 | `26361e8` (stale) | ERRORED (cached fingerprint identical to 22) | This session's deployment hygiene failure: triggered `eas build` from `/Users/StephenLear/Projects/locosnap/frontend` after pushing to remote but BEFORE pulling. EAS uploaded the un-pulled main checkout — same source as build 22, same cached fingerprint. |
+| **24** | **`53530c7`** (correct) | **FINISHED** ✅ | After hard pull + 4 verification gates (HEAD includes fix, local prebuild injects `lint { disable 'ExtraTranslation' }` correctly, build triggered with `--clear-cache`, EAS confirmed new commit + fresh fingerprint `815d60ac…`) the build progressed past lintVitalRelease for the first time. |
+
+Submitted:
+- **🍏 iOS build 55** (`23nDRgQ5HTZzifepTYxmSi.ipa`) → App Store Connect → in Apple review. ASC submission `7ab37344-b97b-481a-8887-ab9635f40e40`.
+- **🤖 Android build 24** (`v1VxbnHu59dpSXuDeJBrwb.aab`) → Play Console → **draft on Production track** per `eas.json` `releaseStatus: draft`. EAS submission `676bd460-16c1-4fb0-81a6-5bd42b2d4a5b`. Awaiting user to paste release notes (`docs/release-notes-v1.0.33.md` per locale EN/DE/PL) and click "Start rollout to Production".
+
+EAS credit usage: ~95% of monthly allocation (was 88% at session open). Builds 21-24 plus the earlier iOS build 55 consumed the bulk. Pay-as-you-go for any further builds this billing window.
+
+**Lessons captured in memory:**
+- `feedback_expo_locales_android_lint.md` (renamed + rewritten — old version with "add EN entry" recommendation was wrong; new version explains why `ExtraTranslation` cannot be satisfied via `expo.locales` and recommends the config-plugin approach)
+- New rule: **never trigger `eas build` from a checkout you haven't pulled** — EAS uses the local working tree as the source, not the remote. Always `git log -1` to verify HEAD includes your fix before triggering.
+- New rule: **for release-blocking lint/build failures, always reproduce locally first** (`npx expo prebuild --platform android --clean` + inspect generated files) — never let EAS be your test runner on a slow feedback loop with a paid credit per attempt.
+
 ### Frontend — disable Android Lint ExtraTranslation rule to unblock v1.0.33 release builds (d1cd710)
 
 v1.0.33 Android EAS builds 21 and 22 both errored at `:app:lintVitalRelease` with 8 and 12 `ExtraTranslation` errors respectively on the DE+PL (and accidentally EN) NSCameraUsageDescription / NSPhotoLibraryUsageDescription / NSPhotoLibraryAddUsageDescription / NSLocationWhenInUseUsageDescription keys.
