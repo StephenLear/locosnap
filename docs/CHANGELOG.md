@@ -7,6 +7,27 @@ Format: newest first within each date block.
 
 ## 2026-05-19
 
+### Frontend — disable Android Lint ExtraTranslation rule to unblock v1.0.33 release builds (d1cd710)
+
+v1.0.33 Android EAS builds 21 and 22 both errored at `:app:lintVitalRelease` with 8 and 12 `ExtraTranslation` errors respectively on the DE+PL (and accidentally EN) NSCameraUsageDescription / NSPhotoLibraryUsageDescription / NSPhotoLibraryAddUsageDescription / NSLocationWhenInUseUsageDescription keys.
+
+**Root cause:** Expo's CNG `expo.locales` block processes JSON locale files for **both** platforms. On iOS it generates `<locale>.lproj/InfoPlist.strings`; on Android it generates `res/values-b+<locale>/strings.xml`. The iOS NSx Info.plist permission keys are inherently iOS-only — they have no meaning on Android — but Expo's locale plugin doesn't filter by platform, so they end up in Android's localized strings.xml with no matching entry in the unqualified `values/strings.xml` (the "default locale" by Android Lint's definition). Lint's `ExtraTranslation` rule fails the release build with one error per locale per key.
+
+**Failed first attempt (commit 26361e8, build 22):** added an `en` entry to `expo.locales` thinking it would create a default locale. It did not — `values-b+en/` is still a translation, not a default. Build 22 errored with worse counts than 21.
+
+**Real fix (this commit):**
+
+- `frontend/plugins/withDisableExtraTranslationLint.js` — new Expo config plugin mirroring the existing `withSentryDisableUpload` pattern. Uses `withAppBuildGradle` from `@expo/config-plugins` to inject `lint { disable 'ExtraTranslation' }` into the generated `android/app/build.gradle` `android { ... }` block during prebuild. Only the `ExtraTranslation` rule is suppressed; all other lint checks continue to run in vital-release mode.
+- `frontend/app.json` — registered the new plugin in `plugins[]` immediately after `withSentryDisableUpload`. Also removed the orphaned `en` entry from the `locales` block — EN strings are already the default in `ios.infoPlist`, so the entry was a no-op on iOS and harmful on Android (generated a third `values-b+en/strings.xml` with the same lint problem).
+
+**Why suppression is safe:** the NSx keys exist in Android `values-b+<locale>/strings.xml` purely as an artifact of Expo's CNG locale codegen. Zero Android code paths reference them. There is no runtime risk — the keys are dead resources on Android.
+
+**Verified locally** before pushing: `npx expo prebuild --platform android --clean` runs cleanly; plugin injects the lint disable at line 87 of `android/app/build.gradle` (top of `android { ... }`); generated `values-b+de/strings.xml` and `values-b+pl/strings.xml` retain the DE/PL NSx strings (so iOS localisation is unchanged); no `values-b+en/` is generated. Could not run `:app:lintVitalRelease` locally (no Android SDK installed) — relying on documented rule-suppression mechanism which is stable in AGP.
+
+Next: trigger Android-only EAS build (build 23) for v1.0.33. iOS build 55 is already in Apple review and unaffected.
+
+---
+
 ### Frontend — iOS permission strings localised for DE + PL (build-time, zero runtime)
 
 Closes a watch-list item explicitly logged in [project_status.md](memory:project_status.md): iOS device-locale users on German and Polish were seeing English-only permission prompts (NSCameraUsageDescription / NSPhotoLibraryUsageDescription / NSPhotoLibraryAddUsageDescription / NSLocationWhenInUseUsageDescription) because the `app.json` `infoPlist` block was EN-only and no `locales` config existed.
