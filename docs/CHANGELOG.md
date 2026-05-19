@@ -5,6 +5,28 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-19
+
+### Backend — LSWR Adams T3 Class (No. 563) vision + specs fix (Steph misID: sole T3 survivor at Swanage Railway returned as "LSWR Adams O2 Class")
+
+UK tester Steph the Spotter scanned No. 563 (the sole surviving LSWR Adams T3) at the Swanage Railway and the app returned **"LSWR Adams O2 Class" with 87% confidence** — confidently wrong. Steph caught it on a second-day misID review and DMed the screenshot with the correction: "So this is actually a T3 not O2 Class".
+
+The model recognised "Adams" correctly but defaulted to the more numerous and more frequently photographed Adams class (O2, 60 built, multiple Isle of Wight survivors). It missed the fundamental distinction: **T3 is a 4-4-0 EXPRESS TENDER LOCOMOTIVE; O2 is a 0-4-4T SUBURBAN TANK ENGINE** — opposite vehicle types despite shared designer.
+
+Researched and identified: **LSWR Adams T3 Class No. 563** — designed by William Adams, built 1892–1893 at Nine Elms Works, 20 built (LSWR numbers 557–576). No. 563 is the sole survivor — donated to NRM 1948, stored static for 75 years, donated by NRM to Swanage Railway Trust in 2017, restored at the Flour Mill and Swanage works by the 563 Locomotive Group at a cost of £650,000, **returned to steam 8 October 2023**. Currently operational at the Swanage Railway in LSWR Drummond passenger green livery. Note: 563 was never given a BR 30xxx number — withdrawn pre-nationalisation, only retained for the LSWR centenary in 1948.
+
+Applied:
+
+- `backend/src/services/vision.ts` — (a) extended the existing "UK BR 30xxx number block" disambiguation rule to add `563 = LSWR Adams T3 Class` and `30225 / 30192 / 30183 (range 30177–30236) = Adams O2 0-4-4T tank class` as explicit lookups; (b) new dedicated T3 vs O2 disambiguation rule inserted before the Urie S15 rule. Encodes: wheel arrangement is the primary discriminator (4-4-0 tender vs 0-4-4T tank, opposite types), No. 563 is definitive for T3, separate tender rules out O2, Swanage Railway context is overwhelmingly T3, LSWR Drummond green livery is correct for current preservation. Includes the 75-year static layup → 2023 return-to-steam story angle.
+- `backend/src/services/trainSpecs.ts` — (a) new T3 prompt block in the system prompt section (alongside Urie S15, Sm2, Sm4 entries); (b) hardcoded specs for `t3`, `lswr t3`, `lswr t3 class`, `lswr adams t3`, `lswr adams t3 class`, `adams t3`, `t3 class` (7 alias keys covering all class-string format variants). Locks 60 mph / 17,673 lbf TE / Nine Elms Works (LSWR) / 20 built / Coal (steam) / Standard gauge.
+- `backend/src/services/trainCache.ts` — `CACHE_VERSION` bumped **v11 → v12** to invalidate any stale "LSWR Adams O2" cache entries from prior 563 scans.
+
+Same fix pattern as prior Steph corrections (SW1001 `56cd3e0`, J94 vs J72 / FR20 vs Terrier 2026-04-28, Class 45 / 57 / 59 / 70 / 11 / 52 / 14 over April–May) plus the wider tester-correction batches (ICE family `24cd1dc`, Class 390+66 `cec1f13`, BR 423 `14a1b37`, EU07 `ee21ed6`, BR 245 `fda139d`, BR 428 `789fe0a`, BR 247 `52f4e6b`). **Steph's 7th confirmed misID-to-fix loop** — deepest tester-evangelist loop in the project.
+
+173/173 backend tests passing. Typecheck clean. Render auto-deploy in flight on push.
+
+---
+
 ## 2026-05-18
 
 ### Backend — EMD SW1001 vision + specs fix (Steph misID: Merehead industrial shunter returned as Class 08)

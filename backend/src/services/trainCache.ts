@@ -85,7 +85,14 @@ let totalMisses = 0;
 // General Motors EMD builder. Any cached "class 08 / DB Cargo UK / 350 HP"
 // entry from a prior SW1001 scan would otherwise continue serving stale
 // data from cache even after the vision fix.
-const CACHE_VERSION = "v11";
+// 2026-05-19: bumped v11 → v12 to invalidate stale "LSWR Adams O2" entries
+// from the T3 No. 563 misID fix. UK tester Steph the Spotter reported the
+// sole T3 survivor at Swanage Railway being misidentified as Adams O2 (87%
+// confidence). New vision rule locks No. 563 → T3 / 4-4-0 / tender — never
+// O2 (0-4-4T tank) — and new T3 hardcoded specs lock Nine Elms / 20 built /
+// 17,673 lbf TE / 60 mph. Any cached "LSWR Adams O2 Class" entry from a
+// prior 563 scan would otherwise continue serving stale data after the fix.
+const CACHE_VERSION = "v12";
 
 function getCacheKey(train: TrainIdentification, language: string = "en"): string {
   return `${CACHE_VERSION}::${language}::${train.class}::${train.operator}`.toLowerCase().trim();
