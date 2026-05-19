@@ -7,7 +7,7 @@ Format: newest first within each date block.
 
 ## 2026-05-19
 
-### Release ops — v1.0.33 submitted to BOTH stores (iOS in Apple review, Android draft on Play Production track)
+### Release ops — v1.0.33 IN REVIEW ON BOTH STORES (iOS in Apple review, Android in Google review)
 
 After three failed Android builds in this session (21, 22, 23) the lint-disable fix (`d1cd710`) finally got onto an EAS build correctly and **Android build 24 FINISHED**. Sequence of mistakes and what fixed each:
 
@@ -20,7 +20,7 @@ After three failed Android builds in this session (21, 22, 23) the lint-disable 
 
 Submitted:
 - **🍏 iOS build 55** (`23nDRgQ5HTZzifepTYxmSi.ipa`) → App Store Connect → in Apple review. ASC submission `7ab37344-b97b-481a-8887-ab9635f40e40`.
-- **🤖 Android build 24** (`v1VxbnHu59dpSXuDeJBrwb.aab`) → Play Console → **draft on Production track** per `eas.json` `releaseStatus: draft`. EAS submission `676bd460-16c1-4fb0-81a6-5bd42b2d4a5b`. Awaiting user to paste release notes (`docs/release-notes-v1.0.33.md` per locale EN/DE/PL) and click "Start rollout to Production".
+- **🤖 Android build 24** (`v1VxbnHu59dpSXuDeJBrwb.aab`) → Play Console → submitted via `eas submit` as draft on Production track per `eas.json` `releaseStatus: draft`, EAS submission `676bd460-16c1-4fb0-81a6-5bd42b2d4a5b`. User then pasted EN/DE/PL release notes from `docs/release-notes-v1.0.33.md` and started rollout to Production → **now IN GOOGLE REVIEW**. Expect 1-7 days typical.
 
 EAS credit usage: ~95% of monthly allocation (was 88% at session open). Builds 21-24 plus the earlier iOS build 55 consumed the bulk. Pay-as-you-go for any further builds this billing window.
 
