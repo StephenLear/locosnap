@@ -5,6 +5,26 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-20
+
+### Frontend — Sentry breadcrumb on identifyTrainNative connect failure (diagnostics)
+
+Sentry issue `REACT-NATIVE-P` ("Could not connect to LocoSnap servers. Please try again later.") fires from [frontend/services/api.ts:280-285](frontend/services/api.ts) after both the initial request and the silent 3s retry fail with no HTTP response and no `ECONNABORTED` code. 13 events / 10 users across releases 1.0.28 → 1.0.32 over 12 days — low rate, distributed across 5 builds, 54% Android 16, 23% Huawei MAR-LX1B. Diagnosis: real-world mobile network flakiness, not a code regression.
+
+Current code surfaces only the generic user-facing message to Sentry; the underlying axios error code/message (e.g. `ERR_NETWORK`, `ENOTFOUND`, `Network Error`) is discarded. Future spikes can't be triaged.
+
+**Applied:**
+
+- `frontend/services/api.ts` — import `addBreadcrumb` from `./analytics`; add a Sentry breadcrumb immediately before the terminal `throw new Error("Could not connect to LocoSnap servers…")` capturing `initialCode`, `initialMessage`, `retryCode`, `retryMessage` from both attempts. Web-path equivalent (line 199) intentionally not instrumented — current Sentry events are all native, not web.
+
+**Why no functional change:** the user-facing toast is unchanged; the retry behaviour is unchanged. This is pure diagnostic instrumentation. Sentry will attach the breadcrumb to the next firing of this issue, letting us distinguish DNS failures from connection resets from radio-handover drops next time it spikes.
+
+**Operational:** issue should be archived in Sentry now — current events all predate this breadcrumb and aren't diagnosable. Re-open if rate climbs in v1.0.33+ with breadcrumb data attached.
+
+Tests: `npx tsc --noEmit` clean. No new test added — breadcrumb is fire-and-forget instrumentation already covered by `addBreadcrumb`'s own try/catch in [frontend/services/analytics.ts:135-142](frontend/services/analytics.ts).
+
+---
+
 ## 2026-05-19
 
 ### Release ops — v1.0.33 IN REVIEW ON BOTH STORES (iOS in Apple review, Android in Google review)

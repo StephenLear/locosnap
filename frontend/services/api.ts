@@ -14,7 +14,7 @@ import {
 import { IdentifyResponse, BlueprintStatus, BlueprintStyle } from "../types";
 import { useSettingsStore } from "../store/settingsStore";
 import { supabase } from "../config/supabase";
-import { captureWarning } from "./analytics";
+import { captureWarning, addBreadcrumb } from "./analytics";
 
 // Max longest-edge dimension before we resize (keeps detail, cuts file size)
 const MAX_IMAGE_DIMENSION = 1920;
@@ -271,6 +271,12 @@ async function identifyTrainNative(
           "Request timed out. Please check your connection and try again."
         );
       }
+      addBreadcrumb("api", "identifyTrainNative connect failed after retry", {
+        initialCode: axiosError.code,
+        initialMessage: axiosError.message,
+        retryCode: retryAxiosError.code,
+        retryMessage: retryAxiosError.message,
+      });
       throw new Error(
         "Could not connect to LocoSnap servers. Please try again later."
       );
