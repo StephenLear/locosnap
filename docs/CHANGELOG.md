@@ -7,6 +7,22 @@ Format: newest first within each date block.
 
 ## 2026-05-20
 
+### Release ops — v1.0.33 LIVE ON BOTH STORES
+
+Apple and Google both approved + published v1.0.33 since the 2026-05-19 session close. iOS build 55 LIVE on App Store (IPA `23nDRgQ5HTZzifepTYxmSi`); Android build 24 / versionCode 22 LIVE on Google Play Production at 100% rollout (AAB `v1VxbnHu59dpSXuDeJBrwb`). No code change in this entry — pure state-change log.
+
+v1.0.33 payload now reaching all users on both platforms (carried unchanged from the 2026-05-19 build cycle):
+
+- scan_2 paywall with intro pricing (£1 / €1 / 5,19 zł new-subscriber framing)
+- Paywall soft-prompt mirrored onto camera screen + scan_6 lockout variant
+- Country-flag backfill banner for legacy users
+- iOS DE+PL permission-prompt localisation (iOS-only — Android no-op)
+- Version bump 1.0.32 → 1.0.33
+
+Architecture doc header + Latest iOS Build + Latest Android Production Build rows updated to reflect LIVE state. Prior v1.0.32 entries demoted to "Previous".
+
+---
+
 ### Frontend — Sentry breadcrumb on identifyTrainNative connect failure (diagnostics)
 
 Sentry issue `REACT-NATIVE-P` ("Could not connect to LocoSnap servers. Please try again later.") fires from [frontend/services/api.ts:280-285](frontend/services/api.ts) after both the initial request and the silent 3s retry fail with no HTTP response and no `ECONNABORTED` code. 13 events / 10 users across releases 1.0.28 → 1.0.32 over 12 days — low rate, distributed across 5 builds, 54% Android 16, 23% Huawei MAR-LX1B. Diagnosis: real-world mobile network flakiness, not a code regression.
