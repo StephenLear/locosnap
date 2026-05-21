@@ -5,6 +5,18 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-21
+
+### Backend — SU46 builder correction (Cegielski → Fablok Chrzanów)
+
+`backend/src/services/trainSpecs.ts:674-680` — extended the existing SU46 hardcoded-specs override (which already locked maxSpeed at 120 km/h overriding the AI/Wikidata 160 km/h) to also lock `builder: "Fablok Chrzanów"`. AI/Wikidata had been returning `H. Cegielski – Poznań`, which is wrong — Cegielski never built the SU46. All 54 units were built by Fablok Chrzanów 1974-1977.
+
+Caught 2026-05-21 by the SU46 ad scan test — the spec sheet panel returned Cegielski while the Historical Significance text in the same result page already credited Fablok + Pafawag. The override unifies builder attribution across both panels for both `"su46"` and `"pkp su46"` lookup keys.
+
+All 9 trainSpecs tests still pass after the change. Frontend-only consequence: SU46 scans will now display `Fablok Chrzanów` as the builder consistently across all panels.
+
+---
+
 ## 2026-05-20
 
 ### Release ops — v1.0.33 LIVE ON BOTH STORES

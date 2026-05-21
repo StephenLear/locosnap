@@ -671,9 +671,13 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "class 55": { builder: "English Electric / Vulcan Foundry" },
   "class 55 deltic": { builder: "English Electric / Vulcan Foundry" },
   "br class 55": { builder: "English Electric / Vulcan Foundry" },
-  // PKP SU46 — AI and/or Wikidata returns 160 km/h; correct vmax is 120 km/h
-  "su46": { maxSpeed: "120 km/h" },
-  "pkp su46": { maxSpeed: "120 km/h" },
+  // PKP SU46 — AI/Wikidata returns 160 km/h (correct vmax is 120 km/h) AND attributes
+  // builder to "H. Cegielski – Poznań" (wrong — Cegielski never built SU46). All 54 units
+  // built by Fablok Chrzanów 1974-1977. Caught 2026-05-21 by the SU46 ad scan test —
+  // the spec sheet returned Cegielski while the Historical Significance text already
+  // credited Fablok + Pafawag. trainSpecs override unifies the builder across both panels.
+  "su46": { maxSpeed: "120 km/h", builder: "Fablok Chrzanów" },
+  "pkp su46": { maxSpeed: "120 km/h", builder: "Fablok Chrzanów" },
   // PKP EP09 — AI and/or Wikidata returns 200 km/h; correct vmax is 160 km/h
   "ep09": { maxSpeed: "160 km/h" },
   "pkp ep09": { maxSpeed: "160 km/h" },
