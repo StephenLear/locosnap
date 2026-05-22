@@ -37,7 +37,11 @@ Chosen over a server-sent push: there is no server push infrastructure (`profile
 
 `frontend/app.json` — version bumped for the next EAS build, which bundles all three frontend changes above: wrong-ID photo capture, gallery EXIF GPS location, and the Pro rescue prompt.
 
-Frontend changes reach users on the v1.0.34 EAS build — not yet built.
+Frontend changes reach users on the v1.0.34 EAS build.
+
+### Release ops — v1.0.34 built and submitted to both stores
+
+EAS production builds completed for v1.0.34 — iOS build 56 (IPA), Android versionCode 26 (AAB), both from commit `14af836`. Submitted via `eas submit`: Android uploaded to the Google Play **production track as a draft**; iOS uploaded to App Store Connect (Apple processing, then TestFlight). Neither is live yet — Play needs the draft rolled out, iOS needs the build attached to a version and submitted for review. Release notes drafted in EN/DE/PL for both stores. The first EAS build attempt failed on an outdated eas-cli (18.5.0); retried successfully via `npx eas-cli@latest`. Build credits were at 95%, so the builds used pay-as-you-go.
 
 ---
 
