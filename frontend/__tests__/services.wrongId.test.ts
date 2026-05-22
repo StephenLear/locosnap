@@ -88,4 +88,14 @@ describe('submitWrongIdReport', () => {
     });
     expect(ok).toBe(false);
   });
+
+  it('stores a remote photoUri directly as photo_url', async () => {
+    await submitWrongIdReport({
+      source: 'card-wrong-id',
+      returnedClass: 'Class 158',
+      photoUri: 'https://example.com/spot-photos/abc.jpg',
+    });
+    const payload = insertMock.mock.calls[0][0];
+    expect(payload.photo_url).toBe('https://example.com/spot-photos/abc.jpg');
+  });
 });

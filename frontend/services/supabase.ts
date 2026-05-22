@@ -635,12 +635,32 @@ export async function submitWrongIdReport(params: {
   userCorrection?: string;
   spotId?: string;
   photoUrl?: string;
+  photoUri?: string;
   userId?: string;
 }): Promise<boolean> {
+  // Resolve a storable photo URL. A misidentification report is far more
+  // actionable for triage when the scanned image is attached. `photoUri`
+  // may be a remote URL (a cloud-loaded history item — store it directly)
+  // or a local file URI (a fresh scan — upload it first). Anonymous users
+  // have no userId so a local photo cannot be uploaded; the report still
+  // files, just without an image.
+  let resolvedPhotoUrl: string | null = params.photoUrl ?? null;
+  if (!resolvedPhotoUrl && params.photoUri) {
+    if (/^https?:\/\//i.test(params.photoUri)) {
+      resolvedPhotoUrl = params.photoUri;
+    } else if (params.userId) {
+      resolvedPhotoUrl = await uploadPhoto(
+        params.userId,
+        params.photoUri,
+        `wrongid-${Date.now()}`
+      );
+    }
+  }
+
   const { error } = await supabase.from("wrong_id_reports").insert({
     user_id: params.userId ?? null,
     spot_id: params.spotId ?? null,
-    photo_url: params.photoUrl ?? null,
+    photo_url: resolvedPhotoUrl,
     returned_class: params.returnedClass,
     returned_operator: params.returnedOperator ?? null,
     returned_confidence: params.returnedConfidence ?? null,

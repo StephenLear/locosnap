@@ -423,6 +423,7 @@ export default function CardRevealScreen() {
       returnedClass: currentTrain.class,
       returnedOperator: currentTrain.operator,
       returnedConfidence: currentTrain.confidence,
+      photoUri: currentPhotoUri ?? undefined,
       spotId: historyItem?.id,
       userId: session?.user?.id,
     }).catch(() => {});

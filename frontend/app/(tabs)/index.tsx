@@ -74,6 +74,39 @@ function parseExifDateTime(exif: Record<string, unknown> | undefined): string | 
   return null;
 }
 
+/**
+ * Extract GPS coordinates embedded in a photo's EXIF. A gallery photo
+ * carries the location where it was actually taken — using the device's
+ * current location instead mislabels a scan of a saved photo (RailUK
+ * report 2026-05-22: a photo taken at Reading logged as Bournemouth).
+ * iOS exposes a nested "{GPS}" dict; Android exposes flat GPS* keys.
+ * Returns null when no usable fix is present.
+ */
+function parseExifGps(
+  exif: Record<string, unknown> | undefined
+): { latitude: number; longitude: number } | null {
+  if (!exif) return null;
+  const gps = (exif["{GPS}"] as Record<string, unknown> | undefined) ?? exif;
+  const rawLat = gps.Latitude ?? gps.GPSLatitude ?? exif.GPSLatitude;
+  const rawLng = gps.Longitude ?? gps.GPSLongitude ?? exif.GPSLongitude;
+  if (typeof rawLat !== "number" || typeof rawLng !== "number") return null;
+  if (rawLat === 0 && rawLng === 0) return null; // 0,0 = stripped/empty fix
+  const latRef = gps.LatitudeRef ?? gps.GPSLatitudeRef ?? exif.GPSLatitudeRef;
+  const lngRef = gps.LongitudeRef ?? gps.GPSLongitudeRef ?? exif.GPSLongitudeRef;
+  // When a hemisphere ref is present the magnitude is unsigned — apply it.
+  // When absent, the EXIF reader has already returned a signed value.
+  let latitude = rawLat;
+  if (latRef === "S") latitude = -Math.abs(rawLat);
+  else if (latRef === "N") latitude = Math.abs(rawLat);
+  let longitude = rawLng;
+  if (lngRef === "W") longitude = -Math.abs(rawLng);
+  else if (lngRef === "E") longitude = Math.abs(rawLng);
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    return null;
+  }
+  return { latitude, longitude };
+}
+
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -225,6 +258,7 @@ export default function HomeScreen() {
     imageUri: string,
     captureSource: "camera" | "gallery" = "gallery",
     exifTimestamp: string | null = null,
+    exifGps: { latitude: number; longitude: number } | null = null,
   ) => {
     if (!canScan()) {
       if (!session) {
@@ -285,6 +319,16 @@ export default function HomeScreen() {
       }
     } catch {
       setLocation(null);
+    }
+
+    // Gallery photos: the photo's own EXIF GPS is where it was actually
+    // taken — prefer it over the device's current location, which would
+    // mislabel a scan of a saved photo. photoAccuracyM is intentionally
+    // left as the device reading so verification tiers are unchanged.
+    if (captureSource === "gallery" && exifGps) {
+      latitude = exifGps.latitude;
+      longitude = exifGps.longitude;
+      setLocation({ latitude, longitude });
     }
 
     const provenance = {
@@ -356,6 +400,7 @@ export default function HomeScreen() {
                   returnedClass: train.class,
                   returnedOperator: train.operator,
                   returnedConfidence: train.confidence,
+                  photoUri: imageUri,
                   userId: session?.user?.id,
                 }).catch(() => {});
               },
@@ -508,7 +553,8 @@ export default function HomeScreen() {
         // risk-flag path.
         const exif = (result.assets[0] as { exif?: Record<string, unknown> }).exif;
         const exifTimestamp = parseExifDateTime(exif);
-        handleScan(converted.uri, "gallery", exifTimestamp);
+        const exifGps = parseExifGps(exif);
+        handleScan(converted.uri, "gallery", exifTimestamp, exifGps);
       } catch (error) {
         // iOS PHImageManager throws when an iCloud Photo Library photo
         // hasn't been downloaded yet (Optimise iPhone Storage). Surfacing
