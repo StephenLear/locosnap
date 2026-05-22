@@ -27,7 +27,17 @@ All 173 backend tests pass; typecheck clean. Not yet deployed — needs a push t
 
 `frontend/app/(tabs)/index.tsx` — a scan of a saved photo logged the device's *current* location instead of where the photo was taken (RailUK tester sabanda: a photo taken at Reading was labelled Bournemouth). New `parseExifGps` helper reads GPS coordinates from the picked photo's EXIF (iOS nested `{GPS}` dict / Android flat `GPS*` keys, with hemisphere-ref sign handling). For `captureSource === "gallery"`, the photo's EXIF GPS now overrides the device location. `photoAccuracyM` is deliberately left as the device reading so verification tiers are unchanged. Camera captures are unaffected. New test case added for the report-photo passthrough; all 154 frontend tests pass.
 
-Frontend changes need an EAS build to reach users — not yet built.
+### Frontend — In-app Pro rescue prompt for never-scanned Pro users
+
+`frontend/components/ProRescuePrompt.tsx` (NEW), `frontend/app/(tabs)/index.tsx`, `frontend/locales/{en,de,pl}.json` — a one-time, dismissable card on the scan screen for users who have subscribed to Pro but never logged a spot (`is_pro === true && last_spot_date == null`). Surfaced by the 2026-05-17 Supabase/RevenueCat audit: paying customers who subscribed within minutes of first opening the app and never scanned a train. The card nudges them to make their first scan; dismissal persists in AsyncStorage (`locosnap_pro_rescue_dismissed`), and the prompt also stops naturally once the first spot sets `last_spot_date`. EN/DE/PL strings under `scan.proRescue`. Self-gating component, mirrors the `PaywallSoftPrompt` styling.
+
+Chosen over a server-sent push: there is no server push infrastructure (`profiles.push_token` column doesn't exist, no send path) and Android push is disabled — an in-app prompt reaches both platforms and reaches the cohort while they are actually in the app. A real push-based rescue remains a separate, larger piece of work.
+
+### Release — app.json version bump 1.0.33 → 1.0.34
+
+`frontend/app.json` — version bumped for the next EAS build, which bundles all three frontend changes above: wrong-ID photo capture, gallery EXIF GPS location, and the Pro rescue prompt.
+
+Frontend changes reach users on the v1.0.34 EAS build — not yet built.
 
 ---
 
