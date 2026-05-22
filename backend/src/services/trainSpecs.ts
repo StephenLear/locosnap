@@ -1120,6 +1120,9 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // Added 2026-05-17 after RailUK forum report of Freightliner returned for
   // a GBRf-liveried unit (wrong operator) and 3,200 hp (wrong — correct is 3,300).
   "class 66": { maxSpeed: "75 mph", power: "3,300 hp (2,460 kW)", builder: "EMD / Progress Rail (London, Ontario)", numberBuilt: 446, fuelType: "Diesel-Electric (EMD 710G3B)" },
+  // Added 2026-05-22 after a RailUK forum report (GRALISTAIR / pokemonsuper9) that
+  // Class 222 unit 222601 was misidentified as a Class 158. No prior 222 coverage.
+  "class 222": { maxSpeed: "125 mph (200 km/h)", builder: "Bombardier Transportation (Bruges, Belgium)", numberBuilt: 27, fuelType: "Diesel-Electric" },
   "br class 66": { maxSpeed: "75 mph", power: "3,300 hp (2,460 kW)", builder: "EMD / Progress Rail (London, Ontario)", numberBuilt: 446, fuelType: "Diesel-Electric (EMD 710G3B)" },
   "british rail class 66": { maxSpeed: "75 mph", power: "3,300 hp (2,460 kW)", builder: "EMD / Progress Rail (London, Ontario)", numberBuilt: 446, fuelType: "Diesel-Electric (EMD 710G3B)" },
   "class 66/0": { maxSpeed: "75 mph", power: "3,300 hp (2,460 kW)", builder: "EMD / Progress Rail (London, Ontario)", numberBuilt: 446, fuelType: "Diesel-Electric (EMD 710G3B)" },
