@@ -30,6 +30,7 @@ import { submitWrongIdReport } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track, captureError, addBreadcrumb } from "../../services/analytics";
 import { PaywallSoftPrompt } from "../../components/PaywallSoftPrompt";
+import { ProRescuePrompt } from "../../components/ProRescuePrompt";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -727,6 +728,9 @@ export default function HomeScreen() {
           surface="camera"
         />
       )}
+
+      {/* ── Pro rescue prompt: subscribed but never scanned ── */}
+      <ProRescuePrompt />
 
       {/* ── Scanner Hero ── */}
       <View style={styles.hero}>

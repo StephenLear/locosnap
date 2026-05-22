@@ -6,6 +6,11 @@
     "leaderboard": "Leaderboard"
   },
   "scan": {
+    "proRescue": {
+      "title": "You have Pro — make your first scan",
+      "body": "Photograph any train, or pick a photo from your gallery, to scan your first train.",
+      "dismissA11y": "Dismiss"
+    },
     "title": "LocoSnap",
     "scanButton": "Scan Train",
     "scanning": "Identifying...",

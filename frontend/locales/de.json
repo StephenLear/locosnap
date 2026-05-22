@@ -6,6 +6,11 @@
     "leaderboard": "Bestenliste"
   },
   "scan": {
+    "proRescue": {
+      "title": "Du hast Pro — auf zum ersten Scan",
+      "body": "Fotografiere einen beliebigen Zug oder wähle ein Foto aus deiner Galerie, um deinen ersten Zug zu scannen.",
+      "dismissA11y": "Schließen"
+    },
     "title": "LocoSnap",
     "scanButton": "Zug scannen",
     "scanning": "Wird erkannt...",

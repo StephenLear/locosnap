@@ -6,6 +6,11 @@
     "leaderboard": "Ranking"
   },
   "scan": {
+    "proRescue": {
+      "title": "Masz Pro — wykonaj pierwszy skan",
+      "body": "Sfotografuj dowolny pociąg lub wybierz zdjęcie z galerii, aby zeskanować pierwszy pociąg.",
+      "dismissA11y": "Zamknij"
+    },
     "title": "LocoSnap",
     "scanButton": "Skanuj pociąg",
     "scanning": "Identyfikuję...",
