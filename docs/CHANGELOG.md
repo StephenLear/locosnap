@@ -7,6 +7,10 @@ Format: newest first within each date block.
 
 ## 2026-05-22
 
+### Planning — v1.0.35 monetisation redesign designed + planned
+
+A brainstorm session produced the v1.0.35 monetisation redesign — **"The Club"**: a free 3-scan taster → €1 one-time club membership (no ads / no data selling, ever) → Pro subscription, with a tier-aware home card and peak-moment auto-open paywalls. Existing free users are not grandfathered — they keep legacy status and get the €1-join offer. Approved design: `docs/plans/2026-05-22-monetisation-design.md`. Phased implementation plan: `docs/plans/2026-05-22-v1.0.35-monetisation-plan.md`. No code yet — a separate implementation session, gated on v1.0.34 clearing Apple review and the €1 IAP being created in the stores. Supported by a same-day break-even analysis and a subscriber-growth research brief (both in the session transcript).
+
 ### Backend — Class 222 "Meridian" vs Class 158 disambiguation (RailUK forum)
 
 `backend/src/services/vision.ts`, `backend/src/services/trainSpecs.ts` — RailUK forum (GRALISTAIR, confirmed by pokemonsuper9) reported East Midlands Railway unit 222601 — a Class 222 "Meridian" — being identified as an "East Midlands Railway Class 158". No Class 222 coverage existed in `vision.ts`, so the model defaulted to the far more numerous Class 158 (~180 units vs ~27), helped by EMR operating both classes. New `vision.ts` disambiguation rule keyed on cab profile (Class 222 = sleek aerodynamic nose, no front gangway; Class 158 = flat Sprinter cab with a centre front gangway door) and fleet number, plus an explicit note that 222601 is a one-off 6-car /6 unit in a non-standard blue livery. New `trainSpecs.ts` `class 222` entry — 125 mph, Bombardier Transportation (Bruges), 27 built, diesel-electric. 173/173 backend tests pass; typecheck clean. Pushed to origin/main — Render auto-deploys.
