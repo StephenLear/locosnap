@@ -5,6 +5,32 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-22
+
+### Backend — Class 66 operator rule rewritten + two new steam disambiguation rules (RailUK forum)
+
+`backend/src/services/vision.ts` — three disambiguation changes driven by railforums.co.uk feedback:
+
+1. **Class 66 operator rule rewritten.** The previous rule (shipped `cec1f13`, 2026-05-17) described GBRf as "dark grey" and Freightliner as "powder blue" — both wrong, as forum member 43096 pointed out. GBRf's base livery is dark blue with orange; Freightliner is green/yellow or two-tone grey. The rule now makes the **fleet number the primary discriminator** (DB Cargo 66001–66250, Freightliner 665xx/669xx, GBRf 667xx+, DRS 664xx, Colas 668xx), demotes livery to a secondary hint with corrected colours, and adds a **Heavy Haul Rail caveat** — HHR runs ex-Freightliner 66s still in full Freightliner livery, so livery alone cannot distinguish them.
+
+2. **WD Austerity 2-10-0 vs LMS Royal Scot** — new steam rule. Tester JonnySeagull reported the WD 2-10-0 "Gordon" at the Severn Valley Railway returning as a Royal Scot. Keyed on wheel arrangement: five coupled axles (2-10-0 heavy freight) vs a four-wheel leading bogie + three coupled axles (4-6-0 express).
+
+3. **LMS Stanier Mogul vs LMS Fowler 7F** — new steam rule. Same tester reported a Stanier Mogul returning as a Fowler 7F. Keyed on coupled-axle count: 2-6-0 (three coupled axles, Stanier Mogul 42968 at SVR) vs 2-8-0 (four coupled axles, Fowler 7F).
+
+All 173 backend tests pass; typecheck clean. Not yet deployed — needs a push to go live on Render.
+
+### Frontend — wrong-ID reports now capture the scanned photo
+
+`frontend/services/supabase.ts`, `frontend/app/card-reveal.tsx`, `frontend/app/(tabs)/index.tsx` — the in-app "Wrong ID" report flow previously wrote only the (wrong) class name to the `wrong_id_reports` table; `photo_url` was null on every row because no caller ever passed it, leaving the misID triage queue largely unactionable (a query of the live table showed ~60 reports in 6 days, zero with photos). `submitWrongIdReport` now accepts a `photoUri`: a remote URL is stored directly, a local scan URI is uploaded to Supabase Storage via `uploadPhoto` when a userId is present. The card-reveal "Wrong ID" tap and the low-confidence-decline path both now pass the scanned photo. Anonymous users (no userId) still file a report, just without a photo — no regression.
+
+### Frontend — gallery scans use the photo's EXIF GPS for the spot location
+
+`frontend/app/(tabs)/index.tsx` — a scan of a saved photo logged the device's *current* location instead of where the photo was taken (RailUK tester sabanda: a photo taken at Reading was labelled Bournemouth). New `parseExifGps` helper reads GPS coordinates from the picked photo's EXIF (iOS nested `{GPS}` dict / Android flat `GPS*` keys, with hemisphere-ref sign handling). For `captureSource === "gallery"`, the photo's EXIF GPS now overrides the device location. `photoAccuracyM` is deliberately left as the device reading so verification tiers are unchanged. Camera captures are unaffected. New test case added for the report-photo passthrough; all 154 frontend tests pass.
+
+Frontend changes need an EAS build to reach users — not yet built.
+
+---
+
 ## 2026-05-21
 
 ### Backend — SU46 builder correction (Cegielski → Fablok Chrzanów)
