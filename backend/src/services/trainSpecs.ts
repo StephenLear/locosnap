@@ -1358,15 +1358,29 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "es64f4": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
   "siemens es64f4": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
   "eurosprinter f4": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
-  // ÖBB 4020 — Vienna S-Bahn 3-car articulated EMU, Bombardier
-  // (formerly SGP / Jenbacher Werke) 1978–1987, ~120 units total.
-  // Max 120 km/h, 15 kV 16.7 Hz AC. THERE IS NO ÖBB 9020 — that's a
-  // hallucination. Added 2026-04-28 evening after a tester reported
-  // an ÖBB 4020 returning class "9020".
-  "öbb 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "Bombardier (formerly SGP / Jenbacher Werke)", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)" },
-  "obb 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "Bombardier (formerly SGP / Jenbacher Werke)", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)" },
-  "4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "Bombardier (formerly SGP / Jenbacher Werke)", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)" },
-  "öbb baureihe 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "Bombardier (formerly SGP / Jenbacher Werke)", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // ÖBB 4020 — Vienna S-Bahn 3-car articulated EMU, built 1978–1987 by an
+  // Austrian consortium: SGP (Simmering-Graz-Pauker) for the carbody and
+  // mechanical, ELIN and Siemens for the electrical, with some sub-series
+  // also involving BBC and Kiepe. Standard short-form citation: "SGP / ELIN
+  // / Siemens". ~120 sets total, max 120 km/h, 15 kV 16.7 Hz AC.
+  //
+  // Original 2026-04-28 entry returned builder as "Bombardier (formerly SGP
+  // / Jenbacher Werke)" which is wrong on both counts: (a) Bombardier never
+  // built the 4020 — it predates Bombardier's Austrian involvement entirely
+  // (Bombardier did later build other ÖBB stock such as the Talent); (b)
+  // Jenbacher Werke is a diesel-engine builder, not an EMU coachbuilder.
+  // Corrected 2026-05-23 after a DACH TikTok commenter on the v1.0.34 launch
+  // ad showed a scan returning "Bombardier" plus a facts paragraph claiming
+  // Siemens-only authorship and a 2009 in-service date (all three wrong).
+  // Cache invalidation entry added to trainCache.ts CLASS_INVALIDATIONS so
+  // any historic Redis entries from the wrong-builder era get flushed.
+  // THERE IS NO ÖBB 9020 — that's a hallucination from the original report.
+  "öbb 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "SGP / ELIN / Siemens", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "obb 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "SGP / ELIN / Siemens", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "SGP / ELIN / Siemens", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "öbb baureihe 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "SGP / ELIN / Siemens", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "SGP / ELIN / Siemens", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "reihe 4020": { maxSpeed: "120 km/h", power: "1,200 kW", builder: "SGP / ELIN / Siemens", numberBuilt: 120, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   // ÖBB 4010 KISS (Stadler Cityjet Eco) — double-deck EMU, Stadler
   // Rail (Bussnang) 2018+, ~27 units, 200 km/h, 25 kV 50 Hz AC +
   // 15 kV 16.7 Hz AC. NOT to be confused with Railjet (which is a

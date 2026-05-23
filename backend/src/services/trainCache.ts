@@ -88,6 +88,14 @@ let totalMisses = 0;
 export const CLASS_INVALIDATIONS: Record<string, string> = {
   // Add entries here when a class's cached specs/facts/rarity must be
   // invalidated due to a backend correction. Key is normalised class name.
+  // ÖBB 4020: builder was returning "Bombardier" + facts text claimed
+  // "Siemens entwickelt und gebaut, 2009 in Betrieb". Correct: SGP / ELIN /
+  // Siemens consortium, in-service 1978. Caught 2026-05-23 by a DACH commenter
+  // on the v1.0.34 launch ad.
+  "öbb 4020": "2026-05-23T22:00:00Z",
+  "obb 4020": "2026-05-23T22:00:00Z",
+  "4020": "2026-05-23T22:00:00Z",
+  "baureihe 4020": "2026-05-23T22:00:00Z",
 };
 
 function normaliseClass(className: string): string {
