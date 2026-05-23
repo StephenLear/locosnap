@@ -14,7 +14,8 @@ jest.mock("@anthropic-ai/sdk", () => {
   }));
 });
 
-import { identifyTrainFromImage, getVisionProvider } from "../../services/vision";
+import { identifyTrainFromImage, getVisionProvider, downscaleForVision } from "../../services/vision";
+import sharp from "sharp";
 
 describe("identifyTrainFromImage", () => {
   const testBuffer = Buffer.from("fake-image-data");
@@ -103,5 +104,42 @@ describe("identifyTrainFromImage", () => {
 describe("getVisionProvider", () => {
   it("returns Claude when Anthropic key is set", () => {
     expect(getVisionProvider()).toBe("Claude Vision (Anthropic)");
+  });
+});
+
+describe("downscaleForVision", () => {
+  it("downscales a 1920px image to 1280px on longest edge", async () => {
+    const oversized = await sharp({
+      create: { width: 1920, height: 1080, channels: 3, background: { r: 100, g: 100, b: 100 } },
+    })
+      .jpeg()
+      .toBuffer();
+
+    const { buffer, mimeType } = await downscaleForVision(oversized, "image/jpeg");
+    const meta = await sharp(buffer).metadata();
+
+    expect(meta.width).toBe(1280);
+    expect(meta.height).toBe(720);
+    expect(mimeType).toBe("image/jpeg");
+    expect(buffer.length).toBeLessThan(oversized.length);
+  });
+
+  it("leaves small images unchanged (no re-encode)", async () => {
+    const small = await sharp({
+      create: { width: 800, height: 600, channels: 3, background: { r: 200, g: 200, b: 200 } },
+    })
+      .jpeg()
+      .toBuffer();
+
+    const { buffer, mimeType } = await downscaleForVision(small, "image/jpeg");
+    expect(buffer).toBe(small);
+    expect(mimeType).toBe("image/jpeg");
+  });
+
+  it("falls back to original buffer on a corrupt image", async () => {
+    const corrupt = Buffer.from("not-an-image");
+    const { buffer, mimeType } = await downscaleForVision(corrupt, "image/jpeg");
+    expect(buffer).toBe(corrupt);
+    expect(mimeType).toBe("image/jpeg");
   });
 });

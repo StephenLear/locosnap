@@ -23,6 +23,7 @@
     "posthog-node": "^5.24.15",
     "replicate": "^1.0.0",
     "resend": "^4.8.0",
+    "sharp": "^0.34.5",
     "uuid": "^10.0.0"
   },
   "devDependencies": {

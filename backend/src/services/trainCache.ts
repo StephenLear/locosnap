@@ -62,40 +62,46 @@ let totalMisses = 0;
 
 // ── Helpers ─────────────────────────────────────────────────
 
-// Bump this version when cached specs/facts data is known to be stale
-// (e.g. after fixing AI prompt or Wikidata corrections). Old entries are
-// automatically orphaned and will be recomputed on next scan.
-// v8 — 2026-05-12 — invalidates entries cached before today's SJ Rc family
-// override (Rc1-Rc7) and the Swiss heritage batch (RAe TEE II "Gottardo" /
-// RAe 4/8 "Churchill-Pfeil" / Ae 8/14 / Ae 4/7). Stephen scanned an Rc6 at
-// 17:49 BST that still served the stale LLM-generated 200 km/h / 5,400 kW
-// because the cached entry pre-dated the new WIKIDATA_CORRECTIONS keys.
-// v9 — 2026-05-13 — invalidates entries cached before today's Vectron family
-// fixes: corrected the wrong AC/MS/DC BR mapping in vision.ts + trainFacts.ts
-// (BR 193 = MS not AC, BR 191 = AC, BR 192 = DC, no BR 194), added Hector
-// Rail 243 disambiguation rule, added WIKIDATA_CORRECTIONS entries for the
-// full Vectron variant family + Hector Rail 243.xxx. transportlife re-scan
-// served stale "BR 193 = Vectron AC" facts even after vision returned the
-// Vectron correctly because the cached entry pre-dated the corrections.
-// 2026-05-18: bumped v10 → v11 to invalidate stale Class 08 entries from the
-// SW1001 misID fix. UK tester Steph reported Merehead's EMD SW1001 No. 44
-// "Western Yeoman II" being misidentified as Class 08 / DB Cargo UK / 350 HP.
-// New vision rule blocks Class 08 for centre-cab yellow industrial shunters
-// in quarry context, and new SW1001 hardcoded specs lock 820 kW / 65 mph /
-// General Motors EMD builder. Any cached "class 08 / DB Cargo UK / 350 HP"
-// entry from a prior SW1001 scan would otherwise continue serving stale
-// data from cache even after the vision fix.
-// 2026-05-19: bumped v11 → v12 to invalidate stale "LSWR Adams O2" entries
-// from the T3 No. 563 misID fix. UK tester Steph the Spotter reported the
-// sole T3 survivor at Swanage Railway being misidentified as Adams O2 (87%
-// confidence). New vision rule locks No. 563 → T3 / 4-4-0 / tender — never
-// O2 (0-4-4T tank) — and new T3 hardcoded specs lock Nine Elms / 20 built /
-// 17,673 lbf TE / 60 mph. Any cached "LSWR Adams O2 Class" entry from a
-// prior 563 scan would otherwise continue serving stale data after the fix.
-const CACHE_VERSION = "v12";
+// Per-class cache invalidation.
+//
+// Replaces the previous global CACHE_VERSION bump pattern (v8 → v12 over
+// 7 days in May 2026, where each bump wiped the entire 30-day Redis cache
+// and forced every subsequent scan back through the full 4-call AI pipeline
+// for ~24-48h until the cache rebuilt — the single biggest unforced cost
+// leak in the May 2026 audit).
+//
+// New rule: when a fix ships that invalidates one class's specs/facts/rarity,
+// add ONE entry to CLASS_INVALIDATIONS keyed by the normalised class name
+// (lowercased, trimmed — matches getCacheKey()). Cache entries for THAT
+// class cached before the timestamp are treated as misses; every other
+// class's cache survives.
+//
+// Historic v8-v12 bumps are NOT backfilled here. The key format has changed
+// (no version prefix), so all previously-cached v12::* keys become orphans
+// in Redis and TTL out naturally over 30 days. The cache rebuilds organically
+// from the next scan of each class, exactly as if a single final bump had
+// happened — but it's the LAST one.
+//
+// Going forward, instead of bumping a version, add one line like:
+//   "class 222": "2026-05-22T10:00:00Z",
+// Exported so tests can populate entries; production code only reads.
+export const CLASS_INVALIDATIONS: Record<string, string> = {
+  // Add entries here when a class's cached specs/facts/rarity must be
+  // invalidated due to a backend correction. Key is normalised class name.
+};
+
+function normaliseClass(className: string): string {
+  return className.toLowerCase().trim();
+}
 
 function getCacheKey(train: TrainIdentification, language: string = "en"): string {
-  return `${CACHE_VERSION}::${language}::${train.class}::${train.operator}`.toLowerCase().trim();
+  return `${language}::${train.class}::${train.operator}`.toLowerCase().trim();
+}
+
+function isClassInvalidated(className: string, cachedAt: string): boolean {
+  const invalidatedAt = CLASS_INVALIDATIONS[normaliseClass(className)];
+  if (!invalidatedAt) return false;
+  return new Date(cachedAt).getTime() < new Date(invalidatedAt).getTime();
 }
 
 function isExpired(entry: CachedTrainData): boolean {
@@ -161,6 +167,15 @@ export async function getCachedTrainData(
   if (isExpired(entry)) {
     memoryCache.delete(key);
     totalMisses++;
+    return null;
+  }
+
+  if (isClassInvalidated(train.class, entry.cachedAt)) {
+    memoryCache.delete(key);
+    totalMisses++;
+    console.log(
+      `[CACHE] INVALIDATED for "${key}" (class invalidation rule)`
+    );
     return null;
   }
 

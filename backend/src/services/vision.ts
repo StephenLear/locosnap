@@ -6,9 +6,56 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import axios from "axios";
+import sharp from "sharp";
 import { config } from "../config/env";
 import { TrainIdentification } from "../types";
 import { AppError } from "../middleware/errorHandler";
+
+// Server-side downscale target before sending to Claude / GPT-4 Vision.
+// Frontend already caps at 1920px @ 75% JPEG quality (~1-2 MB).
+// Dropping to 1280px shaves ~40% of vision image tokens (Sonnet $3/MTok in)
+// at negligible identification-quality cost; trains-cab and fleet-number
+// detail survives well above this resolution.
+const VISION_MAX_DIMENSION = 1280;
+const VISION_JPEG_QUALITY = 85;
+
+/**
+ * Downscale an image buffer to VISION_MAX_DIMENSION on its longest edge
+ * before sending to a Vision API. Returns the resized buffer + the new
+ * mime type ("image/jpeg" since we re-encode). On any failure (corrupt
+ * image, sharp not available, etc.) returns the original buffer unchanged
+ * so vision still gets a chance — failing here would block every scan.
+ */
+export async function downscaleForVision(
+  buffer: Buffer,
+  mimeType: string
+): Promise<{ buffer: Buffer; mimeType: string }> {
+  try {
+    const image = sharp(buffer);
+    const metadata = await image.metadata();
+    const longest = Math.max(metadata.width ?? 0, metadata.height ?? 0);
+    if (longest > 0 && longest <= VISION_MAX_DIMENSION) {
+      // Already small enough — no re-encode, no cost.
+      return { buffer, mimeType };
+    }
+    const resized = await image
+      .resize({
+        width: VISION_MAX_DIMENSION,
+        height: VISION_MAX_DIMENSION,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: VISION_JPEG_QUALITY })
+      .toBuffer();
+    return { buffer: resized, mimeType: "image/jpeg" };
+  } catch (err) {
+    console.warn(
+      "[VISION] downscale failed, sending original buffer:",
+      (err as Error).message
+    );
+    return { buffer, mimeType };
+  }
+}
 
 const TRAIN_ID_PROMPT = `You are a railway and locomotive identification expert with encyclopaedic knowledge of trains worldwide — UK, European, Scandinavian, Japanese, North American, and beyond. You know both common and rare classes, including prototypes and one-off locos.
 
@@ -483,7 +530,7 @@ async function identifyWithClaude(
   try {
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1024,
+      max_tokens: 512,
       temperature: 0,
       system: [
         {
@@ -567,7 +614,7 @@ async function identifyWithOpenAI(
       "https://api.openai.com/v1/chat/completions",
       {
         model: "gpt-4o",
-        max_tokens: 1024,
+        max_tokens: 512,
         temperature: 0,
         messages: [
           {
@@ -624,14 +671,21 @@ export async function identifyTrainFromImage(
   imageBuffer: Buffer,
   mimeType: string
 ): Promise<TrainIdentification | null> {
+  const { buffer: downscaled, mimeType: downscaledMime } =
+    await downscaleForVision(imageBuffer, mimeType);
+
   if (config.hasAnthropic) {
-    console.log("[VISION] Using Claude Vision (Anthropic)");
-    return identifyWithClaude(imageBuffer, mimeType);
+    console.log(
+      `[VISION] Using Claude Vision (Anthropic) — input ${(downscaled.length / 1024).toFixed(1)}KB`
+    );
+    return identifyWithClaude(downscaled, downscaledMime);
   }
 
   if (config.hasOpenAI) {
-    console.log("[VISION] Using GPT-4 Vision (OpenAI)");
-    return identifyWithOpenAI(imageBuffer, mimeType);
+    console.log(
+      `[VISION] Using GPT-4 Vision (OpenAI) — input ${(downscaled.length / 1024).toFixed(1)}KB`
+    );
+    return identifyWithOpenAI(downscaled, downscaledMime);
   }
 
   throw new Error(

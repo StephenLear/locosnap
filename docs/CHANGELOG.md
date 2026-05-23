@@ -5,6 +5,32 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-23
+
+### Backend — Per-class cache invalidation + Vision image downscale + max_tokens tightening (cost-reduction release)
+
+Triggered by the 2026-05-23 cost audit: Anthropic Console MTD May = $215.45 across 22 days, 100% from the `locosnap-render` API key (production backend only — no Console / Workbench / Claude Code contamination), with sustained 97.9% prompt-cache read ratio. $215.45 ÷ ~1,199 recorded scans over 25 days = **~$0.20 per recorded scan, ~13× higher than the previously-cited $0.015/scan post-cache baseline**. Root cause identified: the `CACHE_VERSION` bump pattern in `trainCache.ts` was wiping the entire 30-day Redis trains-cache every per-class fix — v8 (May 12) → v9 (May 13) → v11 (May 18) → v12 (May 19), 4 bumps in 7 days. Each bump = every previously-cached train re-runs the full 4-call AI pipeline (Vision + Specs + Facts + Rarity) for 24-48h until the cache rebuilds. Live `/api/health` showed in-memory hit rate at 20%.
+
+`backend/src/services/trainCache.ts` — replaced the single `CACHE_VERSION` string with a per-class `CLASS_INVALIDATIONS: Record<string, string>` map. Cache keys are now `<language>::<class>::<operator>` (no version prefix). On every cache read, if the entry's class has an invalidation timestamp and the entry was cached before it, treat as a miss. Other classes' caches survive. Historic v12-keyed Redis entries become orphans (no longer match new key shape) and TTL out naturally over 30 days. Going forward, per-class fixes add ONE line to `CLASS_INVALIDATIONS` instead of bumping a global version. New memory `backend_cache_invalidation_pattern.md` records the rule.
+
+`backend/src/services/vision.ts` — added server-side image downscale via `sharp` (new dependency) before the Vision API call. Frontend already caps uploads at 1920px / 75% JPEG; backend now further downscales to 1280px longest edge with `fit: inside, withoutEnlargement: true` and re-encodes as JPEG at quality 85. Shaves ~40% of Sonnet 4.6 image tokens. Failsafe wrapper: any sharp error returns the original buffer unchanged so vision still has a chance. Single `downscaleForVision` helper covers both the Claude and OpenAI vision paths.
+
+`backend/src/services/vision.ts` + `backend/src/services/trainFacts.ts` — tightened `max_tokens` caps. Vision Claude 1024→512, Vision OpenAI 1024→512, Facts Claude 4096→2048, Facts OpenAI 4096→2048. Defensive only — costs are paid on actual output tokens, not max — but caps any runaway output and slightly reduces output-side risk.
+
+`backend/package.json` — added `sharp ^0.34.5` dependency.
+
+`backend/src/__tests__/services/trainCache.test.ts` — updated the version-prefix assertion (now expects `<language>::` prefix instead of `v<n>::`), updated the `::en::` / `::de::` substring assertions to use `^en::` / `^de::` regex (language is now at start of key), added 3 new tests for the per-class invalidation behaviour (invalidates target class only; does not invalidate other classes; entries cached AFTER the invalidation timestamp remain valid).
+
+`backend/src/__tests__/services/vision.test.ts` — added 3 new tests for `downscaleForVision` (downscales 1920→1280 with aspect ratio preserved; leaves smaller images unchanged with no re-encode; falls back to original buffer on corrupt input).
+
+All 179/179 backend tests pass (was 173 — +6 net new tests across trainCache and vision). Typecheck clean (`npx tsc --noEmit`).
+
+**Predicted economics post-deploy:** trains-cache hit rate 20-25% → 85-95% (return to intended steady state). Average per-scan cost $0.20 → ~$0.04. Monthly Anthropic bill $295 → ~$60. To be re-measured 7 days post-deploy via the same Anthropic Cost vs Supabase spots analysis.
+
+**Lever consciously NOT taken:** combining specs+facts+rarity into a single Haiku call was scoped but descoped after the audit showed it would save only ~$0.003/scan vs real risk of malformed combined JSON breaking all 3 outputs. The graceful `Promise.allSettled` degradation pattern in `identify.ts` is more valuable than the modest saving. Reconsider only after Lever 1E (move per-class overrides from prompts to Supabase lookup) ever ships, which would shrink prompts from ~55K to ~5K and change the calculation.
+
+---
+
 ## 2026-05-22
 
 ### Planning — v1.0.35 monetisation redesign designed + planned

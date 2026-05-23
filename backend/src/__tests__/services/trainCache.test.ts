@@ -90,27 +90,29 @@ describe("trainCache", () => {
     expect(stats.totalMisses).toBe(1);
   });
 
-  it("uses a versioned cache key prefix", async () => {
+  it("uses a language-prefixed cache key (no global version)", async () => {
     const { setTrainCache } = require("../../services/redis");
     await setCachedTrainData(train, specs, facts, rarity);
     const keyUsed: string = setTrainCache.mock.calls[0][0];
-    // Shape check — version-agnostic so cache bumps don't break this test.
-    // Format: "v<n>::<language>::<class>::<operator>" all lowercase.
-    expect(keyUsed).toMatch(/^v\d+::/);
+    // Format: "<language>::<class>::<operator>" all lowercase, no version prefix.
+    // The version prefix was removed in favour of per-class invalidation —
+    // see CLASS_INVALIDATIONS in trainCache.ts.
+    expect(keyUsed).toMatch(/^[a-z]{2}::/);
+    expect(keyUsed).not.toMatch(/^v\d+::/);
   });
 
   it("includes language in cache key — English", async () => {
     const { setTrainCache } = require("../../services/redis");
     await setCachedTrainData(train, specs, facts, rarity, "en");
     const keyUsed: string = setTrainCache.mock.calls[0][0];
-    expect(keyUsed).toContain("::en::");
+    expect(keyUsed).toMatch(/^en::/);
   });
 
   it("includes language in cache key — German", async () => {
     const { setTrainCache } = require("../../services/redis");
     await setCachedTrainData(train, specs, facts, rarity, "de");
     const keyUsed: string = setTrainCache.mock.calls[0][0];
-    expect(keyUsed).toContain("::de::");
+    expect(keyUsed).toMatch(/^de::/);
   });
 
   it("German and English entries do not collide", async () => {
@@ -134,6 +136,54 @@ describe("trainCache", () => {
     const { setTrainCache } = require("../../services/redis");
     await setCachedTrainData(train, specs, facts, rarity);
     const keyUsed: string = setTrainCache.mock.calls[0][0];
-    expect(keyUsed).toContain("::en::");
+    expect(keyUsed).toMatch(/^en::/);
+  });
+
+  it("invalidates a cached entry when its class is added to CLASS_INVALIDATIONS after caching", async () => {
+    const { CLASS_INVALIDATIONS } = require("../../services/trainCache");
+
+    // Cache the entry first
+    await setCachedTrainData(train, specs, facts, rarity);
+    expect(await getCachedTrainData(train)).not.toBeNull();
+
+    // Now add an invalidation timestamp in the FUTURE relative to the entry
+    CLASS_INVALIDATIONS[train.class.toLowerCase().trim()] = new Date(
+      Date.now() + 1000
+    ).toISOString();
+
+    // The previously-cached entry should now be treated as a miss
+    const result = await getCachedTrainData(train);
+    expect(result).toBeNull();
+  });
+
+  it("does not invalidate other classes when one class is invalidated", async () => {
+    const { CLASS_INVALIDATIONS } = require("../../services/trainCache");
+    const otherTrain = makeTrain({ class: "Class 91", operator: "LNER" });
+
+    await setCachedTrainData(train, specs, facts, rarity);
+    await setCachedTrainData(otherTrain, specs, facts, rarity);
+
+    CLASS_INVALIDATIONS[train.class.toLowerCase().trim()] = new Date(
+      Date.now() + 1000
+    ).toISOString();
+
+    // The invalidated class is gone, but the other class still hits
+    expect(await getCachedTrainData(train)).toBeNull();
+    expect(await getCachedTrainData(otherTrain)).not.toBeNull();
+  });
+
+  it("does not invalidate when entry was cached AFTER the invalidation timestamp", async () => {
+    const { CLASS_INVALIDATIONS } = require("../../services/trainCache");
+
+    // Set the invalidation timestamp in the PAST first
+    CLASS_INVALIDATIONS[train.class.toLowerCase().trim()] = new Date(
+      Date.now() - 60_000
+    ).toISOString();
+
+    // Cache the entry now (after the invalidation timestamp)
+    await setCachedTrainData(train, specs, facts, rarity);
+
+    // The entry should still be valid since it was cached after the invalidation
+    expect(await getCachedTrainData(train)).not.toBeNull();
   });
 });
