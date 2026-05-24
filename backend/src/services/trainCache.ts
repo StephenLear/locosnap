@@ -106,6 +106,22 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "öbb reihe 4020": "2026-05-24T07:50:00Z",
   "obb reihe 4020": "2026-05-24T07:50:00Z",
   "class 4020": "2026-05-24T07:50:00Z",
+  // VR Sr1: facts-layer was hallucinating "groundbreaking 1920s Bo-Bo" and
+  // "entering service in the 1920s" — actual entry year is 1973 (Finland did
+  // not electrify its mainlines until 1969) and wheel arrangement is Co'Co',
+  // not Bo-Bo. Specs panel from KNOWN_SPECS was correct (160 km/h, 3,100 kW,
+  // 84t, Novocherkassk + Strömberg), facts prose was free-form because
+  // trainFacts.ts had no Sr1 bullet. Wholesale Sr1 facts-layer lock added the
+  // same session. Variant coverage per the 2026-05-24 checklist — every
+  // KNOWN_SPECS lookup key + English variant + common spacing/hyphenation
+  // forms. Caught 2026-05-24 by Finnish TikTok commenter "Deevee".
+  "sr1": "2026-05-24T11:00:00Z",
+  "vr sr1": "2026-05-24T11:00:00Z",
+  "sr 1": "2026-05-24T11:00:00Z",
+  "vr sr 1": "2026-05-24T11:00:00Z",
+  "sr-1": "2026-05-24T11:00:00Z",
+  "vr sr-1": "2026-05-24T11:00:00Z",
+  "class sr1": "2026-05-24T11:00:00Z",
 };
 
 function normaliseClass(className: string): string {
