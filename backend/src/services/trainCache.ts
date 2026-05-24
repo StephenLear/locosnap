@@ -122,6 +122,36 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "sr-1": "2026-05-24T11:00:00Z",
   "vr sr-1": "2026-05-24T11:00:00Z",
   "class sr1": "2026-05-24T11:00:00Z",
+  // DB BR 114: facts-layer claimed "viersystemige Elektrolokomotive" + NRW/Lower-
+  // Saxony routing + "Krauss-Maffei / Henschel / Krupp" builder — three independent
+  // fabrications. Reality: single-system 15 kV 16.7 Hz AC, eastern Germany only,
+  // LEW Hennigsdorf / Adtranz / Bombardier builder. Wholesale KNOWN_SPECS expansion
+  // (was maxSpeed-only) + new trainFacts bullet hard-locking all three claims.
+  // Variant coverage per the 2026-05-24 checklist — every KNOWN_SPECS lookup key.
+  // Caught 2026-05-24 evening by DE launch ad commenter J●|\|.
+  "114": "2026-05-24T22:30:00Z",
+  "br 114": "2026-05-24T22:30:00Z",
+  "baureihe 114": "2026-05-24T22:30:00Z",
+  "db baureihe 114": "2026-05-24T22:30:00Z",
+  "db br 114": "2026-05-24T22:30:00Z",
+  "class 114": "2026-05-24T22:30:00Z",
+  "db class 114": "2026-05-24T22:30:00Z",
+  // DB BR 628: facts-layer misidentified the entire family — claimed "Baureihe LINT 41
+  // von Alstom" from "frühen 2000er Jahre". Reality: NOT LINT (LINT 41 = BR 640/648,
+  // completely different 1999+ Alstom design); BR 628 is a MaK / Vossloh Kiel 1974
+  // prototype / 1986+ series diesel multiple unit, ~309 sets across 628.0/.2/.4. New
+  // KNOWN_SPECS block + new trainFacts bullet forbidding Alstom / LINT attribution and
+  // any post-2000 era framing. Variant coverage per the 2026-05-24 checklist.
+  // Caught 2026-05-24 evening by DE launch ad commenter J●|\|.
+  "628": "2026-05-24T22:30:00Z",
+  "br 628": "2026-05-24T22:30:00Z",
+  "baureihe 628": "2026-05-24T22:30:00Z",
+  "db baureihe 628": "2026-05-24T22:30:00Z",
+  "db br 628": "2026-05-24T22:30:00Z",
+  "class 628": "2026-05-24T22:30:00Z",
+  "db class 628": "2026-05-24T22:30:00Z",
+  "628.2": "2026-05-24T22:30:00Z",
+  "628.4": "2026-05-24T22:30:00Z",
 };
 
 function normaliseClass(className: string): string {

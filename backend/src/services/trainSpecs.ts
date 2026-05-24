@@ -250,10 +250,23 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // DB Class 642 (Siemens Desiro Classic) — Wikidata returns wrong builder
   "db class 642": { builder: "Siemens" },
   "class 642": { builder: "Siemens" },
-  // DB Class 114 (push-pull locomotive) — Wikidata maxSpeed stale/incorrect
-  "db class 114": { maxSpeed: "160 km/h" },
-  "class 114": { maxSpeed: "160 km/h" },
-  "br 114": { maxSpeed: "160 km/h" },
+  // DB Baureihe 114 — 160 km/h push-pull sub-class of BR 112.1, re-designated 1991-1992
+  // from the East German DR Baureihe 212/112 (LEW Hennigsdorf 1990-1991 build). ~37 units
+  // in the 114 sub-series, used predominantly in eastern Germany (Berlin/Brandenburg/
+  // Saxony/Thuringia) on RE/RB services with double-deck coaches.
+  // SINGLE-SYSTEM 15 kV 16.7 Hz AC — NOT multi-system / Vectron / four-system. Builder
+  // is LEW Hennigsdorf (later AEG → Adtranz → Bombardier → Alstom); do NOT attribute to
+  // Krauss-Maffei / Krupp / Henschel (those are classic West German Bundesbahn builders
+  // who never built any 112/114). Discovered 2026-05-24 evening — DE launch ad commenter
+  // J●|\| posted a BR 114 scan showing "Krauss-Maffei / Henschel / Krupp" builder + a
+  // facts paragraph claiming "viersystemige Elektrolokomotive" + western-Germany routing.
+  // Wholesale lock + facts-layer bullet shipped same session.
+  "db class 114": { maxSpeed: "160 km/h", power: "4,220 kW", weight: "82 t", builder: "LEW Hennigsdorf (later AEG / Adtranz / Bombardier)", numberBuilt: 37, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "class 114": { maxSpeed: "160 km/h", power: "4,220 kW", weight: "82 t", builder: "LEW Hennigsdorf (later AEG / Adtranz / Bombardier)", numberBuilt: 37, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br 114": { maxSpeed: "160 km/h", power: "4,220 kW", weight: "82 t", builder: "LEW Hennigsdorf (later AEG / Adtranz / Bombardier)", numberBuilt: 37, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 114": { maxSpeed: "160 km/h", power: "4,220 kW", weight: "82 t", builder: "LEW Hennigsdorf (later AEG / Adtranz / Bombardier)", numberBuilt: 37, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db baureihe 114": { maxSpeed: "160 km/h", power: "4,220 kW", weight: "82 t", builder: "LEW Hennigsdorf (later AEG / Adtranz / Bombardier)", numberBuilt: 37, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db br 114": { maxSpeed: "160 km/h", power: "4,220 kW", weight: "82 t", builder: "LEW Hennigsdorf (later AEG / Adtranz / Bombardier)", numberBuilt: 37, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   // BR 110 / DB E 10 — West German Bo'Bo' express electric, Krauss-Maffei (prime) +
   // Krupp + Henschel + AEG + Siemens, 379 BR 110.1 built 1956-1969. Max 150 km/h
   // (NOT 110 — that's BR 140 freight variant; NOT 160 — that's BR 113 high-speed sub-class).
@@ -364,6 +377,28 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "y1":           { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
   "fiat y1":      { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
   "sj class y1":  { maxSpeed: "130 km/h", power: "220 kW", weight: "49 tonnes", builder: "Fiat Ferroviaria (Savigliano, Italy)", numberBuilt: 82, fuelType: "Diesel hydraulic", gauge: "Standard (1,435 mm)" },
+  // DB Baureihe 628 — 2-car diesel multiple unit, MaK (Maschinenbau Kiel; later Vossloh
+  // Kiel from 1998). 628.0 prototype 1974; main production 628.2 from 1986; 628.4 from
+  // 1992. Total ~309 sets across all sub-variants (628.0 + 628.2 + 628.4). Mechanical
+  // 2-car set (driving railcar 628 + driving trailer 928), MAN/Daimler-Benz diesel engines,
+  // 120 km/h, ~140 t for 2-car set. Operated by DB Regio + many other German regional
+  // operators on non-electrified branch lines.
+  // CRITICAL: BR 628 is **NOT** Alstom and **NOT** LINT family. The LINT 41 is BR 640 /
+  // BR 648 (a completely different 1999+ Alstom-built articulated DMU). Do not attribute
+  // 628 to Alstom, do not call it "LINT", and do not describe it as "modern" or "from the
+  // 2000s" — main production was 1986-1996. Discovered 2026-05-24 evening — DE launch ad
+  // commenter J●|\| posted a BR 628 scan whose facts paragraph misidentified it as
+  // "Baureihe LINT 41 von Alstom" from the "frühen 2000er Jahre". Wholesale lock +
+  // facts-layer bullet shipped same session.
+  "br 628":        { maxSpeed: "120 km/h", power: "485 kW", weight: "140 t", builder: "MaK (later Vossloh Kiel)", numberBuilt: 309, fuelType: "Diesel mechanical", gauge: "Standard (1,435 mm)" },
+  "br628":         { maxSpeed: "120 km/h", power: "485 kW", weight: "140 t", builder: "MaK (later Vossloh Kiel)", numberBuilt: 309, fuelType: "Diesel mechanical", gauge: "Standard (1,435 mm)" },
+  "baureihe 628":  { maxSpeed: "120 km/h", power: "485 kW", weight: "140 t", builder: "MaK (later Vossloh Kiel)", numberBuilt: 309, fuelType: "Diesel mechanical", gauge: "Standard (1,435 mm)" },
+  "db baureihe 628": { maxSpeed: "120 km/h", power: "485 kW", weight: "140 t", builder: "MaK (later Vossloh Kiel)", numberBuilt: 309, fuelType: "Diesel mechanical", gauge: "Standard (1,435 mm)" },
+  "db br 628":     { maxSpeed: "120 km/h", power: "485 kW", weight: "140 t", builder: "MaK (later Vossloh Kiel)", numberBuilt: 309, fuelType: "Diesel mechanical", gauge: "Standard (1,435 mm)" },
+  "db class 628":  { maxSpeed: "120 km/h", power: "485 kW", weight: "140 t", builder: "MaK (later Vossloh Kiel)", numberBuilt: 309, fuelType: "Diesel mechanical", gauge: "Standard (1,435 mm)" },
+  "class 628":     { maxSpeed: "120 km/h", power: "485 kW", weight: "140 t", builder: "MaK (later Vossloh Kiel)", numberBuilt: 309, fuelType: "Diesel mechanical", gauge: "Standard (1,435 mm)" },
+  "628.2":         { maxSpeed: "120 km/h", power: "485 kW", weight: "140 t", builder: "MaK (later Vossloh Kiel)", numberBuilt: 309, fuelType: "Diesel mechanical", gauge: "Standard (1,435 mm)" },
+  "628.4":         { maxSpeed: "120 km/h", power: "485 kW", weight: "140 t", builder: "MaK (later Vossloh Kiel)", numberBuilt: 309, fuelType: "Diesel mechanical", gauge: "Standard (1,435 mm)" },
   // ── DB ICE family ───────────────────────────────────────────
   // Added/expanded 2026-05-18 after @airbus.a3200 (TikTok) reported a BR 401 scan
   // returning "320 km/h" and "1 tonnes" — root cause was the ICE family having
