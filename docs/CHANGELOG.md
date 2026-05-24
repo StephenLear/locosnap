@@ -5,6 +5,20 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-24
+
+### Backend — ÖBB 4020 cache-invalidation key-variant gap fix (third stage of same launch-ad correction loop)
+
+Same DACH commenter ("vierzigzwanzig") posted a third screenshot the morning after yesterday's wholesale fix, captioned "Immer noch falsch" — the Results card was still showing every one of the pre-fix hallucinations word-for-word ("seit 2009 im Einsatz", "Südostbahn-Nahverkehrs", "über 300 Einheiten", "von Siemens entwickelt und gebaut", "160 km/h", "4.000 kW", "4020.1 / 4020.5 Varianten", "Exporterfolg in andere europäische Länder"). Root cause: yesterday's `CLASS_INVALIDATIONS` map listed only 4 of the 6 class-name variants that `trainSpecs.ts` KNOWN_SPECS covers (missing `öbb baureihe 4020` and `reihe 4020`). When Vision returned one of the missing variants for this user's scan, `isClassInvalidated()` did an exact-match lookup, missed, and served the stale pre-fix Redis entry back unchanged. The verbatim word-for-word match between the screenshot prose and the pre-fix hallucinations is the signature of a cache hit on a stale entry, not a fresh LLM hallucination — if it were the LLM ignoring the system-prompt update, the wording would have varied.
+
+`backend/src/services/trainCache.ts` — expanded the ÖBB 4020 `CLASS_INVALIDATIONS` block from 4 entries to 10. Added `öbb baureihe 4020`, `obb baureihe 4020`, `reihe 4020`, `öbb reihe 4020`, `obb reihe 4020`, `class 4020` so every plausible Vision class-string variant now invalidates. Timestamp bumped from `2026-05-23T22:00:00Z` to `2026-05-24T07:50:00Z` so any entry created between yesterday's fix and this morning is also caught (defence in depth; new entries should already have correct facts from the prompt update, but if Vision wrote under a key the previous map didn't cover, they'd still be wrong-stale). Comment block extended to document the second-stage gap so the next reader sees why there are 10 keys for one class.
+
+All 179/179 backend tests pass; typecheck clean. Same-session ship pattern again — third stage of the same launch-ad correction loop. Lesson surfaced (queue for memory): when adding `CLASS_INVALIDATIONS` entries, the source-of-truth for variant coverage is `KNOWN_SPECS` in `trainSpecs.ts`, not gut feel — every lookup key there needs an entry in the invalidation map for any class that gets corrected, or pre-fix Redis cache will leak through.
+
+Reply commitment carried over from yesterday: post the "Update: 4020 jetzt korrekt — bitte nochmal scannen, dauerhaft gefixt" follow-up in the same thread once Render confirms this deploy live.
+
+---
+
 ## 2026-05-23
 
 ### Backend — ÖBB 4020 wholesale facts-layer corrections (from launch-ad comment, two stages)

@@ -91,11 +91,21 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   // ÖBB 4020: builder was returning "Bombardier" + facts text claimed
   // "Siemens entwickelt und gebaut, 2009 in Betrieb". Correct: SGP / ELIN /
   // Siemens consortium, in-service 1978. Caught 2026-05-23 by a DACH commenter
-  // on the v1.0.34 launch ad.
-  "öbb 4020": "2026-05-23T22:00:00Z",
-  "obb 4020": "2026-05-23T22:00:00Z",
-  "4020": "2026-05-23T22:00:00Z",
-  "baureihe 4020": "2026-05-23T22:00:00Z",
+  // on the v1.0.34 launch ad. Timestamp bumped + extra variants added 2026-05-24
+  // after the same commenter posted "Immer noch falsch" — the previous map
+  // missed the "öbb baureihe 4020" / "reihe 4020" / "öbb reihe 4020" / "class
+  // 4020" class-string variants that Vision can return, so pre-fix Redis
+  // entries keyed under those variants were still being served stale.
+  "öbb 4020": "2026-05-24T07:50:00Z",
+  "obb 4020": "2026-05-24T07:50:00Z",
+  "4020": "2026-05-24T07:50:00Z",
+  "baureihe 4020": "2026-05-24T07:50:00Z",
+  "öbb baureihe 4020": "2026-05-24T07:50:00Z",
+  "obb baureihe 4020": "2026-05-24T07:50:00Z",
+  "reihe 4020": "2026-05-24T07:50:00Z",
+  "öbb reihe 4020": "2026-05-24T07:50:00Z",
+  "obb reihe 4020": "2026-05-24T07:50:00Z",
+  "class 4020": "2026-05-24T07:50:00Z",
 };
 
 function normaliseClass(className: string): string {
