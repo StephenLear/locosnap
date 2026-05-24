@@ -7,6 +7,32 @@ Format: newest first within each date block.
 
 ## 2026-05-24
 
+### Backend — DB BR 114 + BR 628 wholesale facts-layer locks (DE launch ad commenter J●|\|)
+
+Public correction loop on the v1.0.34 DE launch ad. Commenter @J●|\| posted two screenshots of misidentified DB scans with the short caption *"die ki braucht aufjedenfall ein paar Verbesserungen"* ("the AI definitely needs some improvements"). Two distinct classes, both exhibiting the facts-layer-leak pattern that hit ÖBB 4020 (2026-05-23) and VR Sr1 (this morning).
+
+**BR 114 — three independent hallucinations on one scan:**
+- Builder shown as *"Krauss-Maffei / Henschel / Krupp"*. That trio is the classic West German Bundesbahn consortium that built BR 110 / BR 111 / E 10 / V 200 — they had no involvement with any 112/114, which is a purely East German design. Real builder: **LEW Hennigsdorf (later AEG / Adtranz / Bombardier)**.
+- Facts paragraph claimed *"viersystemige Elektrolokomotive der Deutschen Bahn, die für den Einsatz im Nahverkehr und auf nicht vollständig elektrifizierten Strecken konzipiert wurde"*. Wrong electrification system count: BR 114 is **single-system 15 kV 16.7 Hz AC**. The "viersystemig" framing belongs to BR 189 (Siemens Vectron MS), not BR 114.
+- Route shown as *"North Rhine-Westphalia and Lower Saxony"*. Wrong region: BR 114 operates predominantly in **eastern Germany** (Berlin S-Bahn area, Brandenburg, Saxony, Thuringia, Mecklenburg-Vorpommern). NRW and Lower Saxony are western Bundesländer.
+
+**BR 628 — wrong family entirely:**
+- Facts paragraph misidentified the class: *"Die BR 628 ist ein moderner Dieseltriebwagen der Baureihe LINT 41 von Alstom, der seit den frühen 2000er Jahren das Rückgrat des deutschen Regionalverkehrs bildet."* All three head-claims wrong. **LINT 41 = BR 640 / BR 648**, a completely different 1999+ Alstom-built articulated DMU. **BR 628 = MaK (later Vossloh Kiel)**, 1974 prototype + 1986+ main production, ~309 sets across sub-variants 628.0/.2/.4. Not LINT family, not Alstom-built, not 2000s.
+
+Same root pattern as the ÖBB 4020 and VR Sr1 fixes earlier this session: `KNOWN_SPECS` pinned the typed spec fields (mostly), the facts narrative paragraph drifted because no class-specific lock existed. Wholesale fix shipped in one commit (`3211e15`):
+
+`backend/src/services/trainSpecs.ts` — **BR 114 KNOWN_SPECS expanded** from a maxSpeed-only Wikidata correction to full coverage across 6 lookup variants (`db class 114`, `class 114`, `br 114`, `baureihe 114`, `db baureihe 114`, `db br 114`) locking maxSpeed 160 km/h, power 4,220 kW, weight 82 t, builder "LEW Hennigsdorf (later AEG / Adtranz / Bombardier)", numberBuilt 37, fuelType "Electric (15 kV 16.7 Hz AC)", gauge standard. **New BR 628 KNOWN_SPECS block** with 9 lookup variants (`br 628`, `br628`, `baureihe 628`, `db baureihe 628`, `db br 628`, `db class 628`, `class 628`, `628.2`, `628.4`) locking 120 km/h, 485 kW, 140 t, builder "MaK (later Vossloh Kiel)", 309 units, fuelType "Diesel mechanical", standard gauge. Inserted after the SJ Y1 block before the DB ICE family section; comment block documents the discovery context and the LINT-family disambiguation.
+
+`backend/src/services/trainFacts.ts` — **two new comprehensive class bullets** inserted into the system prompt above the existing ÖBB 4020 bullet. BR 114 bullet hard-locks: (a) builder LEW Hennigsdorf / Adtranz / Bombardier lineage — forbids Krauss-Maffei / Krupp / Henschel / Siemens-alone / any West German Bundesbahn consortium; (b) electrification single-system 15 kV 16.7 Hz AC — forbids "viersystemig" / "Vier-System" / "four-system" / "multi-system" / "Mehrsystem"; (c) operating region eastern Germany — forbids NRW / Niedersachsen / Bayern / Baden-Württemberg or any western Bundesland; (d) units built ~37 — forbids higher rounded figures. BR 628 bullet hard-locks: (a) builder MaK / Vossloh Kiel — forbids Alstom / Bombardier / Siemens / Stadler / LHB-alone; (b) explicit forbid-list for "LINT" / "LINT 41" / "BR 640" / "BR 648" / "Coradia LINT" / "Teil der LINT-Familie" / "der LINT-Plattform"; (c) era 1974-1996 — forbids "frühen 2000er Jahre" / "moderner Dieseltriebwagen" / any post-2000 entry year; (d) framing as "workhorse of the non-electrified DB Regio network, in service since the late 1980s, being progressively replaced by LINT 27 (BR 640), LINT 41 (BR 648), Coradia Continental and Talent 2 units". Both bullets include explicit Discovered notes naming the commenter and the specific hallucinations observed, for the next-reader audit trail.
+
+`backend/src/services/trainCache.ts` — **16 new entries added to `CLASS_INVALIDATIONS`** at timestamp `2026-05-24T22:30:00Z` (7 BR 114 + 9 BR 628) following the variant-coverage checklist established this morning. Every KNOWN_SPECS lookup key is mirrored. Comment block on each documents the discovery context.
+
+All 179/179 backend tests pass; typecheck clean. Pushed to `origin/main` as `3211e15`. Render auto-deploy in flight; redeploy will be confirmed via `/api/health` `cache.totalEntries` reset (was 327 entries pre-deploy).
+
+**Fourth and fifth classes in 3 days with the same facts-layer-leak pattern (after ÖBB 4020 stage 1+2 cross-midnight, ÖBB 4020 stage 3 morning, and VR Sr1 late morning).** Strengthens the case for the systematic KNOWN_SPECS ↔ trainFacts coverage audit — every class with a KNOWN_SPECS entry but no `trainFacts.ts` bullet is at risk of the same failure mode. Audit queued as next-session priority.
+
+Public reply commitment: post a short DE reply to J●|\| in the same launch-ad thread once Render redeploy is confirmed live.
+
 ### Backend — VR Sr1 facts-layer wholesale lock (Finnish TikTok commenter "Deevee")
 
 Finnish TikTok commenter "Deevee" (Finnish flag emojis) posted a screenshot of a VR Sr1 scan captioned "What is this 😭". The Specifications panel was entirely correct (160 km/h / 3,100 kW / 84 tonnes / Novocherkassk / Finnish broad gauge / Electric 25 kV 50 Hz — all sourced from `KNOWN_SPECS` and matching the real Sr1 spec sheet). The hallucination was confined to the facts-layer prose:
