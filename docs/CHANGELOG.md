@@ -5,6 +5,32 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-25
+
+### Backend — Phase A facts-layer systemic fix: VERIFIED FACTS block injection
+
+Triggered by the Google Play DE 1-star review (handle nahverkehrthueringen@gmail.com, Android 16, release 1.0.34) the morning after the BR 114 + BR 628 fixes. Reviewer cited "Krauss-Maffei attribution everywhere", electric locos called diesel multiple units, and "contradicts itself in the same sentence with different speeds for the same Baureihe" — symptoms of the same facts-layer-leak pattern that produced the five correction loops 2026-05-23/24.
+
+Class-by-class hand-written `trainFacts.ts` bullets (the original audit plan, 4-6h batch) would only patch the 18 classes already covered + the next ~15-20 high-volume DE/PL/AT classes — leaving the 130+ remaining KNOWN_SPECS-locked classes still at facts-side risk. Different approach shipped instead: extend the existing year-only `VERIFIED FACT` injection in trainFacts.ts to pass **every KNOWN_SPECS / Wikidata value** into the facts prompt as a single `VERIFIED FACTS` block. The LLM is now structurally prevented from contradicting builder/year/max-speed/power/weight/fleet-count/gauge/fuelType for **every class with a KNOWN_SPECS entry** — that's the full ~150-200 classes covered by the WIKIDATA_CORRECTIONS table, not just the hand-written 18.
+
+Changes:
+
+`backend/src/services/trainSpecs.ts` — exported `SpecsOverride` type and added new `lookupKnownSpecs(trainClass)` helper that returns the WIKIDATA_CORRECTIONS entry for a class (or undefined). Uses the same `toLowerCase().trim()` normalisation as `applyKnownCorrections` to ensure parity between the specs merge and the facts injection. No behaviour change for `getTrainSpecs` callers — the new helper is additive.
+
+`backend/src/services/trainFacts.ts` — three coordinated changes: (a) **new `buildVerifiedFactsBlock(train, wikidata, known)` helper** that builds a multi-line `VERIFIED FACTS` block with explicit precedence KNOWN_SPECS > Wikidata > unset for every covered field (builder, year, maxSpeed, power, weight, numberBuilt, fuelType, gauge), plus train.class/operator/type always included from the identification itself; (b) **`buildFactsUserMessage` signature widened** from `(train, verifiedYear?, language?)` to `(train, wikidata, known, language?)` so the full block is composed in one place; (c) **`getTrainFacts` call site updated** to call `lookupKnownSpecs(train.class)` synchronously alongside the existing async `getWikidataSpecs` lookup and pass both into the user-message builder. The `Promise.allSettled` parallel-with-getTrainSpecs structure in identify.ts is unchanged — facts still runs in parallel with specs, the new helper is purely a sync table read.
+
+`backend/src/services/trainFacts.ts` system prompt — **new top-of-rules entry** ahead of the existing summary/historicalSignificance/funFacts rules: *"VERIFIED FACTS block (highest priority): if the user message contains a 'VERIFIED FACTS' block, every value in that block is ground truth from our specs database. You MUST NOT contradict any value (builder, year, max speed, power, weight, fleet count, gauge, fuelType, operator, type) in any field of your response. ... If you do not know an item independently of the verified block, return fewer items or omit the detail — never fabricate a value that conflicts. The verified block overrides any prior training-data belief you have about this class."* The 18 existing class-specific bullets remain — they still carry narrative context (withdrawal status, operator lineage, regional deployment) that the spec-field block does not capture.
+
+`backend/src/__tests__/services/trainFacts.test.ts` — **two existing tests updated** to match the new block format (`Year introduced: 2020` substring instead of `entered service in 2020`; VERIFIED FACTS block now always emitted with class/operator/type even without Wikidata). **Four new tests added**: (1) block always carries class/operator/type without Wikidata; (2) full KNOWN_SPECS override values surface (tested against the real BR 114 entry — LEW Hennigsdorf, 160 km/h, 4,220 kW, 37 units); (3) KNOWN_SPECS wins precedence when Wikidata returns a conflicting value; (4) Wikidata fills fields KNOWN_SPECS does not cover (tested against Class 390 — weight and yearIntroduced not in the KNOWN_SPECS block but mocked from Wikidata).
+
+**No CLASS_INVALIDATIONS bump.** Phase A is a pure prompt-engineering change; existing cache entries are either (a) already correct (no change needed), (b) already covered by per-class invalidations from the recent ÖBB 4020 / VR Sr1 / BR 114 / BR 628 fixes, or (c) age out within 30-day TTL. Per `backend_cache_invalidation_pattern.md`, a global cache bump for a cross-class prompt change would reopen the May 2026 cost-leak pattern ($0.20/scan baseline) — not done.
+
+All 182/182 backend tests pass (was 179 — +3 net new test cases). Typecheck clean. **Not yet deployed — needs a push to go live on Render.**
+
+**Expected impact:** every facts request for a class with a KNOWN_SPECS entry (the BR 114, BR 628, ÖBB 4020, VR Sr1 / Sr2 / Dv12 / Sm-family, ICE 3/4 family, BR 110/140/143/151/155/156/232/247/250/648, Münchner R2.2, ČD 753/754, Berlin 483/484, PKP / Newag families, SJ Rc1-Rc7, and many more — ~150-200 distinct classes) now has its builder/year/speed/power/weight/fleet-count/gauge/fuel-type values locked in the facts prompt itself, not just in the displayed Specifications panel. The Google Play 1-star reviewer's three complaint patterns ("Krauss-Maffei everywhere", "electric locos called DMUs", "contradicts itself with different speeds for the same Baureihe") are all caught structurally by this single change.
+
+---
+
 ## 2026-05-24
 
 ### Backend — DB BR 114 + BR 628 wholesale facts-layer locks (DE launch ad commenter J●|\|)

@@ -8,7 +8,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import axios from "axios";
 import { config } from "../config/env";
 import { TrainIdentification, TrainFacts } from "../types";
-import { getWikidataSpecs } from "./wikidataSpecs";
+import { getWikidataSpecs, WikidataTrainSpecs } from "./wikidataSpecs";
+import { lookupKnownSpecs, SpecsOverride } from "./trainSpecs";
 import { getLanguageInstruction } from "../config/languageInstructions";
 
 // Static instruction block — cacheable via Anthropic prompt caching.
@@ -31,6 +32,7 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
 }
 
 Rules:
+- **VERIFIED FACTS block (highest priority):** if the user message contains a "VERIFIED FACTS" block, every value in that block is ground truth from our specs database. You MUST NOT contradict any value (builder, year, max speed, power, weight, fleet count, gauge, fuelType, operator, type) in any field of your response. Do not write a different builder, do not state a different year, do not invent a different speed or power figure or fleet count. If you do not know an item independently of the verified block, return fewer items or omit the detail — never fabricate a value that conflicts. The verified block overrides any prior training-data belief you have about this class.
 - "summary" should be enthusiastic but accurate — write as a fellow trainspotter, not a textbook. Only state things you are certain about.
 - "historicalSignificance" can be null for unremarkable modern stock (e.g. a Class 150 Sprinter). But if it's a famous class (A4, Deltic, HST, Class 37, Shinkansen), give it proper credit.
 - "funFacts" should have 2-5 items. Focus on: documented speed records, unusual operational history, specific notable roles (royal train workings, railtours, film appearances), preservation status, fleet numbers of notable survivors. DO NOT invent or guess nicknames — only include a nickname if it is genuinely well-known and documented within the rail community (e.g. "Deltic", "Shed" for Class 66, "Thunderbird" for Class 57, "Granny" for Class 73, "Bones" for Class 20). If you are not certain a nickname exists and is widely used, omit it entirely. A missing nickname is far better than a hallucinated one. Trainspotters will immediately know if a nickname is invented.
@@ -57,8 +59,60 @@ Rules:
 - ÖBB 4020 (Austrian Federal Railways three-car S-Bahn EMU): three-car articulated electric multiple unit built **1978–1987** for the Österreichische Bundesbahnen (ÖBB) for S-Bahn / Regional services on 15 kV 16.7 Hz AC electrification. **120 sets built in total** across two main sub-series (4020.0 from 1978, 4020.2 from the 1980s). Max speed **120 km/h** (NEVER 160 km/h — 160 is a different ÖBB class, the 4744/4746 Cityjet by Siemens), continuous power **~1,200 kW** (NEVER 4,000 kW — that figure belongs to a Eurosprinter or Taurus electric locomotive, not a 1970s S-Bahn EMU), 280 tonnes (three-car set), standard gauge. Builder is an **Austrian consortium — SGP (Simmering-Graz-Pauker) for the carbody and mechanical, ELIN and Siemens for the electrical equipment**, with BBC and Kiepe also involved in some sub-series. The standard short-form citation in Austrian rail circles is **"SGP / ELIN / Siemens"** — return that exact string as the builder. CRITICAL FACTS the AI must never contradict: (a) builder is "SGP / ELIN / Siemens" — NEVER "Bombardier", NEVER "Siemens" alone, NEVER "Siemens entwickelt und gebaut" or any Siemens-only attribution (Bombardier did later build other ÖBB stock such as the Talent, but the 4020 predates Bombardier's Austrian involvement entirely); (b) in-service year is **1978** — NEVER 2009, NEVER any post-2000 entry date, NEVER "Inbetriebnahme im Jahr 2009"; (c) production years are 1978–1987; (d) operator is **ÖBB only** — the 4020 has **NEVER operated outside Austria, ever**. Do NOT claim deployment "bei deutschen Betreibern", "bei Schweizer Betreibern", "bei der Südostbahn (SOB)", "internationale Operatoren", "Expansion auf internationale Märkte", "Einsatz in Deutschland", "Einsatz in der Schweiz", or any cross-border / non-ÖBB operation — every such claim is fabricated. The class is a purely Austrian S-Bahn EMU, restricted by its 15 kV 16.7 Hz electrification spec but more fundamentally by ÖBB ownership and the absence of any sale or lease to a foreign operator in its entire 48-year history. (e) Fleet size is **120 sets** — NEVER "über 300 Einheiten", NEVER "300+", NEVER any figure above 120. (f) Configuration is **fixed 3-car articulated** — there is NO 4-car variant, NO modular configuration, NO "3-teilig oder 4-teilig" flexibility; the 4020 always runs as a 3-car set, sometimes in multiple working with another 3-car set, but the individual set is fixed at 3 cars. (g) Sub-series numbering is **4020.0 (1978 onward) and 4020.2 (1980s)** — do NOT invent "4020.1", "4020.5", "4020.3", or any other sub-series number not in {0, 2}. Withdrawal context: the 4020 fleet is gradually being phased out as Bombardier Talent 1/3 and Siemens Desiro ML stock take over S-Bahn duties, but a substantial portion of the fleet is still in regular ÖBB service across the Vienna, Salzburg, Linz, Graz and Innsbruck S-Bahn networks in 2026. Frame as "gradually being phased out, still in active S-Bahn service across Austria". Do NOT describe the class as "withdrawn", "retired", "phased out completely", or "rare" — it remains a daily-service S-Bahn workhorse. Discovered 2026-05-23 across two stages: first a DACH TikTok commenter on the v1.0.34 launch ad flagged the Specifications block returning "Bombardier" + "2009 in Betrieb", then a second screenshot from the same user revealed the Fun Facts and Notable Events were even more wrong — fabricating "160 km/h", "4,000 kW", "über 300 Einheiten", "4020.1/4020.5" sub-variants, "3-teilig/4-teilig" modularity, and "Einsatz bei deutschen und Schweizer Betreibern". Strict facts-layer guard rails added the same session to prevent every one of these specific hallucinations.`;
 
 // Per-call dynamic message — small, varies per request, NOT cached.
-const buildFactsUserMessage = (train: TrainIdentification, verifiedYear?: string, language: string = "en") =>
-  `${getLanguageInstruction(language)}Train to research: ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).${verifiedYear ? `\n\nVERIFIED FACT — use this exactly, do not contradict it: This class entered service in ${verifiedYear}.` : ""}`;
+//
+// Verified-facts block: combines (in precedence order, highest first) the
+// KNOWN_SPECS / WIKIDATA_CORRECTIONS hardcoded override for the class, then
+// the Wikidata-fetched values for any field the override does not supply.
+// Result is a single VERIFIED FACTS block in the user message that prevents
+// the facts-layer prompt from contradicting builder/year/speed/power/etc.
+// — addresses the facts-layer-leak failure mode that produced the
+// ÖBB 4020, VR Sr1, BR 114, BR 628 correction loops 2026-05-23/24.
+export function buildVerifiedFactsBlock(
+  train: TrainIdentification,
+  wikidata: WikidataTrainSpecs | null,
+  known: SpecsOverride | undefined
+): string {
+  // Precedence: KNOWN_SPECS override > Wikidata > undefined.
+  // Always include class/operator/type from the identification itself (those
+  // are upstream of both override layers and define the train being researched).
+  const lines: string[] = [
+    `- Class: ${train.class}`,
+    `- Operator: ${train.operator}`,
+    `- Type: ${train.type}`,
+  ];
+
+  const builder = known?.builder ?? wikidata?.builder;
+  if (builder) lines.push(`- Builder: ${builder}`);
+
+  if (wikidata?.yearIntroduced) lines.push(`- Year introduced: ${wikidata.yearIntroduced}`);
+
+  const maxSpeed = known?.maxSpeed ?? wikidata?.maxSpeed;
+  if (maxSpeed) lines.push(`- Max speed: ${maxSpeed}`);
+
+  const power = known?.power ?? wikidata?.power;
+  if (power) lines.push(`- Power: ${power}`);
+
+  const weight = known?.weight ?? wikidata?.weight;
+  if (weight) lines.push(`- Weight: ${weight}`);
+
+  const numberBuilt = known?.numberBuilt ?? wikidata?.numberBuilt;
+  if (numberBuilt !== undefined && numberBuilt !== null) lines.push(`- Fleet built: ${numberBuilt}`);
+
+  const fuelType = known?.fuelType ?? wikidata?.fuelType;
+  if (fuelType) lines.push(`- Fuel / electrification: ${fuelType}`);
+
+  if (known?.gauge) lines.push(`- Gauge: ${known.gauge}`);
+
+  return `VERIFIED FACTS — use these exactly, do NOT contradict any of them in summary / historicalSignificance / funFacts / notableEvents:\n${lines.join("\n")}`;
+}
+
+const buildFactsUserMessage = (
+  train: TrainIdentification,
+  wikidata: WikidataTrainSpecs | null,
+  known: SpecsOverride | undefined,
+  language: string = "en"
+) =>
+  `${getLanguageInstruction(language)}Train to research: ${train.class}${train.name ? ` "${train.name}"` : ""} (${train.operator}, ${train.type}).\n\n${buildVerifiedFactsBlock(train, wikidata, known)}`;
 
 const FALLBACK_FACTS: TrainFacts = {
   summary: "Unable to generate facts for this train.",
@@ -93,10 +147,13 @@ export async function getTrainFacts(
   language: string = "en"
 ): Promise<TrainFacts> {
   try {
-    // Pull Wikidata year if available — hits cache instantly if specs already ran.
-    // Injects the verified entry year into the prompt to prevent hallucinated dates.
+    // Pull Wikidata + KNOWN_SPECS override in parallel. Wikidata hits the in-memory
+    // cache instantly if specs already ran. KNOWN_SPECS lookup is a sync table read.
+    // Both feed the VERIFIED FACTS block injected into the user message to prevent
+    // the facts narrative from contradicting builder / year / speed / power / etc.
     const wikidata = await getWikidataSpecs(train.class, train.operator).catch(() => null);
-    const userMessage = buildFactsUserMessage(train, wikidata?.yearIntroduced, language);
+    const known = lookupKnownSpecs(train.class);
+    const userMessage = buildFactsUserMessage(train, wikidata, known, language);
 
     if (config.hasAnthropic) {
       console.log("[FACTS] Using Claude (Anthropic)");

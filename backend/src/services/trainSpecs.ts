@@ -243,7 +243,7 @@ async function getAISpecs(train: TrainIdentification, language: string = "en"): 
 // Known Wikidata data quality corrections.
 // Wikidata wins in the merge, but these fields are factually wrong for specific classes —
 // apply after merge to ensure trainspotters see correct values.
-type SpecsOverride = Partial<Pick<TrainSpecs, "maxSpeed" | "power" | "weight" | "builder" | "fuelType" | "numberBuilt" | "gauge">>;
+export type SpecsOverride = Partial<Pick<TrainSpecs, "maxSpeed" | "power" | "weight" | "builder" | "fuelType" | "numberBuilt" | "gauge">>;
 const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // NOTE: BR 462 full entry now lives in the ICE family block below — old single-key
   // builder override removed 2026-05-18.
@@ -1484,6 +1484,18 @@ function applyKnownCorrections(trainClass: string, specs: TrainSpecs): TrainSpec
   if (!correction) return specs;
   console.log(`[SPECS] Applying known corrections for "${trainClass}": ${JSON.stringify(correction)}`);
   return { ...specs, ...correction };
+}
+
+/**
+ * Look up the KNOWN_SPECS / WIKIDATA_CORRECTIONS override for a train class.
+ * Returns undefined if no override exists. Used by trainFacts.ts to build the
+ * VERIFIED FACTS block that prevents facts-layer hallucinations from contradicting
+ * the locked specs values (see backend_cache_invalidation_pattern.md). Lookup uses
+ * the same normalisation as applyKnownCorrections to ensure parity.
+ */
+export function lookupKnownSpecs(trainClass: string): SpecsOverride | undefined {
+  const key = trainClass.toLowerCase().trim();
+  return WIKIDATA_CORRECTIONS[key];
 }
 
 export async function getTrainSpecs(

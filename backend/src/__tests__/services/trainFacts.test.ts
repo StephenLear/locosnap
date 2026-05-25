@@ -83,7 +83,7 @@ describe("getTrainFacts", () => {
     expect(result.funFacts).toEqual([]);
   });
 
-  it("injects verified entry year into prompt when Wikidata has it", async () => {
+  it("includes verified entry year in the VERIFIED FACTS block when Wikidata has it", async () => {
     mockGetWikidataSpecs.mockResolvedValueOnce({ yearIntroduced: "2020" });
     mockCreate.mockResolvedValue({
       content: [{ type: "text", text: JSON.stringify({
@@ -96,23 +96,91 @@ describe("getTrainFacts", () => {
 
     await getTrainFacts(makeTrain({ class: "Desiro ML" }));
 
-    // Verify the prompt sent to the AI contains the verified year
     const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
-    expect(promptSent).toContain("entered service in 2020");
+    expect(promptSent).toContain("VERIFIED FACTS");
+    expect(promptSent).toContain("Year introduced: 2020");
   });
 
-  it("omits year injection when Wikidata has no entry year", async () => {
-    mockGetWikidataSpecs.mockResolvedValueOnce({ maxSpeed: "160 km/h" }); // no yearIntroduced
+  it("always emits the VERIFIED FACTS block with class/operator/type (even without Wikidata)", async () => {
+    mockGetWikidataSpecs.mockResolvedValueOnce(null);
     mockCreate.mockResolvedValue({
       content: [{ type: "text", text: JSON.stringify({
         summary: "Test.", historicalSignificance: null, funFacts: [], notableEvents: [],
       }) }],
     });
 
-    await getTrainFacts(makeTrain());
+    await getTrainFacts(makeTrain({ class: "Class 390", operator: "Avanti West Coast", type: "EMU" }));
 
     const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
-    expect(promptSent).not.toContain("VERIFIED FACT");
+    expect(promptSent).toContain("VERIFIED FACTS");
+    expect(promptSent).toContain("Class: Class 390");
+    expect(promptSent).toContain("Operator: Avanti West Coast");
+    expect(promptSent).toContain("Type: EMU");
+  });
+
+  it("emits KNOWN_SPECS hardcoded override values in the VERIFIED FACTS block", async () => {
+    // BR 114 has a full KNOWN_SPECS block in WIKIDATA_CORRECTIONS (builder
+    // LEW Hennigsdorf, 160 km/h, 4,220 kW, 82 t, 37 units, 15 kV 16.7 Hz AC).
+    // The block must surface in the facts prompt to block the Krauss-Maffei
+    // / multi-system / NRW hallucinations that triggered the 2026-05-24 fix.
+    mockGetWikidataSpecs.mockResolvedValueOnce(null);
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({
+        summary: "Test.", historicalSignificance: null, funFacts: [], notableEvents: [],
+      }) }],
+    });
+
+    await getTrainFacts(makeTrain({ class: "BR 114", operator: "DB Regio", type: "Electric" }));
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).toContain("Builder: LEW Hennigsdorf");
+    expect(promptSent).toContain("Max speed: 160 km/h");
+    expect(promptSent).toContain("Power: 4,220 kW");
+    expect(promptSent).toContain("Fleet built: 37");
+    expect(promptSent).toContain("Fuel / electrification: Electric (15 kV 16.7 Hz AC)");
+    expect(promptSent).toContain("Gauge: Standard (1,435 mm)");
+  });
+
+  it("prefers KNOWN_SPECS override over Wikidata when both provide a field", async () => {
+    // Wikidata says builder "Wrong Builder", but BR 114 KNOWN_SPECS says
+    // "LEW Hennigsdorf". The verified block must show LEW, not the Wikidata value.
+    mockGetWikidataSpecs.mockResolvedValueOnce({
+      builder: "Wrong Builder From Wikidata",
+      maxSpeed: "999 km/h",
+    });
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({
+        summary: "Test.", historicalSignificance: null, funFacts: [], notableEvents: [],
+      }) }],
+    });
+
+    await getTrainFacts(makeTrain({ class: "BR 114", operator: "DB Regio", type: "Electric" }));
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).toContain("Builder: LEW Hennigsdorf");
+    expect(promptSent).not.toContain("Wrong Builder From Wikidata");
+    expect(promptSent).toContain("Max speed: 160 km/h");
+    expect(promptSent).not.toContain("999 km/h");
+  });
+
+  it("uses Wikidata to fill fields that KNOWN_SPECS does not cover", async () => {
+    // Class 390 KNOWN_SPECS covers maxSpeed/power/builder/numberBuilt/fuelType
+    // but NOT weight or yearIntroduced. Those come from Wikidata when available.
+    mockGetWikidataSpecs.mockResolvedValueOnce({
+      weight: "466 tonnes",
+      yearIntroduced: "2002",
+    });
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({
+        summary: "Test.", historicalSignificance: null, funFacts: [], notableEvents: [],
+      }) }],
+    });
+
+    await getTrainFacts(makeTrain({ class: "Class 390" }));
+
+    const promptSent = mockCreate.mock.calls[0][0].messages[0].content as string;
+    expect(promptSent).toContain("Weight: 466 tonnes");
+    expect(promptSent).toContain("Year introduced: 2002");
   });
 
   it("prepends German instruction when language is 'de'", async () => {
