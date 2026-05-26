@@ -256,6 +256,12 @@
   },
   "paywall": {
     "title": "Go Pro",
+    "heroSubtitle": "Take your trainspotting to the next level",
+    "wallTitle": "Free scans used — no reset",
+    "wallSubtitle": "Your 6 lifetime scans are spent. Pro keeps every scan unlimited.",
+    "cancelAnytime": "Cancel anytime",
+    "noCommitment": "No commitment",
+    "fundedTrust": "Funded by subscriptions, not ads or data",
     "unlimitedScans": "Unlimited scans",
     "allBlueprintStyles": "All blueprint styles",
     "leaderboardAccess": "Leaderboard access",

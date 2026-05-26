@@ -99,6 +99,20 @@ function resolveHelperLocale(lng: string | undefined): PaywallLocale {
   return "en";
 }
 
+// Phase D — wall-aware hero. Sources that arrive because the user
+// hit the 6/6 free-scan cap get a different headline that kills the
+// "I thought it refreshes" misunderstanding pattern (multiple TikTok
+// + Play review signals in May 2026). All other sources keep the
+// generic "Go Pro" headline.
+function isWallSource(source: string | undefined): boolean {
+  if (!source) return false;
+  return (
+    source === "auto_wall" ||
+    source === "home_persistent_locked" ||
+    source.includes("scan_6")
+  );
+}
+
 export default function PaywallScreen() {
   const { t, i18n } = useTranslation();
   const helperLocale = resolveHelperLocale(i18n.language);
@@ -107,6 +121,7 @@ export default function PaywallScreen() {
   const { user, fetchProfile } = useAuthStore();
   const session = useAuthStore((s) => s.session);
   const isSignedIn = session !== null;
+  const isWallEntry = isWallSource(source);
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -360,9 +375,13 @@ export default function PaywallScreen() {
             </Animated.View>
           </View>
 
-          <Text style={styles.heroTitle}>{t("paywall.title")}</Text>
+          <Text style={styles.heroTitle}>
+            {isWallEntry ? t("paywall.wallTitle") : t("paywall.title")}
+          </Text>
           <Text style={styles.heroSubtitle}>
-            Take your trainspotting to the next level
+            {isWallEntry
+              ? t("paywall.wallSubtitle")
+              : t("paywall.heroSubtitle")}
           </Text>
         </Animated.View>
 
@@ -649,13 +668,24 @@ export default function PaywallScreen() {
         <View style={styles.safetyRow}>
           <View style={styles.safetyItem}>
             <Ionicons name="close-circle-outline" size={14} color={colors.textMuted} />
-            <Text style={styles.safetyText}>Cancel anytime</Text>
+            <Text style={styles.safetyText}>{t("paywall.cancelAnytime")}</Text>
           </View>
           <View style={styles.safetyDot} />
           <View style={styles.safetyItem}>
             <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} />
-            <Text style={styles.safetyText}>No commitment</Text>
+            <Text style={styles.safetyText}>{t("paywall.noCommitment")}</Text>
           </View>
+        </View>
+
+        {/* ── Trust line (Phase D — bakery reframe) ─────────────
+            Always-visible single-line trust statement. Mechanism-first
+            framing per feedback_paywall_reframe_no_apology.md: Pro is
+            what funds the app, not ads / data-selling. Replaces nothing
+            — sits between safety triggers and the restore-purchases
+            button, reinforces the cancel-anytime / no-commitment row. */}
+        <View style={styles.trustRow}>
+          <Ionicons name="heart-outline" size={14} color={SCANNER.teal} />
+          <Text style={styles.trustText}>{t("paywall.fundedTrust")}</Text>
         </View>
 
         {/* ── Restore ───────────────────────────────────────── */}
@@ -1223,6 +1253,21 @@ const styles = StyleSheet.create({
     height: 3,
     borderRadius: 1.5,
     backgroundColor: colors.textMuted,
+  },
+
+  // Trust line — funded-by-subscriptions reframe
+  trustRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  trustText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+    textAlign: "center",
   },
 
   // Restore
