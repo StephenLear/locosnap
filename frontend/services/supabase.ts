@@ -15,6 +15,12 @@ import {
 import * as FileSystem from "expo-file-system/legacy";
 import { decode } from "base64-arraybuffer";
 import { captureError } from "./analytics";
+import {
+  enqueue as enqueueSpot,
+  flushQueue as flushSpotQueue,
+  isTransientNetworkError,
+  type FlushAttemptResult,
+} from "./spotQueue";
 
 // ── Types ───────────────────────────────────────────────────
 
@@ -168,6 +174,12 @@ export async function saveSpot(params: {
   }
   if (params.riskFlags) insertPayload.risk_flags = params.riskFlags;
 
+  // Phase E — lazy flush of any queued spots before the new write.
+  // We know the network's up because we're about to attempt our own
+  // insert; piggyback on that to drain anything stuck from prior
+  // offline sessions. Fire-and-forget; never block the live save.
+  flushSpotQueue((p) => attemptSpotInsert(p)).catch(() => {});
+
   const { data, error } = await supabase
     .from("spots")
     .insert(insertPayload)
@@ -175,6 +187,22 @@ export async function saveSpot(params: {
     .single();
 
   if (error) {
+    // Transient network failure → queue + optimistic success. The
+    // caller's UX (card-reveal celebration, history list, league XP)
+    // is preserved; the actual write lands on next flush. Closes the
+    // silent-fail pattern in feedback_supabase_silent_persistence_failures.md
+    // without surfacing a Sentry event for every transient drop.
+    if (isTransientNetworkError(error)) {
+      try {
+        await enqueueSpot(insertPayload);
+        return `queued:${Date.now()}`;
+      } catch (e) {
+        // Queue itself failed — fall through to the terminal-capture
+        // branch so we don't silently drop the spot.
+        captureError(e as Error, { op: "saveSpot_enqueue_failed" });
+      }
+    }
+
     console.warn("Failed to save spot:", error.message);
     captureError(new Error(`supabase saveSpot failed: ${error.message}`), {
       op: "saveSpot",
@@ -193,6 +221,45 @@ export async function saveSpot(params: {
   }
 
   return data.id;
+}
+
+// Phase E — flush-attempt helper used by both the lazy in-saveSpot
+// flush and the AppState-active flush wired in app/_layout.tsx. Kept
+// at module scope so callers don't have to re-wire the supabase client.
+export async function attemptSpotInsert(
+  payload: Record<string, unknown>
+): Promise<FlushAttemptResult> {
+  try {
+    const { error } = await supabase
+      .from("spots")
+      .insert(payload as any)
+      .select("id")
+      .single();
+    if (!error) return { ok: true };
+    return {
+      ok: false,
+      transient: isTransientNetworkError(error),
+      error: new Error(`supabase saveSpot flush failed: ${error.message}`),
+    };
+  } catch (e) {
+    const err = e instanceof Error ? e : new Error(String(e));
+    return {
+      ok: false,
+      transient: isTransientNetworkError({ message: err.message }),
+      error: err,
+    };
+  }
+}
+
+// Phase E — public flush trigger for app-level callers (AppState
+// listener in _layout.tsx). Production should not call this directly
+// outside the resume / startup hooks.
+export async function flushPendingSpots(): Promise<void> {
+  try {
+    await flushSpotQueue((p) => attemptSpotInsert(p));
+  } catch {
+    // Swallow — flushSpotQueue already captures terminal failures.
+  }
 }
 
 /**
