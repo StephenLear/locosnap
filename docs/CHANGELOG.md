@@ -74,6 +74,23 @@ Captions for all three are documented in this session — DE/PL/EN drafts with r
 - Render web service: live, `/api/health` 200
 - Render cron service: live, scheduled `0 9 * * *` UTC, first scheduled run tomorrow morning
 
+### v1.0.35 LIVE on App Store (late evening, ~6-8h after submission)
+
+Apple approved + released v1.0.35 on the App Store the same day the submission was sent — significantly faster than the typical 24-48h review window. **All 8 phases of the v1.0.35 mega-PR now reaching iOS users immediately:**
+
+- Phase A — redesigned Pro paywall (annual hero + per-week anchor + truthful intro copy)
+- Phase B — persistent home Pro upsell card replacing scan_2/4/5/6 dismissable banners
+- Phase C — auto-open paywall on first rare/epic/legendary scan + at scan 6/6 wall
+- Phase D — wall-aware paywall copy + funded-by-subscriptions trust line
+- Phase E — offline write queue for saveSpot (silent network-error data loss eliminated)
+- Phase F — Pro expiring banner replacing manual recovery email loop
+- Phase G — backend rescue push cron (live on Render since this morning)
+- Phase H — dynamic softprompt price + i18n + version bump
+
+Combined with the Apple intro €1 offers that flipped active this morning, **every new iOS subscriber from now on hits the new paywall AND sees the local intro price** ("1. Monat für 1 €" / "First month £1" / etc.) rendered dynamically by Phase A's truthful-intro-copy helper. Conversion-side improvements (paywall redesign + intro pricing + persistent home card) now fully aligned across iOS.
+
+Play Store still in review at session close — Play typically 2-24h, so likely tomorrow morning. Same payload will reach Android users then.
+
 ### Launch-day conversion signal — two intro-tier conversions in 24h (RC webhooks)
 
 Two RevenueCat webhook events confirm the intro-pricing campaign is producing real new customers immediately. Both Android Play Store, both at intro tier, both unplanned markets:
