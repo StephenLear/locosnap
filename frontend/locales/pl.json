@@ -326,6 +326,8 @@
     "softPrompt": {
       "scan_2": {
         "title": "Wypróbuj Pro od 5,19 zł/miesiąc",
+        "titleWithPrice": "Wypróbuj Pro od {{price}}/miesiąc",
+        "titleGeneric": "Wypróbuj Pro",
         "body": "Oferta startowa dla nowych subskrybentów. Pełne dane, plany, cała kolekcja.",
         "cta": "Zobacz Pro"
       },

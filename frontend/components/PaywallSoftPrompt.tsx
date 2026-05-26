@@ -9,6 +9,19 @@
 //
 // Routes to /paywall with a source param tagging variant + surface
 // for per-touch analytics.
+//
+// v1.0.35 Phase H — scan_2 title pulls the live monthly intro price
+// from RevenueCat offerings (replaces hardcoded "£1" / "1 €" /
+// "5,19 zł"). Permanent fix for the price-drift bug surfaced when
+// the Play intro was tuned from 5,19 zł → 4,49 zł on 2026-05-26 —
+// the static softprompt copy quietly went out of sync with the
+// actual store charge. The truthful-intro pattern matches the Phase
+// A paywall tile mechanism, so the in-app numbers always reflect
+// what the user is about to pay.
+//
+// If the SDK can't return an introPrice (no intro live in market,
+// RevenueCat not initialised, network failure), the component falls
+// back to a generic title with no specific number ("Try Pro").
 // ============================================================
 
 import React, { useEffect, useState } from "react";
@@ -17,6 +30,8 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { track } from "../services/analytics";
+import { getOfferings } from "../services/purchases";
+import { getPackageKind } from "../app/paywall-helpers";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
 
 const TEAL = "#00D4AA";
@@ -43,6 +58,12 @@ export function PaywallSoftPrompt({
   const { t } = useTranslation();
   const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
+  // Live monthly intro price from RC offerings. Initialised null so
+  // the first frame renders the generic fallback title; once the
+  // async fetch resolves, the component re-renders with the real
+  // price interpolated into the scan_2 title. ~50-200ms delay; users
+  // briefly see "Try Pro" before "Try Pro from €0.99/month" lands.
+  const [introPriceString, setIntroPriceString] = useState<string | null>(null);
   const variant = variantFor(scansUsed);
   const isUrgent = variant === "scan_5";
   const isLocked = variant === "scan_6";
@@ -58,6 +79,26 @@ export function PaywallSoftPrompt({
   useEffect(() => {
     track("paywall_softprompt_shown", { variant, scansUsed, surface });
   }, [variant, scansUsed, surface]);
+
+  // Fetch live monthly intro price once per mount. Only the scan_2
+  // variant interpolates the price, but we fetch on every mount so
+  // the price is ready if the user dwells past scan 2; the cost is
+  // a single RC offerings round-trip (which is also cached). Fails
+  // silently — null state falls back to the generic title.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const offerings = await getOfferings();
+      if (cancelled) return;
+      const packages = offerings?.current?.availablePackages ?? [];
+      const monthly = packages.find((p) => getPackageKind(p) === "monthly");
+      const intro = (monthly?.product as any)?.introPrice;
+      if (intro?.priceString) setIntroPriceString(intro.priceString);
+    })().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (dismissed) return null;
 
@@ -101,7 +142,13 @@ export function PaywallSoftPrompt({
         </View>
         <View style={styles.textBlock}>
           <Text style={styles.title}>
-            {t(`paywall.softPrompt.${variant}.title`)}
+            {variant === "scan_2" && introPriceString
+              ? t("paywall.softPrompt.scan_2.titleWithPrice", {
+                  price: introPriceString,
+                })
+              : variant === "scan_2"
+                ? t("paywall.softPrompt.scan_2.titleGeneric")
+                : t(`paywall.softPrompt.${variant}.title`)}
           </Text>
           <Text style={styles.body} numberOfLines={2}>
             {t(`paywall.softPrompt.${variant}.body`)}

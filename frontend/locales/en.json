@@ -318,6 +318,8 @@
     "softPrompt": {
       "scan_2": {
         "title": "Try Pro from just £1/month",
+        "titleWithPrice": "Try Pro from just {{price}}/month",
+        "titleGeneric": "Try Pro",
         "body": "Special intro for new subscribers. Full specs, blueprints, your whole collection.",
         "cta": "See Pro"
       },

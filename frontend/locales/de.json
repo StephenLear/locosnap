@@ -318,6 +318,8 @@
     "softPrompt": {
       "scan_2": {
         "title": "Pro testen ab 1 €/Monat",
+        "titleWithPrice": "Pro testen ab {{price}}/Monat",
+        "titleGeneric": "Pro testen",
         "body": "Einführungsangebot für Neukunden. Alle Daten, jeder Blueprint, deine ganze Sammlung.",
         "cta": "Pro entdecken"
       },
