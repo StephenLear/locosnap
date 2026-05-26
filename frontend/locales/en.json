@@ -259,8 +259,37 @@
     "lifetimeTitle": "Lifetime",
     "lifetimeSubtitle": "One-time payment, never charged again",
     "lifetimePrice": "{{price}}",
-    "introBadge": "30% OFF FIRST 3 MONTHS",
-    "introDisclaimer": "After 3 months, regular price applies. Cancel anytime.",
+    "bestValue": "BEST VALUE",
+    "introOfferBadge": "INTRO OFFER",
+    "perWeekEquivalent": "≈ {{price}}/week, billed yearly",
+    "introOffer": {
+      "singular": "{{introPriceString}} for first {{unitLabel}}, then {{regularPriceString}}/{{regularPeriod}}",
+      "plural": "{{introPriceString}} for first {{count}} {{unitLabel}}, then {{regularPriceString}}/{{regularPeriod}}"
+    },
+    "period": {
+      "month": "month",
+      "year": "year"
+    },
+    "unit": {
+      "day": { "singular": "day", "plural": "days" },
+      "week": { "singular": "week", "plural": "weeks" },
+      "month": { "singular": "month", "plural": "months" },
+      "year": { "singular": "year", "plural": "years" }
+    },
+    "features": {
+      "unlimitedScans": {
+        "label": "Unlimited scans",
+        "desc": "No more waiting — scan every train you see"
+      },
+      "collection": {
+        "label": "Your whole collection",
+        "desc": "Every train you've ever spotted, always accessible"
+      },
+      "blueprints": {
+        "label": "Premium technical blueprints",
+        "desc": "Detailed engineering diagrams for your collection"
+      }
+    },
     "unlockLifetime": "Unlock Lifetime",
     "softPrompt": {
       "scan_2": {

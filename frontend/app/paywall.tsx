@@ -37,6 +37,9 @@ import {
   getPackageKind,
   sortPaywallPackages,
   findDefaultIndex,
+  formatPerWeek,
+  describeIntroOffer,
+  PaywallLocale,
 } from "./paywall-helpers";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -77,27 +80,28 @@ const BLUEPRINT_PREVIEWS = [
 ];
 
 // ── Feature list ─────────────────────────────────────────────
+// Order intentionally leads with "Unlimited scans" then "Your whole
+// collection" — the two most-cited benefits in paywall research.
+// Labels + descriptions resolved via i18n at render time.
 
-const PRO_FEATURES = [
-  {
-    icon: "infinite",
-    label: "Unlimited scans",
-    desc: "No more waiting — scan every train you see",
-  },
-  {
-    icon: "construct",
-    label: "Premium technical blueprints",
-    desc: "Detailed engineering diagrams for your collection",
-  },
-  {
-    icon: "albums",
-    label: "Full collection access",
-    desc: "Every train you've ever spotted, always accessible",
-  },
-];
+const PRO_FEATURE_KEYS = [
+  { icon: "infinite", key: "unlimitedScans" },
+  { icon: "albums", key: "collection" },
+  { icon: "construct", key: "blueprints" },
+] as const;
+
+// Map i18next current language to the locale subset our helpers handle.
+// Anything outside en/de/pl falls back to 'en' for number formatting.
+function resolveHelperLocale(lng: string | undefined): PaywallLocale {
+  const base = (lng || "en").toLowerCase().split("-")[0];
+  if (base === "de") return "de";
+  if (base === "pl") return "pl";
+  return "en";
+}
 
 export default function PaywallScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const helperLocale = resolveHelperLocale(i18n.language);
   const router = useRouter();
   const { source } = useLocalSearchParams<{ source?: string }>();
   const { user, fetchProfile } = useAuthStore();
@@ -390,8 +394,8 @@ export default function PaywallScreen() {
 
         {/* ── Feature list ──────────────────────────────────── */}
         <View style={styles.featuresSection}>
-          {PRO_FEATURES.map((feature, i) => (
-            <View key={i} style={styles.featureRow}>
+          {PRO_FEATURE_KEYS.map((feature) => (
+            <View key={feature.key} style={styles.featureRow}>
               <View style={styles.featureIconCircle}>
                 <Ionicons
                   name={feature.icon as any}
@@ -400,8 +404,12 @@ export default function PaywallScreen() {
                 />
               </View>
               <View style={styles.featureInfo}>
-                <Text style={styles.featureLabel}>{feature.label}</Text>
-                <Text style={styles.featureDesc}>{feature.desc}</Text>
+                <Text style={styles.featureLabel}>
+                  {t(`paywall.features.${feature.key}.label`)}
+                </Text>
+                <Text style={styles.featureDesc}>
+                  {t(`paywall.features.${feature.key}.desc`)}
+                </Text>
               </View>
               <Ionicons
                 name="checkmark-circle"
@@ -426,8 +434,14 @@ export default function PaywallScreen() {
               const kind = getPackageKind(pkg);
               const isAnnual = kind === "annual";
               const isLifetime = kind === "lifetime";
-              const hasIntroOffer =
-                isAnnual && Boolean((pkg.product as any).introPrice);
+
+              // Truthful intro copy: read the real introPrice from RevenueCat
+              // and render structured i18n. Shown on whichever tile actually
+              // has a current intro offer (annual OR monthly) — the legacy
+              // hardcoded "30% off 3 months" wording is gone.
+              const introDescriptor = describeIntroOffer(
+                (pkg.product as any).introPrice
+              );
 
               const title =
                 pkg.product.title ||
@@ -440,25 +454,68 @@ export default function PaywallScreen() {
               const priceSuffix = isLifetime
                 ? ""
                 : isAnnual
-                  ? "/year"
-                  : "/month";
+                  ? `/${t("paywall.period.year")}`
+                  : `/${t("paywall.period.month")}`;
+
+              // Weekly equivalent — only on annual, only when we have a
+              // numeric price + currency code. Sub-coffee anchor; way
+              // stronger psychological pull than per-month equivalent
+              // (which collapses to a few cents' delta vs the monthly tier).
+              const perWeekText =
+                isAnnual &&
+                typeof (pkg.product as any).price === "number" &&
+                (pkg.product as any).currencyCode
+                  ? formatPerWeek(
+                      (pkg.product as any).price,
+                      (pkg.product as any).currencyCode,
+                      helperLocale
+                    )
+                  : "";
+
+              // Compose intro copy via singular/plural i18n templates.
+              const introCopy = introDescriptor
+                ? t(
+                    introDescriptor.count === 1
+                      ? "paywall.introOffer.singular"
+                      : "paywall.introOffer.plural",
+                    {
+                      introPriceString: introDescriptor.introPriceString,
+                      count: introDescriptor.count,
+                      unitLabel: t(
+                        `paywall.unit.${introDescriptor.unit}.${
+                          introDescriptor.count === 1 ? "singular" : "plural"
+                        }`
+                      ),
+                      regularPriceString: pkg.product.priceString,
+                      regularPeriod: t(
+                        `paywall.period.${isAnnual ? "year" : "month"}`
+                      ),
+                    }
+                  )
+                : "";
+
+              const badgeText = introDescriptor
+                ? t("paywall.introOfferBadge")
+                : isAnnual
+                  ? t("paywall.bestValue")
+                  : "";
 
               return (
                 <TouchableOpacity
                   key={pkg.identifier}
                   style={[
                     styles.packageCard,
+                    isAnnual && styles.packageCardAnnual,
                     isSelected && styles.packageCardSelected,
                   ]}
                   onPress={() => setSelectedIndex(index)}
                   activeOpacity={0.7}
                 >
-                  {/* Best value badge */}
-                  {isAnnual && (
+                  {/* Tile badge — INTRO OFFER when this tile has one,
+                      BEST VALUE on annual otherwise, nothing on others. */}
+                  {badgeText !== "" && (
                     <View style={styles.bestValueBadge}>
-                      <Text style={styles.bestValueText}>
-                        {hasIntroOffer ? t("paywall.introBadge") : "BEST VALUE"}
-                      </Text>
+                      <Text style={styles.bestValueText}>{badgeText}</Text>
                     </View>
                   )}
 
@@ -487,32 +544,25 @@ export default function PaywallScreen() {
                       {pkg.product.priceString}
                       {priceSuffix}
                     </Text>
+                    {/* Weekly equivalent for annual — coffee anchor */}
+                    {perWeekText !== "" && (
+                      <Text style={styles.packagePerWeek}>
+                        {t("paywall.perWeekEquivalent", { price: perWeekText })}
+                      </Text>
+                    )}
+                    {/* Truthful intro copy — dynamic from the store */}
+                    {introCopy !== "" && (
+                      <Text style={styles.packageIntroLine}>{introCopy}</Text>
+                    )}
                     {isLifetime && (
                       <Text style={styles.packageSubtitle}>
                         {t("paywall.lifetimeSubtitle")}
                       </Text>
                     )}
                   </View>
-
-                  {/* Savings badge — annual only, hidden when intro offer is showing */}
-                  {isAnnual && !hasIntroOffer && (
-                    <View style={styles.savingsBadge}>
-                      <Text style={styles.savingsBadgeText}>Save 25%</Text>
-                    </View>
-                  )}
                 </TouchableOpacity>
               );
             })}
-            {/* Intro offer disclaimer — shown below the package list when annual has an intro offer */}
-            {packages.some(
-              (p) =>
-                getPackageKind(p) === "annual" &&
-                Boolean((p.product as any).introPrice)
-            ) && (
-              <Text style={styles.introDisclaimer}>
-                {t("paywall.introDisclaimer")}
-              </Text>
-            )}
           </View>
         ) : null}
 
@@ -950,6 +1000,12 @@ const styles = StyleSheet.create({
     borderColor: SCANNER.teal,
     backgroundColor: SCANNER.tealSubtle,
   },
+  // Annual card sits above the others visually: taller padding, always-on
+  // teal border (even when unselected) so the eye lands here first.
+  packageCardAnnual: {
+    paddingVertical: spacing.lg + spacing.xs,
+    borderColor: "rgba(0, 212, 170, 0.45)",
+  },
   bestValueBadge: {
     position: "absolute",
     top: 0,
@@ -1005,23 +1061,22 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
-  introDisclaimer: {
+  // Per-week equivalent under annual price — secondary line, teal accent so
+  // it reads as the "coffee anchor" without competing with the headline price.
+  packagePerWeek: {
+    fontSize: fonts.sizes.xs,
+    color: SCANNER.teal,
+    fontWeight: fonts.weights.semibold,
+    marginTop: 2,
+  },
+  // Truthful intro-offer copy rendered from RevenueCat introPrice. Italicised
+  // small text under the headline price; Apple 3.1.2-compliant disclosure.
+  packageIntroLine: {
     fontSize: fonts.sizes.xs,
     color: colors.textSecondary,
-    textAlign: "center",
-    marginTop: spacing.sm,
+    marginTop: 4,
     fontStyle: "italic",
-  },
-  savingsBadge: {
-    backgroundColor: colors.success,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderRadius: borderRadius.full,
-  },
-  savingsBadgeText: {
-    fontSize: fonts.sizes.xs,
-    fontWeight: fonts.weights.bold,
-    color: "#fff",
+    lineHeight: 16,
   },
 
   // Credit purchase

@@ -259,8 +259,37 @@
     "lifetimeTitle": "Lebenslang",
     "lifetimeSubtitle": "Einmalzahlung, keine Folgekosten",
     "lifetimePrice": "{{price}}",
-    "introBadge": "30% RABATT FÜR 3 MONATE",
-    "introDisclaimer": "Nach 3 Monaten gilt der reguläre Preis. Jederzeit kündbar.",
+    "bestValue": "BESTER WERT",
+    "introOfferBadge": "EINFÜHRUNGSANGEBOT",
+    "perWeekEquivalent": "≈ {{price}}/Woche, jährliche Abrechnung",
+    "introOffer": {
+      "singular": "{{introPriceString}} im ersten {{unitLabel}}, danach {{regularPriceString}}/{{regularPeriod}}",
+      "plural": "{{introPriceString}} in den ersten {{count}} {{unitLabel}}, danach {{regularPriceString}}/{{regularPeriod}}"
+    },
+    "period": {
+      "month": "Monat",
+      "year": "Jahr"
+    },
+    "unit": {
+      "day": { "singular": "Tag", "plural": "Tagen" },
+      "week": { "singular": "Woche", "plural": "Wochen" },
+      "month": { "singular": "Monat", "plural": "Monaten" },
+      "year": { "singular": "Jahr", "plural": "Jahren" }
+    },
+    "features": {
+      "unlimitedScans": {
+        "label": "Unbegrenzte Scans",
+        "desc": "Kein Warten mehr — scanne jeden Zug, den du siehst"
+      },
+      "collection": {
+        "label": "Deine ganze Sammlung",
+        "desc": "Jeder Zug, den du je gesichtet hast, jederzeit verfügbar"
+      },
+      "blueprints": {
+        "label": "Premium-Blueprints",
+        "desc": "Detaillierte technische Zeichnungen für deine Sammlung"
+      }
+    },
     "unlockLifetime": "Lebenslang freischalten",
     "softPrompt": {
       "scan_2": {
