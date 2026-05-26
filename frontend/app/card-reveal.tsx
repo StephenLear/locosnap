@@ -33,8 +33,13 @@ import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import ParticleEffect from "../components/ParticleEffect";
 import { track } from "../services/analytics";
+
+// Phase C — first-rare auto-open paywall flag (once per device).
+// Mirrors the locosnap_pro_* naming used by ProRescuePrompt.
+const PRO_RARE_PAYWALL_KEY = "locosnap_pro_rare_paywall_shown";
 import {
   submitWrongIdReport,
   promoteUnverifiedToPersonal,
@@ -289,6 +294,33 @@ export default function CardRevealScreen() {
       if (currentRarity?.tier === "legendary") {
         const scanCount = useTrainStore.getState().history?.length ?? 0;
         maybePromptReview({ trigger: "legendary_scan", scanCount });
+      }
+
+      // Phase C — first rare/epic/legendary reveal auto-opens Pro paywall.
+      // Once per device (AsyncStorage flag). Pro users excluded. 1.2s delay
+      // so the user sees the card land + glow before the paywall slides up;
+      // Apple §7 — paywall has a working close button so the auto-open is
+      // cleanly dismissable.
+      const isProUser = profile?.is_pro === true;
+      const isRarePlus =
+        currentRarity &&
+        ["rare", "epic", "legendary"].includes(currentRarity.tier);
+      if (isRarePlus && !isProUser) {
+        AsyncStorage.getItem(PRO_RARE_PAYWALL_KEY)
+          .then((shown) => {
+            if (shown === "true") return;
+            AsyncStorage.setItem(PRO_RARE_PAYWALL_KEY, "true").catch(() => {});
+            track("paywall_auto_open_rare", {
+              tier: currentRarity.tier,
+              train_class: currentTrain?.class,
+            });
+            setTimeout(() => {
+              router.push(
+                `/paywall?source=auto_rare_${currentRarity.tier}` as any
+              );
+            }, 1200);
+          })
+          .catch(() => {});
       }
 
       // Stage 2: Glow pulse for rare+

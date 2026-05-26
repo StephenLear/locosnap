@@ -447,6 +447,23 @@ export default function HomeScreen() {
         captureError(error as Error, { context: "handleScan" });
       }
       setScanError(message);
+
+      // Phase C — wall trigger. When a free user hits the 6/6 free-scan
+      // cap on the backend, auto-open the paywall so the conversion
+      // surface isn't gated behind a tap on the lockout card. 800ms
+      // delay so the error message lands first; Apple §7 dismissable
+      // (paywall has working close button).
+      if (
+        message.startsWith("Free scan limit reached") &&
+        profile?.is_pro !== true
+      ) {
+        track("paywall_auto_open_wall", {
+          scansUsed: profile?.daily_scans_used ?? 0,
+        });
+        setTimeout(() => {
+          router.push("/paywall?source=auto_wall" as any);
+        }, 800);
+      }
     }
   };
 
