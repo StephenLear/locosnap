@@ -29,7 +29,8 @@ import { identifyTrain, pollBlueprintStatus, healthCheck } from "../../services/
 import { submitWrongIdReport } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track, captureError, addBreadcrumb } from "../../services/analytics";
-import { PaywallSoftPrompt } from "../../components/PaywallSoftPrompt";
+import { HomeProUpsellCard } from "../../components/HomeProUpsellCard";
+import { ProExpiringBanner } from "../../components/ProExpiringBanner";
 import { ProRescuePrompt } from "../../components/ProRescuePrompt";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -447,6 +448,23 @@ export default function HomeScreen() {
         captureError(error as Error, { context: "handleScan" });
       }
       setScanError(message);
+
+      // Phase C — wall trigger. When a free user hits the 6/6 free-scan
+      // cap on the backend, auto-open the paywall so the conversion
+      // surface isn't gated behind a tap on the lockout card. 800ms
+      // delay so the error message lands first; Apple §7 dismissable
+      // (paywall has working close button).
+      if (
+        message.startsWith("Free scan limit reached") &&
+        profile?.is_pro !== true
+      ) {
+        track("paywall_auto_open_wall", {
+          scansUsed: profile?.daily_scans_used ?? 0,
+        });
+        setTimeout(() => {
+          router.push("/paywall?source=auto_wall" as any);
+        }, 800);
+      }
     }
   };
 
@@ -719,15 +737,17 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
 
-      {/* ── Scan-aware paywall soft-prompt (signed-in free users) ──
-          Variants render at scans 2, 4, 5 (nudges) and persistently at 6
-          (lockout). Pro users + unauthenticated trial users see nothing. */}
-      {session && !profile?.is_pro && [2, 4, 5, 6].includes(profile?.daily_scans_used ?? -1) && (
-        <PaywallSoftPrompt
-          scansUsed={profile?.daily_scans_used ?? 0}
-          surface="camera"
-        />
-      )}
+      {/* ── Home Pro upsell card (signed-in free users) ──
+          Persistent non-dismissable card with two states: counter for
+          remaining free scans, lockout colour when scansUsed >= 6. Pro
+          users + unauthenticated trial users render nothing — the card
+          self-gates internally (mirrors ProRescuePrompt pattern). */}
+      <HomeProUpsellCard />
+
+      {/* ── Pro expiring-soon banner (Pro, ≤7d, non-renewing) ──
+          Self-gates internally — hides for Pro auto-renewing users,
+          lifetime users, and non-Pro users. */}
+      <ProExpiringBanner />
 
       {/* ── Pro rescue prompt: subscribed but never scanned ── */}
       <ProRescuePrompt />

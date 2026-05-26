@@ -22,6 +22,17 @@
     "cameraPermission": "Kamerazugriff wird zum Scannen von Zügen benötigt.",
     "scanBadge_one": "{{count}} Scan",
     "scanBadge_other": "{{count}} Scans",
+    "proUpsell": {
+      "persistent": {
+        "title": "Pro werden — unbegrenzte Scans",
+        "body_one": "Noch {{remaining}} kostenloser Scan. Pro schaltet jeden Zug frei, den du siehst.",
+        "body_other": "Noch {{remaining}} kostenlose Scans. Pro schaltet jeden Zug frei, den du siehst."
+      },
+      "locked": {
+        "title": "Kostenlose Scans aufgebraucht",
+        "body": "Werde Pro und scanne unbegrenzt weiter — alle Daten, jeder Blueprint."
+      }
+    },
     "pickerError": {
       "title": "Galerie konnte nicht geöffnet werden",
       "body": "Dein Handy hat die Galerie gerade nicht geöffnet. Stattdessen ein Foto mit der Kamera aufnehmen?",
@@ -95,6 +106,13 @@
     "share": "Teilen",
     "viewBlueprint": "Blueprint anzeigen",
     "generatingBlueprint": "Blueprint wird erstellt..."
+  },
+  "pro": {
+    "expiring": {
+      "title": "Dein Pro läuft bald ab",
+      "body_one": "Noch {{days}} Tag. Tippe zum Verlängern und behalte unbegrenzte Scans.",
+      "body_other": "Noch {{days}} Tage. Tippe zum Verlängern und behalte unbegrenzte Scans."
+    }
   },
   "profile": {
     "title": "Profil",
@@ -245,6 +263,12 @@
   },
   "paywall": {
     "title": "Pro werden",
+    "heroSubtitle": "Bringe dein Trainspotting auf das nächste Level",
+    "wallTitle": "Kostenlose Scans aufgebraucht — kein Reset",
+    "wallSubtitle": "Deine 6 lifetime Scans sind verbraucht. Mit Pro scannst du unbegrenzt weiter.",
+    "cancelAnytime": "Jederzeit kündbar",
+    "noCommitment": "Keine Verpflichtung",
+    "fundedTrust": "Finanziert durch Abos, nicht durch Werbung oder Daten",
     "unlimitedScans": "Unbegrenzte Scans",
     "allBlueprintStyles": "Alle Blueprint-Stile",
     "leaderboardAccess": "Zugang zur Bestenliste",
@@ -259,12 +283,43 @@
     "lifetimeTitle": "Lebenslang",
     "lifetimeSubtitle": "Einmalzahlung, keine Folgekosten",
     "lifetimePrice": "{{price}}",
-    "introBadge": "30% RABATT FÜR 3 MONATE",
-    "introDisclaimer": "Nach 3 Monaten gilt der reguläre Preis. Jederzeit kündbar.",
+    "bestValue": "BESTER WERT",
+    "introOfferBadge": "EINFÜHRUNGSANGEBOT",
+    "perWeekEquivalent": "≈ {{price}}/Woche, jährliche Abrechnung",
+    "introOffer": {
+      "singular": "{{introPriceString}} im ersten {{unitLabel}}, danach {{regularPriceString}}/{{regularPeriod}}",
+      "plural": "{{introPriceString}} in den ersten {{count}} {{unitLabel}}, danach {{regularPriceString}}/{{regularPeriod}}"
+    },
+    "period": {
+      "month": "Monat",
+      "year": "Jahr"
+    },
+    "unit": {
+      "day": { "singular": "Tag", "plural": "Tagen" },
+      "week": { "singular": "Woche", "plural": "Wochen" },
+      "month": { "singular": "Monat", "plural": "Monaten" },
+      "year": { "singular": "Jahr", "plural": "Jahren" }
+    },
+    "features": {
+      "unlimitedScans": {
+        "label": "Unbegrenzte Scans",
+        "desc": "Kein Warten mehr — scanne jeden Zug, den du siehst"
+      },
+      "collection": {
+        "label": "Deine ganze Sammlung",
+        "desc": "Jeder Zug, den du je gesichtet hast, jederzeit verfügbar"
+      },
+      "blueprints": {
+        "label": "Premium-Blueprints",
+        "desc": "Detaillierte technische Zeichnungen für deine Sammlung"
+      }
+    },
     "unlockLifetime": "Lebenslang freischalten",
     "softPrompt": {
       "scan_2": {
         "title": "Pro testen ab 1 €/Monat",
+        "titleWithPrice": "Pro testen ab {{price}}/Monat",
+        "titleGeneric": "Pro testen",
         "body": "Einführungsangebot für Neukunden. Alle Daten, jeder Blueprint, deine ganze Sammlung.",
         "cta": "Pro entdecken"
       },

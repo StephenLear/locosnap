@@ -5,6 +5,105 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-26
+
+### v1.0.35 — Pro monetisation + resilience release (8-phase mega-PR on `feat/v1.0.35`)
+
+Single mega-PR shipping eight phases against the v1.0.35 prep plan committed 2026-05-25. Sequence: A → B → C → D → E → F → G → H. Branch `feat/v1.0.35` carries 8 commits + this CHANGELOG/ARCHITECTURE pair, awaiting PR + merge + EAS build. The €1 Club tier (Phase 0 in the original 2026-05-22 design) stays deferred to v1.0.36 — v1.0.35 ships entirely against the existing `pro` entitlement.
+
+Today's parallel store-side change: intro offers configured + activated on Play (DE/AT/NL/FR/IT/ES/FI at €1, UK at £1, PL at 4,49 zł, CZ at 25 Kč) and scheduled on Apple (same prices, "upcoming change 26/5" → automatic flip today). Replaces the trainvibez-only Play offer with standard Acquisition-eligibility intros visible to every new subscriber. No code change required — Phase A's truthful intro copy renders dynamically from `pkg.product.introPrice`.
+
+### Phase A — Pro paywall restructure (`e2e816f`)
+
+`frontend/app/paywall.tsx`, `frontend/app/paywall-helpers.ts`, `frontend/__tests__/paywall-helpers.test.ts`, EN/DE/PL locales.
+
+- Annual tile visual dominance: always-on teal border + extra vertical padding so the eye lands on annual first regardless of selection state.
+- New per-week equivalent line under the annual price — computed as `annualPrice / 52`, formatted via `Intl.NumberFormat` per locale. Sub-coffee anchor in every market (DE €0.67/week, UK £0.54/week, PL 1.73 zł/week, ES/IT €0.48/week). Chosen over per-month equivalent because €2.92/month vs €2.99 monthly tier is a 7-cent psychological no-op.
+- Truthful intro copy: dropped hardcoded "30% OFF FIRST 3 MONTHS" badge + "After 3 months regular price applies" disclaimer (false advertising the moment any monthly tile carried an introPrice). Replaced with structured `describeIntroOffer()` pure helper extracting fields from `pkg.product.introPrice`; renders via singular/plural i18n templates ("€1 for first month, then €2.99/month"). Intro badge + dynamic line surface on whichever tile actually has an offer (annual + monthly per user decision).
+- Feature bullets reordered: Unlimited scans → Your whole collection → Premium blueprints. Labels + descriptions moved from hardcoded English to i18n keys.
+- New pure helpers `formatPerWeek()` + `describeIntroOffer()` in paywall-helpers.ts with 12 new ts-jest tests.
+- Removed "Save 25%" green pill from annual card — redundant once per-week anchor + always-on teal border carry the visual hierarchy.
+
+### Phase B — Persistent tier-aware home Pro card (`22dbb0d`)
+
+`frontend/components/HomeProUpsellCard.tsx` (new), `frontend/app/(tabs)/index.tsx`, EN/DE/PL locales.
+
+Replaces the discrete scan_2/4/5/6 PaywallSoftPrompt variants on the scan screen with a single persistent self-gating card. Friction increases deliberately — free users now see a Pro nudge from day 1 rather than only at specific scan counts.
+
+- Self-gating per ProRescuePrompt pattern. Pro users + unauthenticated trial users render nothing.
+- Two visual states: teal "persistent" counter for scans 0-5, orange "locked" treatment when scansUsed >= 6.
+- Non-dismissable by design. Taps to `/paywall?source=home_persistent` or `?source=home_persistent_locked` for clean analytics segmentation.
+- New i18n keys under `scan.proUpsell.{persistent,locked}.*` with full Polish one/few/many plurals matching the existing `trialBanner` pattern.
+- `PaywallSoftPrompt` kept in codebase — still rendered on results screen (per plan, only home/scan surface migrated to the persistent card).
+
+### Phase C — Auto-open paywall triggers (`aa1768e`)
+
+`frontend/app/card-reveal.tsx`, `frontend/app/(tabs)/index.tsx`.
+
+Two surfaces that previously required a tap on a soft prompt now open the paywall themselves. Both cleanly dismissable via the existing top-left close button in paywall.tsx (Apple §7).
+
+- **Trigger 1 — first rare/epic/legendary scan reveal:** AsyncStorage flag `locosnap_pro_rare_paywall_shown` ensures once-per-device. 1.2s delay after the reveal-animation-complete callback so the user sees the wow card land before the paywall slides up. Pro users excluded. New analytics event `paywall_auto_open_rare` with { tier, train_class }.
+- **Trigger 2 — scan 6/6 wall:** catches the backend `"Free scan limit reached"` error in the handleScan catch branch, right after setScanError. 800ms delay so the error message lands first. Pro users excluded. New analytics event `paywall_auto_open_wall` with { scansUsed }.
+
+### Phase D — Wall-aware copy + funded-trust line (`2b3d46a`)
+
+`frontend/app/paywall.tsx`, EN/DE/PL locales.
+
+Addresses the May 2026 paywall-friction signals (bavarian.rail / spottbyshone / kolejowywolow / nahverkehrthueringen) captured in `feedback_paywall_reframe_no_apology.md`.
+
+- **Wall-source-aware hero**: helper `isWallSource()` matches `auto_wall`, `home_persistent_locked`, and `softprompt_scan_6_*`. When hit, hero title swaps to "Free scans used — no reset" / "Kostenlose Scans aufgebraucht — kein Reset" / "Darmowe skany wykorzystane — bez resetu" and the subtitle to a clear "Your 6 lifetime scans are spent. Pro keeps every scan unlimited" pattern. Kills the "I thought it refreshes" misunderstanding.
+- **Funded-by-subscriptions trust line**: always-visible single line between safety triggers + Restore Purchases. Small teal heart-outline icon + muted text. EN "Funded by subscriptions, not ads or data" / DE "Finanziert durch Abos, nicht durch Werbung oder Daten" / PL "Finansowane z subskrypcji, nie z reklam ani danych". Mechanism-first per the no-apology reframe.
+- Localised "Cancel anytime" + "No commitment" while in the safety row.
+
+### Phase E — Offline write queue for saveSpot (`0b1f433`)
+
+`frontend/services/spotQueue.ts` (new), `frontend/__tests__/services/spotQueue.test.ts` (new, 24 tests), `frontend/services/supabase.ts`, `frontend/app/_layout.tsx`.
+
+Closes the silent-fail pattern from `feedback_supabase_silent_persistence_failures.md` (5 events / 3 users / 13 days as of 2026-05-25 — below escalation threshold but the v1.0.35 release window is the cheapest place to land the structural fix).
+
+- New pure persistent queue over AsyncStorage key `locosnap_spot_queue`. Public surface: `isTransientNetworkError`, `enqueue`, `peek`, `size`, `readQueue`, `writeQueue`, `flushQueue(attemptFn)`. Shape-checked reads (corrupt JSON / non-array / malformed items → empty queue, never throws). Per-item retry counter; MAX_RETRY_ATTEMPTS = 3 before drop + Sentry capture. Terminal errors drop immediately. Sentry policy: capture ONLY on terminal failures + retry exhaustion — transient drops are exactly what the queue is for.
+- `saveSpot` modified to: lazy-flush at the start (fire-and-forget), enqueue + return `queued:<timestamp>` placeholder on transient network error, fall through to existing capture + null on terminal error.
+- New `attemptSpotInsert(payload)` + `flushPendingSpots()` module-level helpers in supabase.ts for the flush path.
+- `_layout.tsx` calls `flushPendingSpots()` on startup + every AppState `"active"` transition. No new dependency — uses built-in React Native `AppState`. NetInfo intentionally skipped per CLAUDE.md "Simplicity First"; can layer on later if Sentry shows the queue accumulating.
+- Test mocking note: project's `jest.config.js` moduleNameMapper rewrites `./analytics` + `../services/analytics` imports to `__mocks__/analytics.ts`, so per-test `jest.mock()` is ineffective. Tests use `jest.spyOn()` against the mapped mock module directly — comment in the test file documents this for future maintainers.
+
+### Phase F — Pro expiring-soon banner (`784872c`)
+
+`frontend/components/ProExpiringBanner.tsx` (new), `frontend/components/ProExpiringBanner-helpers.ts` (new), `frontend/__tests__/components/ProExpiringBanner-helpers.test.ts` (new, 11 tests), `frontend/services/purchases.ts`, `frontend/app/(tabs)/index.tsx`, `frontend/app/(tabs)/profile.tsx`, EN/DE/PL locales.
+
+Replaces the manual email-recovery loop (Luis + Wojciech batch sent 2026-05-24) — users now see the re-subscribe surface in-app before their Pro lapses without anyone having to email them.
+
+- Pure visibility decision in `ProExpiringBanner-helpers.ts decideBannerVisibility()`. Hides for: not Pro, no RC entitlement (legacy manually-granted Pro users), lifetime Pro (no expirationDate), auto-renewing (`willRenew === true`), expiration > 7 days out OR already expired, malformed expirationDate.
+- Days-remaining math rounds UP (47h → "2 days") for readability.
+- Refreshes RC state on mount, on `profile.is_pro` change, and on every AppState `"active"` transition.
+- New `getProEntitlementInfo()` in services/purchases.ts returns `{ isPro, expirationDate, willRenew } | null` — wraps `Purchases.getCustomerInfo()` and surfaces the entitlement detail that the boolean-only `checkEntitlements()` hides.
+- Warning-orange visual treatment (#FF8C42) distinct from teal Pro-upsell card and orange-locked variants — signals "attention needed by existing Pro user", not "convert to Pro".
+- Mounted in `(tabs)/index.tsx` between HomeProUpsellCard + ProRescuePrompt, and at the top of `(tabs)/profile.tsx` above the country-flag banner.
+- New i18n keys `pro.expiring.{title,body}` with full Polish one/few/many plurals.
+
+### Phase G — Zero-engagement rescue push cron (`efe229f`)
+
+`backend/src/cron/zeroEngagementRescuePush.ts` (new), `backend/src/cron/runZeroEngagementRescuePush.ts` (new), `backend/src/__tests__/cron/zeroEngagementRescuePush.test.ts` (new, 20 tests), `supabase/migrations/016_engagement_push_tracking.sql` (new).
+
+Catches the dead-money cohort from the 2026-05-17 Supabase / RevenueCat audit (paid users who never made it past sign-up) and nudges them back into the product before churn. Companion to the in-app ProRescuePrompt that fires only when the user actually opens the app.
+
+- Pure helpers (ts-jest tested): `localisePushBody(language)` → { title, body } in EN/DE/PL with regional-locale normalisation; `buildExpoPushMessage(token, body)` → Expo envelope; `isSendable(row)` → bool with garbage-token rejection (must start with `ExponentPushToken[` or `ExpoPushToken[`).
+- Orchestrator queries `profiles` where `is_pro=true AND last_spot_date IS NULL AND created_at < (now - 3d) AND (engagement_push_sent_at IS NULL OR engagement_push_sent_at < (now - 7d))`. MAX_PUSHES_PER_RUN = 500 safety cap. POSTs to `https://exp.host/--/api/v2/push/send`. Checks both HTTP status AND Expo ticket-level `data.status` before counting as sent. Stamps `engagement_push_sent_at = now()` on success for 7-day cooldown.
+- Render cron entrypoint script — recommended schedule `0 9 * * *` (daily 09:00 UTC). Cron will NOT run until (a) branch merges to main + ships to Render AND (b) Render dashboard configures the new cron job. Both are post-PR-merge ops.
+- **Migration 016** adds two columns to `public.profiles`: `push_token text null` + `engagement_push_sent_at timestamptz null`. ADD COLUMN on existing pre-2026-10-30 table — default GRANTs carry forward per `feedback_supabase_grant_after_2026_10_30.md` (rule applies only to CREATE TABLE). Frontend `services/notifications.ts savePushToken` already writes to `push_token` with silent-fail wrapper since pre-v1.0.30 — once migration 016 lands, those writes start landing automatically.
+
+### Phase H — Softprompt dynamic price + i18n audit + version bump + docs
+
+`frontend/components/PaywallSoftPrompt.tsx`, `frontend/app.json`, EN/DE/PL locales, `docs/CHANGELOG.md`, `docs/ARCHITECTURE.md`.
+
+- **Dynamic softprompt price refactor**: PaywallSoftPrompt now fetches `getOfferings()` on mount, extracts the monthly package's `introPrice.priceString`, and interpolates it into the scan_2 title via new keys `paywall.softPrompt.scan_2.{titleWithPrice,titleGeneric}`. Fallback to generic "Try Pro" title when no intro is live in the user's market. Permanently eliminates the price-drift problem surfaced 2026-05-26 when the Play PL intro went from 5,19 zł to 4,49 zł — the static hardcoded copy was quietly over-quoting by 70 grosz. Legacy `paywall.softPrompt.scan_2.title` keys retained for backwards compatibility but no longer reached at runtime; could be cleaned up post-ship.
+- **i18n parity audit**: 323 base keys (plural-suffix normalised) in each of EN/DE/PL — zero missing, zero orphans. Polish keys correctly use one/few/many for plural where appropriate (`scan.proUpsell.persistent.body`, `pro.expiring.body`, `scan.trialBanner`, etc.). German umlauts (ä/ö/ü/ß) and Polish diacritics (ą/ć/ę/ł/ń/ó/ś/ż/ź) verified across all Phase A-H additions.
+- **Version bump**: `frontend/app.json` `version` `1.0.34` → `1.0.35`. iOS `buildNumber` and Android `versionCode` auto-increment via `eas.json` `"autoIncrement": true` on the production profile.
+- **Tests**: frontend 201/201 across 24 suites; backend 202/202 across 18 suites. Typecheck clean on both.
+- **No new tests** in Phase H itself — the dynamic softprompt logic is a thin SDK fetch + i18n interpolation; existing `describeIntroOffer` + Phase A paywall tests cover the underlying mechanism.
+
+---
+
 ## 2026-05-25
 
 ### Backend — Phase A facts-layer systemic fix: VERIFIED FACTS block injection

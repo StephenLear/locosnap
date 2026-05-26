@@ -2,6 +2,8 @@ import {
   getPackageKind,
   sortPaywallPackages,
   findDefaultIndex,
+  formatPerWeek,
+  describeIntroOffer,
 } from "../app/paywall-helpers";
 
 describe("getPackageKind", () => {
@@ -84,5 +86,112 @@ describe("findDefaultIndex", () => {
       { identifier: "$rc_lifetime" },
     ];
     expect(findDefaultIndex(sorted)).toBe(0);
+  });
+});
+
+describe("formatPerWeek", () => {
+  it("formats DE annual €34.99 as ~€0.67/week in de-DE locale", () => {
+    const out = formatPerWeek(34.99, "EUR", "de");
+    // de-DE uses comma decimal separator + EUR symbol
+    expect(out).toMatch(/0[.,]67/);
+    expect(out).toMatch(/€/);
+  });
+
+  it("formats UK annual £27.99 as ~£0.54/week in en locale", () => {
+    const out = formatPerWeek(27.99, "GBP", "en");
+    expect(out).toMatch(/0\.54/);
+    expect(out).toMatch(/£/);
+  });
+
+  it("formats PL annual 89.99 zł as ~1.73 zł/week in pl-PL locale", () => {
+    const out = formatPerWeek(89.99, "PLN", "pl");
+    // pl-PL uses comma decimal separator + zł suffix
+    expect(out).toMatch(/1[.,]73/);
+    expect(out).toMatch(/zł/);
+  });
+
+  it("returns empty string for non-positive prices", () => {
+    expect(formatPerWeek(0, "EUR", "de")).toBe("");
+    expect(formatPerWeek(-5, "EUR", "de")).toBe("");
+    expect(formatPerWeek(NaN, "EUR", "de")).toBe("");
+  });
+
+  it("falls back gracefully on malformed currency code", () => {
+    const out = formatPerWeek(52, "ZZZ", "en");
+    // Intl may either render with the literal code or throw — either way
+    // we get a numeric weekly figure (52/52 = 1.00).
+    expect(out).toMatch(/1\.00|1,00/);
+    expect(out).toMatch(/ZZZ/);
+  });
+});
+
+describe("describeIntroOffer", () => {
+  it("returns null when introPrice is absent", () => {
+    expect(describeIntroOffer(null)).toBeNull();
+    expect(describeIntroOffer(undefined)).toBeNull();
+  });
+
+  it("returns null when priceString is missing", () => {
+    expect(
+      describeIntroOffer({
+        priceString: "",
+        periodUnit: "MONTH",
+        periodNumberOfUnits: 1,
+      })
+    ).toBeNull();
+  });
+
+  it("returns null when periodUnit is unrecognised", () => {
+    expect(
+      describeIntroOffer({
+        priceString: "€1",
+        periodUnit: "GARBAGE",
+        periodNumberOfUnits: 1,
+      })
+    ).toBeNull();
+  });
+
+  it("describes DE €1 first month correctly", () => {
+    const desc = describeIntroOffer({
+      priceString: "€1.00",
+      periodUnit: "MONTH",
+      periodNumberOfUnits: 1,
+    });
+    expect(desc).toEqual({
+      introPriceString: "€1.00",
+      count: 1,
+      unit: "month",
+    });
+  });
+
+  it("describes a 3-month intro offer correctly", () => {
+    const desc = describeIntroOffer({
+      priceString: "€3.00",
+      periodUnit: "MONTH",
+      periodNumberOfUnits: 3,
+    });
+    expect(desc).toEqual({
+      introPriceString: "€3.00",
+      count: 3,
+      unit: "month",
+    });
+  });
+
+  it("normalises lowercased periodUnit", () => {
+    const desc = describeIntroOffer({
+      priceString: "€1.00",
+      periodUnit: "month",
+      periodNumberOfUnits: 1,
+    });
+    expect(desc?.unit).toBe("month");
+  });
+
+  it("clamps zero/negative periodNumberOfUnits to 1", () => {
+    const desc = describeIntroOffer({
+      priceString: "€1.00",
+      periodUnit: "MONTH",
+      periodNumberOfUnits: 0,
+    });
+    expect(desc?.count).toBe(1);
   });
 });

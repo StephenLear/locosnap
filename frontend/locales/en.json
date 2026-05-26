@@ -22,6 +22,17 @@
     "cameraPermission": "Camera access is needed to scan trains.",
     "scanBadge_one": "{{count}} scan",
     "scanBadge_other": "{{count}} scans",
+    "proUpsell": {
+      "persistent": {
+        "title": "Go Pro — unlimited scans",
+        "body_one": "{{remaining}} free scan left. Pro unlocks every train you see.",
+        "body_other": "{{remaining}} free scans left. Pro unlocks every train you see."
+      },
+      "locked": {
+        "title": "Free scans used",
+        "body": "Go Pro to keep scanning — unlimited spots, full specs, every blueprint."
+      }
+    },
     "pickerError": {
       "title": "Couldn't open the photo library",
       "body": "Your phone wouldn't let us open the gallery just now. Take a photo with the camera instead?",
@@ -95,6 +106,13 @@
     "share": "Share",
     "viewBlueprint": "View Blueprint",
     "generatingBlueprint": "Generating blueprint..."
+  },
+  "pro": {
+    "expiring": {
+      "title": "Your Pro is ending soon",
+      "body_one": "{{days}} day left. Tap to renew and keep unlimited scans.",
+      "body_other": "{{days}} days left. Tap to renew and keep unlimited scans."
+    }
   },
   "profile": {
     "title": "Profile",
@@ -245,6 +263,12 @@
   },
   "paywall": {
     "title": "Go Pro",
+    "heroSubtitle": "Take your trainspotting to the next level",
+    "wallTitle": "Free scans used — no reset",
+    "wallSubtitle": "Your 6 lifetime scans are spent. Pro keeps every scan unlimited.",
+    "cancelAnytime": "Cancel anytime",
+    "noCommitment": "No commitment",
+    "fundedTrust": "Funded by subscriptions, not ads or data",
     "unlimitedScans": "Unlimited scans",
     "allBlueprintStyles": "All blueprint styles",
     "leaderboardAccess": "Leaderboard access",
@@ -259,12 +283,43 @@
     "lifetimeTitle": "Lifetime",
     "lifetimeSubtitle": "One-time payment, never charged again",
     "lifetimePrice": "{{price}}",
-    "introBadge": "30% OFF FIRST 3 MONTHS",
-    "introDisclaimer": "After 3 months, regular price applies. Cancel anytime.",
+    "bestValue": "BEST VALUE",
+    "introOfferBadge": "INTRO OFFER",
+    "perWeekEquivalent": "≈ {{price}}/week, billed yearly",
+    "introOffer": {
+      "singular": "{{introPriceString}} for first {{unitLabel}}, then {{regularPriceString}}/{{regularPeriod}}",
+      "plural": "{{introPriceString}} for first {{count}} {{unitLabel}}, then {{regularPriceString}}/{{regularPeriod}}"
+    },
+    "period": {
+      "month": "month",
+      "year": "year"
+    },
+    "unit": {
+      "day": { "singular": "day", "plural": "days" },
+      "week": { "singular": "week", "plural": "weeks" },
+      "month": { "singular": "month", "plural": "months" },
+      "year": { "singular": "year", "plural": "years" }
+    },
+    "features": {
+      "unlimitedScans": {
+        "label": "Unlimited scans",
+        "desc": "No more waiting — scan every train you see"
+      },
+      "collection": {
+        "label": "Your whole collection",
+        "desc": "Every train you've ever spotted, always accessible"
+      },
+      "blueprints": {
+        "label": "Premium technical blueprints",
+        "desc": "Detailed engineering diagrams for your collection"
+      }
+    },
     "unlockLifetime": "Unlock Lifetime",
     "softPrompt": {
       "scan_2": {
         "title": "Try Pro from just £1/month",
+        "titleWithPrice": "Try Pro from just {{price}}/month",
+        "titleGeneric": "Try Pro",
         "body": "Special intro for new subscribers. Full specs, blueprints, your whole collection.",
         "cta": "See Pro"
       },

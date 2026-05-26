@@ -4,7 +4,7 @@
 // ============================================================
 
 import React, { useEffect } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet, AppState } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, useRouter, useSegments, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -28,6 +28,7 @@ import {
   wrap,
 } from "../services/analytics";
 import { initPurchases } from "../services/purchases";
+import { flushPendingSpots } from "../services/supabase";
 import { initI18n } from "../i18n";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
@@ -228,6 +229,19 @@ function RootLayout() {
         if (token) scheduleStreakReminder().catch(() => {});
       })
       .catch(() => {});
+
+    // Phase E — flush any spots queued during offline sessions, both
+    // on startup and on every transition back to the active state.
+    // Lazy flush also fires inside saveSpot itself for fresh-scan
+    // network recoveries; this covers the case where the user comes
+    // back to the app without immediately scanning again.
+    flushPendingSpots().catch(() => {});
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        flushPendingSpots().catch(() => {});
+      }
+    });
+    return () => sub.remove();
   }, []);
 
   // Re-load history from Supabase when user signs in

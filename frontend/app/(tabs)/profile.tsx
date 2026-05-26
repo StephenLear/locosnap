@@ -39,6 +39,7 @@ import { isValidUsername } from "../../utils/profanityFilter";
 import { IdentityBadge } from "../../components/IdentityBadge";
 import { CountryFlagPicker } from "../../components/CountryFlagPicker";
 import { EmojiPicker } from "../../components/EmojiPicker";
+import { ProExpiringBanner } from "../../components/ProExpiringBanner";
 
 // ── Level system ────────────────────────────────────────────
 
@@ -336,6 +337,12 @@ export default function ProfileScreen() {
       style={styles.container}
       contentContainerStyle={styles.content}
     >
+      {/* ── Pro expiring-soon banner (Pro ≤7d non-renewing only) ──
+          Self-gates; hides for all other users. Mounted above the
+          country-flag banner so it surfaces before any other
+          attention call. */}
+      <ProExpiringBanner />
+
       {/* ── Country-flag backfill banner (legacy users only) ── */}
       {shouldShowCountryBanner && (
         <View style={styles.countryBanner}>
