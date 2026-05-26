@@ -74,6 +74,23 @@ Captions for all three are documented in this session — DE/PL/EN drafts with r
 - Render web service: live, `/api/health` 200
 - Render cron service: live, scheduled `0 9 * * *` UTC, first scheduled run tomorrow morning
 
+### Launch-day conversion signal — two intro-tier conversions in 24h (RC webhooks)
+
+Two RevenueCat webhook events confirm the intro-pricing campaign is producing real new customers immediately. Both Android Play Store, both at intro tier, both unplanned markets:
+
+| Timestamp (UTC) | Market | Local intro | Offer | Take-home |
+|---|---|---|---|---|
+| 2026-05-25 19:35 | **Netherlands** | **€1.19** | `trainvibez-launch` (OLD partner-targeted offer, broader-than-expected eligibility) | ~$1.18 net of Play's 15% cut |
+| 2026-05-26 13:47 | **Romania** | **6.49 RON** (~€1.30 / $1.44) | `intro-1mo-2026` (NEW Acquisition offer configured 2026-05-25) | ~$1.22 net |
+
+**Both Play offers running in parallel produce conversions.** The 2026-05-25 decision to leave `trainvibez-launch` active alongside the new `intro-1mo-2026` Acquisition offer was correct — they each catch different cohorts via Play's eligibility-and-surfacing algorithm. NL converter saw trainvibez; RO converter saw the new one. Don't deactivate trainvibez.
+
+**Play tier auto-mapping confirmed broader than configured.** Neither NL nor RO was in our explicit DE/UK/PL/CZ Acquisition-offer config — Play applied the offer to every market where the monthly base plan has regional pricing. By inference, the offer is reaching BE/FR/IT/ES/FI/AT/HU/BG/HR/SK/SI etc., all at local "first-month coffee" tiers (€1.00 in most EUR markets, €1.19 NL specifically, 6.49 RON for RO, 4,49 zł PL, 25 Kč CZ). Don't fight Play's tier system unless a market lands at €2+ where the psychological anchor breaks.
+
+**Apple intro impact pending.** Apple intros only flipped active 2026-05-26 morning; iOS conversions should start showing in RC tomorrow as iPhone users discover the new pricing in App Store. No iOS conversions in the launch-day window yet — expected given the offer was live for ~6h vs Play's ~24h.
+
+**Pricing memory `pricing_localisation.md` updated** with NL = €1.19 (was assumed €1.00), RO added as confirmed market, and the two-offer parallel-running observation logged.
+
 ---
 
 ## 2026-05-26 (afternoon)
