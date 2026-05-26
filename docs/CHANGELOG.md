@@ -5,6 +5,77 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-26 (evening)
+
+### v1.0.35 EAS builds + per-platform submission
+
+After migration 017 cleared the Supabase production schema and Render auto-deployed `117dd6b`, both EAS builds triggered for production.
+
+- **iOS build 57** (build ID `b92f5a77-2cbf-4565-83a0-bab568752495`) — finished in 7 minutes (faster than typical 15-20min), submitted to App Store Connect via `eas submit` and submitted for App Review the same session. EULA link verified in App Description for EN/DE/PL per `feedback_eula_link_required.md`. Apple §7 dismissability screenshot for the auto-open paywall added to App Review Information notes (Phase C surfaces).
+- **Android versionCode 27** (build ID `68fe3fdf-c57f-4888-a630-e266c33afebb`) — finished after ~15 minutes, submitted to Play Console via `eas submit`, draft on Production track. Play Console ran its pre-launch checks (~2-10 min) before the "Review release" button unlocked, then submitted to Play Review.
+
+Both builds carry merge commit `20ac3e5` + hotfix `a71fdd5` + proper migration-017 fix `117dd6b`. autoIncrement worked (iOS 56 → 57, Android 26 → 27).
+
+### Pre-build cleanup — stray monorepo-root package.json
+
+EAS build initially errored with "package.json is outside of the current git repository". Root cause: a stray `package.json` at `/Users/StephenLear/Projects/` (one level above the locosnap project root) with a handful of random RN deps and no `name`/`version`/`scripts` — cruft from a past accidental `npm install` while cd'd to the wrong directory. EAS walks up looking for the monorepo root, hit this orphan package.json first, decided that Projects/ was the project root, and bailed because Projects/ is outside the locosnap git repo.
+
+Fix: renamed to `package.json.bak` for the build, then permanently deleted both the stray `package.json.bak` and the matching `package-lock.json` after both builds completed. Future EAS triggers from any project in `~/Projects/` won't get confused.
+
+### v1.0.35 intro-pricing offers — globally live
+
+In parallel with the build pipeline, Apple's "upcoming change 26/5" intro offers flipped active today. Apple intros now match the Play intros configured yesterday: **DE/AT/NL/FR/IT/ES/FI at €1, UK at £1, PL at 4,49 zł, CZ at 25 Kč first month** on the monthly Pro subscription. Replaces the previous trainvibez-only Play offer. Phase A truthful intro copy renders the live store offer dynamically — no code change required.
+
+Public-reply copy in pricing memory ("€1 first month, cancel anytime" / DE/PL equivalents) is now truthful for every new subscriber globally, not just trainvibez-eligible Android DE users.
+
+### Render cron `locosnap-engagement-rescue-cron` deployed + verified
+
+Render Cron Job service created in the `My project / Production` environment alongside the existing `locosnap-league-cron`. Configuration:
+
+- **Schedule:** `0 9 * * *` (daily at 09:00 UTC, ≈10-11 AM in DE/PL, 09 AM UK foreground window)
+- **Command:** `node dist/cron/runZeroEngagementRescuePush.js`
+- **Root Directory:** `backend`
+- **Build Command:** `npm install && npm run build`
+- **Language:** Node (had to switch from auto-detected Python 3)
+- **Region:** Frankfurt (matches existing services for env-var consistency)
+- **Instance:** Starter (~$0.15/month at daily cadence)
+- **Env vars:** `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` only (Expo push endpoint is keyless)
+
+First manual run failed with the column-doesn't-exist error → triggered the morning's hotfix → second manual run after the proper migration-017 fix returned:
+
+```
+[rescue-push-cron] starting
+[rescue-push-cron] result: {"status":"completed","candidates":3,"sent":0,"failed":0,"skippedNoToken":3}
+```
+
+3 eligible candidates (Pro users >3d old who never scanned), 0 sent because no `push_token` populated yet — expected first-run shape since migration 016 only landed earlier today and tokens repopulate organically as users open the app on the new build. Cron is healthy; sends will increase as v1.0.35 rolls out and existing users open the new build.
+
+### Three €1-themed organic ads built (DE / PL / UK)
+
+10s portrait ads at 720×1280, all-yellow text throughout (Arial Black 56/48/46 with black border for legibility), no audio, 3-beat structure mirroring last week's launch-ad template.
+
+| Market | Pair | File | Hook | Status |
+|---|---|---|---|---|
+| **DE** | BR 232 Ludmilla → ICE 4 Frankfurt arrival | `~/Desktop/locosnap_de_1eur_v3.mp4` (5.7 MB) | "1. Monat für 1 €" | **Posted today** (TikTok + Instagram) |
+| **PL** | ET22 Byczka 676 → Pendolino ED250 | `~/Desktop/locosnap_pl_intro_v1.mp4` (2.6 MB) | "Pierwszy miesiąc 4,49 zł" | Ready, queued for Wednesday |
+| **UK** | Class 37 Preston → Class 91 York | `~/Desktop/locosnap_uk_intro_v1.mp4` (5.8 MB) | "First month £1" | Ready, queued for Thursday |
+
+All three reuse the existing endcards (`endcard_de.mp4` / `endcard_pl.mp4` / `endcard_en.mp4`) with a black-rectangle paint-over of the original white text and yellow text drawn on top — full-yellow palette per user direction. Three new endcard variants stay in `/tmp/locosnap_de_1eur_build/` for potential reuse: `endcard_de_1eur_v2.mp4`, `endcard_pl_intro.mp4`, `endcard_en_intro.mp4`. Could be promoted to `ad_assets/endcards/` if the format continues into v1.0.36.
+
+Per `feedback_dont_duplicate_store_intro_pricing.md` — store-listing release notes still omit intro pricing (covered separately in `docs/release-notes-v1.0.35.md`); the €1/£1/4,49 zł hooks appear only in the organic-social ads + captions where the rule explicitly doesn't apply.
+
+Captions for all three are documented in this session — DE/PL/EN drafts with renewal-terms disclosure ("Danach €2,99/Monat, jederzeit kündbar" / "Potem 13,99 zł/mc, anuluj kiedy chcesz" / "Then £2.99/mo. Cancel anytime."). Hashtag blocks separately drafted for TikTok (5-tag cap) and Instagram (17-18 hashtags each). German umlauts + Polish diacritics verified throughout.
+
+### Backend stack-state at end of day
+
+- `main` HEAD: `117dd6b` (deployed to Render web service + cron service)
+- Frontend live in App Store + Play Store: v1.0.34 (v1.0.35 in review on both)
+- Supabase production: at migration 017
+- Render web service: live, `/api/health` 200
+- Render cron service: live, scheduled `0 9 * * *` UTC, first scheduled run tomorrow morning
+
+---
+
 ## 2026-05-26 (afternoon)
 
 ### Migration 017 — proper fix for the v1.0.35 rescue push cron column miss
