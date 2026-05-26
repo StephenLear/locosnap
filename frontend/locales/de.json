@@ -107,6 +107,13 @@
     "viewBlueprint": "Blueprint anzeigen",
     "generatingBlueprint": "Blueprint wird erstellt..."
   },
+  "pro": {
+    "expiring": {
+      "title": "Dein Pro läuft bald ab",
+      "body_one": "Noch {{days}} Tag. Tippe zum Verlängern und behalte unbegrenzte Scans.",
+      "body_other": "Noch {{days}} Tage. Tippe zum Verlängern und behalte unbegrenzte Scans."
+    }
+  },
   "profile": {
     "title": "Profil",
     "signIn": "Anmelden",

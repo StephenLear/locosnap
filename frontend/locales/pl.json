@@ -113,6 +113,15 @@
     "viewBlueprint": "Zobacz plan",
     "generatingBlueprint": "Generuję plan..."
   },
+  "pro": {
+    "expiring": {
+      "title": "Twoje Pro wkrótce wygasa",
+      "body_one": "{{days}} dzień. Stuknij, aby przedłużyć i zachować nielimitowane skany.",
+      "body_few": "{{days}} dni. Stuknij, aby przedłużyć i zachować nielimitowane skany.",
+      "body_many": "{{days}} dni. Stuknij, aby przedłużyć i zachować nielimitowane skany.",
+      "body_other": "{{days}} dni. Stuknij, aby przedłużyć i zachować nielimitowane skany."
+    }
+  },
   "profile": {
     "title": "Profil",
     "signIn": "Zaloguj się",

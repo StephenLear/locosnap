@@ -85,6 +85,41 @@ export async function checkEntitlements(): Promise<boolean> {
   }
 }
 
+// ── Pro entitlement detail ──────────────────────────────────
+// Phase F — expiring-soon banner needs expirationDate + willRenew
+// to decide whether to show. checkEntitlements() only returns a
+// boolean; this returns the full structured state so the UI can
+// compute days-remaining locally.
+//
+// Returns null only on RevenueCat error / not-initialised. Legacy
+// manually-granted Pro users (profile.is_pro=true with no RC
+// entitlement) come back as { isPro: false, expirationDate: null,
+// willRenew: false } — the banner hides on null expirationDate so
+// they're correctly excluded.
+export interface ProEntitlementInfo {
+  isPro: boolean;
+  expirationDate: string | null;
+  willRenew: boolean;
+}
+
+export async function getProEntitlementInfo(): Promise<ProEntitlementInfo | null> {
+  if (!initialized) return null;
+  try {
+    const customerInfo = await Purchases.getCustomerInfo();
+    const ent = customerInfo.entitlements.active[PRO_ENTITLEMENT];
+    if (!ent) {
+      return { isPro: false, expirationDate: null, willRenew: false };
+    }
+    return {
+      isPro: true,
+      expirationDate: ent.expirationDate ?? null,
+      willRenew: ent.willRenew ?? false,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ── Sync Pro Status ──────────────────────────────────────────
 // Check RevenueCat entitlement and update Supabase is_pro.
 // Called on app launch and after profile fetch to reconcile.

@@ -107,6 +107,13 @@
     "viewBlueprint": "View Blueprint",
     "generatingBlueprint": "Generating blueprint..."
   },
+  "pro": {
+    "expiring": {
+      "title": "Your Pro is ending soon",
+      "body_one": "{{days}} day left. Tap to renew and keep unlimited scans.",
+      "body_other": "{{days}} days left. Tap to renew and keep unlimited scans."
+    }
+  },
   "profile": {
     "title": "Profile",
     "signIn": "Sign In",

@@ -30,6 +30,7 @@ import { submitWrongIdReport } from "../../services/supabase";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { track, captureError, addBreadcrumb } from "../../services/analytics";
 import { HomeProUpsellCard } from "../../components/HomeProUpsellCard";
+import { ProExpiringBanner } from "../../components/ProExpiringBanner";
 import { ProRescuePrompt } from "../../components/ProRescuePrompt";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -742,6 +743,11 @@ export default function HomeScreen() {
           users + unauthenticated trial users render nothing — the card
           self-gates internally (mirrors ProRescuePrompt pattern). */}
       <HomeProUpsellCard />
+
+      {/* ── Pro expiring-soon banner (Pro, ≤7d, non-renewing) ──
+          Self-gates internally — hides for Pro auto-renewing users,
+          lifetime users, and non-Pro users. */}
+      <ProExpiringBanner />
 
       {/* ── Pro rescue prompt: subscribed but never scanned ── */}
       <ProRescuePrompt />
