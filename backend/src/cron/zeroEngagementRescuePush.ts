@@ -41,8 +41,27 @@ export const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 
 export interface CandidateRow {
   id: string;
-  language: string | null;
+  // profiles.language doesn't exist (caught 2026-05-26 on first manual cron
+  // run — frontend stores language in AsyncStorage, never writes it back to
+  // Supabase). Falling back to country_code → language mapping; future
+  // v1.0.36+ may add an explicit profiles.language column with backfill.
+  country_code: string | null;
   push_token: string | null;
+}
+
+// Map ISO 3166-1 alpha-2 country code to one of our supported push body
+// locales. DE-speaking countries → de, PL → pl, everything else falls
+// through to English. CH defaults to de (German-Swiss majority); French/
+// Italian-Swiss users get the EN fallback, which is acceptable given the
+// low volume relative to DE-CH.
+export function countryCodeToLanguage(
+  countryCode: string | null | undefined
+): "en" | "de" | "pl" {
+  if (!countryCode) return "en";
+  const upper = countryCode.toUpperCase();
+  if (upper === "DE" || upper === "AT" || upper === "CH") return "de";
+  if (upper === "PL") return "pl";
+  return "en";
 }
 
 export interface RescuePushBody {
@@ -145,7 +164,7 @@ export async function runZeroEngagementRescuePush(
   //   OR engagement_push_sent_at < (now - 7d)
   const { data: candidates, error: queryError } = await supabase
     .from("profiles")
-    .select("id, language, push_token")
+    .select("id, country_code, push_token")
     .eq("is_pro", true)
     .is("last_spot_date", null)
     .lt("created_at", accountCutoff)
@@ -177,7 +196,7 @@ export async function runZeroEngagementRescuePush(
       continue;
     }
 
-    const body = localisePushBody(row.language);
+    const body = localisePushBody(countryCodeToLanguage(row.country_code));
     const message = buildExpoPushMessage(row.push_token!, body);
 
     try {
