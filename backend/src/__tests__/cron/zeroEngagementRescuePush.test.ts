@@ -2,7 +2,6 @@ import {
   localisePushBody,
   buildExpoPushMessage,
   isSendable,
-  countryCodeToLanguage,
   ACCOUNT_AGE_THRESHOLD_DAYS,
   RESEND_COOLDOWN_DAYS,
   EXPO_PUSH_URL,
@@ -50,38 +49,6 @@ describe("localisePushBody", () => {
   });
 });
 
-describe("countryCodeToLanguage", () => {
-  it("maps DE-speaking countries to de", () => {
-    expect(countryCodeToLanguage("DE")).toBe("de");
-    expect(countryCodeToLanguage("AT")).toBe("de");
-    expect(countryCodeToLanguage("CH")).toBe("de");
-  });
-
-  it("maps PL to pl", () => {
-    expect(countryCodeToLanguage("PL")).toBe("pl");
-  });
-
-  it("falls back to en for every other country", () => {
-    expect(countryCodeToLanguage("GB")).toBe("en");
-    expect(countryCodeToLanguage("US")).toBe("en");
-    expect(countryCodeToLanguage("FR")).toBe("en");
-    expect(countryCodeToLanguage("IT")).toBe("en");
-    expect(countryCodeToLanguage("ES")).toBe("en");
-    expect(countryCodeToLanguage("CZ")).toBe("en");
-  });
-
-  it("normalises lowercase input", () => {
-    expect(countryCodeToLanguage("de")).toBe("de");
-    expect(countryCodeToLanguage("pl")).toBe("pl");
-  });
-
-  it("falls back to en for null / undefined / empty", () => {
-    expect(countryCodeToLanguage(null)).toBe("en");
-    expect(countryCodeToLanguage(undefined)).toBe("en");
-    expect(countryCodeToLanguage("")).toBe("en");
-  });
-});
-
 describe("buildExpoPushMessage", () => {
   it("composes the canonical Expo envelope", () => {
     const out = buildExpoPushMessage("ExponentPushToken[abc]", {
@@ -104,7 +71,7 @@ describe("isSendable", () => {
     expect(
       isSendable({
         id: "u1",
-        country_code: "GB",
+        language: "en",
         push_token: "ExponentPushToken[abc]",
       })
     ).toBe(true);
@@ -114,7 +81,7 @@ describe("isSendable", () => {
     expect(
       isSendable({
         id: "u1",
-        country_code: "GB",
+        language: "en",
         push_token: "ExpoPushToken[xyz]",
       })
     ).toBe(true);
@@ -122,21 +89,21 @@ describe("isSendable", () => {
 
   it("rejects missing tokens", () => {
     expect(
-      isSendable({ id: "u1", country_code: "GB", push_token: null })
+      isSendable({ id: "u1", language: "en", push_token: null })
     ).toBe(false);
   });
 
   it("rejects garbage tokens (FCM string, empty, gibberish)", () => {
     expect(
-      isSendable({ id: "u1", country_code: "GB", push_token: "" })
+      isSendable({ id: "u1", language: "en", push_token: "" })
     ).toBe(false);
     expect(
-      isSendable({ id: "u1", country_code: "GB", push_token: "abc123" })
+      isSendable({ id: "u1", language: "en", push_token: "abc123" })
     ).toBe(false);
     expect(
       isSendable({
         id: "u1",
-        country_code: "GB",
+        language: "en",
         push_token: "fcm-token-not-expo",
       })
     ).toBe(false);
@@ -250,8 +217,8 @@ describe("runZeroEngagementRescuePush — orchestrator", () => {
   it("sends to candidates with valid tokens and stamps engagement_push_sent_at", async () => {
     const { supabase, updateCalls } = makeSupabase({
       candidates: [
-        { id: "u1", country_code: "DE", push_token: "ExponentPushToken[a]" },
-        { id: "u2", country_code: "PL", push_token: "ExponentPushToken[b]" },
+        { id: "u1", language: "de", push_token: "ExponentPushToken[a]" },
+        { id: "u2", language: "pl", push_token: "ExponentPushToken[b]" },
       ],
     });
     const fetchMock = makeFetch({ ok: true });
@@ -274,9 +241,9 @@ describe("runZeroEngagementRescuePush — orchestrator", () => {
   it("skips candidates with missing or garbage push tokens", async () => {
     const { supabase, updateCalls } = makeSupabase({
       candidates: [
-        { id: "u1", country_code: "GB", push_token: null },
-        { id: "u2", country_code: "GB", push_token: "fcm-garbage" },
-        { id: "u3", country_code: "GB", push_token: "ExponentPushToken[good]" },
+        { id: "u1", language: "en", push_token: null },
+        { id: "u2", language: "en", push_token: "fcm-garbage" },
+        { id: "u3", language: "en", push_token: "ExponentPushToken[good]" },
       ],
     });
     const fetchMock = makeFetch({ ok: true });
@@ -294,7 +261,7 @@ describe("runZeroEngagementRescuePush — orchestrator", () => {
   it("counts HTTP failures as failed (no stamp update)", async () => {
     const { supabase, updateCalls } = makeSupabase({
       candidates: [
-        { id: "u1", country_code: "GB", push_token: "ExponentPushToken[a]" },
+        { id: "u1", language: "en", push_token: "ExponentPushToken[a]" },
       ],
     });
     const fetchMock = makeFetch({ ok: false, status: 503 });
@@ -306,7 +273,7 @@ describe("runZeroEngagementRescuePush — orchestrator", () => {
   it("counts Expo ticket-level non-ok as failed", async () => {
     const { supabase, updateCalls } = makeSupabase({
       candidates: [
-        { id: "u1", country_code: "GB", push_token: "ExponentPushToken[a]" },
+        { id: "u1", language: "en", push_token: "ExponentPushToken[a]" },
       ],
     });
     const fetchMock = makeFetch({
@@ -321,7 +288,7 @@ describe("runZeroEngagementRescuePush — orchestrator", () => {
   it("survives an update error — push still counted as sent", async () => {
     const { supabase } = makeSupabase({
       candidates: [
-        { id: "u1", country_code: "GB", push_token: "ExponentPushToken[a]" },
+        { id: "u1", language: "en", push_token: "ExponentPushToken[a]" },
       ],
       updateError: { message: "transient db blip" },
     });
@@ -333,7 +300,7 @@ describe("runZeroEngagementRescuePush — orchestrator", () => {
   it("survives a fetch throw — counted as failed", async () => {
     const { supabase, updateCalls } = makeSupabase({
       candidates: [
-        { id: "u1", country_code: "GB", push_token: "ExponentPushToken[a]" },
+        { id: "u1", language: "en", push_token: "ExponentPushToken[a]" },
       ],
     });
     const fetchMock = jest.fn(async () => {
@@ -347,7 +314,7 @@ describe("runZeroEngagementRescuePush — orchestrator", () => {
   it("posts to the canonical Expo endpoint with JSON body", async () => {
     const { supabase } = makeSupabase({
       candidates: [
-        { id: "u1", country_code: "DE", push_token: "ExponentPushToken[a]" },
+        { id: "u1", language: "de", push_token: "ExponentPushToken[a]" },
       ],
     });
     const fetchMock = makeFetch({ ok: true });

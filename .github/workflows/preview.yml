@@ -7,6 +7,17 @@ on:
       - "frontend/**"
       - ".github/workflows/preview.yml"
 
+# The "Comment build link" step posts to the PR via the GitHub REST API.
+# GitHub Actions default-token permissions changed to read-only in 2023;
+# without explicit grants the step fails with "Resource not accessible
+# by integration" (403). Same failure observed on the v1.0.22 PR (May
+# 2026) and the blueprint fix PRs (Feb 2026) — long-standing chronic
+# bug fixed here as part of v1.0.35 housekeeping.
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   preview-build:
     name: EAS Preview Build

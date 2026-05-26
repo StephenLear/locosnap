@@ -235,6 +235,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // Non-fatal — migration retries on next foreground via fetchProfile
         }
 
+        // v1.0.35 migration 017 — sync language from local settingsStore
+        // to profiles.language when they diverge. Handles three cases:
+        //   1. User signed in for the first time on this device after
+        //      picking a non-default language at the picker (settingsStore
+        //      has 'de'/'pl', server-backfilled value is 'en')
+        //   2. User signed in on a different device and the server's
+        //      language is fresher than the local default
+        //   3. Pre-migration-017 rows where backfill from country_code
+        //      guessed wrong (e.g. PL national living in DE picked 'pl'
+        //      via picker; backfill set 'de' from country_code)
+        // Local wins because the user actively chose it. Server wins on
+        // a fresh device install where settingsStore is the default 'en'.
+        try {
+          const { useSettingsStore } = require("./settingsStore");
+          const localLang = useSettingsStore.getState().language;
+          const serverLang = (data as { language?: string }).language;
+          if (
+            localLang &&
+            ["en", "de", "pl"].includes(localLang) &&
+            serverLang !== localLang
+          ) {
+            // If server has a non-default value and local is still default,
+            // adopt server. Otherwise push local up.
+            if (serverLang && serverLang !== "en" && localLang === "en") {
+              useSettingsStore.getState().setLanguage(serverLang);
+            } else {
+              updateProfileIdentity(user.id, { language: localLang }).catch(
+                () => {}
+              );
+            }
+          }
+        } catch {
+          // Non-fatal — sync retries on next fetchProfile
+        }
+
         // Sync Pro status with RevenueCat entitlements
         // Only upgrade to Pro if RevenueCat confirms it — never downgrade a manually-granted Pro
         try {

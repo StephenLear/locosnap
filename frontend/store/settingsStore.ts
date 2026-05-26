@@ -68,6 +68,23 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     } catch {
       // Non-fatal
     }
+
+    // v1.0.35 migration 017 — sync language choice to profiles for
+    // server-side consumers (rescue push cron, future welcome emails).
+    // Best-effort: signed-in users only, never blocks the local update,
+    // never throws. Lazy imports break the otherwise-circular dep chain
+    // (authStore imports settingsStore indirectly via _layout.tsx init).
+    try {
+      const { useAuthStore } = require("./authStore");
+      const { updateProfileIdentity } = require("../services/supabase");
+      const userId = useAuthStore.getState().session?.user?.id;
+      if (userId) {
+        updateProfileIdentity(userId, { language: lang }).catch(() => {});
+      }
+    } catch {
+      // Non-fatal — local state already updated, Supabase will pick up
+      // the change on next fetchProfile divergence check (authStore).
+    }
   },
 
   markLanguageChosen: async () => {

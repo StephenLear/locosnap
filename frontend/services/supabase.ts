@@ -1016,6 +1016,12 @@ export interface IdentityUpdates {
   country_code?: string;
   spotter_emoji?: string;
   has_completed_identity_onboarding?: boolean;
+  // v1.0.35 migration 017 — frontend syncs the user-selected app
+  // language to profiles.language so server-side messaging (rescue
+  // push cron, future welcome emails) reads truthfully instead of
+  // guessing from country_code. CHECK constraint at the DB layer
+  // enforces this is one of 'en' / 'de' / 'pl'.
+  language?: "en" | "de" | "pl";
 }
 
 export async function updateProfileIdentity(

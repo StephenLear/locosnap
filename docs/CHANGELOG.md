@@ -5,6 +5,51 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-26 (afternoon)
+
+### Migration 017 — proper fix for the v1.0.35 rescue push cron column miss
+
+The morning's hotfix (`a71fdd5`) mapped `profiles.country_code` to language at runtime as a stopgap after the first manual cron run failed with `column profiles.language does not exist`. This afternoon's work retires that hack by giving profiles a real, explicit language column synced from the frontend settingsStore. Truthful data, not a guess.
+
+**Migration `supabase/migrations/017_profiles_language.sql`:**
+- ADD COLUMN `language text` (nullable so the backfill can run first)
+- Backfill every existing row from `country_code` heuristic — DE/AT/CH → de, PL → pl, else en — using the same mapping the hotfix used at runtime
+- SET DEFAULT 'en' for future inserts (Supabase Auth trigger that creates profile rows omits language; default catches it)
+- SET NOT NULL after backfill so the cron query never sees null
+- ADD CHECK constraint `language in ('en', 'de', 'pl')` so a frontend bug can't poison the column with a typo
+- Audited per `feedback_supabase_silent_persistence_failures.md`: NOT NULL added AFTER backfill (no row will fail), DEFAULT covers omitting writers, CHECK protects from bad clients.
+
+**Frontend changes:**
+- `services/supabase.ts` — added `language?: 'en' | 'de' | 'pl'` to `IdentityUpdates` interface so the existing `updateProfileIdentity()` helper carries language writes alongside country_code / spotter_emoji / onboarding flag updates
+- `store/settingsStore.ts` — `setLanguage(lang)` now writes the new value to `profiles.language` via `updateProfileIdentity()` after the local AsyncStorage update. Best-effort, signed-in users only, never blocks the local update, never throws. Lazy require breaks the otherwise-circular dep chain
+- `store/authStore.ts` — `fetchProfile` now syncs local ↔ server language on divergence. Three cases covered: (1) user signed in after picking a non-default language at the picker → push local up; (2) fresh install with the user's stored language on another device → adopt server; (3) pre-migration-017 row where country_code backfill guessed wrong (e.g. PL national living in DE) → user's actual settingsStore choice wins on next fetch
+- `__tests__/fetchProfileMigration.test.ts` — "fully populated" fixture now includes `language: 'en'` so the no-op test holds with the new sync path
+
+**Backend changes (revert the morning's hotfix `a71fdd5` country_code mapper):**
+- `backend/src/cron/zeroEngagementRescuePush.ts` — `CandidateRow` shape back to `{ id, language, push_token }`. SELECT clause back to `'id, language, push_token'`. `countryCodeToLanguage()` mapper removed entirely. Orchestrator passes `row.language` directly to `localisePushBody()` (matches the original Phase G design — now the column actually exists)
+- `backend/src/__tests__/cron/zeroEngagementRescuePush.test.ts` — `countryCodeToLanguage` test suite removed. CandidateRow fixtures back to `language: 'en' / 'de' / 'pl'` matching the new query
+
+**Verification:**
+- Frontend: 201/201 tests pass across 24 suites; `npx tsc --noEmit` clean
+- Backend: 202/202 tests pass across 18 suites; `npx tsc --noEmit` clean
+- Migration is idempotent (ADD COLUMN IF NOT EXISTS, UPDATE skips already-set rows)
+
+**Deployment dependency:** migration 017 must be applied via the Supabase dashboard before this commit's backend deploys to Render (otherwise the cron query references a column that doesn't exist yet — same failure pattern as the morning miss). Apply order: migration 017 → push code → trigger cron manual run.
+
+**Lesson reinforced:** per `feedback_migration_column_audit.md` — every `<table>.<col>` reference in new code gets cross-checked against `supabase/migrations/*.sql` before claiming the feature is ready. Phase G missed this audit step entirely.
+
+### Preview Build workflow — chronic 403 permissions failure fixed
+
+`.github/workflows/preview.yml` "Comment build link" step has been failing with `Resource not accessible by integration` (403) since at least February 2026 (observed on the v1.0.22 PR, the blueprint fix PRs, and now the v1.0.35 PR). GitHub Actions default-token permissions went read-only in 2023; the workflow needs explicit `pull-requests: write` + `issues: write` grants to POST a comment on the PR.
+
+Added a `permissions:` block at workflow level granting the two writes (plus `contents: read` for the checkout step). The actual EAS preview build always succeeded — only the post-build "comment with build link" step failed. Future PRs will get the comment, future runs no longer show as failed.
+
+### v1.0.35 hotfix (`a71fdd5`) — superseded by migration 017 above
+
+Morning hotfix kept here as a historical reference: swapped the rescue cron query from `language` to `country_code` and added a runtime `countryCodeToLanguage()` mapper. Worked, but conflated country with language (false for travellers / migrants / anyone who picked a non-default language at the picker). Retired this afternoon by migration 017.
+
+---
+
 ## 2026-05-26
 
 ### v1.0.35 — Pro monetisation + resilience release (8-phase mega-PR on `feat/v1.0.35`)

@@ -137,6 +137,11 @@ describe('fetchProfile anon→signed-in migration wiring', () => {
         country_code: 'PL',
         spotter_emoji: 'train_diesel',
         has_completed_identity_onboarding: true,
+        // Migration 017 — fetchProfile now syncs local settingsStore.language
+        // to profiles.language on divergence. "Fully populated" must include
+        // the language field matching local default (en) to avoid the sync
+        // path firing.
+        language: 'en',
       },
       error: null,
     });
