@@ -22,6 +22,17 @@
     "cameraPermission": "Kamerazugriff wird zum Scannen von Zügen benötigt.",
     "scanBadge_one": "{{count}} Scan",
     "scanBadge_other": "{{count}} Scans",
+    "proUpsell": {
+      "persistent": {
+        "title": "Pro werden — unbegrenzte Scans",
+        "body_one": "Noch {{remaining}} kostenloser Scan. Pro schaltet jeden Zug frei, den du siehst.",
+        "body_other": "Noch {{remaining}} kostenlose Scans. Pro schaltet jeden Zug frei, den du siehst."
+      },
+      "locked": {
+        "title": "Kostenlose Scans aufgebraucht",
+        "body": "Werde Pro und scanne unbegrenzt weiter — alle Daten, jeder Blueprint."
+      }
+    },
     "pickerError": {
       "title": "Galerie konnte nicht geöffnet werden",
       "body": "Dein Handy hat die Galerie gerade nicht geöffnet. Stattdessen ein Foto mit der Kamera aufnehmen?",

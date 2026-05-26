@@ -22,6 +22,17 @@
     "cameraPermission": "Camera access is needed to scan trains.",
     "scanBadge_one": "{{count}} scan",
     "scanBadge_other": "{{count}} scans",
+    "proUpsell": {
+      "persistent": {
+        "title": "Go Pro — unlimited scans",
+        "body_one": "{{remaining}} free scan left. Pro unlocks every train you see.",
+        "body_other": "{{remaining}} free scans left. Pro unlocks every train you see."
+      },
+      "locked": {
+        "title": "Free scans used",
+        "body": "Go Pro to keep scanning — unlimited spots, full specs, every blueprint."
+      }
+    },
     "pickerError": {
       "title": "Couldn't open the photo library",
       "body": "Your phone wouldn't let us open the gallery just now. Take a photo with the camera instead?",

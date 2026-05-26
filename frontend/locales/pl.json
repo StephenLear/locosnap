@@ -26,6 +26,19 @@
     "scanBadge_few": "{{count}} skany",
     "scanBadge_many": "{{count}} skanów",
     "scanBadge_other": "{{count}} skanów",
+    "proUpsell": {
+      "persistent": {
+        "title": "Przejdź na Pro — nielimitowane skany",
+        "body_one": "{{remaining}} darmowy skan pozostał. Pro odblokowuje każdy widziany pociąg.",
+        "body_few": "{{remaining}} darmowe skany pozostały. Pro odblokowuje każdy widziany pociąg.",
+        "body_many": "{{remaining}} darmowych skanów pozostało. Pro odblokowuje każdy widziany pociąg.",
+        "body_other": "{{remaining}} darmowych skanów pozostało. Pro odblokowuje każdy widziany pociąg."
+      },
+      "locked": {
+        "title": "Darmowe skany wykorzystane",
+        "body": "Przejdź na Pro, by skanować dalej — pełne dane, każdy plan, cała kolekcja."
+      }
+    },
     "pickerError": {
       "title": "Nie udało się otworzyć galerii",
       "body": "Telefon nie pozwolił nam teraz otworzyć galerii. Może zrobisz zdjęcie aparatem?",
