@@ -5,6 +5,62 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-27
+
+### Distribution
+
+**v1.0.35 NOW LIVE ON GOOGLE PLAY.** versionCode 27 approved + published this evening after the Data safety form was updated to declare two previously under-declared data types:
+- **Device or other IDs** — collected + shared by PostHog (analytics distinct_id / Android Advertising ID), Sentry (device info), RevenueCat (advertising ID for attribution). Declared as: Collected Yes, Shared Yes, Processed ephemerally No, Required, Purposes = App functionality + Analytics.
+- **Diagnostics** — collected + shared by Sentry alongside crash logs (device info, breadcrumbs, performance traces). Same field-by-field declaration as Device or other IDs.
+
+Two changes submitted via Publishing overview, Google ran checks and approved same-evening. v1.0.35 with all 8 phases (Pro paywall restructure, persistent home Pro upsell card, auto-open paywall triggers, paywall copy tighten, offline write queue, Pro expiring banner, zero-engagement rescue push cron, full EN/DE/PL i18n) now LIVE on both stores.
+
+No code changes — Data safety form update is a Play Console declaration only.
+
+### Tester correction logged (NOT yet shipped)
+
+**Steph the Spotter — "Flying Falcon" misID.** Test scan of John Fowler & Co. 0-4-0 DM (Works No. 4220016, "Flying Falcon", ex-Groby Granite quarry, now at Northamptonshire Ironstone Railway) returned by LocoSnap as **"Ruston & Hornsby 48DS / Charles Adane"**. Two distinct bugs in one scan:
+1. **Builder misID** — UK 1950s-60s industrial 0-4-0 diesel shunters visually similar across builders (Fowler / R&H / Hudswell Clarke / Andrew Barclay / Hunslet). Vision model defaults to Ruston (more numerous). Needs disambiguation by works-number-era + cut-down-cab visual cue.
+2. **Hallucinated name "Charles Adane"** — same facts-layer-leak pattern as ÖBB 4020 / BR 114 / VR Sr1. No KNOWN_SPECS entry exists for Fowler 4220016, so trainFacts.ts had no anchor.
+
+Fix shape spec'd in `backend_backlog_corrections.md` — `trainSpecs.ts` Fowler KNOWN_SPECS block + `vision.ts` UK industrial 0-4-0 disambiguation rule + `trainFacts.ts` Flying Falcon bullet + `trainCache.ts` CLASS_INVALIDATIONS. Hot-ship not required — Steph is on v1.0.34 Android (just got v1.0.35 approval), and the misID is a known-pattern bug being logged for next backend pass.
+
+### v1.0.34 latent profile-stats display bug (DIAGNOSED — fix slated for v1.0.36)
+
+Steph reported "data wiped" — Profile screen showed 1 spot / Level 1 / 10 XP despite her actual server-side history of 241 spots / 100 unique classes.
+
+Diagnostic (no code changes, read-only):
+- Confirmed `auth.users` has exactly ONE row for her email (no duplicate sign-in)
+- Confirmed `public.spots` has 241 rows tied to her user_id (data 100% intact)
+- Confirmed `public.profiles` row populated correctly (`language: en`, `country_code: GB`, push_token NULL because v1.0.34 doesn't write push tokens)
+- Root cause: Profile screen reads stats ONLY from local Zustand `history` array (`app/(tabs)/profile.tsx:184` + useMemo at lines 251-257). `_layout.tsx:224` calls `loadHistory()` on app mount which fetches from server IF authenticated; if session/JWT expired silently, the call falls through to AsyncStorage-only path with just her most recent scan.
+- Workaround: sign out + sign back in clears local Zustand state and forces a fresh authenticated `loadHistory()` call.
+
+This is **pre-existing v1.0.34 behaviour**, NOT a regression from yesterday's Phase G work (which only lives in v1.0.35 and never reached her phone). Initial hypothesis blaming yesterday's `authStore.fetchProfile` reconciliation was wrong — corrected when user pointed out she's on Android v1.0.34.
+
+**Investigation outcome from Explore agent runs:**
+- Profile-fetch in `store/authStore.ts:196-200` uses `select("*")` — but TypeScript type assertion is runtime-noop, so the new `language` column from migration 017 does NOT break v1.0.34's parsing. Hypothesis disproved.
+- Profile screen stats are 100% derived from local Zustand `history` array — no direct server query exists for Total spots / Unique Classes / Day streak / Rarest Find / Favourite Operator. They're all `useMemo` reductions over the local array.
+
+**v1.0.36 fix list (priority for next dev cycle):**
+1. Add Sentry capture in `trainStore.loadHistory()` — wrap the `fetchSpots()` call with try/catch + `captureException()` so silent failures become visible
+2. Add pull-to-refresh gesture on Profile screen — gives users a manual workaround when stats look wrong
+3. Active JWT refresh attempt in `loadHistory()` before falling through to AsyncStorage-only — if `getSession()` returns expired, call `refreshSession()` explicitly instead of giving up
+4. Sanity-check on app launch — if local `history.length` is suspiciously low (<5) for a signed-in user, fire a `select count(*)` query against `spots` and trigger a forced refetch if server count > local count
+
+All four ship together as part of v1.0.36 "silent failures audit" — extends the `feedback_supabase_silent_persistence_failures.md` remediation that v1.0.30 partially started.
+
+### Memory updates
+
+- **NEW** `ai_provider_cost_evaluation.md` — Gemini + DeepSeek evaluated as Claude alternatives. Decision: no migration. DeepSeek has no vision-capable model (structural blocker). Gemini Flash-Lite cheaper but ~$5-15/mo savings on a trivial line vs migration cost + quality risk on niche EU classes. Includes per-scan cost matrix + EN/DE/PL paywall framing copy ("LocoSnap €2.99 ≈ 15% of Gemini Advanced $20/mo" + Google Lens free-vs-paid framing).
+- **UPDATED** `backend_backlog_corrections.md` — top entry for 2026-05-27 Flying Falcon misID (CONFIRMED, screenshot in hand) above the still-pending Eisenbahnfotograf_BLN BR 182/ICE 4 follow-up.
+- **UPDATED** `project_ai_cost_baseline.md` — explicit "auto-charge confirmed 2026-05-27" line so future sessions don't mistakenly flag low credits as urgent. Self-correction logged after I incorrectly raised $8.72 balance as urgent in tonight's stats review.
+- **UPDATED** `apple_stats.md` — 2026-05-27 evening snapshot appended (90d Apple cumulative + 28d Play + RC ramp + Supabase + Anthropic).
+- **UPDATED** `tiktok_stats.md` — 2026-05-27 evening snapshot appended (channel 7d overview + DE €1 24h performance + PL €1 24h performance + IG numbers + comparison reads).
+- **UPDATED** `project_status.md` — header bumped to 2026-05-27 evening; v1.0.35 LIVE on BOTH stores.
+
+---
+
 ## 2026-05-26 (evening)
 
 ### v1.0.35 EAS builds + per-platform submission
