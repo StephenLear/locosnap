@@ -5,6 +5,18 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-30
+
+### Infrastructure
+
+#### `.gitignore` — Ignore `.mcp.json` to prevent API key leak
+- **Added** `.mcp.json` to the ignore list (under the env-vars block). The Resend MCP server was installed at project scope via `claude mcp add resend --scope project -e RESEND_API_KEY=... -- npx -y resend-mcp`, which writes the live `RESEND_API_KEY` (read from `backend/.env`) in plaintext to `.mcp.json` in the repo root. That file was untracked but not ignored, so it would have been committable — adding it to `.gitignore` ensures the key cannot leak. No secret was ever staged or committed. Committed in `ddf6805`, pushed to `origin/main`.
+
+#### Resend MCP server — installed (project scope)
+- **Added** the official `resend-mcp` server (`npx -y resend-mcp`) registered in `.mcp.json` (gitignored). Connected and verified (`claude mcp list` → `✓ Connected`). Tools surface as `mcp__resend__*` on next session restart. Purpose: query per-email `last_event` (delivered / bounced / complained / queued) via the MCP after tester batches instead of pulling dashboard CSV exports — automates the silent-suppression check from `feedback_resend_suppression_silent.md`. Limitation: no suppression-list tool; outcomes read per-email via `last_event`. Installed MCP-only (not the full plugin) to avoid the unused React Email / agent-inbox skills.
+
+---
+
 ## 2026-05-27
 
 ### Distribution
