@@ -22,6 +22,13 @@ Format: newest first within each date block.
 
 **Note:** No `trainCache.ts` change needed — both fixes change the *class string* vision returns, so re-scans key to fresh cache entries; the stale `class 08` / `class 03` entries are never hit for these locos again. Avoids collateral invalidation of legitimate Class 03/08 cache. 202/202 backend tests pass, typecheck clean. **Not yet deployed — needs a push to go live on Render.**
 
+#### `backend/src/services/{vision,trainSpecs,trainFacts}.ts` — ÖBB 1216 "Taurus III" vs BR 193 Vectron MS disambiguation
+- **Added** coverage for the ÖBB 1216 (Siemens ES64U4 "Taurus III"), which was being misidentified as BR 193 (Vectron MS). Reported via the one-month feedback DM straw poll (evangelist). Root cause: we covered the ÖBB 1116/1016 Taurus but had no entry for the **1216** — the multi-system U4 Taurus that shares the Austria–Germany–Italy / Brenner corridor with the 193 Vectron, so route/operator don't separate them and the model collapsed to the more common 193.
+  - **vision.ts** — new classification rule keyed on cab profile: rounded smooth Taurus nose (1216) vs angular squared Vectron cab (193); ÖBB livery or a visible "1216 xxx" fleet number → "ÖBB 1216", never "BR 193".
+  - **trainSpecs.ts** — 9 KNOWN_SPECS keys (1216 / öbb 1216 / obb 1216 / baureihe 1216 / reihe 1216 / es64u4 / taurus iii / taurus 3) locking 230 km/h, 6,400 kW, Siemens, multi-system (15 kV + 25 kV AC + 3 kV DC), ~50 units; plus extended the existing Taurus prompt note to cover the 1216.
+  - **trainFacts.ts** — verified-facts anchor locking it as a Taurus (ES64U4), not a Vectron, with the 357 km/h world record (1216 050, 2006). Prevents the facts layer re-introducing the Vectron framing.
+- **Held (not fixed):** the other two reports in the same DM — BR 412→408 (ICE 4→ICE 3neo) and DRG E 77→ČSD E 669.1 — already have rules in the code, so they are held for tester screenshots rather than re-tightened blind (per the Eisenbahnfotograf / BR 426 lesson). No `trainCache.ts` change (class-string change → fresh cache keys). 202/202 backend tests pass, typecheck clean. **Not yet deployed — needs a push to go live on Render.**
+
 ---
 
 ## 2026-05-30
