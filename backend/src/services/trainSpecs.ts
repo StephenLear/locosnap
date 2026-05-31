@@ -599,6 +599,18 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "db class 248": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
   "vectron dual mode": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
   "siemens vectron dual mode": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  // BR 159 — the private-operator (Captrain / TX Logistik) designation for the
+  // Siemens Vectron Dual Mode. Had NO spec entry, so the app fell through to AI
+  // and showed plain "Diesel" with no weight. fuelType is Dual-Mode (electric +
+  // diesel), service weight 90 t per Siemens (NOT 123 t — that figure is
+  // physically impossible on a 4-axle Bo'Bo' at ~30 t/axle). Added 2026-05-31
+  // after a Captrain BR 159 driver-in-training reported the missing dual-mode
+  // fuel label via the one-month feedback DM.
+  "159": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", weight: "90 t", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "br 159": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", weight: "90 t", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "br159": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", weight: "90 t", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "class 159": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", weight: "90 t", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
+  "baureihe 159": { maxSpeed: "160 km/h", power: "2,610 kW (electric) / 2,000 kW (diesel)", weight: "90 t", builder: "Siemens Mobility", fuelType: "Dual-Mode (15 kV 16.7 Hz AC overhead + Diesel)" },
   // BR 247 (Siemens Vectron DE — single-mode diesel) — added 2026-05-05 after a screen recording
   // for the TrainVibez sponsor video showed the card returning "Builder: Electro-Motive Diesel" and
   // facts framing the loco as "Vectron Dual Mode". BR 247 is the diesel-only Vectron variant — NOT
