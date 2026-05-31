@@ -1149,6 +1149,25 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "gm-emd sw1001": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
   "general motors sw1001": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
   "western yeoman ii": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
+  "whatley endeavour": { maxSpeed: "65 mph", power: "820 kW", builder: "General Motors EMD (La Grange, Illinois)", numberBuilt: 230, fuelType: "Diesel-Electric" },
+  // John Fowler & Co. (Leeds) 0-4-0 diesel-hydraulic industrial shunter
+  // "Flying Falcon", Works No. 4220016, built 1962. A UNIQUE preserved loco:
+  // originally at Groby Granite quarry (Leicestershire) — its cab was cut down
+  // to clear a height-restricted bridge there — now at the Northamptonshire
+  // Ironstone Railway (NIR), Hunsbury Hill, Northampton. ~29 t, Cummins 6-cyl
+  // turbo + hydraulic torque converter with Wilson reversing final drive.
+  // Horsepower and top speed are NOT published, so power/maxSpeed are left
+  // unset (the model fills them) rather than fabricated. Added 2026-05-31
+  // after UK tester Steph reported it returned as Class 03 (and earlier as
+  // Ruston & Hornsby 48DS). Specs verified from the NIR exhibit page.
+  "john fowler 0-4-0 dh": { weight: "29 t", builder: "John Fowler & Co. (Leeds)", fuelType: "Diesel-Hydraulic", gauge: "Standard (1,435 mm)" },
+  "john fowler 0-4-0": { weight: "29 t", builder: "John Fowler & Co. (Leeds)", fuelType: "Diesel-Hydraulic", gauge: "Standard (1,435 mm)" },
+  "fowler 0-4-0 dh": { weight: "29 t", builder: "John Fowler & Co. (Leeds)", fuelType: "Diesel-Hydraulic", gauge: "Standard (1,435 mm)" },
+  "fowler 0-4-0": { weight: "29 t", builder: "John Fowler & Co. (Leeds)", fuelType: "Diesel-Hydraulic", gauge: "Standard (1,435 mm)" },
+  "fowler 4220016": { weight: "29 t", builder: "John Fowler & Co. (Leeds)", fuelType: "Diesel-Hydraulic", gauge: "Standard (1,435 mm)" },
+  "4220016": { weight: "29 t", builder: "John Fowler & Co. (Leeds)", fuelType: "Diesel-Hydraulic", gauge: "Standard (1,435 mm)" },
+  "flying falcon": { weight: "29 t", builder: "John Fowler & Co. (Leeds)", fuelType: "Diesel-Hydraulic", gauge: "Standard (1,435 mm)" },
+  "john fowler & co 0-4-0": { weight: "29 t", builder: "John Fowler & Co. (Leeds)", fuelType: "Diesel-Hydraulic", gauge: "Standard (1,435 mm)" },
   // Class 66 (EMD/Progress Rail, 1998+) — most common UK freight diesel.
   // Co-Co, 3,300 hp (2,460 kW), 75 mph. Operators: DB Cargo UK, Freightliner,
   // GBRf, Colas Rail, DRS. Operator varies by livery — do not hardcode one.

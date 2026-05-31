@@ -5,6 +5,25 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-05-31
+
+### Backend
+
+#### `backend/src/services/vision.ts` — Two UK heritage-shunter disambiguation fixes (Steph batch)
+- **Fixed** EMD SW1001 → Class 08 misID on the Whatley unit. The 2026-05-18 SW1001 rule keyed too hard on yellow Aggregate Industries livery + chevron stripes + Merehead context, so Whatley's **No. 120 "Whatley Endeavour"** (green/grey livery) fell through to Class 08. Root cause: livery colour was effectively a required trigger. Rewrote the rule so the STRUCTURE (centre-cab + four-wheel bogies + no jackshaft connecting rods + Mendip/Merehead/Whatley quarry context) is decisive regardless of colour; demoted yellow livery to one-of-several; corrected "only ONE example in UK service" → TWO (No. 44 Merehead + No. 120 Whatley); added an explicit green/grey-livery note. Reported by UK tester Steph (screenshots IMG_5036/5038).
+- **Added** John Fowler "Flying Falcon" (Works No. 4220016) disambiguation rule. The unique preserved Fowler 0-4-0 diesel-hydraulic shunter at the Northamptonshire Ironstone Railway was returning as Class 03 (and earlier as Ruston & Hornsby 48DS). New rule keys on the **0-4-0 four-wheel / two-axle arrangement** (vs 0-6-0 six-wheel/three-axle Class 03 & Class 08, which it explicitly rules out), the **cut-down/lowered cab** (its signature, from a height-restricted bridge at Groby Granite), and NIR/Hunsbury heritage context. Explicitly bounded: does NOT bias toward Fowler for UK 0-4-0 shunters generally (R&H / Hudswell Clarke / Andrew Barclay / Hunslet built similar 0-4-0s) — fires only with the cut-down cab + NIR context. Forbids inventing a name (an earlier scan hallucinated "Charles Adane"). Reported by Steph (IMG_5035/5037); specs verified against the NIR exhibit page.
+
+#### `backend/src/services/trainSpecs.ts` — SW1001 Whatley key + Flying Falcon KNOWN_SPECS
+- **Added** `"whatley endeavour"` lookup key to the existing SW1001 KNOWN_SPECS group (same EMD spec values as No. 44).
+- **Added** a Flying Falcon KNOWN_SPECS block (8 lookup keys: `john fowler 0-4-0 dh` / `john fowler 0-4-0` / `fowler 0-4-0 dh` / `fowler 0-4-0` / `fowler 4220016` / `4220016` / `flying falcon` / `john fowler & co 0-4-0`). Locks only **verified** fields from the NIR source: builder "John Fowler & Co. (Leeds)", weight "29 t", fuelType "Diesel-Hydraulic", gauge "Standard (1,435 mm)". **Deliberately leaves `power` and `maxSpeed` unset** — neither is published for this loco, so they are left to the model rather than fabricated (the prior card's "204 hp / 28 mph" were model guesses).
+
+#### `backend/src/services/trainFacts.ts` — Flying Falcon verified-facts anchor
+- **Added** a Flying Falcon facts bullet to the never-contradict list, locking: builder John Fowler & Co. of Leeds (forbids R&H / Hudswell Clarke / Andrew Barclay / Hunslet / BR); 0-4-0 (forbids 0-6-0 / Class 03 / Class 08 / R&H 48DS); diesel-hydraulic + Cummins 6-cyl engine (forbids diesel-electric/mechanical); name "Flying Falcon" only (forbids "Charles Adane"-type hallucination); 1962 build, Groby Granite cut-down-cab history, now at NIR; ~29 t. Instructs the model NOT to state any horsepower/top-speed figure as fact.
+
+**Note:** No `trainCache.ts` change needed — both fixes change the *class string* vision returns, so re-scans key to fresh cache entries; the stale `class 08` / `class 03` entries are never hit for these locos again. Avoids collateral invalidation of legitimate Class 03/08 cache. 202/202 backend tests pass, typecheck clean. **Not yet deployed — needs a push to go live on Render.**
+
+---
+
 ## 2026-05-30
 
 ### Infrastructure
