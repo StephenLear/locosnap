@@ -44,7 +44,11 @@
       "body": "Telefon nie pozwolił nam teraz otworzyć galerii. Może zrobisz zdjęcie aparatem?",
       "useCamera": "Użyj aparatu",
       "cancel": "Anuluj"
-    }
+    },
+    "heroTitle": "Rozpoznaj każdy pociąg",
+    "heroSubtitle": "Skieruj aparat lub wybierz zdjęcie,\naby odkryć dane, ciekawostki i rzadkość",
+    "chooseFromLibrary": "Wybierz z galerii",
+    "aiPowered": "Identyfikacja z AI"
   },
   "lowConfidence": {
     "title": "Hmm, to trudny przypadek",
@@ -111,7 +115,11 @@
     "savePhoto": "Zapisz w zdjęciach",
     "share": "Udostępnij",
     "viewBlueprint": "Zobacz plan",
-    "generatingBlueprint": "Generuję plan..."
+    "generatingBlueprint": "Generuję plan...",
+    "gauge": "Rozstaw",
+    "fuel": "Napęd",
+    "surviving": "Zachowane",
+    "route": "Trasa"
   },
   "pro": {
     "expiring": {
@@ -163,7 +171,11 @@
   "history": {
     "title": "Kolekcja",
     "empty": "Brak zeskanowanych pociągów. Ruszaj w teren!",
-    "scannedOn": "Zeskanowano {{date}}"
+    "scannedOn": "Zeskanowano {{date}}",
+    "sortRecent": "Najnowsze",
+    "sortRarity": "Rzadkość",
+    "sortName": "Nazwa",
+    "searchPlaceholder": "Szukaj klasy, przewoźnika, nazwy…"
   },
   "leaderboard": {
     "title": "Ranking",
@@ -303,10 +315,22 @@
       "year": "rok"
     },
     "unit": {
-      "day": { "singular": "dzień", "plural": "dni" },
-      "week": { "singular": "tydzień", "plural": "tygodnie" },
-      "month": { "singular": "miesiąc", "plural": "miesięcy" },
-      "year": { "singular": "rok", "plural": "lata" }
+      "day": {
+        "singular": "dzień",
+        "plural": "dni"
+      },
+      "week": {
+        "singular": "tydzień",
+        "plural": "tygodnie"
+      },
+      "month": {
+        "singular": "miesiąc",
+        "plural": "miesięcy"
+      },
+      "year": {
+        "singular": "rok",
+        "plural": "lata"
+      }
     },
     "features": {
       "unlimitedScans": {

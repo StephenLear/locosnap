@@ -38,7 +38,11 @@
       "body": "Dein Handy hat die Galerie gerade nicht geöffnet. Stattdessen ein Foto mit der Kamera aufnehmen?",
       "useCamera": "Kamera nutzen",
       "cancel": "Abbrechen"
-    }
+    },
+    "heroTitle": "Jeden Zug erkennen",
+    "heroSubtitle": "Richte die Kamera aus oder wähle ein Foto,\num Daten, Fakten und Seltenheit freizuschalten",
+    "chooseFromLibrary": "Aus Galerie wählen",
+    "aiPowered": "KI-gestützte Erkennung"
   },
   "lowConfidence": {
     "title": "Hmm, das ist knifflig",
@@ -105,7 +109,11 @@
     "savePhoto": "In Fotos speichern",
     "share": "Teilen",
     "viewBlueprint": "Blueprint anzeigen",
-    "generatingBlueprint": "Blueprint wird erstellt..."
+    "generatingBlueprint": "Blueprint wird erstellt...",
+    "gauge": "Spurweite",
+    "fuel": "Antrieb",
+    "surviving": "Erhalten",
+    "route": "Strecke"
   },
   "pro": {
     "expiring": {
@@ -155,7 +163,11 @@
   "history": {
     "title": "Sammlung",
     "empty": "Noch keine Züge gescannt. Los geht's!",
-    "scannedOn": "Gescannt am {{date}}"
+    "scannedOn": "Gescannt am {{date}}",
+    "sortRecent": "Neueste",
+    "sortRarity": "Seltenheit",
+    "sortName": "Name",
+    "searchPlaceholder": "Klasse, Betreiber, Name suchen…"
   },
   "leaderboard": {
     "title": "Bestenliste",
@@ -295,10 +307,22 @@
       "year": "Jahr"
     },
     "unit": {
-      "day": { "singular": "Tag", "plural": "Tagen" },
-      "week": { "singular": "Woche", "plural": "Wochen" },
-      "month": { "singular": "Monat", "plural": "Monaten" },
-      "year": { "singular": "Jahr", "plural": "Jahren" }
+      "day": {
+        "singular": "Tag",
+        "plural": "Tagen"
+      },
+      "week": {
+        "singular": "Woche",
+        "plural": "Wochen"
+      },
+      "month": {
+        "singular": "Monat",
+        "plural": "Monaten"
+      },
+      "year": {
+        "singular": "Jahr",
+        "plural": "Jahren"
+      }
     },
     "features": {
       "unlimitedScans": {

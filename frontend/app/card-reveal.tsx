@@ -981,22 +981,22 @@ export default function CardRevealScreen() {
 
                 <View style={styles.backSpecsGrid}>
                   {currentSpecs?.maxSpeed && (
-                    <BackSpec label="Max Speed" value={currentSpecs.maxSpeed} />
+                    <BackSpec label={t("results.maxSpeed")} value={currentSpecs.maxSpeed} />
                   )}
                   {currentSpecs?.power && (
-                    <BackSpec label="Power" value={currentSpecs.power} />
+                    <BackSpec label={t("results.power")} value={currentSpecs.power} />
                   )}
                   {currentSpecs?.weight && (
-                    <BackSpec label="Weight" value={currentSpecs.weight} />
+                    <BackSpec label={t("results.weight")} value={currentSpecs.weight} />
                   )}
                   {currentSpecs?.builder && (
-                    <BackSpec label="Builder" value={currentSpecs.builder} />
+                    <BackSpec label={t("results.builder")} value={currentSpecs.builder} />
                   )}
                   {currentSpecs?.gauge && (
-                    <BackSpec label="Gauge" value={currentSpecs.gauge} />
+                    <BackSpec label={t("results.gauge")} value={currentSpecs.gauge} />
                   )}
                   {currentSpecs?.fuelType && (
-                    <BackSpec label="Fuel" value={currentSpecs.fuelType} />
+                    <BackSpec label={t("results.fuel")} value={currentSpecs.fuelType} />
                   )}
                 </View>
 

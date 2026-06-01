@@ -53,10 +53,10 @@ const RARITY_ORDER: RarityTier[] = [
 
 type SortOption = "date" | "rarity" | "name";
 
-const SORT_OPTIONS: { key: SortOption; label: string; icon: string }[] = [
-  { key: "date", label: "Recent", icon: "time" },
-  { key: "rarity", label: "Rarity", icon: "diamond" },
-  { key: "name", label: "Name", icon: "text" },
+const SORT_OPTIONS: { key: SortOption; labelKey: string; icon: string }[] = [
+  { key: "date", labelKey: "history.sortRecent", icon: "time" },
+  { key: "rarity", labelKey: "history.sortRarity", icon: "diamond" },
+  { key: "name", labelKey: "history.sortName", icon: "text" },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -563,7 +563,7 @@ export default function HistoryScreen() {
         <Ionicons name="search" size={16} color={colors.textMuted} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search class, operator, name..."
+          placeholder={t("history.searchPlaceholder")}
           placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={(text) => {
@@ -609,7 +609,7 @@ export default function HistoryScreen() {
                   activeSort === opt.key && styles.sortPillTextActive,
                 ]}
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </Text>
             </TouchableOpacity>
           ))}

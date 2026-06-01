@@ -492,22 +492,22 @@ export default function ResultsScreen() {
             <SpecRow icon="flash" label={t("results.power")} value={currentSpecs.power} />
             <SpecRow icon="scale" label={t("results.weight")} value={currentSpecs.weight} />
             <SpecRow icon="resize" label={t("results.length")} value={currentSpecs.length} />
-            <SpecRow icon="git-merge" label="Gauge" value={currentSpecs.gauge} />
+            <SpecRow icon="git-merge" label={t("results.gauge")} value={currentSpecs.gauge} />
             <SpecRow icon="construct" label={t("results.builder")} value={currentSpecs.builder} />
-            <SpecRow icon="flame" label="Fuel" value={currentSpecs.fuelType} />
-            <SpecRow icon="map" label="Route" value={currentSpecs.route} />
+            <SpecRow icon="flame" label={t("results.fuel")} value={currentSpecs.fuelType} />
+            <SpecRow icon="map" label={t("results.route")} value={currentSpecs.route} />
             {currentSpecs.numberBuilt && (
               <SpecRow
                 icon="layers"
                 label={t("results.built")}
-                value={`${currentSpecs.numberBuilt} units`}
+                value={t("compare.unitsCount", { count: currentSpecs.numberBuilt })}
               />
             )}
             {currentSpecs.numberSurviving && (
               <SpecRow
                 icon="heart"
-                label="Surviving"
-                value={`${currentSpecs.numberSurviving} units`}
+                label={t("results.surviving")}
+                value={t("compare.unitsCount", { count: currentSpecs.numberSurviving })}
               />
             )}
           </View>

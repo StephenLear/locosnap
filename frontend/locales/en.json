@@ -38,7 +38,11 @@
       "body": "Your phone wouldn't let us open the gallery just now. Take a photo with the camera instead?",
       "useCamera": "Use camera",
       "cancel": "Cancel"
-    }
+    },
+    "heroTitle": "Identify Any Train",
+    "heroSubtitle": "Point your camera or choose a photo\nto unlock specs, facts & rarity",
+    "chooseFromLibrary": "Choose from Library",
+    "aiPowered": "AI-powered identification"
   },
   "lowConfidence": {
     "title": "Hmm, this one's tricky",
@@ -105,7 +109,11 @@
     "savePhoto": "Save to Photos",
     "share": "Share",
     "viewBlueprint": "View Blueprint",
-    "generatingBlueprint": "Generating blueprint..."
+    "generatingBlueprint": "Generating blueprint...",
+    "gauge": "Gauge",
+    "fuel": "Fuel",
+    "surviving": "Surviving",
+    "route": "Route"
   },
   "pro": {
     "expiring": {
@@ -155,7 +163,11 @@
   "history": {
     "title": "Collection",
     "empty": "No trains scanned yet. Get out there!",
-    "scannedOn": "Scanned {{date}}"
+    "scannedOn": "Scanned {{date}}",
+    "sortRecent": "Recent",
+    "sortRarity": "Rarity",
+    "sortName": "Name",
+    "searchPlaceholder": "Search class, operator, name…"
   },
   "leaderboard": {
     "title": "Leaderboard",
@@ -295,10 +307,22 @@
       "year": "year"
     },
     "unit": {
-      "day": { "singular": "day", "plural": "days" },
-      "week": { "singular": "week", "plural": "weeks" },
-      "month": { "singular": "month", "plural": "months" },
-      "year": { "singular": "year", "plural": "years" }
+      "day": {
+        "singular": "day",
+        "plural": "days"
+      },
+      "week": {
+        "singular": "week",
+        "plural": "weeks"
+      },
+      "month": {
+        "singular": "month",
+        "plural": "months"
+      },
+      "year": {
+        "singular": "year",
+        "plural": "years"
+      }
     },
     "features": {
       "unlimitedScans": {

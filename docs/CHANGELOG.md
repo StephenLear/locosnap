@@ -7,6 +7,18 @@ Format: newest first within each date block.
 
 ## 2026-06-01
 
+### Frontend
+
+#### i18n — translate hardcoded English strings flagged by tester Leon (DE retest)
+- **Fixed** strings that stayed English in German/Polish mode (screenshots IMG_5044-5049). Replaced hardcoded text with `t()` keys and added 13 keys × 3 locales (en/de/pl):
+  - `app/(tabs)/index.tsx` (home/scan): `scan.heroTitle` ("Identify Any Train"), `scan.heroSubtitle`, `scan.chooseFromLibrary` ("Choose from Library"), `scan.aiPowered` ("AI-powered identification").
+  - `app/results.tsx` (specs panel): `results.gauge`, `results.fuel`, `results.route`, `results.surviving` labels (the other SpecRows already used `t()`); the hardcoded "{{n}} units" values now use the existing pluralised `compare.unitsCount` (proper Polish one/few/many forms).
+  - `app/card-reveal.tsx` (card back): the entire BackSpec block was hardcoded English (Max Speed, Power, Weight, Builder, Gauge, Fuel) — all wired to the existing `results.*` keys.
+  - `app/(tabs)/history.tsx` (collection): sort pills (`history.sortRecent`/`sortRarity`/`sortName`) and the search placeholder (`history.searchPlaceholder`).
+- **German** verified for umlauts (Spurweite, Antrieb, Aus Galerie wählen, KI-gestützte Erkennung); **Polish** with correct diacritics + plural forms.
+- **NOT covered (separate issue):** backend-generated spec *values* (status "In service", fuelType "Diesel", route text) are returned in English by the AI regardless of locale — that needs backend localisation or a frontend value-map, not a label key. Logged for a later pass.
+- **Verification** frontend typecheck clean; **201/201 frontend tests pass**; no hardcoded target strings remain. No backend change.
+
 ### Backend
 
 #### Two-stage vision split — BUILT, EVAL-TESTED, and REVERTED (do not re-attempt without new evidence)

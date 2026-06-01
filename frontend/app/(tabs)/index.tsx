@@ -838,10 +838,8 @@ export default function HomeScreen() {
               <View style={styles.crossV} />
             </View>
 
-            <Text style={styles.heroTitle}>Identify Any Train</Text>
-            <Text style={styles.heroSub}>
-              Point your camera or choose a photo{"\n"}to unlock specs, facts & rarity
-            </Text>
+            <Text style={styles.heroTitle}>{t("scan.heroTitle")}</Text>
+            <Text style={styles.heroSub}>{t("scan.heroSubtitle")}</Text>
           </View>
         )}
       </View>
@@ -884,14 +882,14 @@ export default function HomeScreen() {
           activeOpacity={0.7}
         >
           <Ionicons name="images-outline" size={20} color={SCANNER.teal} />
-          <Text style={styles.libraryBtnLabel}>Choose from Library</Text>
+          <Text style={styles.libraryBtnLabel}>{t("scan.chooseFromLibrary")}</Text>
         </TouchableOpacity>
       </View>
 
       {/* ── Subtle footer ── */}
       <View style={styles.footer}>
         <View style={styles.footerDot} />
-        <Text style={styles.footerText}>AI-powered identification</Text>
+        <Text style={styles.footerText}>{t("scan.aiPowered")}</Text>
       </View>
     </View>
   );
