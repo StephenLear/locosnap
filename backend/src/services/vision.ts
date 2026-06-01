@@ -10,6 +10,7 @@ import sharp from "sharp";
 import { config } from "../config/env";
 import { TrainIdentification } from "../types";
 import { AppError } from "../middleware/errorHandler";
+import { canonicaliseClass } from "./classNames";
 
 // Server-side downscale target before sending to Claude / GPT-4 Vision.
 // Frontend already caps at 1920px @ 75% JPEG quality (~1-2 MB).
@@ -502,7 +503,7 @@ function parseTrainResponse(text: string): TrainIdentification | null {
     }
 
     return {
-      class: parsed.class,
+      class: canonicaliseClass(parsed.class),
       name: parsed.name || null,
       operator: parsed.operator,
       type: parsed.type || "Other",
