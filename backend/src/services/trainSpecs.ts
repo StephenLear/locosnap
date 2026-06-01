@@ -201,7 +201,8 @@ async function getAISpecs(train: TrainIdentification, language: string = "en"): 
         {
           type: "text",
           text: SPECS_SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
+          // 1-hour cache TTL (GA, no beta header) — see vision.ts rationale.
+          cache_control: { type: "ephemeral", ttl: "1h" } as any,
         },
       ],
       messages: [{ role: "user", content: userMessage }],

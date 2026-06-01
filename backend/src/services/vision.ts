@@ -540,7 +540,12 @@ async function identifyWithClaude(
         {
           type: "text",
           text: TRAIN_ID_PROMPT,
-          cache_control: { type: "ephemeral" },
+          // 1-hour cache TTL (GA — no beta header). The 85K-token vision prompt
+          // is re-read on every scan; the default 5-min TTL was expiring between
+          // sparse scans and re-paying the full cache WRITE (~12x a read). A 1h
+          // TTL keeps it warm across quiet-day gaps. `ttl` isn't in the SDK 0.39
+          // types but the SDK forwards it to the API, so cast through `any`.
+          cache_control: { type: "ephemeral", ttl: "1h" } as any,
         },
       ],
       messages: [

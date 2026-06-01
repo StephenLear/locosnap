@@ -169,7 +169,8 @@ export async function getTrainFacts(
           {
             type: "text",
             text: FACTS_SYSTEM_PROMPT,
-            cache_control: { type: "ephemeral" },
+            // 1-hour cache TTL (GA, no beta header) — see vision.ts rationale.
+            cache_control: { type: "ephemeral", ttl: "1h" } as any,
           },
         ],
         messages: [{ role: "user", content: userMessage }],

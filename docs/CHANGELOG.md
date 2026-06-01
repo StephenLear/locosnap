@@ -5,6 +5,18 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-01
+
+### Backend
+
+#### `backend/src/services/{vision,trainSpecs,trainFacts,rarity}.ts` — Prompt cache TTL 5min → 1 hour (cost reduction)
+- **Changed** all four Claude prompt-caching call sites from the default 5-minute ephemeral cache to a **1-hour TTL**: `cache_control: { type: "ephemeral", ttl: "1h" }` on `TRAIN_ID_PROMPT` (vision), `SPECS_SYSTEM_PROMPT`, `FACTS_SYSTEM_PROMPT`, and `RARITY_SYSTEM_PROMPT`. 1-hour TTL is generally available (no beta header). The SDK 0.39 `CacheControlEphemeral` type omits `ttl`, so the literal is cast via `as any` — the SDK forwards the field to the API unchanged (commented at each site).
+- **Why** a 2026-06-01 cost audit (Anthropic Console Cost + Caching panels vs Supabase `public.spots`) found per-scan cost had **not** fallen since the 2026-05-23 hotfix: ~$9.45/day, ~$283/month, ~$0.18/scan blended — essentially the pre-fix figure — despite a healthy **98.1% cache read ratio**. Root cause: the vision call carries a **~85,000-token system prompt** (confirmed in Logs and in code: `TRAIN_ID_PROMPT` is ~272,800 chars / ~68K tokens, grown by every per-class misID fix shipped in May). With the default 5-minute TTL, sparse/quiet-day scans land after the cache expires and re-pay the full cache **write** (~$0.32) instead of a read (~$0.026) — a ~12× penalty. The evidence was Sonnet's **write amortization of only 2.74×** (each write read back just 2.74 times before expiry). A 1-hour TTL keeps the prompt warm across the typical intra-cluster gaps (observed scan clusters span ~40 min), converting most of those writes to reads. 1-hour writes cost 2× base vs 1.25× for 5-min, but far fewer are paid; net win on the medium/quiet-day traffic that dominates the current mix.
+- **Scope/limits** purely a caching directive — no change to prompts, models, output, or identification behaviour. On ultra-sparse days (scans >1 h apart) a cold scan now costs marginally more (2× vs 1.25× write), but those days carry few scans. The larger structural lever — trimming/relocating the 85K-token vision prompt (much of it facts-layer content now redundant with the 2026-05-25 VERIFIED FACTS block) — is **not** in this change; queued as the next phase.
+- **Verification** `npx tsc --noEmit` clean; **202/202 backend tests pass**. **Not yet deployed — needs a push to go live on Render.** Post-deploy, watch Sonnet write-amortization on the Console Caching panel (should climb well above 2.74×) and re-pull daily Cost vs Supabase spots after ~3–5 days.
+
+---
+
 ## 2026-05-31
 
 ### Backend
