@@ -34,6 +34,12 @@ export const config = {
   nodeEnv: optionalEnv("NODE_ENV", "development"),
   frontendUrl: optionalEnv("FRONTEND_URL", "http://localhost:8081"),
 
+  // Two-stage vision (lean core prompt + lazy-loaded long-tail disambiguation
+  // rules). Off by default — set TWO_STAGE_VISION=true on Render to enable, or
+  // back to false to instantly revert to the single 85K-token prompt without a
+  // code deploy. See services/visionRules.ts + the visionEval harness.
+  twoStageVision: optionalEnv("TWO_STAGE_VISION", "false") === "true",
+
   // Feature flags
   get hasAnthropic(): boolean {
     return this.anthropicApiKey.length > 0;
