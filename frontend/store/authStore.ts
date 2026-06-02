@@ -64,15 +64,16 @@ interface AuthState {
 }
 
 
-// Unauthenticated users get 6 trial scans before sign-up is required.
-// Bumped from 3 to 6 on 2026-04-28 — eight independent user signals
-// (Steph "3 is far too low", multiple TikTok commenters across DE+EN,
-// research brief patterns A/C/D) all confirmed 3 was too tight, and the
-// prompt-caching commit a3bdaa9 cut per-scan input cost ~80% giving
-// the cost headroom for a more generous free tier.
-export const PRE_SIGNUP_FREE_SCANS = 6;
-// Free accounts get 6 lifetime scans (not monthly — no reset).
-export const MAX_FREE_SCANS = 6;
+// Unauthenticated users get 3 trial scans before sign-up is required.
+// History: was 3 → bumped to 6 on 2026-04-28 after eight user signals
+// ("3 is far too low") → reverted to 3 on 2026-06-02 for cost control.
+// The 6-scan tier was confirmed unsustainable (collecting ~10-20% of AI
+// cost). The April backlash is mitigated now by the €1 first-month intro
+// + annual-first paywall that didn't exist then. See
+// docs/plans/2026-06-02-paywall-annual-first-and-free-tier.md.
+export const PRE_SIGNUP_FREE_SCANS = 3;
+// Free accounts get 3 lifetime scans (not monthly — no reset).
+export const MAX_FREE_SCANS = 3;
 const PRE_SIGNUP_SCANS_KEY = "locosnap_presignup_scans";
 
 export const useAuthStore = create<AuthState>((set, get) => ({

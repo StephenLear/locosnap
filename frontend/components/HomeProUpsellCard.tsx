@@ -31,11 +31,11 @@ const TEAL = "#00D4AA";
 const TEAL_SUBTLE = "rgba(0, 212, 170, 0.08)";
 const LOCKED_ORANGE = "#FF6B35";
 
-// Keep in sync with backend MAX_FREE_SCANS. The 6-lifetime number is
+// Keep in sync with backend MAX_FREE_SCANS. The 3-lifetime number is
 // referenced in three places (this card, the backend identify route,
 // and the scan_6 paywall headline) — a future cleanup could centralise
 // this in a shared constants module.
-const MAX_FREE_SCANS = 6;
+const MAX_FREE_SCANS = 3;
 
 export function HomeProUpsellCard() {
   const { t } = useTranslation();

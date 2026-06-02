@@ -1,11 +1,14 @@
 // ============================================================
 // LocoSnap — Paywall soft-prompt
 //
-// Non-blocking banner shown on the results AND camera screens at
-// scan counts 2, 4, 5 (nudges) and persistently at 6 (lockout state).
-// Scan-aware copy escalates: gentle at 2, value-led at 4, urgent at
-// 5, locked at 6. The scan_6 variant is non-dismissable because it
-// reflects the actual lockout state, not an ignorable nudge.
+// Non-blocking banner shown on the results AND camera screens. With the
+// 3-scan free tier (2026-06-02), the ladder is: gentle €1 nudge after
+// scan 1 (2 left), urgent "1 free scan left" after scan 2, locked wall
+// at scan 3+. The variant KEYS are kept as scan_2/scan_5/scan_6 so the
+// existing tested copy maps without a rewrite — scan_5 already reads
+// "1 free scan left" (correct at 2 used) and scan_6 is the lockout. The
+// scan_6 variant is non-dismissable because it reflects the actual
+// lockout state, not an ignorable nudge.
 //
 // Routes to /paywall with a source param tagging variant + surface
 // for per-touch analytics.
@@ -40,11 +43,14 @@ const TEAL_SUBTLE = "rgba(0, 212, 170, 0.08)";
 type Variant = "scan_2" | "scan_4" | "scan_5" | "scan_6" | "default";
 type Surface = "results" | "camera";
 
+// 3-scan free tier ladder (2026-06-02). Variant keys retained for copy
+// reuse: scan_2 = gentle €1 nudge (1 used, 2 left), scan_5 = urgent
+// "1 free scan left" (2 used, 1 left), scan_6 = locked wall (3+ used).
+// scan_4 is no longer reachable; its locale copy is left in place, dead.
 function variantFor(scansUsed: number): Variant {
-  if (scansUsed === 2) return "scan_2";
-  if (scansUsed === 4) return "scan_4";
-  if (scansUsed === 5) return "scan_5";
-  if (scansUsed >= 6) return "scan_6";
+  if (scansUsed === 1) return "scan_2";
+  if (scansUsed === 2) return "scan_5";
+  if (scansUsed >= 3) return "scan_6";
   return "default";
 }
 

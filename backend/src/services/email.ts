@@ -55,7 +55,7 @@ function welcomeHtml(): string {
               <p style="margin:0 0 14px 0; font-size:16px;">willkommen bei LocoSnap — du bist im Club.</p>
               <p style="margin:0 0 14px 0; font-size:16px;">Worum es geht: Zug fotografieren, die App erkennt ihn, du baust deine Sammlung auf. Klassen, Baujahre, Strecken — alles drin.</p>
               <p style="margin:0 0 14px 0; font-size:16px;">Eine Sache vorweg: keine Werbung, keine Pop-ups, keine verkauften Daten. Ich baue die App allein, neben der Arbeit. Pro ist das, was es am Leben hält.</p>
-              <p style="margin:0 0 14px 0; font-size:16px;">6 kostenlose Scans zum Loslegen. Viel Spaß.</p>
+              <p style="margin:0 0 14px 0; font-size:16px;">3 kostenlose Scans zum Loslegen. Wenn du mehr willst: Pro startet bei 1 € im ersten Monat — am günstigsten im Jahresabo, unbegrenzt scannen, jederzeit kündbar. Viel Spaß.</p>
               <p style="margin:0; font-size:16px;">Stephen</p>
             </td>
           </tr>
@@ -66,7 +66,7 @@ function welcomeHtml(): string {
               <p style="margin:0 0 14px 0; font-size:16px;">welcome to LocoSnap — you're in the club.</p>
               <p style="margin:0 0 14px 0; font-size:16px;">Quick rundown: snap a train, the app identifies it, you build a collection. Classes, build years, routes — all in there.</p>
               <p style="margin:0 0 14px 0; font-size:16px;">One thing up front: no ads, no pop-ups, no sold data. I build this on my own, around a day job. Pro is what keeps it alive.</p>
-              <p style="margin:0 0 14px 0; font-size:16px;">6 free scans to get going. Have fun.</p>
+              <p style="margin:0 0 14px 0; font-size:16px;">3 free scans to get going. Want more? Pro starts at €1 for the first month — best value on the annual plan, unlimited scans, cancel anytime. Have fun.</p>
               <p style="margin:0; font-size:16px;">Stephen</p>
             </td>
           </tr>
@@ -77,7 +77,7 @@ function welcomeHtml(): string {
               <p style="margin:0 0 14px 0; font-size:16px;">witaj w LocoSnap — jesteś w klubie.</p>
               <p style="margin:0 0 14px 0; font-size:16px;">Krótko: robisz zdjęcie pociągu, aplikacja go rozpoznaje, ty budujesz kolekcję. Serie, rok produkcji, trasy — wszystko w środku.</p>
               <p style="margin:0 0 14px 0; font-size:16px;">Jedna rzecz na start: zero reklam, zero pop-upów, zero sprzedaży danych. Robię to sam, obok pracy. Pro to to, co trzyma to przy życiu.</p>
-              <p style="margin:0 0 14px 0; font-size:16px;">6 darmowych skanów na rozgrzewkę. Baw się dobrze.</p>
+              <p style="margin:0 0 14px 0; font-size:16px;">3 darmowe skany na rozgrzewkę. Chcesz więcej? Pro od 4,49 zł za pierwszy miesiąc — najtaniej w abonamencie rocznym, skanowanie bez limitu, anuluj kiedy chcesz. Baw się dobrze.</p>
               <p style="margin:0; font-size:16px;">Stephen</p>
             </td>
           </tr>
@@ -107,7 +107,7 @@ function welcomeText(): string {
     "",
     "Eine Sache vorweg: keine Werbung, keine Pop-ups, keine verkauften Daten. Ich baue die App allein, neben der Arbeit. Pro ist das, was es am Leben hält.",
     "",
-    "6 kostenlose Scans zum Loslegen. Viel Spaß.",
+    "3 kostenlose Scans zum Loslegen. Wenn du mehr willst: Pro startet bei 1 € im ersten Monat — am günstigsten im Jahresabo, unbegrenzt scannen, jederzeit kündbar. Viel Spaß.",
     "",
     "Stephen",
     "",
@@ -121,7 +121,7 @@ function welcomeText(): string {
     "",
     "One thing up front: no ads, no pop-ups, no sold data. I build this on my own, around a day job. Pro is what keeps it alive.",
     "",
-    "6 free scans to get going. Have fun.",
+    "3 free scans to get going. Want more? Pro starts at €1 for the first month — best value on the annual plan, unlimited scans, cancel anytime. Have fun.",
     "",
     "Stephen",
     "",
@@ -135,7 +135,7 @@ function welcomeText(): string {
     "",
     "Jedna rzecz na start: zero reklam, zero pop-upów, zero sprzedaży danych. Robię to sam, obok pracy. Pro to to, co trzyma to przy życiu.",
     "",
-    "6 darmowych skanów na rozgrzewkę. Baw się dobrze.",
+    "3 darmowe skany na rozgrzewkę. Chcesz więcej? Pro od 4,49 zł za pierwszy miesiąc — najtaniej w abonamencie rocznym, skanowanie bez limitu, anuluj kiedy chcesz. Baw się dobrze.",
     "",
     "Stephen",
     "",

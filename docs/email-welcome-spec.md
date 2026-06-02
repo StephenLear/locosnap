@@ -25,7 +25,7 @@ Worum es geht: Zug fotografieren, die App erkennt ihn, du baust deine Sammlung a
 
 Eine Sache vorweg: keine Werbung, keine Pop-ups, keine verkauften Daten. Ich baue die App allein, neben der Arbeit. Pro ist das, was es am Leben hält.
 
-6 kostenlose Scans zum Loslegen. Viel Spaß.
+3 kostenlose Scans zum Loslegen. Wenn du mehr willst: Pro startet bei 1 € im ersten Monat — am günstigsten im Jahresabo, unbegrenzt scannen, jederzeit kündbar. Viel Spaß.
 
 Stephen
 
@@ -39,7 +39,7 @@ Quick rundown: snap a train, the app identifies it, you build a collection. Clas
 
 One thing up front: no ads, no pop-ups, no sold data. I build this on my own, around a day job. Pro is what keeps it alive.
 
-6 free scans to get going. Have fun.
+3 free scans to get going. Want more? Pro starts at €1 for the first month — best value on the annual plan, unlimited scans, cancel anytime. Have fun.
 
 Stephen
 
@@ -53,7 +53,7 @@ Krótko: robisz zdjęcie pociągu, aplikacja go rozpoznaje, ty budujesz kolekcj�
 
 Jedna rzecz na start: zero reklam, zero pop-upów, zero sprzedaży danych. Robię to sam, obok pracy. Pro to to, co trzyma to przy życiu.
 
-6 darmowych skanów na rozgrzewkę. Baw się dobrze.
+3 darmowe skany na rozgrzewkę. Chcesz więcej? Pro od 4,49 zł za pierwszy miesiąc — najtaniej w abonamencie rocznym, skanowanie bez limitu, anuluj kiedy chcesz. Baw się dobrze.
 
 Stephen
 ```

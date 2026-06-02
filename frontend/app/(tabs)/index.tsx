@@ -739,7 +739,7 @@ export default function HomeScreen() {
 
       {/* ── Home Pro upsell card (signed-in free users) ──
           Persistent non-dismissable card with two states: counter for
-          remaining free scans, lockout colour when scansUsed >= 6. Pro
+          remaining free scans, lockout colour when scansUsed >= 3. Pro
           users + unauthenticated trial users render nothing — the card
           self-gates internally (mirrors ProRescuePrompt pattern). */}
       <HomeProUpsellCard />

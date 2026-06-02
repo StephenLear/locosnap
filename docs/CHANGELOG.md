@@ -5,6 +5,31 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-02
+
+### Backend
+
+#### Free-tier cut to 3 — backend scan-gate HELD at 6 (staged rollout)
+- **Unchanged this build:** server-side `MAX_FREE_SCANS` in `src/routes/identify.ts` stays at **6**. The free tier drops to 3 but is enforced **client-side** (frontend) in this build. The backend gate is a loose anti-abuse ceiling; dropping it to 3 now would server-error users still on the old 6-scan build (blocked mid-session with an ugly error, not a paywall). Tighten to 3 in a later backend deploy once the 3-scan build is widely adopted (~3-4 weeks).
+- **Why the cut:** the 6-scan free tier is the dominant cost driver — most scans are non-converting free users (~97% never pay), ~$0.18/scan. Frontend-enforcing 3 captures the saving as users adopt the new build, with zero server-error breakage for old-build users. April backlash ("3 is far too low") mitigated by the €1 intro + annual-first paywall that didn't exist then.
+
+#### Welcome email — 6→3 scans + €1/annual line (DE/EN/PL)
+- **Changed** `src/services/email.ts` (`welcomeHtml()` + `welcomeText()`) and `docs/email-welcome-spec.md`: "6 free scans" → "3 free scans" in all three languages, plus a new line — DE "Pro startet bei 1 € im ersten Monat — am günstigsten im Jahresabo", EN "Pro starts at €1 for the first month — best value on the annual plan", PL "Pro od 4,49 zł za pierwszy miesiąc — najtaniej w abonamencie rocznym". Truthful today (the €1/4,49 zł intro is live); annual left without a number since the €29.99 isn't live yet.
+
+### Frontend
+
+#### Free-tier cut 6 → 3 + soft-prompt ladder remap
+- **Changed** `store/authStore.ts`: `MAX_FREE_SCANS` and `PRE_SIGNUP_FREE_SCANS` `6 → 3` (with revert-history comment); `components/HomeProUpsellCard.tsx` local `MAX_FREE_SCANS` `6 → 3`.
+- **Changed** `components/PaywallSoftPrompt.tsx` — `variantFor()` remapped for the 3-scan tier: scan 1 → `scan_2` (gentle €1 nudge), scan 2 → `scan_5` ("1 free scan left", accurate), scan 3+ → `scan_6` (locked wall). Variant keys retained so existing tested copy maps with no locale rewrite; `scan_4` is now unreachable (dead copy left in place). `paywall.tsx` wall-source detection (`source.includes("scan_6")`) keeps working unchanged.
+- **Changed** wall copy `paywall.wallSubtitle` "6 lifetime scans" → "3" in `locales/{en,de,pl}.json` (also fixed the German Denglish "6 lifetime Scans" → "3 kostenlosen Scans" and Polish plural agreement). Cosmetic comment in `app/(tabs)/index.tsx` (`scansUsed >= 6` → `>= 3`).
+- **Caveats:** existing free users at 3-5 lifetime scans are walled on their next scan (accepted — non-converting cost). The pre-signup (3) and post-signup (3) counters are independent, so a scan-first-then-signup user can still reach up to 6 total — accepted for v1; seeding the counter for a true-3-total is deferred.
+
+#### No-code-change items (recorded for context)
+- The paywall is **already annual-first** (sorted annual→monthly→lifetime, annual pre-selected, BEST VALUE badge, per-week anchor) — no frontend work needed for "push to annual". The annual repricing (monthly €2.99→€3.99, annual €34.99→€29.99 for a ~37% discount in DE/FI/NL/FR) and redirecting the €1 intro to the annual product are **store/RevenueCat config**, not app code — the paywall already renders intro copy on whichever tile carries the offer.
+- **Currency:** no hardcoded USD anywhere in the frontend; the paywall uses store-localised `priceString`. A dev seeing "$" reflects their account region, not a bug.
+
+- **Verification:** 232/232 backend + 201/201 frontend tests pass; both typecheck clean. Frontend changes ship in the v1.0.36 build; the backend change (welcome email only — scan-gate held at 6) ships on the next Render deploy. Plan: `docs/plans/2026-06-02-paywall-annual-first-and-free-tier.md`.
+
 ## 2026-06-01
 
 ### Frontend
