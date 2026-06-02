@@ -304,6 +304,7 @@
     "lifetimeSubtitle": "Jednorazowa płatność, bez kolejnych opłat",
     "lifetimePrice": "{{price}}",
     "bestValue": "NAJLEPSZA WARTOŚĆ",
+    "savePercent": "OSZCZĘDŹ {{pct}}%",
     "introOfferBadge": "OFERTA STARTOWA",
     "perWeekEquivalent": "≈ {{price}}/tydzień, płatne rocznie",
     "introOffer": {

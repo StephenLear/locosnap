@@ -4,7 +4,51 @@ import {
   findDefaultIndex,
   formatPerWeek,
   describeIntroOffer,
+  computeAnnualSavingsPct,
 } from "../app/paywall-helpers";
+
+const pkg = (kind: string, price?: number) => ({
+  packageType: kind.toUpperCase(),
+  identifier: kind,
+  product: price === undefined ? {} : { price },
+});
+
+describe("computeAnnualSavingsPct", () => {
+  it("computes ~37% for €3.99 monthly vs €29.99 annual (Apple EUR)", () => {
+    expect(
+      computeAnnualSavingsPct([pkg("monthly", 3.99), pkg("annual", 29.99)])
+    ).toBe(37);
+  });
+
+  it("computes ~40% for €4.19 monthly vs €29.99 annual (Play EUR)", () => {
+    expect(
+      computeAnnualSavingsPct([pkg("monthly", 4.19), pkg("annual", 29.99)])
+    ).toBe(40);
+  });
+
+  it("computes ~30% for €2.99 monthly vs €24.99 annual (unchanged markets)", () => {
+    expect(
+      computeAnnualSavingsPct([pkg("monthly", 2.99), pkg("annual", 24.99)])
+    ).toBe(30);
+  });
+
+  it("returns null when a price is missing", () => {
+    expect(
+      computeAnnualSavingsPct([pkg("monthly"), pkg("annual", 29.99)])
+    ).toBeNull();
+  });
+
+  it("returns null when annual is not actually cheaper", () => {
+    expect(
+      computeAnnualSavingsPct([pkg("monthly", 1.99), pkg("annual", 29.99)])
+    ).toBeNull();
+  });
+
+  it("returns null when monthly or annual is absent", () => {
+    expect(computeAnnualSavingsPct([pkg("annual", 29.99)])).toBeNull();
+    expect(computeAnnualSavingsPct([pkg("lifetime", 89.99)])).toBeNull();
+  });
+});
 
 describe("getPackageKind", () => {
   it("detects annual via packageType", () => {

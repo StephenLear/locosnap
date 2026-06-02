@@ -39,6 +39,7 @@ import {
   findDefaultIndex,
   formatPerWeek,
   describeIntroOffer,
+  computeAnnualSavingsPct,
   PaywallLocale,
 } from "./paywall-helpers";
 
@@ -132,6 +133,10 @@ export default function PaywallScreen() {
   const [purchasingCredits, setPurchasingCredits] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isBlueprintSource = source === "blueprint_credit";
+  // Live annual-vs-monthly savings for the "SAVE X%" badge (null until
+  // packages load or if annual isn't actually cheaper → falls back to
+  // the generic "Best Value" badge).
+  const annualSavingsPct = computeAnnualSavingsPct(packages);
 
   // ── Animations ────────────────────────────────────────────
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -516,7 +521,9 @@ export default function PaywallScreen() {
               const badgeText = introDescriptor
                 ? t("paywall.introOfferBadge")
                 : isAnnual
-                  ? t("paywall.bestValue")
+                  ? annualSavingsPct !== null
+                    ? t("paywall.savePercent", { pct: annualSavingsPct })
+                    : t("paywall.bestValue")
                   : "";
 
               return (

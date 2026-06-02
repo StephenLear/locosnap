@@ -30,6 +30,12 @@ Format: newest first within each date block.
 
 - **Verification:** 232/232 backend + 201/201 frontend tests pass; both typecheck clean. Frontend changes ship in the v1.0.36 build; the backend change (welcome email only — scan-gate held at 6) ships on the next Render deploy. Plan: `docs/plans/2026-06-02-paywall-annual-first-and-free-tier.md`.
 
+### Frontend — SAVE % badge on the annual tile (for 1.0.37, NOT in 1.0.36)
+- **Added** `computeAnnualSavingsPct()` (`app/paywall-helpers.ts`) and wired into `app/paywall.tsx`: the annual tile now shows a live **"SAVE X%"** badge computed from the monthly vs annual store prices (falls back to "Best Value" when not computable). New i18n key `paywall.savePercent` (en/de/pl). 6 new helper tests (29/29 pass). Renders ~37% (Apple €3.99 monthly), ~40% (Play €4.19), ~30% (unchanged €2.99 markets). Safe now that the €29.99 annual is live. **Queued for the tested 1.0.37 build** alongside the Play win-back app feature + monthly→annual upsell (those two are payment-flow code — not rushed; see project_revenuecat_topology + lessons.md). Build sequencing lesson captured in `lessons.md`.
+
+### Dev tooling
+- **Added** `backend/src/scripts/idOne.ts` — runs a single image through the production vision path (`npx ts-node src/scripts/idOne.ts <imagePath>`), for checking viewer-submitted "what is this train" tests against the live model.
+
 ## 2026-06-01
 
 ### Frontend

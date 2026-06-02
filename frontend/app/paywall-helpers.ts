@@ -39,6 +39,30 @@ export function findDefaultIndex<T extends PackageLike>(packages: T[]): number {
   return annualIdx >= 0 ? annualIdx : 0;
 }
 
+// ── Annual savings % vs monthly (for the "SAVE X%" badge) ─────────
+// Computes the discount of the annual plan vs 12× the monthly plan,
+// from the live store prices, so the badge stays truthful per market
+// (Apple monthly €3.99 → ~37%; Play monthly €4.19 → ~40%; markets
+// where monthly is still €2.99 → ~30%). Returns null when it can't
+// compute (missing prices, or annual not actually cheaper) so the
+// caller falls back to the generic "Best Value" badge.
+interface PricedPackageLike extends PackageLike {
+  product?: { price?: number } | Record<string, unknown>;
+}
+
+export function computeAnnualSavingsPct<T extends PricedPackageLike>(
+  packages: T[]
+): number | null {
+  const monthly = packages.find((p) => getPackageKind(p) === "monthly");
+  const annual = packages.find((p) => getPackageKind(p) === "annual");
+  const m = (monthly?.product as any)?.price;
+  const a = (annual?.product as any)?.price;
+  if (typeof m !== "number" || typeof a !== "number") return null;
+  if (m <= 0 || a <= 0) return null;
+  const pct = Math.round((1 - a / (m * 12)) * 100);
+  return pct > 0 ? pct : null;
+}
+
 // ── Weekly-equivalent formatter (annual price anchor) ─────────────
 // Annual price ÷ 52 formatted as currency. Used as a secondary line
 // under the annual tile's primary "/year" price to anchor against

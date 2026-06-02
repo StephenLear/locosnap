@@ -296,6 +296,7 @@
     "lifetimeSubtitle": "Einmalzahlung, keine Folgekosten",
     "lifetimePrice": "{{price}}",
     "bestValue": "BESTER WERT",
+    "savePercent": "SPARE {{pct}}%",
     "introOfferBadge": "EINFÜHRUNGSANGEBOT",
     "perWeekEquivalent": "≈ {{price}}/Woche, jährliche Abrechnung",
     "introOffer": {

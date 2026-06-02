@@ -296,6 +296,7 @@
     "lifetimeSubtitle": "One-time payment, never charged again",
     "lifetimePrice": "{{price}}",
     "bestValue": "BEST VALUE",
+    "savePercent": "SAVE {{pct}}%",
     "introOfferBadge": "INTRO OFFER",
     "perWeekEquivalent": "≈ {{price}}/week, billed yearly",
     "introOffer": {
