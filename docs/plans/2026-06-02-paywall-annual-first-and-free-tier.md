@@ -70,6 +70,13 @@ Change ONE thing at a time; read as before/after over 2–4 weeks.
 - **Recommended: 6 → 3** (halves free-tier cost, preserves a minimal collection/wow, reversible). Step to **1 ("one wow scan, then the wall")** only if cost stays underwater and conversion doesn't move after 3–4 weeks.
 - Source of truth: `MAX_FREE_SCANS` in backend (see `project_scan_limits`). Free tier = 6 **lifetime** (not daily).
 
+### Annual-discount publicity — NEXT-BUILD touchpoints (decided 2026-06-02, not yet built)
+The €1-intro stays on **monthly** (a 1-month intro can't cleanly attach to a yearly plan; and €1-not-free is the cost-safe trial for an AI app). Annual is pushed by the discount + placement instead. To publicise the ~37% annual discount:
+- **Sign-up:** welcome email already mentions "best value annual" (done, ships with backend deploy).
+- **Paywall SAVE % badge:** dynamic "SAVE 37%" badge on the annual tile, computed from monthly vs annual `priceString` (stays truthful if prices change). Highest-leverage single touchpoint. **Bundle into the next build** (NOT v1.0.36 — would show a misleading ~3% until the €29.99 was live; now it's live, so safe for the next build).
+- **Monthly → annual upsell nudge:** prompt existing monthly subscribers (~1 week in) to switch to annual and save ~40%. Converts the monthly / £1-intro cohort into higher-LTV annual (annual retains 2.6× better). New feature, next build / backlog.
+- Note: with the free tier now 3 scans, there is little scan-runway to drip annual messaging to *free* users — the two real homes are the paywall badge and the monthly-subscriber upsell.
+
 ### Move D — Do NOT
 - No full onboarding hard paywall. No weekly tier (lowest LTV, cannibalises annual, dangerous at per-scan cost). No blind monthly price hike (DE/PL sensitivity). Reconsider **€89.99 lifetime** (one payment, unlimited scans forever = long-term-loss risk for heavy users) — de-emphasise or reprice.
 
