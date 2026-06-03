@@ -120,6 +120,11 @@
       "title": "Dein Pro läuft bald ab",
       "body_one": "Noch {{days}} Tag. Tippe zum Verlängern und behalte unbegrenzte Scans.",
       "body_other": "Noch {{days}} Tage. Tippe zum Verlängern und behalte unbegrenzte Scans."
+    },
+    "winback": {
+      "title": "Willkommen zurück — sichere dir 1 Jahr Pro",
+      "body": "{{price}} im ersten Jahr, danach Verlängerung zum regulären Jahrespreis. Jederzeit kündbar.",
+      "cta": "Pro zurückholen"
     }
   },
   "profile": {
@@ -221,6 +226,19 @@
       "score": "Punkte",
       "streakSoon": "Streak-Ranking kommt in v1.0.27 — vorerst zeigen wir die Klassenanzahl.",
       "empty": "Noch keine Spotter — sei der Erste."
+    },
+    "scoring": {
+      "banner": "Wie wird meine Punktzahl berechnet?",
+      "bannerWithTotal": "Wie kommen meine {{total}} Punkte zustande?",
+      "title": "So funktioniert deine Seltenheits-Punktzahl",
+      "intro": "Deine Seltenheits-Punktzahl belohnt seltenere Funde — nur Selten und höher zählen.",
+      "weights": "Selten = 5  ·  Episch = 8  ·  Legendär = 15 Punkte pro Stück",
+      "notCounted": "Häufige und ungewöhnliche Funde zählen nicht für diese Punktzahl.",
+      "yourScoreTitle": "Deine Punktzahl",
+      "line": "{{count}} {{tier}} × {{weight}} = {{subtotal}}",
+      "total": "= {{total}} Punkte",
+      "empty": "Scanne einen seltenen, epischen oder legendären Zug, um Punkte zu sammeln.",
+      "dismiss": "Verstanden"
     },
     "freeze": {
       "a11yLabel": "{{count}} Streak-Freezes verfügbar",

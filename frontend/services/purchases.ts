@@ -8,6 +8,7 @@ import Purchases, {
   PurchasesOfferings,
   PurchasesPackage,
   CustomerInfo,
+  SubscriptionOption,
   LOG_LEVEL,
   PURCHASES_ERROR_CODE,
 } from "react-native-purchases";
@@ -21,6 +22,11 @@ const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || "";
 const ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY || "";
 
 const PRO_ENTITLEMENT = "pro";
+
+// Play win-back: the `winback-annual-33off` offer (1yr single payment) is
+// tagged `winback-annual` on the annual base plan. Developer-determined
+// eligibility means Google won't auto-surface it — the app selects it.
+const WINBACK_ANNUAL_TAG = "winback-annual";
 
 // ── State ────────────────────────────────────────────────────
 
@@ -234,6 +240,97 @@ export async function purchaseBlueprintCredits(
   }
 }
 
+// ── Play Win-Back (Android only) ─────────────────────────────
+// Apple auto-surfaces its own win-back offer with no app code, so these
+// helpers are Android-only. They find the `winback-annual`-tagged
+// subscriptionOption on the annual base plan and let an eligible lapsed
+// user buy 1 year of Pro at the discounted single-payment price.
+
+// Find the annual product's win-back subscriptionOption by tag. Returns
+// null on iOS, when not initialised, when offerings/annual product are
+// missing, or when no option carries the tag — caller falls back to the
+// normal full-price plan list on null.
+export async function getWinBackAnnualOption(): Promise<SubscriptionOption | null> {
+  if (!initialized) return null;
+  if (Platform.OS !== "android") return null;
+
+  try {
+    const offerings = await Purchases.getOfferings();
+    const packages = offerings?.current?.availablePackages ?? [];
+    // Prefer the canonical ANNUAL package type; only fall back to a
+    // substring match if no standard annual package exists, so a custom
+    // package whose identifier merely contains "annual" can never win
+    // over the real annual product.
+    const annual =
+      packages.find((p) => p.packageType === "ANNUAL") ??
+      packages.find((p) => p.identifier.toLowerCase().includes("annual"));
+    const options = annual?.product?.subscriptionOptions ?? null;
+    if (!options) return null;
+    return (
+      options.find((o) => o.tags.includes(WINBACK_ANNUAL_TAG)) ?? null
+    );
+  } catch (error) {
+    console.warn(
+      "[PURCHASES] Win-back option lookup failed:",
+      (error as Error).message
+    );
+    return null;
+  }
+}
+
+// True only when the user previously had the `pro` entitlement and it has
+// now expired (lapsed). Lifetime / never-expiring entitlements and active
+// subs return false. Android-only (iOS uses Apple's native win-back).
+export async function isLapsedProEligible(): Promise<boolean> {
+  if (!initialized) return false;
+  if (Platform.OS !== "android") return false;
+
+  try {
+    const customerInfo = await Purchases.getCustomerInfo();
+    const ent = customerInfo.entitlements.all[PRO_ENTITLEMENT];
+    if (!ent) return false;
+    if (ent.isActive) return false;
+    if (!ent.expirationDate) return false; // lifetime → not a lapse
+    return Date.parse(ent.expirationDate) < Date.now();
+  } catch {
+    return false;
+  }
+}
+
+// Purchase the win-back subscriptionOption directly. The user is lapsed
+// (no active sub), so this is a fresh purchase — NO GoogleProductChangeInfo.
+// Cancel returns false silently; other errors are tracked + captured and
+// re-thrown so the caller can surface the error and keep the full-price
+// plans available.
+export async function purchaseWinBackAnnual(
+  option: SubscriptionOption
+): Promise<boolean> {
+  if (!initialized) return false;
+
+  try {
+    track("winback_purchase_started", { option_id: option.id });
+
+    const { customerInfo } = await Purchases.purchaseSubscriptionOption(option);
+
+    const isPro =
+      customerInfo.entitlements.active[PRO_ENTITLEMENT] !== undefined;
+
+    if (isPro) {
+      track("winback_purchase_completed", { option_id: option.id });
+    }
+
+    return isPro;
+  } catch (error: any) {
+    if (error.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+      return false;
+    }
+
+    track("winback_purchase_failed", { error: error.message });
+    captureError(error, { context: "purchaseWinBackAnnual" });
+    throw error;
+  }
+}
+
 // ── Restore Purchases ────────────────────────────────────────
 
 export async function restorePurchases(): Promise<boolean> {
@@ -257,4 +354,9 @@ export async function restorePurchases(): Promise<boolean> {
 
 // ── Re-exports for convenience ───────────────────────────────
 
-export type { PurchasesPackage, PurchasesOfferings, CustomerInfo };
+export type {
+  PurchasesPackage,
+  PurchasesOfferings,
+  CustomerInfo,
+  SubscriptionOption,
+};

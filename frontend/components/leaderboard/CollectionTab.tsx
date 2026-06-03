@@ -31,6 +31,7 @@ import {
 import { computeRarityScore } from "../../constants/rarityScore";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 import { IdentityBadge } from "../IdentityBadge";
+import { RarityScoreInfo } from "./RarityScoreInfo";
 
 type SubToggle = "unique_classes" | "rarity_score" | "streak_days";
 
@@ -59,6 +60,11 @@ export function CollectionTab() {
           scored = raw
             .map((row) => ({
               ...row,
+              // INVARIANT: rare/epic/legendary only. The `leaderboard_rarity`
+              // view exposes no uncommon_count, and the RarityScoreInfo
+              // explainer decomposes the SAME three tiers — do NOT add
+              // uncommonCount here or the explainer's total will silently
+              // stop matching the score shown on the row.
               score: computeRarityScore({
                 epicCount: row.epicCount,
                 legendaryCount: row.legendaryCount,
@@ -89,6 +95,19 @@ export function CollectionTab() {
     return t("leaderboard.collection.classes");
   }, [subToggle, t]);
 
+  // The current user's own rare/epic/legendary counts, for the rarity
+  // score explainer's personal breakdown. null until their row loads.
+  const myRarityCounts = useMemo(() => {
+    if (subToggle !== "rarity_score") return null;
+    const mine = entries.find((e) => e.id === user?.id);
+    if (!mine) return null;
+    return {
+      rareCount: mine.rareCount,
+      epicCount: mine.epicCount,
+      legendaryCount: mine.legendaryCount,
+    };
+  }, [subToggle, entries, user?.id]);
+
   return (
     <View style={styles.root}>
       {/* Sub-toggle */}
@@ -116,6 +135,10 @@ export function CollectionTab() {
           }
         )}
       </View>
+
+      {subToggle === "rarity_score" && (
+        <RarityScoreInfo myCounts={myRarityCounts} />
+      )}
 
       {subToggle === "streak_days" && (
         <Text style={styles.deferNotice}>

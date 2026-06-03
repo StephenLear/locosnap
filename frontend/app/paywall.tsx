@@ -28,7 +28,11 @@ import {
   purchaseBlueprintCredits,
   restorePurchases,
   syncProStatus,
+  getWinBackAnnualOption,
+  isLapsedProEligible,
+  purchaseWinBackAnnual,
   PurchasesPackage,
+  SubscriptionOption,
 } from "../services/purchases";
 import { track } from "../services/analytics";
 import { colors, fonts, spacing, borderRadius } from "../constants/theme";
@@ -42,6 +46,10 @@ import {
   computeAnnualSavingsPct,
   PaywallLocale,
 } from "./paywall-helpers";
+import {
+  decideWinBackVisibility,
+  getWinBackPriceString,
+} from "./paywall-winback-helpers";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH * 0.58;
@@ -127,6 +135,13 @@ export default function PaywallScreen() {
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [creditPrice, setCreditPrice] = useState<string | null>(null);
+  // Android-only Play win-back tile. Set only for an eligible lapsed user
+  // when the tagged annual subscriptionOption is found; null otherwise →
+  // tile hidden, paywall behaves normally.
+  const [winBackOption, setWinBackOption] = useState<SubscriptionOption | null>(
+    null
+  );
+  const [winBackPurchasing, setWinBackPurchasing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
@@ -218,7 +233,62 @@ export default function PaywallScreen() {
       setError("Unable to load subscription options. Please try again later.");
     }
 
+    // Android-only Play win-back: surface the discounted annual tile for an
+    // eligible lapsed user. Both checks already self-gate to Android and fail
+    // closed (null/false) so any error leaves the normal paywall intact.
+    const [option, lapsed] = await Promise.all([
+      getWinBackAnnualOption(),
+      isLapsedProEligible(),
+    ]);
+    const showWinBack = decideWinBackVisibility({
+      platform: Platform.OS,
+      lapsed,
+      hasOption: option !== null,
+    });
+    if (showWinBack && option) {
+      setWinBackOption(option);
+      track("winback_offer_shown", {
+        priceString: getWinBackPriceString(option) ?? "",
+      });
+    } else if (lapsed && Platform.OS === "android") {
+      // Eligible but the offer couldn't be found — user falls through to
+      // the full-price plans. Track so we can spot a misconfigured offer.
+      track("winback_fallback_to_full_price");
+    }
+
     setLoading(false);
+  };
+
+  // ── Win-back purchase ──────────────────────────────────────
+  const handleWinBackPurchase = async () => {
+    if (!winBackOption) return;
+    if (!requireSignInElseRoute("winback")) return;
+
+    track("winback_offer_tapped");
+    setWinBackPurchasing(true);
+    setError(null);
+
+    try {
+      const success = await purchaseWinBackAnnual(winBackOption);
+
+      if (success) {
+        if (user) {
+          await syncProStatus(user.id);
+          await fetchProfile();
+        }
+
+        Alert.alert(
+          "Welcome to Pro!",
+          "You now have unlimited scans and premium blueprints.",
+          [{ text: "Let's Go!", onPress: () => router.back() }]
+        );
+      }
+    } catch (err) {
+      // Leave the full-price plans available so the user can still subscribe.
+      setError("Purchase failed. Please try again.");
+    } finally {
+      setWinBackPurchasing(false);
+    }
   };
 
   // Anonymous purchases create orphan RevenueCat customers we can't reconcile
@@ -444,6 +514,44 @@ export default function PaywallScreen() {
           ))}
         </View>
 
+        {/* ── Win-back offer (Android, lapsed users only) ───── */}
+        {winBackOption && (
+          <View style={styles.winBackSection}>
+            <TouchableOpacity
+              style={[
+                styles.winBackCard,
+                (winBackPurchasing || purchasing) && { opacity: 0.6 },
+              ]}
+              onPress={handleWinBackPurchase}
+              disabled={winBackPurchasing || purchasing}
+              activeOpacity={0.7}
+            >
+              <View style={styles.winBackIconCircle}>
+                <Ionicons name="gift" size={20} color={SCANNER.teal} />
+              </View>
+              <View style={styles.winBackInfo}>
+                <Text style={styles.winBackTitle}>
+                  {t("pro.winback.title")}
+                </Text>
+                <Text style={styles.winBackBody}>
+                  {t("pro.winback.body", {
+                    price: getWinBackPriceString(winBackOption) ?? "",
+                  })}
+                </Text>
+              </View>
+              {winBackPurchasing ? (
+                <ActivityIndicator size="small" color={SCANNER.teal} />
+              ) : (
+                <View style={styles.winBackCta}>
+                  <Text style={styles.winBackCtaText}>
+                    {t("pro.winback.cta")}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* ── Packages ──────────────────────────────────────── */}
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -648,10 +756,11 @@ export default function PaywallScreen() {
         <TouchableOpacity
           style={[
             styles.primaryBtn,
-            (purchasing || packages.length === 0) && styles.primaryBtnDisabled,
+            (purchasing || winBackPurchasing || packages.length === 0) &&
+              styles.primaryBtnDisabled,
           ]}
           onPress={handlePurchase}
-          disabled={purchasing || packages.length === 0}
+          disabled={purchasing || winBackPurchasing || packages.length === 0}
         >
           {purchasing ? (
             <ActivityIndicator size="small" color="#fff" />
@@ -1114,6 +1223,55 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontStyle: "italic",
     lineHeight: 16,
+  },
+
+  // Win-back offer (Android, lapsed users)
+  winBackSection: {
+    marginBottom: spacing.lg,
+  },
+  winBackCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: SCANNER.tealSubtle,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    borderWidth: 2,
+    borderColor: "rgba(0, 212, 170, 0.45)",
+  },
+  winBackIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0, 212, 170, 0.12)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: spacing.md,
+  },
+  winBackInfo: {
+    flex: 1,
+  },
+  winBackTitle: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  winBackBody: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textSecondary,
+    lineHeight: 16,
+  },
+  winBackCta: {
+    backgroundColor: SCANNER.teal,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    marginLeft: spacing.sm,
+  },
+  winBackCtaText: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: colors.background,
   },
 
   // Credit purchase

@@ -120,6 +120,11 @@
       "title": "Your Pro is ending soon",
       "body_one": "{{days}} day left. Tap to renew and keep unlimited scans.",
       "body_other": "{{days}} days left. Tap to renew and keep unlimited scans."
+    },
+    "winback": {
+      "title": "Welcome back — claim 1 year of Pro",
+      "body": "{{price}} for the first year, then renews at the regular annual price. Cancel anytime.",
+      "cta": "Win back Pro"
     }
   },
   "profile": {
@@ -221,6 +226,19 @@
       "score": "score",
       "streakSoon": "Streak ranking ships in v1.0.27 — showing unique classes for now.",
       "empty": "No spotters yet — be the first."
+    },
+    "scoring": {
+      "banner": "How is my score worked out?",
+      "bannerWithTotal": "How is my score of {{total}} worked out?",
+      "title": "How your rarity score works",
+      "intro": "Your rarity score rewards rarer finds — only Rare and above count towards it.",
+      "weights": "Rare = 5  ·  Epic = 8  ·  Legendary = 15 points each",
+      "notCounted": "Common and Uncommon finds don't add to this score.",
+      "yourScoreTitle": "Your score",
+      "line": "{{count}} {{tier}} × {{weight}} = {{subtotal}}",
+      "total": "= {{total}} points",
+      "empty": "Scan a Rare, Epic or Legendary train to start your score.",
+      "dismiss": "Got it"
     },
     "freeze": {
       "a11yLabel": "{{count}} streak freezes available",

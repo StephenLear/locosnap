@@ -128,6 +128,11 @@
       "body_few": "{{days}} dni. Stuknij, aby przedłużyć i zachować nielimitowane skany.",
       "body_many": "{{days}} dni. Stuknij, aby przedłużyć i zachować nielimitowane skany.",
       "body_other": "{{days}} dni. Stuknij, aby przedłużyć i zachować nielimitowane skany."
+    },
+    "winback": {
+      "title": "Witaj z powrotem — odbierz rok Pro",
+      "body": "{{price}} za pierwszy rok, potem odnowienie w regularnej cenie rocznej. Anuluj w dowolnym momencie.",
+      "cta": "Odzyskaj Pro"
     }
   },
   "profile": {
@@ -229,6 +234,19 @@
       "score": "wynik",
       "streakSoon": "Ranking serii pojawi się w v1.0.27 — na razie pokazujemy unikalne klasy.",
       "empty": "Brak obserwatorów — bądź pierwszy."
+    },
+    "scoring": {
+      "banner": "Jak liczone są moje punkty?",
+      "bannerWithTotal": "Skąd mam swoje {{total}} pkt?",
+      "title": "Jak działa wynik rzadkości",
+      "intro": "Wynik rzadkości nagradza rzadsze okazy — liczą się tylko Rzadki i wyżej.",
+      "weights": "Rzadki = 5  ·  Epicki = 8  ·  Legendarny = 15 pkt za sztukę",
+      "notCounted": "Pospolite i niezbyt pospolite okazy nie wliczają się do tego wyniku.",
+      "yourScoreTitle": "Twój wynik",
+      "line": "{{count}} {{tier}} × {{weight}} = {{subtotal}}",
+      "total": "= {{total}} pkt",
+      "empty": "Zeskanuj rzadki, epicki lub legendarny pociąg, aby zdobyć punkty.",
+      "dismiss": "Rozumiem"
     },
     "freeze": {
       "a11yLabel": "{{count}} dostępnych zamrożeń serii",
