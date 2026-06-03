@@ -7,6 +7,14 @@ Format: newest first within each date block.
 
 ## 2026-06-03
 
+### Build & Distribution
+
+#### v1.0.37 built + shipping (EAS production, from `release/v1.0.37` @ `dd8b4d5`)
+- **iOS build 59** — submitted to App Store Connect and **IN REVIEW** (EN/DE/PL release notes entered).
+- **Android versionCode 29** — submitted to Google Play and **IN REVIEW** on the production track (EN/DE/PL "What's new" + rollout set).
+- Version bumped `1.0.36 → 1.0.37` in `frontend/app.json`; build numbers via EAS `autoIncrement`.
+- Win-back shipped without a device-sandbox purchase test (not possible) — adversarial review was the substitute; tag `winback-annual` verified live in Play Console.
+
 ### Database (Supabase)
 
 #### `supabase/migrations/018_spot_location_privacy.sql` (NEW) — close the latent spot-location exposure (P-A)
