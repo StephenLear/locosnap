@@ -11,7 +11,7 @@ Format: newest first within each date block.
 
 #### v1.0.37 built + shipping (EAS production, from `release/v1.0.37` @ `dd8b4d5`)
 - **iOS build 59** — submitted to App Store Connect and **IN REVIEW** (EN/DE/PL release notes entered).
-- **Android versionCode 29** — submitted to Google Play and **IN REVIEW** on the production track (EN/DE/PL "What's new" + rollout set).
+- **Android versionCode 29** — **LIVE on Google Play** (approved + published 2026-06-03; production track, EN/DE/PL "What's new"). The Play win-back + leaderboard explainer are now in production on Android.
 - Version bumped `1.0.36 → 1.0.37` in `frontend/app.json`; build numbers via EAS `autoIncrement`.
 - Win-back shipped without a device-sandbox purchase test (not possible) — adversarial review was the substitute; tag `winback-annual` verified live in Play Console.
 
