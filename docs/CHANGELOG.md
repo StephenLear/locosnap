@@ -25,7 +25,7 @@ Format: newest first within each date block.
 
 #### `supabase/migrations/019_spot_identity_override.sql` (NEW) — per-spot identity override for manual card-edit
 - **Added** an `identity_override jsonb` column on `public.spots` (nullable, default null). Lets a user correct the class/name on their OWN card when the AI misIDs, WITHOUT mutating the shared `trains` row (deduped across all users — a direct edit there would corrupt everyone's card of that class and skew leaderboard counts). Owner-only via the existing spots UPDATE policy (migration 001); no new grant/RLS needed. **Display-only** — never affects rarity or any leaderboard count.
-- **NOT yet applied to prod.** Review before running in the Supabase SQL editor (per the migration-review rule). The local override works without it (AsyncStorage); the cloud write needs the column. Apply before/with the v1.0.38 build.
+- **APPLIED to prod 2026-06-04** (Supabase SQL editor; verified `identity_override` is `jsonb`, nullable). Prod schema now at migration 019. Only the column-add was run live; the cosmetic `COMMENT ON COLUMN` from the migration file was skipped (non-functional metadata). The cloud write (`updateSpotIdentity`) now works; ships to users with the v1.0.38 build.
 
 ### Frontend
 
