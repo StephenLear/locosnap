@@ -88,6 +88,17 @@ let totalMisses = 0;
 export const CLASS_INVALIDATIONS: Record<string, string> = {
   // Add entries here when a class's cached specs/facts/rarity must be
   // invalidated due to a backend correction. Key is normalised class name.
+  // BR 159 (Stadler EuroDual): added a verified length (23.0 m) to the
+  // KNOWN_SPECS override 2026-06-04 (was null — flagged by Captrain BR 159
+  // driver-in-training Damian). Invalidate pre-fix cached entries so the
+  // length now renders. All KNOWN_SPECS key variants covered.
+  "159": "2026-06-04T12:00:00Z",
+  "br 159": "2026-06-04T12:00:00Z",
+  "br159": "2026-06-04T12:00:00Z",
+  "class 159": "2026-06-04T12:00:00Z",
+  "baureihe 159": "2026-06-04T12:00:00Z",
+  "eurodual": "2026-06-04T12:00:00Z",
+  "stadler eurodual": "2026-06-04T12:00:00Z",
   // ÖBB 4020: builder was returning "Bombardier" + facts text claimed
   // "Siemens entwickelt und gebaut, 2009 in Betrieb". Correct: SGP / ELIN /
   // Siemens consortium, in-service 1978. Caught 2026-05-23 by a DACH commenter

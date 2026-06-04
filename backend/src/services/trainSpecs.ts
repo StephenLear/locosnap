@@ -244,7 +244,7 @@ async function getAISpecs(train: TrainIdentification, language: string = "en"): 
 // Known Wikidata data quality corrections.
 // Wikidata wins in the merge, but these fields are factually wrong for specific classes —
 // apply after merge to ensure trainspotters see correct values.
-export type SpecsOverride = Partial<Pick<TrainSpecs, "maxSpeed" | "power" | "weight" | "builder" | "fuelType" | "numberBuilt" | "gauge">>;
+export type SpecsOverride = Partial<Pick<TrainSpecs, "maxSpeed" | "power" | "weight" | "length" | "builder" | "fuelType" | "numberBuilt" | "gauge">>;
 const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // NOTE: BR 462 full entry now lives in the ICE family block below — old single-key
   // builder override removed 2026-05-18.
@@ -609,13 +609,13 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // ~123 t (fits a six-axle loco at ~20.5 t/axle). Corrected 2026-05-31 after a
   // Captrain BR 159 driver-in-training (Damian) confirmed Co'Co' / 123 t / Stadler
   // EuroDual via the one-month feedback DM — superseding the wrong Vectron entry.
-  "159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)" },
-  "br 159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)" },
-  "br159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)" },
-  "class 159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)" },
-  "baureihe 159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)" },
-  "eurodual": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)" },
-  "stadler eurodual": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)" },
+  "159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)", length: "23.0 m" },
+  "br 159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)", length: "23.0 m" },
+  "br159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)", length: "23.0 m" },
+  "class 159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)", length: "23.0 m" },
+  "baureihe 159": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)", length: "23.0 m" },
+  "eurodual": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)", length: "23.0 m" },
+  "stadler eurodual": { maxSpeed: "120 km/h", power: "7,000 kW (electric) / 2,800 kW (diesel)", weight: "123 t", builder: "Stadler (Valencia)", fuelType: "Electro-Diesel (Bi-Mode: AC overhead + onboard diesel)", length: "23.0 m" },
   // BR 247 (Siemens Vectron DE — single-mode diesel) — added 2026-05-05 after a screen recording
   // for the TrainVibez sponsor video showed the card returning "Builder: Electro-Motive Diesel" and
   // facts framing the loco as "Vectron Dual Mode". BR 247 is the diesel-only Vectron variant — NOT

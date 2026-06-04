@@ -9,17 +9,23 @@ Format: newest first within each date block.
 
 ### Backend
 
+#### `src/services/trainSpecs.ts` + `src/services/trainCache.ts` — BR 159 (Stadler EuroDual) length hardcode
+- **Added** `length` to the `SpecsOverride` type and a verified **23.0 m** to all 7 BR 159 / EuroDual KNOWN_SPECS keys (`159` / `br 159` / `br159` / `class 159` / `baureihe 159` / `eurodual` / `stadler eurodual`). The BR 159 card previously showed no length (Wikidata + AI both returned null) — flagged by the Captrain BR 159 driver-in-training (Damian). maxSpeed/weight/builder unchanged (120 km/h / 123 t / Stadler — already confirmed by the same tester; not re-litigated). Added 7 `CLASS_INVALIDATIONS` entries (2026-06-04) so pre-fix cached entries refresh and the length renders. Verified: `tsc` clean, trainSpecs + trainCache tests 24/24 pass. **Pushed to Render 2026-06-04** (auto-deploys; backend-only, no app build).
+
+#### Sentry de-noise (F) — no backend change required
+- **Investigated** the planned "skip `captureException` for expected 429 limit messages." Finding: the backend does **not** capture 429s to Sentry — the rate-limit middlewares (60/hr per-user, 20/hr anon) and the scan-gate send 429 responses directly (no throw); `errorHandler` only captures 500s; `setupExpressErrorHandler` never sees direct responses. The 429 Sentry noise was a **frontend** capture (`handleScan` → `captureError`), already addressed by v1.0.38 item **G** (the 60/hr "Hourly scan limit reached" message is now in `isExpectedProductError`, so it no longer pages Sentry). F therefore needs no server change — closed.
+
 #### `src/services/redis.ts` — Fix blueprint poll 404s ("Couldn't reach LocoSnap servers") via write-through task store
 - **Fixed (data consistency)** blueprint generation failed for users with "Couldn't reach LocoSnap servers" — confirmed via Sentry as a **404 "task not found"** on the poll, ~6s after the task was created. **39 events / 7 users / 18 days**, not network and not the deploy window.
 - **Root cause:** the Upstash Redis DB is **Global (multi-region, eventually consistent)** — primary `eu-west-1` (Ireland), backend in Frankfurt. A blueprint task is written then polled within seconds, so the read hit a replica that hadn't synced → `null` → backend 404 → the app's misleading "couldn't reach servers." The train cache was immune (its reads happen long after writes). Diagnosis: single instance (multi-instance ruled out), no Redis write errors logged, read path proven by constant cache hits, Upstash console confirmed "Global".
 - **Fix:** `setBlueprintTask` now **writes through to local in-memory first, then Redis**; `getBlueprintTask` reads **memory first, then Redis**; `deleteBlueprintTask` clears both. On the single Render instance this guarantees read-your-writes for fresh tasks (first polls served locally, bypassing replication lag); Redis still provides cross-restart durability. Scoped to blueprint tasks only — the train cache is left as-is (high volume, 30-day TTL, unaffected).
-- **Not yet deployed — needs a push to go live on Render.** Verified locally: `tsc --noEmit` clean, redis tests 5/5 pass. Backend-only; ships via Render push, no app build. The frontend cosmetic fix (treat 404 as "regenerate" rather than "couldn't reach servers") is deferred to the next app build (v1.0.38).
+- **DEPLOYED to Render 2026-06-04** (commit `4967e4a`; verified `tsc` clean, redis tests 5/5). Backend-only, no app build. The frontend cosmetic fix (treat 404 as "regenerate" rather than "couldn't reach servers") shipped as v1.0.38 item C (in `main`, awaits the app build).
 
 #### `src/services/vision.ts` — Fix Vy/Norske tog Class 74 misID ("CAF Civity" → Stadler FLIRT)
 - **Fixed (misID)** a Vy Class 74 EMU was being identified as "CAF Civity (Class 74)". Class 74 (and Class 75) are Norwegian **Stadler FLIRT** ("FLIRT Nordic") units built by Stadler Rail (50 sets to NSB 2012–2014, now Vy / Norske tog); "Civity" is an unrelated CAF family (TfW Class 756, Renfe, Northern 195/331). Added a disambiguation rule to `TRAIN_ID_PROMPT` instructing the model to return class "Class 74"/"Class 75", name "Stadler FLIRT", builder "Stadler Rail", operator "Vy", and to never attach the "Civity" name to a Norwegian 74/75. Reference specs noted (200 km/h, ~4,500 kW, 5-car).
 - **Root cause:** the model attached the wrong manufacturer name to a correctly-designated Class 74. Flagged publicly on the German ad by a Swedish railfan ("this is Stadler not CAF"); verified against Wikipedia (NSB/Norske tog Class 74 = Stadler FLIRT, 200 km/h).
 - **No cache invalidation needed:** the correction changes the identified class *string* (was "CAF Civity (Class 74)"), so future scans land on a fresh `(class, operator)` cache key; the stale entry is never queried again. Existing saved cards keep the old label.
-- **Not yet deployed — needs a push to go live on Render.** Verified locally: `tsc --noEmit` clean, vision tests 9/9 pass.
+- **DEPLOYED to Render 2026-06-04** (commit `3f73565`; verified `tsc` clean, vision tests 9/9). English correction reply posted on the German ad.
 
 ### Database (Supabase)
 
