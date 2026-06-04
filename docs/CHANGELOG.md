@@ -7,6 +7,14 @@ Format: newest first within each date block.
 
 ## 2026-06-04
 
+### Backend
+
+#### `src/services/vision.ts` — Fix Vy/Norske tog Class 74 misID ("CAF Civity" → Stadler FLIRT)
+- **Fixed (misID)** a Vy Class 74 EMU was being identified as "CAF Civity (Class 74)". Class 74 (and Class 75) are Norwegian **Stadler FLIRT** ("FLIRT Nordic") units built by Stadler Rail (50 sets to NSB 2012–2014, now Vy / Norske tog); "Civity" is an unrelated CAF family (TfW Class 756, Renfe, Northern 195/331). Added a disambiguation rule to `TRAIN_ID_PROMPT` instructing the model to return class "Class 74"/"Class 75", name "Stadler FLIRT", builder "Stadler Rail", operator "Vy", and to never attach the "Civity" name to a Norwegian 74/75. Reference specs noted (200 km/h, ~4,500 kW, 5-car).
+- **Root cause:** the model attached the wrong manufacturer name to a correctly-designated Class 74. Flagged publicly on the German ad by a Swedish railfan ("this is Stadler not CAF"); verified against Wikipedia (NSB/Norske tog Class 74 = Stadler FLIRT, 200 km/h).
+- **No cache invalidation needed:** the correction changes the identified class *string* (was "CAF Civity (Class 74)"), so future scans land on a fresh `(class, operator)` cache key; the stale entry is never queried again. Existing saved cards keep the old label.
+- **Not yet deployed — needs a push to go live on Render.** Verified locally: `tsc --noEmit` clean, vision tests 9/9 pass.
+
 ### Frontend
 
 > v1.0.38 candidate — **working tree only, not built or shipped.** Monetization-surface placement only; no pricing, paywall-content, or scan-gate change.
