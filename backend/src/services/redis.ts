@@ -54,18 +54,26 @@ export async function setBlueprintTask(
     completedAt: task.completedAt?.toISOString() ?? null,
   });
 
+  // Write-through to local memory FIRST, always. The Upstash DB is Global
+  // (multi-region, eventually consistent; primary eu-west-1 Ireland, backend
+  // in Frankfurt). A read issued seconds after a write can hit a replica
+  // that hasn't synced yet and return null. Blueprint tasks are created and
+  // then polled within seconds, so a Redis-only store hit that lag window
+  // and 404'd — surfacing in the app as "Couldn't reach LocoSnap servers"
+  // (39 events / 7 users / 18 days, confirmed 2026-06-04). On a single
+  // instance the local copy makes the first polls read-your-writes
+  // consistent; Redis still gives cross-restart durability. (The train cache
+  // is unaffected — its reads happen long after writes, replica caught up.)
+  memoryStore.set(key, value);
+  setTimeout(() => memoryStore.delete(key), DEFAULT_TTL * 1000);
+
   if (!useInMemoryFallback && redis) {
     try {
       await redis.setex(key, DEFAULT_TTL, value);
-      return;
     } catch (err) {
       console.warn("[REDIS] setBlueprintTask failed:", (err as Error).message);
-      // Fall through to in-memory
     }
   }
-
-  memoryStore.set(key, value);
-  setTimeout(() => memoryStore.delete(key), DEFAULT_TTL * 1000);
 }
 
 export async function getBlueprintTask(
@@ -73,16 +81,18 @@ export async function getBlueprintTask(
 ): Promise<BlueprintTask | null> {
   const key = TASK_PREFIX + taskId;
 
-  let raw: string | null = null;
+  // Local memory first — guarantees read-your-writes for freshly created
+  // tasks on this instance, bypassing Global-Redis replication lag (see
+  // setBlueprintTask). Falls back to Redis for tasks created before a
+  // restart (memory cleared, Redis durable).
+  let raw: string | null = memoryStore.get(key) ?? null;
 
-  if (!useInMemoryFallback && redis) {
+  if (!raw && !useInMemoryFallback && redis) {
     try {
       raw = await redis.get<string>(key);
     } catch {
-      raw = memoryStore.get(key) ?? null;
+      raw = null;
     }
-  } else {
-    raw = memoryStore.get(key) ?? null;
   }
 
   if (!raw) return null;
@@ -102,16 +112,16 @@ export async function getBlueprintTask(
 export async function deleteBlueprintTask(taskId: string): Promise<void> {
   const key = TASK_PREFIX + taskId;
 
+  // Clear both layers (write-through store, see setBlueprintTask).
+  memoryStore.delete(key);
+
   if (!useInMemoryFallback && redis) {
     try {
       await redis.del(key);
-      return;
     } catch {
-      // Fall through
+      // best-effort
     }
   }
-
-  memoryStore.delete(key);
 }
 
 // ── Train Cache Operations ───────────────────────────────────
