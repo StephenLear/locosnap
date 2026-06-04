@@ -106,6 +106,19 @@ export interface HistoryItem {
   verificationTier?: VerificationTier;
   photoAccuracyM?: number | null;
   riskFlags?: Record<string, boolean>;
+  // ── Manual card-edit (v1.0.38) ─────────────────────────────
+  // Per-spot, owner-only display override for AI misIDs. Shadows the
+  // train identity at render time only — never affects rarity,
+  // leaderboard counts, or the shared trains row. See migration 019.
+  identityOverride?: SpotIdentityOverride | null;
+}
+
+// Manual card-edit override (v1.0.38). All keys optional; null = none.
+export interface SpotIdentityOverride {
+  class?: string;
+  name?: string | null;
+  operator?: string;
+  type?: string;
 }
 
 // ── Card v2 provenance types (Phase 0.3) ─────────────────────

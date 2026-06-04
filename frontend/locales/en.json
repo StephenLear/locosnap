@@ -61,7 +61,9 @@
     "correctionPlaceholder": "What class is it? (optional)",
     "correctionSubmit": "Send",
     "correctionCancel": "Skip",
-    "correctionThanks": "Thanks for the correction"
+    "correctionThanks": "Thanks for the correction",
+    "cardUpdated": "Card updated",
+    "correctedSpecsNote": "You corrected this card — specs and facts aren't shown for manual corrections yet."
   },
   "card": {
     "badge": {

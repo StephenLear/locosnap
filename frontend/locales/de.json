@@ -61,7 +61,9 @@
     "correctionPlaceholder": "Welche Klasse ist es? (optional)",
     "correctionSubmit": "Senden",
     "correctionCancel": "Überspringen",
-    "correctionThanks": "Danke für die Korrektur"
+    "correctionThanks": "Danke für die Korrektur",
+    "cardUpdated": "Karte aktualisiert",
+    "correctedSpecsNote": "Du hast diese Karte korrigiert — für manuelle Korrekturen werden noch keine Daten und Fakten angezeigt."
   },
   "card": {
     "badge": {

@@ -13,6 +13,7 @@ import {
   BlueprintStatus,
   BlueprintStyle,
   HistoryItem,
+  SpotIdentityOverride,
   CaptureSource,
   VerificationTier,
 } from "../types";
@@ -43,6 +44,7 @@ import {
   fetchAchievements,
   AchievementType,
   deleteSpot,
+  updateSpotIdentity,
 } from "../services/supabase";
 import { useAuthStore } from "./authStore";
 import { RarityTier, ACHIEVEMENT_DEFINITIONS } from "../types";
@@ -122,6 +124,13 @@ interface TrainState {
   viewHistoryItem: (item: HistoryItem) => void;
   setBlueprintStyle: (style: BlueprintStyle) => void;
   setCompareItems: (items: [HistoryItem, HistoryItem] | null) => void;
+  // Manual card-edit (v1.0.38): apply/clear a per-spot identity override
+  // locally (the Supabase write happens in the caller) so the UI updates
+  // without a re-fetch.
+  setHistoryIdentityOverride: (
+    id: string,
+    override: SpotIdentityOverride | null
+  ) => Promise<void>;
 }
 
 export const useTrainStore = create<TrainState>((set, get) => ({
@@ -564,6 +573,28 @@ export const useTrainStore = create<TrainState>((set, get) => ({
       await AsyncStorage.removeItem(HISTORY_KEY);
     } catch {
       console.warn("Failed to clear history");
+    }
+  },
+
+  setHistoryIdentityOverride: async (id, override) => {
+    const state = get();
+    const newHistory = state.history.map((h) =>
+      h.id === id ? { ...h, identityOverride: override } : h
+    );
+    set({ history: newHistory });
+
+    try {
+      await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+    } catch {
+      console.warn("Failed to persist identity override locally");
+    }
+
+    // Cloud write: only for synced spots (Supabase UUID id, length >= 32).
+    // Local-only unsynced spots (Date.now() string ids) have no cloud row.
+    // Mirrors the id-length guard in removeFromHistory.
+    const auth = useAuthStore.getState();
+    if (auth.user && id && id.length >= 32) {
+      await updateSpotIdentity(id, override);
     }
   },
 

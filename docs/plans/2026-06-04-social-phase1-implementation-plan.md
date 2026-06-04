@@ -27,7 +27,9 @@ ever. No user photos in the public view** (see locked decisions). Read-only grid
 7. **Public cards are read-only previews** — they do NOT tap through to `card-reveal.tsx`, which is
    owner-gated by migration 018. Phase 1 is a grid view only.
 
-## Backend — Migration 019 (prod Supabase, no staging — review before applying)
+## Backend — Migration (next available number, prod Supabase, no staging — review before applying)
+
+> Note: 019 is taken by the card-edit feature (`019_spot_identity_override.sql`, 2026-06-04). This migration is the next free number (020+) when Social Phase 1 is built.
 
 Follow the `begin … commit` + post-2026-10-30 GRANT template. Column-audit every reference against the real
 schema before applying (per `feedback_migration_column_audit`). Apply via the Supabase SQL editor like 018,
@@ -92,13 +94,13 @@ public photos.
 
 ## Verification & rollout checklist (for the build session)
 
-1. Write migration 019; column-audit; review with user; apply via Supabase SQL editor; run verification block.
+1. Write the migration (next free number, 020+); column-audit; review with user; apply via Supabase SQL editor; run verification block.
 2. Frontend changes 1-7; `tsc --noEmit` clean; `npm test` green.
 3. Manual: User A toggles public → User B taps A on a leaderboard → sees classes/rarity/blueprints, **no
    photos, no location**; confirm the network tab shows no lat/lng/photo columns; toggle A back to private →
    B sees the private state.
 4. `/changelog` + update `docs/ARCHITECTURE.md` (new monetisation-adjacent surface: opt-in public profiles +
-   migration 019 + the two RPCs) in the same session.
+   the migration + the two RPCs) in the same session.
 5. Ships in the next EAS build (v1.0.38 candidate) — no standalone deploy.
 
 ## Effort

@@ -116,6 +116,7 @@ export default function CardRevealScreen() {
     currentVerification: scanVerification,
     lastLeagueXpDelta,
     history,
+    setHistoryIdentityOverride,
   } = useTrainStore();
 
   // UNVERIFIED → PERSONAL manual override (B.4). Declared early so
@@ -148,7 +149,22 @@ export default function CardRevealScreen() {
 
   // Display source: history item if in history mode, fresh scan otherwise.
   // Aliased to the original names so the existing render code is unchanged.
-  const currentTrain = historyItem?.train ?? scanTrain;
+  // Manual card-edit (v1.0.38): apply the per-spot identity override (if any)
+  // so the corrected class/name shows everywhere currentTrain is rendered.
+  // Display-only — does not touch specs/rarity or any leaderboard count.
+  const identityOverride = historyItem?.identityOverride ?? null;
+  const isOverridden = !!identityOverride?.class;
+  const baseTrain = historyItem?.train ?? scanTrain;
+  const currentTrain = useMemo(() => {
+    if (!baseTrain || !identityOverride?.class) return baseTrain;
+    return {
+      ...baseTrain,
+      class: identityOverride.class,
+      name: identityOverride.name ?? null,
+      operator: identityOverride.operator ?? baseTrain.operator,
+      type: identityOverride.type ?? baseTrain.type,
+    };
+  }, [baseTrain, identityOverride]);
   const currentSpecs = historyItem?.specs ?? scanSpecs;
   const currentFacts = historyItem?.facts ?? scanFacts;
   const currentRarity = historyItem?.rarity ?? scanRarity;
@@ -484,23 +500,36 @@ export default function CardRevealScreen() {
     }
     setCorrectionSubmitting(true);
     try {
+      // Always file the telemetry report using the ORIGINAL AI identity
+      // (baseTrain), not any prior override, so triage sees what we returned.
       await submitWrongIdReport({
         source: "card-wrong-id",
-        returnedClass: currentTrain.class,
-        returnedOperator: currentTrain.operator,
-        returnedConfidence: currentTrain.confidence,
+        returnedClass: baseTrain?.class ?? currentTrain.class,
+        returnedOperator: baseTrain?.operator ?? currentTrain.operator,
+        returnedConfidence: baseTrain?.confidence ?? currentTrain.confidence,
         userCorrection: corrected,
         spotId: historyItem?.id,
         userId: session?.user?.id,
       });
       track("wrong_id_correction_submitted", {
-        train_class: currentTrain.class,
+        train_class: baseTrain?.class ?? currentTrain.class,
         correction_length: corrected.length,
+        applied_to_card: !!historyItem?.id,
       });
+      // Manual card-edit (v1.0.38): in history mode, ALSO apply the correction
+      // to the user's own card as a per-spot identity override (display-only).
+      // Updates local state + the cloud spot row.
+      if (historyItem?.id) {
+        await setHistoryIdentityOverride(historyItem.id, { class: corrected });
+      }
     } finally {
       setCorrectionSubmitting(false);
       setCorrectionModalVisible(false);
-      setSaveConfirm(t("wrongId.correctionThanks"));
+      setSaveConfirm(
+        historyItem?.id
+          ? t("wrongId.cardUpdated")
+          : t("wrongId.correctionThanks")
+      );
       setTimeout(() => setSaveConfirm(null), 2500);
     }
   };
@@ -974,6 +1003,19 @@ export default function CardRevealScreen() {
                 ]}
               >
               <View style={styles.cardBackContent}>
+                {isOverridden ? (
+                  <View style={styles.correctionNote}>
+                    <Ionicons
+                      name="create-outline"
+                      size={16}
+                      color={colors.textSecondary}
+                    />
+                    <Text style={styles.correctionNoteText}>
+                      {t("wrongId.correctedSpecsNote")}
+                    </Text>
+                  </View>
+                ) : (
+                  <>
                 {/* Specs */}
                 <Text style={[styles.backTitle, { color: rarityColor }]}>
                   Specifications
@@ -1017,6 +1059,8 @@ export default function CardRevealScreen() {
                       {currentFacts.funFacts[0]}
                     </Text>
                   </View>
+                )}
+                  </>
                 )}
 
                 {/* Card v2 P2.6 — Compare button.
@@ -1552,6 +1596,24 @@ const styles = StyleSheet.create({
   backFunFactText: {
     fontSize: fonts.sizes.sm,
     color: colors.textPrimary,
+    lineHeight: 20,
+    flex: 1,
+  },
+  // Manual card-edit (v1.0.38) — shown in place of specs/facts when the
+  // user has overridden the class (the AI-derived specs no longer apply).
+  correctionNote: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.sm,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  correctionNoteText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
     lineHeight: 20,
     flex: 1,
   },

@@ -10,6 +10,7 @@ import {
   TrainFacts,
   RarityInfo,
   HistoryItem,
+  SpotIdentityOverride,
   VerificationTier,
 } from "../types";
 import * as FileSystem from "expo-file-system/legacy";
@@ -283,6 +284,7 @@ export async function fetchSpots(
       longitude,
       spotted_at,
       created_at,
+      identity_override,
       train:trains (
         id,
         class,
@@ -333,6 +335,7 @@ export async function fetchSpots(
       spottedAt: spot.created_at,
       latitude: spot.latitude ?? null,
       longitude: spot.longitude ?? null,
+      identityOverride: spot.identity_override ?? null,
     } as HistoryItem;
   });
 }
@@ -354,6 +357,38 @@ export async function deleteSpot(spotId: string): Promise<boolean> {
       supabaseHint: error.hint ?? undefined,
       spotId,
     });
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Manual card-edit (v1.0.38): write a per-spot identity override when the
+ * user corrects an AI misID. Owner-only via RLS (spots UPDATE policy).
+ * Display-only — does NOT touch the shared `trains` row, rarity, or any
+ * leaderboard count. Pass null to clear the override.
+ */
+export async function updateSpotIdentity(
+  spotId: string,
+  override: SpotIdentityOverride | null
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("spots")
+    .update({ identity_override: override })
+    .eq("id", spotId);
+
+  if (error) {
+    console.warn("Failed to update spot identity:", error.message);
+    captureError(
+      new Error(`supabase updateSpotIdentity failed: ${error.message}`),
+      {
+        op: "updateSpotIdentity",
+        supabaseCode: error.code,
+        supabaseHint: error.hint ?? undefined,
+        spotId,
+      }
+    );
     return false;
   }
 

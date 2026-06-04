@@ -21,9 +21,15 @@ Format: newest first within each date block.
 - **No cache invalidation needed:** the correction changes the identified class *string* (was "CAF Civity (Class 74)"), so future scans land on a fresh `(class, operator)` cache key; the stale entry is never queried again. Existing saved cards keep the old label.
 - **Not yet deployed — needs a push to go live on Render.** Verified locally: `tsc --noEmit` clean, vision tests 9/9 pass.
 
+### Database (Supabase)
+
+#### `supabase/migrations/019_spot_identity_override.sql` (NEW) — per-spot identity override for manual card-edit
+- **Added** an `identity_override jsonb` column on `public.spots` (nullable, default null). Lets a user correct the class/name on their OWN card when the AI misIDs, WITHOUT mutating the shared `trains` row (deduped across all users — a direct edit there would corrupt everyone's card of that class and skew leaderboard counts). Owner-only via the existing spots UPDATE policy (migration 001); no new grant/RLS needed. **Display-only** — never affects rarity or any leaderboard count.
+- **NOT yet applied to prod.** Review before running in the Supabase SQL editor (per the migration-review rule). The local override works without it (AsyncStorage); the cloud write needs the column. Apply before/with the v1.0.38 build.
+
 ### Frontend
 
-> v1.0.38 candidate — **working tree only, not built or shipped.** Monetization-surface placement only; no pricing, paywall-content, or scan-gate change.
+> v1.0.38 candidates — **working tree only, not built or shipped.**
 
 #### `app/(tabs)/profile.tsx` — Elevate the "Upgrade to Pro" CTA above the fold
 - **Changed** the free-user upgrade CTA from the bottom of the Profile page (it sat below the rarity breakdown, off-screen without scrolling — confirmed in-app on v1.0.37) to **immediately after the Level card**, so it is visible on the first screen. Same `!profile?.is_pro` guard and `source=profile` paywall attribution preserved — only the position moved; the old bottom copy was removed (no duplicate).
@@ -38,6 +44,16 @@ Format: newest first within each date block.
 - **Added** `leaderboard.proUpsell.{title,body}` to all three locales (EN/DE/PL). German umlauts and Polish diacritics verified.
 
 **Decision:** user observed the upgrade CTA was buried on Profile and absent from Leaderboard and asked whether to put it on every page. After weighing against the validated "generous free tier converts better than a tight/naggy one" insight and the "not ads" paywall positioning, the chosen approach is to **fill the gaps contextually — one nudge per surface tied to user activity** — rather than blanket-banner every tab. Scan (`HomeProUpsellCard`) and History (collection lock-gate) upsells left unchanged. **Verified:** `tsc --noEmit` clean, 219/219 frontend tests pass, all three locale JSON files parse.
+
+#### Manual card-edit — user correction layer (tester request: scan-accuracy escape hatch)
+- **Added** the ability for a user to correct a card's class when the AI misidentifies a train. Reuses the existing wrong-ID correction modal (`card-reveal.tsx`): in **history mode**, submitting a correction now ALSO writes a per-spot `identity_override` (display-only) in addition to the existing `wrong_id_reports` telemetry. Decision (confirmed with user): **display-only — does NOT change leaderboard counts or rarity** (prevents minting "legendary" spots / corrupting the moat).
+- **`types/index.ts`** — new `SpotIdentityOverride` type + `HistoryItem.identityOverride`.
+- **`services/supabase.ts`** — `fetchSpots` selects/maps `identity_override`; new `updateSpotIdentity(spotId, override)` (owner-only RLS; `captureError` on failure).
+- **`store/trainStore.ts`** — new `setHistoryIdentityOverride(id, override)`: optimistic local update + AsyncStorage + cloud write (UUID-id guard, mirrors `removeFromHistory`).
+- **`app/card-reveal.tsx`** — applies the override to the displayed `currentTrain` (corrected class shown everywhere); when overridden, the specs/facts panel is replaced by a short "manual correction" note (the AI specs are for the wrong class); "Card updated" toast. Telemetry still reports the ORIGINAL AI identity (`baseTrain`).
+- **`app/(tabs)/history.tsx`** — history list shows the corrected class/operator/name.
+- **`locales/{en,de,pl}.json`** — `wrongId.cardUpdated` + `wrongId.correctedSpecsNote` (DE umlauts / PL diacritics verified).
+- **Scope (v1):** class override only; free-text via the existing modal; specs/facts blanked (not recomputed) under an override. Needs migration 019 applied for the cloud write (local override works without it). **Verified:** tsc clean, 219/219 tests pass, JSON parses.
 
 ---
 

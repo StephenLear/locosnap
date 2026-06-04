@@ -222,6 +222,14 @@ function HistoryCard({
 }) {
   const rarityColor = rarityColors[item.rarity.tier];
 
+  // Manual card-edit (v1.0.38): a per-spot identity override shadows the
+  // train identity at display time only (rarity/leaderboard unaffected).
+  const ov = item.identityOverride;
+  const displayClass = ov?.class ?? item.train.class;
+  const displayName = ov?.class ? ov.name ?? null : item.train.name;
+  const displayOperator = ov?.operator ?? item.train.operator;
+  const displayType = ov?.type ?? item.train.type;
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardContent}>
@@ -240,10 +248,10 @@ function HistoryCard({
 
         {/* Train info */}
         <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle}>{item.train.class}</Text>
+          <Text style={styles.cardTitle}>{displayClass}</Text>
           <Text style={styles.cardSubtitle}>
-            {item.train.operator} · {item.train.type}
-            {item.train.name ? ` · "${item.train.name}"` : ""}
+            {displayOperator} · {displayType}
+            {displayName ? ` · "${displayName}"` : ""}
           </Text>
           <View style={styles.cardMeta}>
             <Text style={styles.cardDate}>{formatDate(item.spottedAt)}</Text>
