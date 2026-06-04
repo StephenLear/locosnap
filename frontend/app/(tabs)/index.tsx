@@ -32,6 +32,7 @@ import { track, captureError, addBreadcrumb } from "../../services/analytics";
 import { HomeProUpsellCard } from "../../components/HomeProUpsellCard";
 import { ProExpiringBanner } from "../../components/ProExpiringBanner";
 import { ProRescuePrompt } from "../../components/ProRescuePrompt";
+import { ScanningGuideCard } from "../../components/ScanningGuideCard";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -441,13 +442,23 @@ export default function HomeScreen() {
       // page Sentry. These are paywall / unclear-photo flows, not bugs.
       //   - "Could not identify"          → unclear photo / not a train
       //   - "Free scan limit reached"     → 6-scan free-tier cap, paywall surfaces next
+      // G (v1.0.38): the backend's per-user 60/hr anti-abuse cap returns
+      // "Hourly scan limit reached…". For a Pro user that bare wording wrongly
+      // implies their paid subscription is capped — soften it and reassure
+      // that Pro is unlimited; it's just a brief anti-spam throttle.
+      const isHourlyCap = message.startsWith("Hourly scan limit reached");
       const isExpectedProductError =
         message.startsWith("Could not identify") ||
-        message.startsWith("Free scan limit reached");
+        message.startsWith("Free scan limit reached") ||
+        isHourlyCap;
       if (!isExpectedProductError) {
         captureError(error as Error, { context: "handleScan" });
       }
-      setScanError(message);
+      setScanError(
+        isHourlyCap
+          ? t(profile?.is_pro ? "scan.hourlyCap.pro" : "scan.hourlyCap.free")
+          : message
+      );
 
       // Phase C — wall trigger. When a free user hits the 6/6 free-scan
       // cap on the backend, auto-open the paywall so the conversion
@@ -751,6 +762,11 @@ export default function HomeScreen() {
 
       {/* ── Pro rescue prompt: subscribed but never scanned ── */}
       <ProRescuePrompt />
+
+      {/* ── Scanning guide: tips for new users (no spots yet) ──
+          Self-gates internally — shows until the first spot is logged
+          or the user dismisses it. */}
+      <ScanningGuideCard />
 
       {/* ── Scanner Hero ── */}
       <View style={styles.hero}>

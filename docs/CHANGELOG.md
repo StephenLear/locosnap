@@ -55,6 +55,20 @@ Format: newest first within each date block.
 - **`locales/{en,de,pl}.json`** — `wrongId.cardUpdated` + `wrongId.correctedSpecsNote` (DE umlauts / PL diacritics verified).
 - **Scope (v1):** class override only; free-text via the existing modal; specs/facts blanked (not recomputed) under an override. Needs migration 019 applied for the cloud write (local override works without it). **Verified:** tsc clean, 219/219 tests pass, JSON parses.
 
+#### `services/api.ts` — Blueprint 404 cleanup (C)
+- **Changed** `checkBlueprintStatus` to treat an HTTP **404 "task not found"** as a terminal `failed` status ("Blueprint unavailable — tap to regenerate") instead of letting it throw and count toward the poller's consecutive-network-error cap (which mislabelled it "Couldn't reach LocoSnap servers" + wasted 5 retries). Reuses the existing failed-state UI + retry button. Cosmetic complement to the now-live backend write-through fix (`4967e4a`) — a 404 now genuinely means expired/gone.
+
+#### `components/ScanningGuideCard.tsx` (NEW) + `app/(tabs)/index.tsx` — Scanning guide (D)
+- **Added** a dismissable "Tips for a clean scan" card on the scan screen for **brand-new users** (`historyLoaded && history.length === 0`); auto-hides after the first spot or on dismiss (AsyncStorage `locosnap_scanning_guide_dismissed`). Mirrors the `ProRescuePrompt` self-gating pattern. 3 tips (frame square-on / good light / sharp & close). Analytics `scanning_guide_shown` / `_dismissed`. Tester request (Oula); validated 2026-06-04 by the "how to scan loco" TikTok search. No backend.
+
+#### `app/(tabs)/index.tsx` — Rate-limit message softening (G)
+- **Changed** the scan error handler so the backend's per-user 60/hr anti-abuse cap ("Hourly scan limit reached…") shows a softened, **Pro-aware** message instead of the bare wording (which wrongly implies a paying user's subscription is capped). New `scan.hourlyCap.{pro,free}` i18n (en/de/pl); also marks the cap as an expected product error (no Sentry page).
+
+#### `locales/{en,de,pl}.json` — i18n for D + G
+- **Added** `scan.scanningGuide.{title,tip1,tip2,tip3,dismissA11y}` and `scan.hourlyCap.{pro,free}` (DE umlauts / PL diacritics verified).
+
+**Verified (C+D+G):** `tsc --noEmit` clean, 219/219 frontend tests pass, all three locale JSON files parse.
+
 ---
 
 ## 2026-06-03

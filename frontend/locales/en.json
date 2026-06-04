@@ -33,6 +33,17 @@
         "body": "Go Pro to keep scanning — unlimited spots, full specs, every blueprint."
       }
     },
+    "scanningGuide": {
+      "title": "Tips for a clean scan",
+      "tip1": "Frame the whole train square-on — get the cab and bodyside in.",
+      "tip2": "Shoot in good light; avoid glare, deep shadow and backlighting.",
+      "tip3": "Keep it sharp and close enough to read the number or livery.",
+      "dismissA11y": "Dismiss scanning tips"
+    },
+    "hourlyCap": {
+      "pro": "Whoa, speed scanner! Your Pro access is unlimited — this is just a short anti-spam pause. Try again in a few minutes.",
+      "free": "You're scanning quickly! Please wait a few minutes before your next scan."
+    },
     "pickerError": {
       "title": "Couldn't open the photo library",
       "body": "Your phone wouldn't let us open the gallery just now. Take a photo with the camera instead?",

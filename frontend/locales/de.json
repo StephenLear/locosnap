@@ -33,6 +33,17 @@
         "body": "Werde Pro und scanne unbegrenzt weiter — alle Daten, jeder Blueprint."
       }
     },
+    "scanningGuide": {
+      "title": "Tipps für einen sauberen Scan",
+      "tip1": "Den ganzen Zug frontal einrahmen — Führerstand und Seite mit drauf.",
+      "tip2": "Bei gutem Licht fotografieren; Blendung, tiefe Schatten und Gegenlicht vermeiden.",
+      "tip3": "Scharf und nah genug, damit Nummer oder Lackierung lesbar sind.",
+      "dismissA11y": "Scan-Tipps ausblenden"
+    },
+    "hourlyCap": {
+      "pro": "Ganz schön schnell! Dein Pro-Zugang ist unbegrenzt — das ist nur eine kurze Pause gegen Spam. Versuch es in ein paar Minuten nochmal.",
+      "free": "Du scannst gerade sehr schnell! Warte bitte ein paar Minuten bis zum nächsten Scan."
+    },
     "pickerError": {
       "title": "Galerie konnte nicht geöffnet werden",
       "body": "Dein Handy hat die Galerie gerade nicht geöffnet. Stattdessen ein Foto mit der Kamera aufnehmen?",

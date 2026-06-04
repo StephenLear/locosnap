@@ -295,7 +295,22 @@ export async function checkBlueprintStatus(
       `/api/blueprint/${taskId}`
     );
     return response.data;
-  } catch {
+  } catch (error) {
+    // A 404 means the task is genuinely gone (expired / not found) — a
+    // TERMINAL state, not a transient network failure. Return it as a
+    // "failed" status so the poller stops cleanly and the UI shows a
+    // regenerate prompt, instead of counting it toward the consecutive-
+    // network-error cap and mislabelling it "Couldn't reach LocoSnap
+    // servers." (Backend returns 404 when getBlueprintTask is null.)
+    const status = (error as any)?.response?.status;
+    if (status === 404) {
+      return {
+        taskId,
+        status: "failed",
+        imageUrl: null,
+        error: "Blueprint unavailable — tap to regenerate.",
+      };
+    }
     throw new Error("Could not check blueprint status.");
   }
 }

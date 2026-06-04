@@ -39,6 +39,17 @@
         "body": "Przejdź na Pro, by skanować dalej — pełne dane, każdy plan, cała kolekcja."
       }
     },
+    "scanningGuide": {
+      "title": "Wskazówki do dobrego skanu",
+      "tip1": "Ujmij cały pociąg od przodu — kabina i bok w kadrze.",
+      "tip2": "Rób zdjęcia przy dobrym świetle; unikaj odblasków, cienia i światła pod słońce.",
+      "tip3": "Ostro i wystarczająco blisko, by odczytać numer lub malowanie.",
+      "dismissA11y": "Ukryj wskazówki skanowania"
+    },
+    "hourlyCap": {
+      "pro": "Ale tempo! Twój dostęp Pro jest nieograniczony — to tylko krótka przerwa antyspamowa. Spróbuj ponownie za kilka minut.",
+      "free": "Skanujesz bardzo szybko! Poczekaj kilka minut do następnego skanu."
+    },
     "pickerError": {
       "title": "Nie udało się otworzyć galerii",
       "body": "Telefon nie pozwolił nam teraz otworzyć galerii. Może zrobisz zdjęcie aparatem?",
