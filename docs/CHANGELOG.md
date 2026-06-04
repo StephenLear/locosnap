@@ -12,7 +12,7 @@ Format: newest first within each date block.
 #### v1.0.38 — built (EAS production) + submitted to both stores
 - **Version bumped** `1.0.37 → 1.0.38` in `frontend/app.json`. EAS `autoIncrement` set the build numbers: **iOS build 60**, **Android versionCode 30**.
 - **EAS production build** (`eas build --platform all --profile production`) — both FINISHED. Artifacts: iOS `.ipa` (`675978b3-…`), Android `.aab` (`d7fd4a0e-…`).
-- **Submitted both stores** via `eas submit`: **iOS build 60 — IN APP STORE REVIEW** (release notes + EULA entered, submitted for review 2026-06-04); **Android versionCode 30 in Google Play as a production DRAFT** — still needs release notes + rollout in the Play Console.
+- **Submitted both stores** via `eas submit`, then **IN REVIEW on both 2026-06-04**: iOS build 60 in App Store review (release notes + EULA entered); Android versionCode 30 in Google Play review (production track, release notes + rollout set).
 - **Bundle:** A (upsell placement), B (manual card-edit), C (blueprint 404 cleanup), D (scanning guide), G (rate-limit softening). E (monthly→annual upsell) deferred to v1.0.39. Migration 019 already live; backend fixes (Class 74, blueprint write-through, BR 159 length) already deployed to Render.
 - **Release notes** (EN/DE/PL) drafted — bug-fixes-first, no financial offers; iOS description must carry the EULA link.
 
