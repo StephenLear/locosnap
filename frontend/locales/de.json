@@ -179,6 +179,10 @@
     "rank": "Rang",
     "spotter": "Spotter",
     "spots": "Spots",
+    "proUpsell": {
+      "title": "Schneller in der Bestenliste aufsteigen",
+      "body": "Mit Pro scannst du unbegrenzt — jeder Treffer zählt für dein Ranking."
+    },
     "tabs": {
       "myLeague": "Diese Woche",
       "country": "Land",

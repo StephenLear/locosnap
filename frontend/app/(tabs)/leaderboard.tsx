@@ -20,6 +20,7 @@ import {
 import { MyLeagueTab } from "../../components/leaderboard/MyLeagueTab";
 import { CountryTab } from "../../components/leaderboard/CountryTab";
 import { CollectionTab } from "../../components/leaderboard/CollectionTab";
+import { LeaderboardProUpsellCard } from "../../components/leaderboard/LeaderboardProUpsellCard";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 
 const TABS: ReadonlyArray<{ key: LeaderboardTab; i18nKey: string }> = [
@@ -54,6 +55,10 @@ export default function LeaderboardScreen() {
           );
         })}
       </View>
+
+      {/* Contextual upsell for free users — self-gates internally.
+          Sits above the sub-tab content so it shows on all three tabs. */}
+      <LeaderboardProUpsellCard />
 
       <View style={styles.content}>
         {activeTab === "my_league" && <MyLeagueTab />}

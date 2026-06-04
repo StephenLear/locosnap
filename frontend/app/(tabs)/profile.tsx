@@ -445,6 +445,29 @@ export default function ProfileScreen() {
         </Text>
       </View>
 
+      {/* ── Upgrade to Pro — elevated above the fold for free users
+            (v1.0.38). Previously sat at the very bottom of the page below
+            the rarity breakdown (out of view without scrolling); moved here
+            so the primary conversion CTA is visible on the first screen. */}
+      {!profile?.is_pro && (
+        <View style={styles.section}>
+          <TouchableOpacity style={styles.upgradeBtn} onPress={() => router.push("/paywall?source=profile")}>
+            <Ionicons name="rocket" size={20} color="#fff" />
+            <View style={styles.upgradeBtnContent}>
+              <Text style={styles.upgradeBtnTitle}>{t("profile.upgradeToPro")}</Text>
+              <Text style={styles.upgradeBtnSubtitle}>
+                Unlimited scans · Premium blueprints · All styles
+              </Text>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color="rgba(255,255,255,0.6)"
+            />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* ── Quick stats ──────────────────────────────────── */}
       <View style={styles.statsGrid}>
         <StatBox
@@ -635,24 +658,6 @@ export default function ProfileScreen() {
 
       {/* ── Actions ──────────────────────────────────────── */}
       <View style={styles.section}>
-        {/* Upgrade to Pro (if not Pro) */}
-        {!profile?.is_pro && (
-          <TouchableOpacity style={styles.upgradeBtn} onPress={() => router.push("/paywall?source=profile")}>
-            <Ionicons name="rocket" size={20} color="#fff" />
-            <View style={styles.upgradeBtnContent}>
-              <Text style={styles.upgradeBtnTitle}>{t("profile.upgradeToPro")}</Text>
-              <Text style={styles.upgradeBtnSubtitle}>
-                Unlimited scans · Premium blueprints · All styles
-              </Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color="rgba(255,255,255,0.6)"
-            />
-          </TouchableOpacity>
-        )}
-
         {/* Sign in / sign up — three-CTA pattern (Steph 2026-04-24).
             Returning users land here as "Guest Spotter" after a reinstall
             and need an explicit "Log In" path; new users need "Sign Up".

@@ -179,6 +179,10 @@
     "rank": "Rank",
     "spotter": "Spotter",
     "spots": "Spots",
+    "proUpsell": {
+      "title": "Climb the leaderboard faster",
+      "body": "Pro gives you unlimited scans — every spot you catch counts toward your rank."
+    },
     "tabs": {
       "myLeague": "This Week",
       "country": "Country",

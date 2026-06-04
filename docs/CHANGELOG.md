@@ -5,6 +5,28 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-04
+
+### Frontend
+
+> v1.0.38 candidate — **working tree only, not built or shipped.** Monetization-surface placement only; no pricing, paywall-content, or scan-gate change.
+
+#### `app/(tabs)/profile.tsx` — Elevate the "Upgrade to Pro" CTA above the fold
+- **Changed** the free-user upgrade CTA from the bottom of the Profile page (it sat below the rarity breakdown, off-screen without scrolling — confirmed in-app on v1.0.37) to **immediately after the Level card**, so it is visible on the first screen. Same `!profile?.is_pro` guard and `source=profile` paywall attribution preserved — only the position moved; the old bottom copy was removed (no duplicate).
+
+#### `components/leaderboard/LeaderboardProUpsellCard.tsx` (NEW) — contextual Pro upsell for the Leaderboard tab
+- **Added** a self-gating upsell card where the Leaderboard tab previously had **no upgrade entry point at all**. Mirrors the `HomeProUpsellCard` pattern: parent mounts it with no props; it renders only for **signed-in free users** (`!!session && profile?.is_pro === false`) — Pro users and unauthenticated guests see nothing. Framing is contextual to the surface ("Climb the leaderboard faster — Pro gives unlimited scans, every spot counts toward your rank") rather than a generic banner, to stay consistent with the paywall's "funded by subscriptions, not ads" positioning. New analytics events `leaderboard_pro_upsell_shown` / `leaderboard_pro_upsell_tapped`; taps route to `/paywall?source=leaderboard`.
+
+#### `app/(tabs)/leaderboard.tsx` — mount the leaderboard upsell
+- **Added** `<LeaderboardProUpsellCard />` between the sub-tab bar and the content view, so it shows above all three sub-tabs (This Week / Country / Collection) and does not scroll away with the list.
+
+#### `locales/{en,de,pl}.json` — i18n for the leaderboard upsell
+- **Added** `leaderboard.proUpsell.{title,body}` to all three locales (EN/DE/PL). German umlauts and Polish diacritics verified.
+
+**Decision:** user observed the upgrade CTA was buried on Profile and absent from Leaderboard and asked whether to put it on every page. After weighing against the validated "generous free tier converts better than a tight/naggy one" insight and the "not ads" paywall positioning, the chosen approach is to **fill the gaps contextually — one nudge per surface tied to user activity** — rather than blanket-banner every tab. Scan (`HomeProUpsellCard`) and History (collection lock-gate) upsells left unchanged. **Verified:** `tsc --noEmit` clean, 219/219 frontend tests pass, all three locale JSON files parse.
+
+---
+
 ## 2026-06-03
 
 ### Build & Distribution

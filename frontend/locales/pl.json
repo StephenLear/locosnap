@@ -187,6 +187,10 @@
     "rank": "Miejsce",
     "spotter": "Obserwator",
     "spots": "Obserwacje",
+    "proUpsell": {
+      "title": "Wspinaj się szybciej w rankingu",
+      "body": "Pro daje nieograniczone skany — każdy złapany pociąg liczy się do rankingu."
+    },
     "tabs": {
       "myLeague": "Ten tydzień",
       "country": "Kraj",
