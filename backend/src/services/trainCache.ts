@@ -185,6 +185,14 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "br 143": "2026-06-05T23:59:00Z",
   "class 143": "2026-06-05T23:59:00Z",
   "baureihe 143": "2026-06-05T23:59:00Z",
+  // Pesa Elf 2 (34WEa) was returned as "Newag ... Impuls 2"; vision + KNOWN_SPECS
+  // corrected 2026-06-05 (Pesa Bydgoszcz, not Newag). Flush any stale 34WE cache
+  // entry in case the corrected vision output reuses the same class string.
+  // (Class 183-vs-EU07 needs no invalidation — the class string changes EU07 →
+  // Class 183, so corrected scans land on a fresh key.)
+  "34we": "2026-06-05T23:59:00Z",
+  "34wea": "2026-06-05T23:59:00Z",
+  "34weag": "2026-06-05T23:59:00Z",
 };
 // Note: the `br 159` / `br159` keys already exist above (06-04 length fix) and were
 // bumped to 2026-06-05T23:59:00Z so the rarity anchor also refreshes their cache.

@@ -1384,6 +1384,23 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "griffin": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Newag (Nowy Sącz)", fuelType: "Electric (multi-system: 3 kV DC / 15 kV 16.7 Hz AC)" },
   "e4mcu": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Newag (Nowy Sącz)", fuelType: "Electric (multi-system: 3 kV DC / 15 kV 16.7 Hz AC)" },
   "e4msu": { maxSpeed: "160 km/h", power: "5,600 kW", builder: "Newag (Nowy Sącz)", fuelType: "Electric (multi-system: 3 kV DC / 15 kV 16.7 Hz AC)" },
+  // Pesa Elf 2 (34WEa / PKP series EN96) — Koleje Śląskie 2-car regional
+  // EMU, Pesa Bydgoszcz, 4×400 kW (electronically limited to 4×360), 3 kV
+  // DC, 160 km/h. Added 2026-06-05 after a 34WEag was returned as "Newag
+  // ... Impuls 2" (TikTok PL flag) — it is a PESA Elf 2, NOT a Newag Impuls.
+  "34we":  { maxSpeed: "160 km/h", power: "1,600 kW", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "34wea": { maxSpeed: "160 km/h", power: "1,600 kW", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "34weag": { maxSpeed: "160 km/h", power: "1,600 kW", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  "pesa elf 2": { maxSpeed: "160 km/h", power: "1,600 kW", builder: "Pesa Bydgoszcz", fuelType: "Electric (3 kV DC)" },
+  // Škoda Class 183 (Škoda 61E / ČSD E669.3) — Czechoslovak 3 kV DC Bo'Bo'
+  // heavy freight electric, Škoda Plzeň from ~1971. Run by Bulk Transshipment
+  // Slovakia / ZSSK Cargo etc., ~90 km/h freight. Added 2026-06-05 after a
+  // BTS "183 015-7" was returned as EU07. Power left to the AI (exact kW
+  // figure not cleanly sourced — not locked, per no-fake-specifics).
+  "183": { maxSpeed: "90 km/h", builder: "Škoda (Plzeň)", fuelType: "Electric (3 kV DC)" },
+  "class 183": { maxSpeed: "90 km/h", builder: "Škoda (Plzeň)", fuelType: "Electric (3 kV DC)" },
+  "škoda 61e": { maxSpeed: "90 km/h", builder: "Škoda (Plzeň)", fuelType: "Electric (3 kV DC)" },
+  "skoda 61e": { maxSpeed: "90 km/h", builder: "Škoda (Plzeň)", fuelType: "Electric (3 kV DC)" },
   // Newag Dragon (E6ACT / E6ACTa / E6ACTadb) — modern Polish heavy
   // freight Co-Co electric, Newag (Nowy Sącz) 2010+, 50+ built,
   // 120 km/h, 5,000-5,800 kW depending on variant, 3 kV DC. The
