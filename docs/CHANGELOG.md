@@ -12,6 +12,13 @@ Format: newest first within each date block.
 #### v1.0.38 — iOS now LIVE on the App Store (both stores live)
 - **iOS build 60 — APPROVED + LIVE on the App Store (2026-06-05).** Android versionCode 30 went live on Google Play 2026-06-04; with the iOS approval, **v1.0.38 is now LIVE on both stores.** Bundle shipped: A (upsell placement), B (manual card-edit), C (blueprint 404 cleanup), D (scanning guide), G (rate-limit softening). E (monthly→annual upsell) remains deferred to v1.0.39. Backend fixes (Class 74, blueprint write-through, BR 159 length) + migration 019 were already live independent of the app build.
 
+### Database (Supabase)
+
+#### `supabase/migrations/020_social_public_profiles.sql` (NEW) — Social Phase 1 (opt-in public profiles) — WRITTEN, NOT YET APPLIED
+- **Added** (file only — **NOT applied to prod; prod schema remains at migration 019**) the backend for the "view other people's spots" feature (read-only browse). Adds `profiles.is_public boolean default false` (strictly opt-in) + two `SECURITY DEFINER` RPCs: `get_public_profile(uuid)` (public identity + TRUE aggregate counts) and `get_public_collection(uuid, limit, offset)` (card list newest-first). Both are `is_public`-guarded (return zero rows for non-public users) and **explicitly exclude `latitude`/`longitude`/`photo_url`** — privacy posture P-A (never expose others' location), building on migration 018's owner-only `spots` SELECT. Pinned `search_path`, granted to `anon`+`authenticated`; mirrors the `get_weekly_rarity_champion` (014) pattern. Column-audited against live schema.
+- **Counts use TRUE totals** (all spots / all distinct classes / true per-tier rare·epic·legendary distinct-class counts) — deliberately NOT the `leaderboard_rarity` view's epic/legendary-only inner join (which under-reports a profile and mislabels rare_count). Per-spot `identity_override` not applied in the public view (shows canonical class).
+- **Status:** session paused mid-build (user out of time). **Frontend remains** (is_public toggle, pressable leaderboard rows, NEW `app/spotter/[id].tsx`, RPC fetchers, types, i18n, tests — all mapped in `docs/plans/2026-06-04-social-phase1-implementation-plan.md`). Migration must be applied manually via the Supabase SQL editor before the frontend works. Commit `2c42d62`.
+
 ### Backend
 
 #### `src/services/rarity.ts` + `src/services/trainCache.ts` — class-anchored rarity (consistency fix)
