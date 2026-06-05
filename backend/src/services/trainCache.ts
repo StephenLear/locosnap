@@ -92,13 +92,15 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   // KNOWN_SPECS override 2026-06-04 (was null — flagged by Captrain BR 159
   // driver-in-training Damian). Invalidate pre-fix cached entries so the
   // length now renders. All KNOWN_SPECS key variants covered.
-  "159": "2026-06-04T12:00:00Z",
-  "br 159": "2026-06-04T12:00:00Z",
-  "br159": "2026-06-04T12:00:00Z",
-  "class 159": "2026-06-04T12:00:00Z",
-  "baureihe 159": "2026-06-04T12:00:00Z",
-  "eurodual": "2026-06-04T12:00:00Z",
-  "stadler eurodual": "2026-06-04T12:00:00Z",
+  // Timestamps bumped 2026-06-05T23:59:00Z so the rarity anchor (BR 159 -> rare)
+  // refreshes alongside the original 2026-06-04 length fix (23.0 m).
+  "159": "2026-06-05T23:59:00Z",
+  "br 159": "2026-06-05T23:59:00Z",
+  "br159": "2026-06-05T23:59:00Z",
+  "class 159": "2026-06-05T23:59:00Z",
+  "baureihe 159": "2026-06-05T23:59:00Z",
+  "eurodual": "2026-06-05T23:59:00Z",
+  "stadler eurodual": "2026-06-05T23:59:00Z",
   // ÖBB 4020: builder was returning "Bombardier" + facts text claimed
   // "Siemens entwickelt und gebaut, 2009 in Betrieb". Correct: SGP / ELIN /
   // Siemens consortium, in-service 1978. Caught 2026-05-23 by a DACH commenter
@@ -171,7 +173,21 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   // pushes get flushed and re-render at 120.
   "en57akm": "2026-06-05T23:59:00Z",
   "en57 akm": "2026-06-05T23:59:00Z",
+  // Class-anchored rarity overrides added 2026-06-05 (rarity.ts KNOWN_RARITY) after
+  // the top-user spot audit showed the same class returning different rarity tiers
+  // by operator. Invalidate cached entries for the classes whose tier was swinging
+  // so they re-render at the locked tier (BR 193 -> common, BR 159 -> uncommon,
+  // BR 143 -> epic) across all operator variants.
+  "br 193": "2026-06-05T23:59:00Z",
+  "br193": "2026-06-05T23:59:00Z",
+  "baureihe 193": "2026-06-05T23:59:00Z",
+  "br 159 (stadler eurodual)": "2026-06-05T23:59:00Z",
+  "br 143": "2026-06-05T23:59:00Z",
+  "class 143": "2026-06-05T23:59:00Z",
+  "baureihe 143": "2026-06-05T23:59:00Z",
 };
+// Note: the `br 159` / `br159` keys already exist above (06-04 length fix) and were
+// bumped to 2026-06-05T23:59:00Z so the rarity anchor also refreshes their cache.
 
 function normaliseClass(className: string): string {
   return className.toLowerCase().trim();

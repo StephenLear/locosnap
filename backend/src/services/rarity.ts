@@ -100,6 +100,52 @@ function parseRarityResponse(text: string): RarityInfo {
   }
 }
 
+// ── Class-anchored rarity overrides ─────────────────────────
+// Rarity is a property of the CLASS, not the operator/livery. The AI rarity
+// classifier is operator-swayed for any class without a hard rule, so the same
+// class can come back at different tiers depending on the operator string —
+// which corrupts the collection + leaderboard (the product's moat) and is what
+// spotters notice. We lock the tier deterministically here, AFTER the AI
+// classifies. Tiers below are lifted from the long-standing
+// RARITY_SYSTEM_PROMPT rules (already the project's decided intent — now
+// guaranteed rather than merely guided), plus BR 193 / BR 159 added 2026-06-05
+// after the top-user spot audit showed them swinging across 3-4 tiers by
+// operator (BR 193 common→legendary; BR 159 common→legendary).
+const KNOWN_RARITY: Record<string, { tier: RarityTier; reason?: string }> = {
+  // Siemens Vectron — the most numerous modern European electric (thousands
+  // built, on every electrified corridor). Common as a class regardless of
+  // operator; the audit found it mis-tagged epic/legendary for ČD = operator bleed.
+  "br 193": { tier: "common", reason: "Siemens Vectron — the most numerous modern European electric locomotive, in daily service across the network with thousands built." },
+  "br193": { tier: "common", reason: "Siemens Vectron — the most numerous modern European electric locomotive, in daily service across the network with thousands built." },
+  "baureihe 193": { tier: "common", reason: "Siemens Vectron — the most numerous modern European electric locomotive, in daily service across the network with thousands built." },
+  // Stadler EuroDual (DE class 159) — distinctive bi-mode fleet leased widely via
+  // ELP and growing. Uncommon (consistent with the other small-but-growing modern
+  // multi-operator fleets: Newag Dragon, BR 247). Revisit if a spotter flags it.
+  "br 159": { tier: "uncommon", reason: "Stadler EuroDual — a distinctive bi-mode locomotive from a small but growing fleet leased across several operators." },
+  "br159": { tier: "uncommon", reason: "Stadler EuroDual — a distinctive bi-mode locomotive from a small but growing fleet leased across several operators." },
+  "br 159 (stadler eurodual)": { tier: "uncommon", reason: "Stadler EuroDual — a distinctive bi-mode locomotive from a small but growing fleet leased across several operators." },
+  // --- Tiers below lifted from RARITY_SYSTEM_PROMPT (already decided; locked
+  // here so they are guaranteed, not merely guided by the prompt). ---
+  "br 143": { tier: "epic" }, "class 143": { tier: "epic" }, "baureihe 143": { tier: "epic" }, "cd class 143": { tier: "epic" }, "čd class 143": { tier: "epic" },
+  "br 140": { tier: "legendary" }, "baureihe 140": { tier: "legendary" },
+  "br 155": { tier: "rare" }, "baureihe 155": { tier: "rare" }, "dr 250": { tier: "rare" }, "dr baureihe 250": { tier: "rare" },
+  "br 110": { tier: "rare" }, "baureihe 110": { tier: "rare" },
+  "br 648": { tier: "common" }, "baureihe 648": { tier: "common" },
+  "br 247": { tier: "uncommon" }, "baureihe 247": { tier: "uncommon" },
+  "et22": { tier: "common" },
+  "newag dragon": { tier: "uncommon" }, "e6act": { tier: "uncommon" }, "e6acta": { tier: "uncommon" },
+  "en57": { tier: "uncommon" }, "en57al": { tier: "uncommon" }, "en57akm": { tier: "uncommon" }, "en71": { tier: "uncommon" },
+  "dr18": { tier: "legendary" },
+  "eu05": { tier: "legendary" }, "ep05": { tier: "legendary" }, "et21": { tier: "epic" },
+  "class 69": { tier: "rare" },
+};
+
+function applyKnownRarity(className: string, info: RarityInfo): RarityInfo {
+  const override = KNOWN_RARITY[className.toLowerCase().trim()];
+  if (!override || override.tier === info.tier) return info;
+  return { ...info, tier: override.tier, reason: override.reason ?? info.reason };
+}
+
 export async function classifyRarity(
   train: TrainIdentification,
   specs: TrainSpecs,
@@ -127,7 +173,7 @@ export async function classifyRarity(
       });
       const content = response.content[0];
       if (content.type !== "text") return FALLBACK_RARITY;
-      return parseRarityResponse(content.text);
+      return applyKnownRarity(train.class, parseRarityResponse(content.text));
     }
 
     if (config.hasOpenAI) {
@@ -153,7 +199,7 @@ export async function classifyRarity(
       );
       const text = response.data.choices?.[0]?.message?.content;
       if (!text) return FALLBACK_RARITY;
-      return parseRarityResponse(text);
+      return applyKnownRarity(train.class, parseRarityResponse(text));
     }
 
     return FALLBACK_RARITY;

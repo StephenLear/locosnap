@@ -98,6 +98,49 @@ describe("classifyRarity", () => {
     expect(result.tier).toBe("common");
   });
 
+  it("class-anchors rarity: overrides an operator-swayed tier for a known class", async () => {
+    // AI returns 'legendary' (operator bleed), but BR 193 (Vectron) is anchored common.
+    mockCreate.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            tier: "legendary",
+            reason: "ČD Vectron, very rare",
+            productionCount: 5,
+            survivingCount: 5,
+          }),
+        },
+      ],
+    });
+
+    const result = await classifyRarity(
+      makeTrain({ class: "BR 193", operator: "České dráhy (ČD)" }),
+      makeSpecs()
+    );
+
+    expect(result.tier).toBe("common");
+    expect(result.reason).toContain("Vectron");
+  });
+
+  it("class-anchor is stable across operators for the same class", async () => {
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({ tier: "uncommon", reason: "x" }) }],
+    });
+    const a = await classifyRarity(makeTrain({ class: "BR 193", operator: "DB Cargo" }), makeSpecs());
+    const b = await classifyRarity(makeTrain({ class: "BR 193", operator: "Rail Force One" }), makeSpecs());
+    expect(a.tier).toBe("common");
+    expect(b.tier).toBe(a.tier);
+  });
+
+  it("leaves the AI tier untouched for a class with no override", async () => {
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({ tier: "rare", reason: "heritage" }) }],
+    });
+    const result = await classifyRarity(makeTrain({ class: "Class 55 Deltic" }), makeSpecs());
+    expect(result.tier).toBe("rare");
+  });
+
   it("prepends German instruction when language is 'de'", async () => {
     mockCreate.mockResolvedValue({
       content: [
