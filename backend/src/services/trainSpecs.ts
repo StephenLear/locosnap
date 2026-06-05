@@ -706,15 +706,16 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // EN57 family — modernisation refreshed traction electrics and interior, NOT the design speed.
   "en57ald": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised by Newag/Pesa", fuelType: "Electric (3 kV DC)" },
   "polregio en57ald": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised by Newag/Pesa", fuelType: "Electric (3 kV DC)" },
-  // EN57AKM — modernised EN57 variant. Added 2026-06-05 after Polish TikTok
-  // commenter Vampigator flagged the app returning vmax 160 km/h on an EN57AKM.
-  // Like every EN57 modernisation (AL / ALd / AKŁ / AKS / AKM), the rebuild
-  // refreshed traction/interior but NOT the design speed — the family stays at
-  // 110 km/h. There was no en57akm KNOWN_SPECS key, so the AI was free to
-  // hallucinate 160 (a Pendolino/Elf 2 figure). Power omitted (modernised units
-  // vary); maxSpeed is the disputed field.
-  "en57akm": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised", fuelType: "Electric (3 kV DC)" },
-  "en57 akm": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised", fuelType: "Electric (3 kV DC)" },
+  // EN57AKM — deep-modernisation EN57 variant (Koleje Mazowieckie). Added
+  // 2026-06-05 after Polish TikTok commenter Vampigator flagged the app
+  // returning vmax 160 km/h. UNLIKE most EN57 rebuilds (which keep 110 km/h),
+  // the AKM specifically RAISED top speed 110 -> 120 km/h: DC Lk-450 motors
+  // replaced by asynchronous AC motors (~1 MW total) + impulse startup, by ZNTK
+  // Mińsk Mazowiecki + Newag (2009-2010). 120 km/h confirmed by Koleje
+  // Mazowieckie's own page + Torowy + transportszynowy.pl (and by Vampigator,
+  // who corrected the first 110 figure). Bogie design caps it at 120.
+  "en57akm": { maxSpeed: "120 km/h", power: "1,000 kW", builder: "Pafawag (Wrocław) — modernised by ZNTK Mińsk Mazowiecki / Newag", fuelType: "Electric (3 kV DC)" },
+  "en57 akm": { maxSpeed: "120 km/h", power: "1,000 kW", builder: "Pafawag (Wrocław) — modernised by ZNTK Mińsk Mazowiecki / Newag", fuelType: "Electric (3 kV DC)" },
   // CP Portuguese narrow-gauge railcar series (CP 9000 / 9020 / 9030 / 9600 / 9630) —
   // METRE GAUGE (1,000 mm), NOT standard 1,435 mm. Added 2026-04-29 after pafawag.w.obiektywie
   // round-2 + round-3 reported the gauge field returning 1,435 mm. These series operate on the

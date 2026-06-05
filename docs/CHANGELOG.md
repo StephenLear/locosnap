@@ -12,6 +12,12 @@ Format: newest first within each date block.
 #### v1.0.38 — iOS now LIVE on the App Store (both stores live)
 - **iOS build 60 — APPROVED + LIVE on the App Store (2026-06-05).** Android versionCode 30 went live on Google Play 2026-06-04; with the iOS approval, **v1.0.38 is now LIVE on both stores.** Bundle shipped: A (upsell placement), B (manual card-edit), C (blueprint 404 cleanup), D (scanning guide), G (rate-limit softening). E (monthly→annual upsell) remains deferred to v1.0.39. Backend fixes (Class 74, blueprint write-through, BR 159 length) + migration 019 were already live independent of the app build.
 
+### Backend
+
+#### `src/services/trainSpecs.ts` + `src/services/trainCache.ts` — EN57AKM max speed (160 → 120 km/h)
+- **Fixed (spec error)** the EN57AKM was returning vmax **160 km/h**. Root cause: KNOWN_SPECS locked the EN57 family (`en57`/`en57al`/`en57ak`/`en57aks`/`en57akł`/`en57ald`) at 110 km/h but had **no `en57akm` key**, so this variant fell through to the AI, which hallucinated a Pendolino/Elf 2 figure. Flagged by Polish commenter **Vampigator** on the PL ad.
+- **Two-stage (lesson):** first push (`03d2cdd`) locked `en57akm`/`en57 akm` at **110 km/h** (the family default). Vampigator then corrected that — the **AKM is the deep-modernisation variant that specifically RAISED top speed to 120 km/h** (DC Lk-450 motors → asynchronous AC ~1 MW + impulse startup; ZNTK Mińsk Mazowiecki + Newag, 2009–2010; bogie design caps it at 120). **Verified** against Koleje Mazowieckie's own page + Torowy + transportszynowy.pl before changing — per `feedback_verify_premise_before_overriding_expert`. Corrected to **120 km/h** + added `power: "1,000 kW"` and the ZNTK/Newag builder note. `CLASS_INVALIDATIONS` timestamp set to end-of-day so both the original 160 cache and any 110 entry cached between the two pushes flush and re-render at 120. Verified: `tsc` clean, 24/24 specs+cache tests. **Dragon 2 unchanged at 120 km/h** (already correct — the "160 on the video" is an old ad-text error, not the live app).
+
 ---
 
 ## 2026-06-04

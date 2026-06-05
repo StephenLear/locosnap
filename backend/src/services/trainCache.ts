@@ -163,12 +163,14 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "db class 628": "2026-05-24T22:30:00Z",
   "628.2": "2026-05-24T22:30:00Z",
   "628.4": "2026-05-24T22:30:00Z",
-  // EN57AKM: no KNOWN_SPECS key existed for this EN57 modernisation, so the AI
-  // returned vmax 160 km/h (wrong — EN57 family is 110 km/h). Added a 110 km/h
-  // KNOWN_SPECS override 2026-06-05 (flagged by Polish commenter Vampigator on
-  // the PL ad). Invalidate any pre-fix cached entry holding the wrong 160 value.
-  "en57akm": "2026-06-05T12:00:00Z",
-  "en57 akm": "2026-06-05T12:00:00Z",
+  // EN57AKM: the AI returned vmax 160 km/h (no KNOWN_SPECS key existed). First
+  // fix locked 110 (EN57 family default) — but Vampigator (PL ad) corrected that:
+  // the AKM is the deep-mod variant uprated to 120 km/h (asynchronous motors).
+  // Verified + KNOWN_SPECS bumped 110 -> 120 same day. Timestamp set to end-of-day
+  // so BOTH the original 160 cache AND any 110 entry cached between the two
+  // pushes get flushed and re-render at 120.
+  "en57akm": "2026-06-05T23:59:00Z",
+  "en57 akm": "2026-06-05T23:59:00Z",
 };
 
 function normaliseClass(className: string): string {
