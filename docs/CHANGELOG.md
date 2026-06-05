@@ -5,6 +5,15 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-05
+
+### Build & Distribution
+
+#### v1.0.38 — iOS now LIVE on the App Store (both stores live)
+- **iOS build 60 — APPROVED + LIVE on the App Store (2026-06-05).** Android versionCode 30 went live on Google Play 2026-06-04; with the iOS approval, **v1.0.38 is now LIVE on both stores.** Bundle shipped: A (upsell placement), B (manual card-edit), C (blueprint 404 cleanup), D (scanning guide), G (rate-limit softening). E (monthly→annual upsell) remains deferred to v1.0.39. Backend fixes (Class 74, blueprint write-through, BR 159 length) + migration 019 were already live independent of the app build.
+
+---
+
 ## 2026-06-04
 
 ### Build & Distribution

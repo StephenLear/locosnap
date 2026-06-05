@@ -163,6 +163,12 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "db class 628": "2026-05-24T22:30:00Z",
   "628.2": "2026-05-24T22:30:00Z",
   "628.4": "2026-05-24T22:30:00Z",
+  // EN57AKM: no KNOWN_SPECS key existed for this EN57 modernisation, so the AI
+  // returned vmax 160 km/h (wrong — EN57 family is 110 km/h). Added a 110 km/h
+  // KNOWN_SPECS override 2026-06-05 (flagged by Polish commenter Vampigator on
+  // the PL ad). Invalidate any pre-fix cached entry holding the wrong 160 value.
+  "en57akm": "2026-06-05T12:00:00Z",
+  "en57 akm": "2026-06-05T12:00:00Z",
 };
 
 function normaliseClass(className: string): string {

@@ -706,6 +706,15 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // EN57 family — modernisation refreshed traction electrics and interior, NOT the design speed.
   "en57ald": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised by Newag/Pesa", fuelType: "Electric (3 kV DC)" },
   "polregio en57ald": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised by Newag/Pesa", fuelType: "Electric (3 kV DC)" },
+  // EN57AKM — modernised EN57 variant. Added 2026-06-05 after Polish TikTok
+  // commenter Vampigator flagged the app returning vmax 160 km/h on an EN57AKM.
+  // Like every EN57 modernisation (AL / ALd / AKŁ / AKS / AKM), the rebuild
+  // refreshed traction/interior but NOT the design speed — the family stays at
+  // 110 km/h. There was no en57akm KNOWN_SPECS key, so the AI was free to
+  // hallucinate 160 (a Pendolino/Elf 2 figure). Power omitted (modernised units
+  // vary); maxSpeed is the disputed field.
+  "en57akm": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised", fuelType: "Electric (3 kV DC)" },
+  "en57 akm": { maxSpeed: "110 km/h", builder: "Pafawag (Wrocław) — modernised", fuelType: "Electric (3 kV DC)" },
   // CP Portuguese narrow-gauge railcar series (CP 9000 / 9020 / 9030 / 9600 / 9630) —
   // METRE GAUGE (1,000 mm), NOT standard 1,435 mm. Added 2026-04-29 after pafawag.w.obiektywie
   // round-2 + round-3 reported the gauge field returning 1,435 mm. These series operate on the
