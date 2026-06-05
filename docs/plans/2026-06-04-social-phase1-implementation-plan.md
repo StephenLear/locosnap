@@ -1,9 +1,25 @@
 # Implementation Plan — Social Phase 1 (opt-in public profiles)
 
-> Written 2026-06-04. Status: **PLAN ONLY — no code yet.** Build deferred to a later session.
-> Extends and supersedes the open-decisions section of `docs/plans/2026-06-03-social-spots-sharing-and-viewing.md`.
-> All privacy decisions are now LOCKED (see below). Code map grounded by a full exploration of the
-> current codebase on 2026-06-04.
+> Written 2026-06-04. Extends and supersedes the open-decisions section of
+> `docs/plans/2026-06-03-social-spots-sharing-and-viewing.md`. All privacy decisions LOCKED (see below).
+>
+> **STATUS 2026-06-05 — PAUSED mid-build (user out of time; resume when free):**
+> - **Migration `supabase/migrations/020_social_public_profiles.sql` is WRITTEN but NOT YET APPLIED to prod.**
+>   It adds `profiles.is_public` (default false) + two SECURITY DEFINER RPCs `get_public_profile(uuid)` and
+>   `get_public_collection(uuid,int,int)` — both `is_public`-guarded, both explicitly exclude lat/lng + photo_url.
+>   Column-audited against live schema (spots has blueprint_url/photo_url/lat/lng/spotted_at; profiles has
+>   country_code/spotter_emoji from 010). **TO RESUME: paste the file into the Supabase SQL editor, run it, then
+>   run the verification block at its bottom.** It is committed to the repo but is NOT auto-applied (Render does
+>   not run Supabase migrations).
+> - **Design decision made during the build (do not re-litigate without reason):** the RPC counts use TRUE totals
+>   (all spots, all distinct classes, true per-tier rare/epic/legendary distinct-class counts) — NOT the
+>   `leaderboard_rarity` view's epic/legendary-only inner join (which under-reports a profile's totals and
+>   mislabels rare_count). Per-spot `identity_override` is NOT applied in the public view (shows canonical class) —
+>   fine for Phase 1.
+> - **REMAINING WORK = the frontend only** (steps 1-8 in "Frontend changes" below): `is_public` toggle in Profile,
+>   pressable leaderboard rows, NEW `app/spotter/[id].tsx` grid screen, two RPC fetchers in `services/supabase.ts`,
+>   `PublicProfile`/`PublicCollectionItem` types, en/de/pl i18n, pure-logic tests. Ships in the next EAS build.
+> - Code map below was grounded 2026-06-04 — re-verify the cited line numbers before editing (files may have moved).
 
 ## What Phase 1 delivers
 
