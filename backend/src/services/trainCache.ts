@@ -101,6 +101,19 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "baureihe 159": "2026-06-05T23:59:00Z",
   "eurodual": "2026-06-05T23:59:00Z",
   "stadler eurodual": "2026-06-05T23:59:00Z",
+  // BR 140 / E 40: added a trainFacts.ts lock 2026-06-08 — the facts prose had
+  // NO BR 140 bullet and hallucinated the loco onto the Pressnitztalbahn 750 mm
+  // narrow-gauge heritage line (contradicting its own standard-gauge spec card).
+  // Structured KNOWN_SPECS were already correct; this invalidates pre-fix cached
+  // facts so the corrected mainline-freight narrative renders.
+  "140": "2026-06-08T23:59:00Z",
+  "br 140": "2026-06-08T23:59:00Z",
+  "br140": "2026-06-08T23:59:00Z",
+  "class 140": "2026-06-08T23:59:00Z",
+  "db class 140": "2026-06-08T23:59:00Z",
+  "baureihe 140": "2026-06-08T23:59:00Z",
+  "e 40": "2026-06-08T23:59:00Z",
+  "e40": "2026-06-08T23:59:00Z",
   // ÖBB 4020: builder was returning "Bombardier" + facts text claimed
   // "Siemens entwickelt und gebaut, 2009 in Betrieb". Correct: SGP / ELIN /
   // Siemens consortium, in-service 1978. Caught 2026-05-23 by a DACH commenter

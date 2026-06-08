@@ -5,6 +5,17 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-08
+
+### Backend
+
+#### `src/services/trainFacts.ts` + `src/services/trainCache.ts` — BR 140 facts-prose narrow-gauge hallucination
+- **Fixed (facts-layer leak) — BR 140 reveal prose hallucinated the loco onto the narrow-gauge Pressnitztalbahn heritage railway.** A live scan's "Facts & History" opening paragraph described the standard-gauge mainline BR 140 as *"preserved and operated by PRESS on the Pressnitztalbahn heritage railway… this charming narrow-gauge line"* — directly contradicting its own spec card (Standard 1,435 mm) and a later, correct paragraph in the same card that frames PRESS as a mainline freight operator. **Root cause:** `trainSpecs.ts` and `rarity.ts` both had solid BR 140 locks, but `trainFacts.ts` had **no BR 140 bullet at all**, so the free-form facts prose was unconstrained and conflated PRESS-the-750mm-museum-line (Pressnitztalbahn) with PRESS-the-standard-gauge-freight-operator (which runs ex-DB 140s on the national network). Same failure family as BR 114 / BR 628 / ÖBB 4020 / VR Sr1 (specs constrained by KNOWN_SPECS, prose drifts when no class-specific lock exists).
+- **Added** a `trainFacts.ts` BR 140 / E 40 bullet locking: West German Deutsche Bundesbahn Bo'Bo' **four-axle** mixed-traffic/freight loco, E 40 renumbered BR 140 in 1968, built 1957–1973 by Krauss-Maffei / Krupp / Henschel / SSW, 879 units, 110 km/h, 3,700 kW, 15 kV 16.7 Hz AC, **standard gauge 1,435 mm**. Forbids: narrow-gauge / Pressnitztalbahn-heritage / museum framing; six-axle/Co'Co'; Siemens-alone / EuroSprinter builder; modern three-phase AC traction; 1990s / post-reunification service entry; numberBuilt 186. Clarifies PRESS runs ex-DB 140s on the standard-gauge national freight network (distinct from the company's own 750 mm museum line).
+- **Added** 8 `CLASS_INVALIDATIONS` entries (`140`, `br 140`, `br140`, `class 140`, `db class 140`, `baureihe 140`, `e 40`, `e40`) at `2026-06-08T23:59:00Z` to flush pre-fix cached facts so the corrected mainline-freight narrative renders. No KNOWN_SPECS change needed (structured specs were already correct). tsc clean, 235/235 backend tests pass.
+
+---
+
 ## 2026-06-05
 
 ### Build & Distribution
