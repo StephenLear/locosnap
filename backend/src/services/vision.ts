@@ -78,6 +78,13 @@ If you can identify the railway vehicle, respond with ONLY valid JSON in this ex
   "description": "High Speed Train power car, the iconic InterCity 125"
 }
 
+OPERATOR FIELD — DEUTSCHE BAHN BUSINESS UNIT:
+For any Deutsche Bahn train, return the SPECIFIC DB business unit as the operator — NEVER the bare "DB" or "Deutsche Bahn". The ambiguous bare form fragments the collection: the same train then appears under several operator labels. Infer the unit from the service / vehicle type:
+- Long-distance high-speed / Intercity (ICE, IC, EC, ICE L) → "DB Fernverkehr"
+- Regional / suburban passenger (RE, RB, DB-run S-Bahn, regional EMUs/DMUs, double-deck regional push-pull) → "DB Regio"
+- Freight (freight-only loco classes, or any loco hauling freight wagons in DB red) → "DB Cargo"
+Only if the business unit genuinely cannot be inferred from the image should you fall back to "Deutsche Bahn". Use these EXACT strings: "DB Fernverkehr", "DB Regio", "DB Cargo" — not "DB Fernverkehr AG", not "Deutsche Bahn (DB Cargo)". (This applies only to Deutsche Bahn; private operators — DB Cargo's competitors, ÖBB, SBB, PKP, etc. — keep their own names.)
+
 CRITICAL PRE-FLIGHT CHECK — WHITE DB ICE TRAINS:
 If you are looking at a white DB ICE high-speed train, work through these steps in order before generating any output.
 
