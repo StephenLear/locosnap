@@ -134,7 +134,14 @@ const KNOWN_RARITY: Record<string, { tier: RarityTier; reason?: string }> = {
   "br 247": { tier: "uncommon" }, "baureihe 247": { tier: "uncommon" },
   "et22": { tier: "common" },
   "newag dragon": { tier: "uncommon" }, "e6act": { tier: "uncommon" }, "e6acta": { tier: "uncommon" },
-  "en57": { tier: "uncommon" }, "en57al": { tier: "uncommon" }, "en57akm": { tier: "uncommon" }, "en71": { tier: "uncommon" },
+  // EN57 family — ~60 active of 1,438 built (~4% surviving), being replaced by
+  // Newag Impuls / Pesa Elf 2. Locked "uncommon" per the forum-verified
+  // pafawag.w.obiektywie correction (2026-04-29); NOT "rare" (over-rare framing
+  // is also flagged by Polish spotters) and NOT "common". All sub-variants
+  // mirror the trainSpecs keys so none can swing to "common" by operator.
+  "en57": { tier: "uncommon" }, "en57al": { tier: "uncommon" }, "en57ald": { tier: "uncommon" },
+  "en57ak": { tier: "uncommon" }, "en57aks": { tier: "uncommon" }, "en57akł": { tier: "uncommon" }, "en57akm": { tier: "uncommon" },
+  "en71": { tier: "uncommon" },
   "dr18": { tier: "legendary" },
   "eu05": { tier: "legendary" }, "ep05": { tier: "legendary" }, "et21": { tier: "epic" },
   "class 69": { tier: "rare" },

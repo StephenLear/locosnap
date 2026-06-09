@@ -206,6 +206,20 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "34we": "2026-06-05T23:59:00Z",
   "34wea": "2026-06-05T23:59:00Z",
   "34weag": "2026-06-05T23:59:00Z",
+  // EN57 family rarity coverage completed 2026-06-09 (rarity.ts KNOWN_RARITY) —
+  // the 06-05 anchor locked en57 / en57al / en57akm to "uncommon" but added no
+  // invalidation for them, and the en57ak / en57aks / en57akł / en57ald / en71
+  // sub-variants had no rarity lock at all (could still swing to "common" by
+  // operator via the AI — exactly Foxiar's "too common" complaint). All family
+  // variants now locked "uncommon"; invalidate so any entry cached at the wrong
+  // tier re-renders. (en57akm already invalidated above for the 120 km/h fix.)
+  "en57": "2026-06-09T23:59:00Z",
+  "en57al": "2026-06-09T23:59:00Z",
+  "en57ald": "2026-06-09T23:59:00Z",
+  "en57ak": "2026-06-09T23:59:00Z",
+  "en57aks": "2026-06-09T23:59:00Z",
+  "en57akł": "2026-06-09T23:59:00Z",
+  "en71": "2026-06-09T23:59:00Z",
 };
 // Note: the `br 159` / `br159` keys already exist above (06-04 length fix) and were
 // bumped to 2026-06-05T23:59:00Z so the rarity anchor also refreshes their cache.

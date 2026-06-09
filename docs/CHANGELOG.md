@@ -5,6 +5,26 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-09
+
+### Backend
+
+#### `src/services/vision.ts` — two misID fixes (Class 59 vs Class 60; regional double-deck Dosto)
+- **Fixed (misID) — British Rail Class 59 returned as Class 60.** UK tester Steph scanned **59005 "Kenneth J Painter"** and the app returned "Class 60 / DC Rail". Class 59 had `KNOWN_SPECS` (since the 2026-05-09 Class-59→Class-66 misID) but **no vision rule**, so the class kept drifting (Class 66 then Class 60) and the correct specs never got looked up. Added a Class 59 vs Class 60 vs Class 66 disambiguation rule: decisive cue is the fleet number (`59xxx` = Class 59, EMD-built, never Class 60/66), 15 units across 59/0/59/1/59/2, operators GBRf + DB Cargo (never "DC Rail"), 59005 = "Kenneth J Painter". No spec/cache change — corrected vision now returns "Class 59" (fresh cache key) and the existing Class 59 `KNOWN_SPECS` applies.
+- **Fixed (misID) — regional double-deck push-pull (Dosto) returned as a self-powered diesel DMU.** Reproducing Dieselpower's report: a DB Regio double-deck RE9 Steuerwagen (Gießen, under catenary) was returned as a hallucinated **"DABpbzfa 762 — double-deck articulated diesel multiple unit"** (an earlier report had the same failure mode return "BR 648"). Added a German regional Doppelstock rule before the regional-EMU pre-flight check: a double-deck DB Regio RE/RB vehicle is a **loco-hauled push-pull set**, never a DMU, never BR 648 (single-deck diesel LINT 41); a DABpbzfa/DBpbzfa is an **unpowered control trailer** (never "powered car"/"self-propelled", never an invented double-deck DMU class number); identify the hauling loco if visible, else classify as "DB Doppelstockwagen (Dosto)" with fuelType Electric under catenary. No cache change (class string changes → fresh key). **Closes the public "Bau ich nach" promise to Dieselpower.** tsc clean, 263/263 backend tests.
+
+#### `src/services/operatorNames.ts` (NEW) + `src/services/vision.ts` — operator-string canonicalisation (cache + collection de-fragmentation)
+- **Added** a new `canonicaliseOperator()` module mirroring the existing `classNames.ts` pattern, wired into `parseTrainResponse()` in `vision.ts` (`operator: canonicaliseOperator(parsed.operator)`). Vision emits the same operator under multiple spellings ("DB Fernverkehr" / "Deutsche Bahn (DB Fernverkehr)" / "DB Fernverkehr AG"); because the cache key is `language::class::operator`, each spelling fragmented the 30-day Redis cache (re-running the full 4-call AI pipeline per label) and split the same train across multiple collection/leaderboard entries. Surfaced by the 2026-06-05 top-user spot audit (BR 412/403/182/185/103).
+- **Conservative by design (first slice):** exact-match allowlist only (whitespace-normalised, lowercased) — no fuzzy/substring rules, so it can never rewrite an operator it wasn't taught. Maps known DB Fernverkehr / DB Cargo (incl. legacy "Railion" / "DB Schenker Rail") / DB Regio spelling variants to one canonical form each. **Two hard safety rules:** (1) NEVER merges DB Cargo / Fernverkehr / Regio (distinct operators — merging would corrupt the leaderboard); (2) leaves the ambiguous bare "DB (Deutsche Bahn)" / "Deutsche Bahn" untouched (could be any DB arm). 28 new tests in `operatorNames.test.ts`. tsc clean, 263/263 backend tests.
+- **Still open (not done this slice):** retro-fixing existing fragmented `trains` rows in Supabase, and pushing the vision prompt to always emit the specific DB arm (so the ambiguous bare strings stop appearing). Both flagged for a decision.
+
+#### `src/services/rarity.ts` + `src/services/trainCache.ts` — EN57 family rarity coverage completed
+- **Fixed** EN57 sub-variants could still return "common" by operator. The 06-05 class-anchored rarity (`4785991`) locked only `en57` / `en57al` / `en57akm` / `en71` to "uncommon", but `trainSpecs.ts` covers seven EN57 variant keys — `en57ak`, `en57aks`, `en57akł`, `en57ald` had no rarity lock, so the AI could still tag them "common" depending on operator. This was Foxiar's "EN57 classified too common" report (logged 05-31, before class-anchoring shipped). **Added** the four missing sub-variants to `KNOWN_RARITY` at "uncommon", so no EN57 family member can swing to "common".
+- **Tier held at "uncommon", NOT bumped to "rare"** (Foxiar's ask): the current tier was set 2026-04-29 from a forum-verified primary source (pafawag.w.obiektywie, ~60 active of 1,438) and that rule explicitly warns against the over-rare framing Polish spotters also flag. Per the verify-before-overriding rule, not flipping a verified position on a single conflicting signal. One-line change to "rare" remains available if the product decision changes.
+- **Added** `CLASS_INVALIDATIONS` entries (`2026-06-09T23:59:00Z`) for the full EN57 family (`en57`, `en57al`, `en57ald`, `en57ak`, `en57aks`, `en57akł`, `en71`) — the 06-05 rarity ship locked these tiers but added no invalidation, so any entry cached at the wrong tier was still being served stale. (`en57akm` already invalidated 06-05 for the 120 km/h fix.) tsc clean, 263/263 backend tests.
+
+---
+
 ## 2026-06-08
 
 ### Backend
