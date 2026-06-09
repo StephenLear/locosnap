@@ -176,7 +176,7 @@ export async function getOfferings(): Promise<PurchasesOfferings | null> {
 
 export async function purchasePro(
   packageToPurchase: PurchasesPackage
-): Promise<boolean> {
+): Promise<boolean | "pending"> {
   if (!initialized) return false;
 
   try {
@@ -203,6 +203,16 @@ export async function purchasePro(
       return false;
     }
 
+    // Deferred payment (Google Play PENDING — cash/kiosk, slow bank transfer,
+    // card needing extra auth). NOT a failure: the purchase is processing and
+    // Pro is granted once it clears. Don't log as failed / capture to Sentry.
+    if (error.code === PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR) {
+      track("purchase_pending", {
+        product_id: packageToPurchase.product.identifier,
+      });
+      return "pending";
+    }
+
     track("purchase_failed", { error: error.message });
     captureError(error, { context: "purchasePro" });
     throw error;
@@ -213,7 +223,7 @@ export async function purchasePro(
 
 export async function purchaseBlueprintCredits(
   packageToPurchase: PurchasesPackage
-): Promise<boolean> {
+): Promise<boolean | "pending"> {
   if (!initialized) return false;
 
   try {
@@ -232,6 +242,13 @@ export async function purchaseBlueprintCredits(
   } catch (error: any) {
     if (error.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
       return false;
+    }
+
+    if (error.code === PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR) {
+      track("blueprint_credit_purchase_pending", {
+        product_id: packageToPurchase.product.identifier,
+      });
+      return "pending";
     }
 
     track("blueprint_credit_purchase_failed", { error: error.message });
@@ -304,7 +321,7 @@ export async function isLapsedProEligible(): Promise<boolean> {
 // plans available.
 export async function purchaseWinBackAnnual(
   option: SubscriptionOption
-): Promise<boolean> {
+): Promise<boolean | "pending"> {
   if (!initialized) return false;
 
   try {
@@ -323,6 +340,11 @@ export async function purchaseWinBackAnnual(
   } catch (error: any) {
     if (error.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
       return false;
+    }
+
+    if (error.code === PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR) {
+      track("winback_purchase_pending", { option_id: option.id });
+      return "pending";
     }
 
     track("winback_purchase_failed", { error: error.message });

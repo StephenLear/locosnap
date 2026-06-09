@@ -30,6 +30,7 @@ import {
 } from "../../services/supabase";
 import { PublicProfile, PublicCollectionItem, RarityTier } from "../../types";
 import { IdentityBadge } from "../../components/IdentityBadge";
+import { localiseClassName } from "../../utils/classDisplay";
 import { colors, fonts, spacing, borderRadius } from "../../constants/theme";
 
 const rarityColors: Record<RarityTier, string> = {
@@ -181,7 +182,7 @@ function Stat({
 }
 
 function SpotterCard({ item }: { item: PublicCollectionItem }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const tierColor = rarityColors[item.rarityTier] ?? rarityColors.common;
   return (
     <View style={[styles.card, { borderColor: tierColor }]}>
@@ -197,7 +198,7 @@ function SpotterCard({ item }: { item: PublicCollectionItem }) {
         )}
       </View>
       <Text style={styles.cardClass} numberOfLines={1}>
-        {item.class}
+        {localiseClassName(item.class, i18n.language)}
       </Text>
       {item.name ? (
         <Text style={styles.cardName} numberOfLines={1}>

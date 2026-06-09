@@ -15,6 +15,7 @@ import {
   Switch,
   TextInput,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -99,6 +100,7 @@ export default function ProfileScreen() {
     updateCountryCode,
     updateSpotterEmoji,
     updateProfilePublicity,
+    fetchProfile,
   } = useAuthStore();
 
   // ── Username edit modal state ────────────────────────────
@@ -188,8 +190,20 @@ export default function ProfileScreen() {
       setUsernameError(t(result.errorKey || "profile.usernameModal.errors.generic"));
     }
   };
-  const { history } = useTrainStore();
+  const { history, loadHistory } = useTrainStore();
   const { language, setLanguage } = useSettingsStore();
+
+  // Pull-to-refresh — manual escape hatch for the "stats look wrong"
+  // (silently-expired JWT) case: re-pulls the cloud collection + profile.
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([loadHistory(), user ? fetchProfile() : Promise.resolve()]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleLanguageToggle = async () => {
     const next = language === "en" ? "de" : "en";
@@ -343,6 +357,13 @@ export default function ProfileScreen() {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          tintColor={colors.accent}
+        />
+      }
     >
       {/* ── Pro expiring-soon banner (Pro ≤7d non-renewing only) ──
           Self-gates; hides for all other users. Mounted above the

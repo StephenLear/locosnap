@@ -1048,6 +1048,17 @@ export async function fetchRarityLeaderboard(
   }));
 }
 
+/** Refresh the Supabase auth session. Used to recover from a silently
+ *  expired JWT before trusting an empty authenticated fetch (the
+ *  "1 spot instead of 241" profile-stats bug). Non-fatal on failure. */
+export async function refreshAuthSession(): Promise<void> {
+  try {
+    await supabase.auth.refreshSession();
+  } catch {
+    // Non-fatal — caller falls back to whatever the fetch returns.
+  }
+}
+
 // ── Social Phase 1: opt-in public profiles (read-only) ──────
 // Pure snake_case → camelCase mappers (unit-tested) + the two RPC
 // fetchers. Both fetchers degrade gracefully if the RPCs are not yet

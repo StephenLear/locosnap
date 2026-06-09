@@ -23,6 +23,7 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { localiseClassName } from "../utils/classDisplay";
 import { Ionicons } from "@expo/vector-icons";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
@@ -99,7 +100,7 @@ const rarityEmoji: Record<RarityTier, string> = {
 
 export default function CardRevealScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // History mode: when navigated with a `historyId` param, the card-reveal
   // screen renders an existing spot instead of the most-recent fresh scan.
@@ -829,7 +830,7 @@ export default function CardRevealScreen() {
               {/* Card info area */}
               <View style={styles.cardInfoArea}>
                 <Text style={styles.cardClass} numberOfLines={1}>
-                  {currentTrain.class}
+                  {localiseClassName(currentTrain.class, i18n.language)}
                 </Text>
                 {currentTrain.name && (
                   <Text style={[styles.cardName, { color: rarityColor }]} numberOfLines={1}>

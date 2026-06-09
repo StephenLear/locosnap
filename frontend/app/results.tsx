@@ -15,6 +15,7 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { localiseClassName } from "../utils/classDisplay";
 import { useTrainStore } from "../store/trainStore";
 import { useAuthStore } from "../store/authStore";
 import { RarityTier, BlueprintStyle, BLUEPRINT_STYLES } from "../types";
@@ -59,7 +60,7 @@ function SpecRow({
 
 // ── Main Results Screen ─────────────────────────────────
 export default function ResultsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
 
   const getRarityLabel = (tier: string) => {
@@ -196,7 +197,7 @@ export default function ResultsScreen() {
       <View style={styles.identityCard}>
         <View style={styles.identityHeader}>
           <View style={styles.identityInfo}>
-            <Text style={styles.trainClass}>{currentTrain.class}</Text>
+            <Text style={styles.trainClass}>{localiseClassName(currentTrain.class, i18n.language)}</Text>
             {currentTrain.name && (
               <Text style={styles.trainName}>"{currentTrain.name}"</Text>
             )}

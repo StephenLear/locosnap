@@ -45,6 +45,7 @@ import {
   AchievementType,
   deleteSpot,
   updateSpotIdentity,
+  refreshAuthSession,
 } from "../services/supabase";
 import { useAuthStore } from "./authStore";
 import { RarityTier, ACHIEVEMENT_DEFINITIONS } from "../types";
@@ -274,7 +275,17 @@ export const useTrainStore = create<TrainState>((set, get) => ({
     // pure cloud-replace strategy is when persistence quietly fails.
     set({ isSyncing: true });
     try {
-      const cloudSpots = await fetchSpots(auth.user.id, MAX_HISTORY);
+      let cloudSpots = await fetchSpots(auth.user.id, MAX_HISTORY);
+
+      // Guard the "1 spot instead of 241" bug: a silently-expired JWT makes
+      // the authenticated fetch return ZERO rows (RLS denies, no throw), which
+      // would collapse the collection to local-only scans. If we got nothing
+      // back but the device has local history, the session is the likely
+      // culprit — refresh it and retry ONCE before trusting the empty result.
+      if (cloudSpots.length === 0 && local.length > 0) {
+        await refreshAuthSession();
+        cloudSpots = await fetchSpots(auth.user.id, MAX_HISTORY);
+      }
 
       // Local-only = id doesn't look like a UUID (UUIDs are 36 chars
       // with dashes). Excludes anything we know reached the cloud.

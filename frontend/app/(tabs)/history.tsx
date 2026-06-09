@@ -20,6 +20,7 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { localiseClassName } from "../../utils/classDisplay";
 import { useTrainStore } from "../../store/trainStore";
 import { useAuthStore } from "../../store/authStore";
 import { HistoryItem, RarityTier } from "../../types";
@@ -220,12 +221,13 @@ function HistoryCard({
   onDelete: () => void;
   spotCount: number;
 }) {
+  const { i18n } = useTranslation();
   const rarityColor = rarityColors[item.rarity.tier];
 
   // Manual card-edit (v1.0.38): a per-spot identity override shadows the
   // train identity at display time only (rarity/leaderboard unaffected).
   const ov = item.identityOverride;
-  const displayClass = ov?.class ?? item.train.class;
+  const displayClass = localiseClassName(ov?.class ?? item.train.class, i18n.language);
   const displayName = ov?.class ? ov.name ?? null : item.train.name;
   const displayOperator = ov?.operator ?? item.train.operator;
   const displayType = ov?.type ?? item.train.type;

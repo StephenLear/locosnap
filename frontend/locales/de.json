@@ -403,7 +403,9 @@
         "body": "Unbegrenzte Scans, Karten und Blueprints",
         "cta": "Pro entdecken"
       }
-    }
+    },
+    "pendingTitle": "Zahlung wird verarbeitet",
+    "pendingBody": "Deine Zahlung wird gerade verarbeitet. Du bekommst den Zugang, sobald sie abgeschlossen ist — kein erneuter Kauf nötig."
   },
   "compare": {
     "emptyText": "Keine Züge zum Vergleichen ausgewählt",

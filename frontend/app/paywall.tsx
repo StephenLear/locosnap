@@ -269,9 +269,13 @@ export default function PaywallScreen() {
     setError(null);
 
     try {
-      const success = await purchaseWinBackAnnual(winBackOption);
+      const result = await purchaseWinBackAnnual(winBackOption);
 
-      if (success) {
+      if (result === "pending") {
+        Alert.alert(t("paywall.pendingTitle"), t("paywall.pendingBody"), [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else if (result === true) {
         if (user) {
           await syncProStatus(user.id);
           await fetchProfile();
@@ -318,9 +322,13 @@ export default function PaywallScreen() {
     setError(null);
 
     try {
-      const success = await purchasePro(selectedPackage);
+      const result = await purchasePro(selectedPackage);
 
-      if (success) {
+      if (result === "pending") {
+        Alert.alert(t("paywall.pendingTitle"), t("paywall.pendingBody"), [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else if (result === true) {
         // Sync pro status with Supabase
         if (user) {
           await syncProStatus(user.id);
@@ -390,9 +398,13 @@ export default function PaywallScreen() {
     setError(null);
 
     try {
-      const success = await purchaseBlueprintCredits(creditPackage);
+      const result = await purchaseBlueprintCredits(creditPackage);
 
-      if (success) {
+      if (result === "pending") {
+        Alert.alert(t("paywall.pendingTitle"), t("paywall.pendingBody"), [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else if (result === true) {
         if (user) {
           await fetchProfile();
         }

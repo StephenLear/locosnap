@@ -411,7 +411,9 @@
         "body": "Nielimitowane skany, karty i plany",
         "cta": "Zobacz Pro"
       }
-    }
+    },
+    "pendingTitle": "Płatność w toku",
+    "pendingBody": "Twoja płatność jest przetwarzana. Dostęp otrzymasz, gdy tylko zostanie zaksięgowana — nie kupuj ponownie."
   },
   "rarity": {
     "common": "Pospolity",

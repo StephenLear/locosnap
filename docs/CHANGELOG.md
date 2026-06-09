@@ -21,6 +21,18 @@ Format: newest first within each date block.
 - `__tests__/services.publicProfile.test.ts` (NEW) — mapper + graceful-degradation tests. tsc clean, **228/228 frontend tests** (26 suites).
 - **Depends on migration 020** (`profiles.is_public` + the two RPCs) being applied to prod before the feature does anything; until then every public view safely shows the "private" state. Ships in the next EAS build.
 
+#### `services/purchases.ts` + `app/paywall.tsx` — handle RevenueCat PAYMENT_PENDING (deferred payment)
+- **Fixed** a Google Play deferred-payment (PENDING — cash/kiosk, slow bank transfer, card needing extra auth) being logged as a failure and shown to the user as "Purchase failed. Please try again." (Sentry-caught on v1.0.38). The three purchase handlers (`purchasePro`, `purchaseBlueprintCredits`, `purchaseWinBackAnnual`) now branch on `PAYMENT_PENDING_ERROR` → return `"pending"` (widened return to `boolean | "pending"`), do NOT track `purchase_failed` or capture to Sentry. Paywall shows a friendly "payment processing — you'll get access once it clears" Alert (new `paywall.pendingTitle`/`pendingBody`, EN/DE/PL) instead of the failure copy. Call sites tightened to `=== true` so `"pending"` never triggers the success path.
+
+#### `store/trainStore.ts` + `services/supabase.ts` + `app/(tabs)/profile.tsx` — Profile-stats robustness ("1 spot instead of 241")
+- **Fixed** the silently-expired-JWT data-loss-looking bug: an expired session made the authenticated `fetchSpots` return zero rows (RLS denies, no throw), collapsing the collection to local-only scans. `loadHistory` now, when the cloud returns empty **but** the device has local history, calls a new `refreshAuthSession()` helper and retries `fetchSpots` ONCE before trusting the empty result. (Sentry capture in `loadHistory` was already shipped.)
+- **Added** pull-to-refresh on the Profile screen (`RefreshControl` → re-pulls `loadHistory()` + `fetchProfile()`) as a manual escape hatch when stats look wrong.
+
+#### `utils/classDisplay.ts` (NEW) + results / card-reveal / history / spotter screens — German "Class" → "Baureihe" display
+- **Added** a pure, DE-only display transform (`localiseClassName`): for `de` locale, "BR 218" → "Baureihe 218" and "DB Class 218" → "DB Baureihe 218" (BR *is* the German Baureihe abbreviation; the DB prefix proves German). Conservative — UK "Class 37", PL "Newag Dragon", "ICE 3", "ÖBB 1116" are untouched; non-`de` locales pass through. Applied at the four class-display sites (results, card-reveal, history row, spotter card). Source: Timmi (BR 218 ad, 06-07). New test `__tests__/utils/classDisplay.test.ts`. (PL conventions deferred to a later pass.)
+- **Note:** the PL-annual-default paywall item is already satisfied — `findDefaultIndex` defaults to the annual plan for all locales since the 2026-06-04 annual-first reprice; no PL-specific change needed.
+- tsc clean, **245/245 frontend tests** (27 suites). All four items ship in the next EAS build alongside Social Phase 1.
+
 ### Backend
 
 #### `src/services/vision.ts` — two misID fixes (Class 59 vs Class 60; regional double-deck Dosto)

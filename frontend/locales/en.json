@@ -403,7 +403,9 @@
         "body": "Unlimited scans, cards, and blueprints",
         "cta": "See Pro"
       }
-    }
+    },
+    "pendingTitle": "Payment processing",
+    "pendingBody": "Your payment is being processed. You'll get access as soon as it clears — no need to buy again."
   },
   "rarity": {
     "common": "Common",
