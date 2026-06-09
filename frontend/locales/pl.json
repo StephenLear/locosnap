@@ -513,6 +513,19 @@
     "addAccount": "Dodaj konto, aby synchronizować urządzenia",
     "save": "Zapisz",
     "cancel": "Anuluj",
-    "badgePlaceholder": "Ustaw flagę + emoji"
+    "badgePlaceholder": "Ustaw flagę + emoji",
+    "publicLabel": "Udostępnij moją kolekcję",
+    "publicHelper": "Inni zobaczą Twoje klasy i rzadkość — nigdy Twoją lokalizację."
+  },
+  "spotter": {
+    "title": "Spotter",
+    "private": "Kolekcja tego obserwatora jest prywatna.",
+    "empty": "Brak okazów w tej kolekcji.",
+    "error": "Nie udało się załadować kolekcji. Spróbuj ponownie później.",
+    "spots": "Okazy",
+    "classes": "Klasy",
+    "rare": "Rzadkie",
+    "epic": "Epickie",
+    "legendary": "Legendarne"
   }
 }

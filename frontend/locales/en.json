@@ -503,6 +503,19 @@
     "addAccount": "Add account to sync across devices",
     "save": "Save",
     "cancel": "Cancel",
-    "badgePlaceholder": "Set flag + emoji"
+    "badgePlaceholder": "Set flag + emoji",
+    "publicLabel": "Make my collection public",
+    "publicHelper": "Others can see your classes & rarity — never your location."
+  },
+  "spotter": {
+    "title": "Spotter",
+    "private": "This spotter's collection is private.",
+    "empty": "No spots in this collection yet.",
+    "error": "Couldn't load this collection. Try again later.",
+    "spots": "Spots",
+    "classes": "Classes",
+    "rare": "Rare",
+    "epic": "Epic",
+    "legendary": "Legendary"
   }
 }

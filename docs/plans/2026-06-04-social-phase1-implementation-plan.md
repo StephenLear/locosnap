@@ -3,6 +3,15 @@
 > Written 2026-06-04. Extends and supersedes the open-decisions section of
 > `docs/plans/2026-06-03-social-spots-sharing-and-viewing.md`. All privacy decisions LOCKED (see below).
 >
+> **STATUS 2026-06-09 — FRONTEND BUILT (steps 1-8 complete). Migration 020 still NOT applied.**
+> All eight frontend changes shipped: `is_public` toggle (authStore `updateProfilePublicity` + Profile modal Switch),
+> pressable leaderboard rows (MyLeague/Country/Collection), NEW `app/spotter/[id].tsx` + route registration,
+> `fetchPublicProfile`/`fetchPublicCollection` + pure mappers, `PublicProfile`/`PublicCollectionItem` types,
+> en/de/pl i18n, and `__tests__/services.publicProfile.test.ts`. tsc clean, 228/228 frontend tests. Fetchers
+> degrade gracefully (42883/PGRST202 → "private") so the build is SAFE before the migration lands. **REMAINING:
+> apply `020_social_public_profiles.sql` to prod (SQL editor), then ship the next EAS build + run the manual
+> verification (step 3 below).** Original PAUSED note retained below for history.
+>
 > **STATUS 2026-06-05 — PAUSED mid-build (user out of time; resume when free):**
 > - **Migration `supabase/migrations/020_social_public_profiles.sql` is WRITTEN but NOT YET APPLIED to prod.**
 >   It adds `profiles.is_public` (default false) + two SECURITY DEFINER RPCs `get_public_profile(uuid)` and

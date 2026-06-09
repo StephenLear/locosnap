@@ -343,6 +343,14 @@ function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="spotter/[id]"
+            options={{
+              title: "",
+              presentation: "modal",
+              headerBackTitle: "Back",
+            }}
+          />
+          <Stack.Screen
             name="paywall"
             options={{
               presentation: "modal",

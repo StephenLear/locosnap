@@ -12,6 +12,9 @@ import {
   HistoryItem,
   SpotIdentityOverride,
   VerificationTier,
+  PublicProfile,
+  PublicCollectionItem,
+  RarityTier,
 } from "../types";
 import * as FileSystem from "expo-file-system/legacy";
 import { decode } from "base64-arraybuffer";
@@ -1045,6 +1048,84 @@ export async function fetchRarityLeaderboard(
   }));
 }
 
+// ── Social Phase 1: opt-in public profiles (read-only) ──────
+// Pure snake_case → camelCase mappers (unit-tested) + the two RPC
+// fetchers. Both fetchers degrade gracefully if the RPCs are not yet
+// in the schema (42883 / PGRST202) — so the app is safe before
+// migration 020 is applied: a missing RPC reads as "private/empty",
+// never a crash.
+
+export function mapPublicProfile(row: any): PublicProfile {
+  return {
+    userId: row.user_id,
+    username: row.username || "Anonymous Spotter",
+    countryCode: row.country_code ?? null,
+    spotterEmoji: row.spotter_emoji ?? null,
+    level: row.level ?? 1,
+    totalSpots: Number(row.total_spots ?? 0),
+    uniqueClasses: Number(row.unique_classes ?? 0),
+    rareCount: Number(row.rare_count ?? 0),
+    epicCount: Number(row.epic_count ?? 0),
+    legendaryCount: Number(row.legendary_count ?? 0),
+  };
+}
+
+export function mapPublicCollectionItem(row: any): PublicCollectionItem {
+  return {
+    spotId: row.spot_id,
+    trainId: row.train_id,
+    class: row.class ?? "",
+    name: row.name ?? null,
+    operator: row.operator ?? "",
+    type: row.type ?? "",
+    designation: row.designation ?? "",
+    rarityTier: (row.rarity_tier ?? "common") as RarityTier,
+    blueprintUrl: row.blueprint_url ?? null,
+    spottedAt: row.spotted_at,
+  };
+}
+
+/** Fetch another spotter's public profile header + counts. Null if the
+ *  user is private, not found, or the RPC isn't deployed yet. */
+export async function fetchPublicProfile(
+  userId: string
+): Promise<PublicProfile | null> {
+  const { data, error } = await supabase.rpc("get_public_profile", {
+    target_user_id: userId,
+  });
+  if (error) {
+    if (error.code !== "42883" && error.code !== "PGRST202") {
+      console.warn("Failed to fetch public profile:", error.message);
+    }
+    return null;
+  }
+  if (!data || (Array.isArray(data) && data.length === 0)) return null;
+  const row = Array.isArray(data) ? data[0] : data;
+  return mapPublicProfile(row);
+}
+
+/** Fetch another spotter's public collection (newest first). Empty if the
+ *  user is private, has no spots, or the RPC isn't deployed yet. NO
+ *  location / photo fields are ever returned by the RPC. */
+export async function fetchPublicCollection(
+  userId: string,
+  limit: number = 50,
+  offset: number = 0
+): Promise<PublicCollectionItem[]> {
+  const { data, error } = await supabase.rpc("get_public_collection", {
+    target_user_id: userId,
+    p_limit: limit,
+    p_offset: offset,
+  });
+  if (error) {
+    if (error.code !== "42883" && error.code !== "PGRST202") {
+      console.warn("Failed to fetch public collection:", error.message);
+    }
+    return [];
+  }
+  return (data || []).map(mapPublicCollectionItem);
+}
+
 // ── Identity (country flag + spotter emoji + onboarding flag) ──
 
 export interface IdentityUpdates {
@@ -1120,8 +1201,6 @@ export async function fetchRegionalLeaderboard(
 }
 
 // ── XP System ───────────────────────────────────────────────
-
-import { RarityTier } from "../types";
 
 /** XP awarded per spot, scaled by rarity. First-of-class = 2x. */
 const XP_PER_RARITY: Record<RarityTier, number> = {

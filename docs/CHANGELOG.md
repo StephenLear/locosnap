@@ -7,6 +7,20 @@ Format: newest first within each date block.
 
 ## 2026-06-09
 
+### Frontend
+
+#### Social Phase 1 — view other spotters' public collections (read-only, opt-in)
+- **Added** the full frontend for the "view other people's spots" feature (per [the implementation plan](plans/2026-06-04-social-phase1-implementation-plan.md)). A signed-in user can tap any spotter on a leaderboard row and see that spotter's public collection — classes, rarity, blueprints — only if they opted in. **No location, no user photos, ever** (privacy posture P-A; the RPCs never return those fields).
+- `store/authStore.ts` — `is_public?` on `Profile`; new `updateProfilePublicity(value)` action (optimistic local set + `profiles.update`).
+- `types/index.ts` — new `PublicProfile` + `PublicCollectionItem` (defined fresh — never extend `HistoryItem`, which carries lat/lng).
+- `services/supabase.ts` — `fetchPublicProfile` / `fetchPublicCollection` calling the `get_public_profile` / `get_public_collection` RPCs, plus pure `mapPublicProfile` / `mapPublicCollectionItem` mappers. Both fetchers **degrade gracefully** if the RPCs aren't deployed (42883 / PGRST202) → read as "private/empty", never a crash — so the build is safe before migration 020 is applied.
+- `app/(tabs)/profile.tsx` — "Make my collection public" `Switch` in the identity-edit modal (signed-in only) + helper text ("Others can see your classes & rarity — never your location"), wired through `handleSaveIdentity`.
+- `components/leaderboard/{MyLeagueTab,CountryTab,CollectionTab}.tsx` — each leaderboard row is now a `Pressable` → `/spotter/[id]`.
+- `app/spotter/[id].tsx` (NEW) + route registration in `app/_layout.tsx` — header (flag + emoji + username + stat row) and a rarity-coloured 2-column card grid. States: loading, self-view (redirect to own Profile), private, empty, error. Cards are non-interactive previews (do not open owner-gated `card-reveal`).
+- `locales/{en,de,pl}.json` — `identityModal.public*` + a `spotter.*` namespace (DE/PL terms aligned with existing leaderboard wording; umlauts/diacritics verified).
+- `__tests__/services.publicProfile.test.ts` (NEW) — mapper + graceful-degradation tests. tsc clean, **228/228 frontend tests** (26 suites).
+- **Depends on migration 020** (`profiles.is_public` + the two RPCs) being applied to prod before the feature does anything; until then every public view safely shows the "private" state. Ships in the next EAS build.
+
 ### Backend
 
 #### `src/services/vision.ts` — two misID fixes (Class 59 vs Class 60; regional double-deck Dosto)

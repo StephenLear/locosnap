@@ -503,6 +503,19 @@
     "addAccount": "Konto hinzufügen, um geräteübergreifend zu synchronisieren",
     "save": "Speichern",
     "cancel": "Abbrechen",
-    "badgePlaceholder": "Flagge + Emoji setzen"
+    "badgePlaceholder": "Flagge + Emoji setzen",
+    "publicLabel": "Sammlung öffentlich machen",
+    "publicHelper": "Andere sehen deine Klassen & Seltenheit — niemals deinen Standort."
+  },
+  "spotter": {
+    "title": "Spotter",
+    "private": "Die Sammlung dieses Spotters ist privat.",
+    "empty": "Noch keine Funde in dieser Sammlung.",
+    "error": "Sammlung konnte nicht geladen werden. Versuch es später nochmal.",
+    "spots": "Funde",
+    "classes": "Klassen",
+    "rare": "Selten",
+    "epic": "Episch",
+    "legendary": "Legendär"
   }
 }

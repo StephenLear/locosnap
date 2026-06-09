@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -23,6 +24,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { router } from "expo-router";
 import { useAuthStore } from "../../store/authStore";
 import {
   fetchLeagueRankings,
@@ -249,7 +251,10 @@ function LeagueRow({
   featuredPhotoUrl: string | null;
 }) {
   return (
-    <View style={[styles.row, isMe && styles.rowMe]}>
+    <Pressable
+      onPress={() => row.userId && router.push(`/spotter/${row.userId}`)}
+      style={({ pressed }) => [styles.row, isMe && styles.rowMe, pressed && styles.rowPressed]}
+    >
       <Text style={[styles.rank, isMe && styles.rankMe]}>{rank}</Text>
       <View style={styles.rowMeta}>
         <View style={styles.usernameLine}>
@@ -275,13 +280,14 @@ function LeagueRow({
           <Ionicons name="image-outline" size={18} color={colors.textMuted} />
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
 // ── Styles ───────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  rowPressed: { opacity: 0.6 },
   center: {
     flex: 1,
     justifyContent: "center",

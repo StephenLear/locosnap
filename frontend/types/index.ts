@@ -303,3 +303,35 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     color: "#0d9488",
   },
 ];
+
+// ── Social Phase 1: opt-in public profiles (read-only) ──────
+// Camel-cased mirrors of the get_public_profile / get_public_collection
+// RPCs (migration 020). Defined fresh — NEVER extend HistoryItem, which
+// carries latitude/longitude. The public surface has NO location and NO
+// user photo by design (privacy posture P-A).
+
+export interface PublicProfile {
+  userId: string;
+  username: string;
+  countryCode: string | null;
+  spotterEmoji: string | null;
+  level: number;
+  totalSpots: number;
+  uniqueClasses: number;
+  rareCount: number;
+  epicCount: number;
+  legendaryCount: number;
+}
+
+export interface PublicCollectionItem {
+  spotId: string;
+  trainId: string;
+  class: string;
+  name: string | null;
+  operator: string;
+  type: string;
+  designation: string;
+  rarityTier: RarityTier;
+  blueprintUrl: string | null;
+  spottedAt: string;
+}

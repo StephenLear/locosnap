@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
+import { router } from "expo-router";
 import { useAuthStore } from "../../store/authStore";
 import { useLeaderboardStore } from "../../store/leaderboardStore";
 import {
@@ -197,7 +198,10 @@ function CountryRow({
   statLabel: string;
 }) {
   return (
-    <View style={[styles.row, isMe && styles.rowMe]}>
+    <Pressable
+      onPress={() => row.id && router.push(`/spotter/${row.id}`)}
+      style={({ pressed }) => [styles.row, isMe && styles.rowMe, pressed && styles.rowPressed]}
+    >
       <Text style={[styles.rank, isMe && styles.rankMe]}>{rank}</Text>
       <View style={styles.rowMeta}>
         <View style={styles.usernameLine}>
@@ -214,12 +218,13 @@ function CountryRow({
           {statValue} {statLabel}
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  rowPressed: { opacity: 0.6 },
   pillScroll: {
     flexGrow: 0,
     maxHeight: 56,

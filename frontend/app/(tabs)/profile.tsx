@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
+  Switch,
   TextInput,
   ActivityIndicator,
 } from "react-native";
@@ -97,6 +98,7 @@ export default function ProfileScreen() {
     updateUsername,
     updateCountryCode,
     updateSpotterEmoji,
+    updateProfilePublicity,
   } = useAuthStore();
 
   // ── Username edit modal state ────────────────────────────
@@ -109,6 +111,7 @@ export default function ProfileScreen() {
   const [identityModalVisible, setIdentityModalVisible] = useState(false);
   const [draftCountry, setDraftCountry] = useState<string | null>(null);
   const [draftEmoji, setDraftEmoji] = useState<string | null>(null);
+  const [draftPublic, setDraftPublic] = useState(false);
   const [identitySaving, setIdentitySaving] = useState(false);
 
   // ── Country-flag backfill banner (legacy users without country_code) ──
@@ -131,6 +134,7 @@ export default function ProfileScreen() {
   const handleOpenIdentityModal = () => {
     setDraftCountry(profile?.country_code ?? null);
     setDraftEmoji(profile?.spotter_emoji ?? null);
+    setDraftPublic(profile?.is_public ?? false);
     setIdentityModalVisible(true);
   };
 
@@ -142,6 +146,9 @@ export default function ProfileScreen() {
       }
       if (draftEmoji && draftEmoji !== profile?.spotter_emoji) {
         await updateSpotterEmoji(draftEmoji);
+      }
+      if (draftPublic !== (profile?.is_public ?? false)) {
+        await updateProfilePublicity(draftPublic);
       }
       setIdentityModalVisible(false);
     } finally {
@@ -795,6 +802,22 @@ export default function ProfileScreen() {
             />
           </View>
 
+          {session && (
+            <View style={styles.publicToggleRow}>
+              <View style={styles.publicToggleText}>
+                <Text style={styles.identitySectionLabel}>{t("identityModal.publicLabel")}</Text>
+                <Text style={styles.publicToggleHelper}>{t("identityModal.publicHelper")}</Text>
+              </View>
+              <Switch
+                value={draftPublic}
+                onValueChange={setDraftPublic}
+                trackColor={{ true: colors.accent, false: colors.surfaceHighlight }}
+                thumbColor="#fff"
+                accessibilityLabel={t("identityModal.publicLabel")}
+              />
+            </View>
+          )}
+
           {!session && (
             <TouchableOpacity
               style={styles.addAccountLink}
@@ -1432,6 +1455,22 @@ const styles = StyleSheet.create({
   },
   identityEmojiContainer: {
     height: 220,
+  },
+  publicToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    gap: spacing.md,
+  },
+  publicToggleText: {
+    flex: 1,
+  },
+  publicToggleHelper: {
+    fontSize: fonts.sizes.xs,
+    color: colors.textMuted,
+    paddingHorizontal: spacing.md,
   },
   addAccountLink: {
     marginTop: spacing.md,

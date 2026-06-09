@@ -32,6 +32,7 @@ export interface Profile {
   region: string | null;
   country_code: string | null;
   spotter_emoji: string | null;
+  is_public?: boolean;
   has_completed_identity_onboarding: boolean;
   featured_spot_id?: string | null;
   streak_freezes_available?: number;
@@ -60,6 +61,7 @@ interface AuthState {
   addBlueprintCredits: (amount: number) => Promise<void>;
   updateCountryCode: (code: string) => Promise<void>;
   updateSpotterEmoji: (emojiId: string) => Promise<void>;
+  updateProfilePublicity: (value: boolean) => Promise<void>;
   markIdentityOnboardingComplete: () => Promise<void>;
 }
 
@@ -440,6 +442,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           if (error) addBreadcrumb("auth", "updateSpotterEmoji Supabase failed");
         })
         .catch(() => addBreadcrumb("auth", "updateSpotterEmoji Supabase threw"));
+    }
+  },
+
+  updateProfilePublicity: async (value: boolean) => {
+    const { profile, session } = get();
+    if (profile) {
+      set({ profile: { ...profile, is_public: value } });
+    }
+    if (session?.user?.id) {
+      supabase
+        .from("profiles")
+        .update({ is_public: value })
+        .eq("id", session.user.id)
+        .then(({ error }) => {
+          if (error) addBreadcrumb("auth", "updateProfilePublicity Supabase failed");
+        });
     }
   },
 
