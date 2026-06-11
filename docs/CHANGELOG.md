@@ -20,8 +20,9 @@ Format: newest first within each date block.
 - **Verified** 3 steps with Stephen's own account (`15f0c12a…`): (1) `get_public_profile` → 1 row, true counts (117 spots / 69 classes / 16 rare / 8 epic / 7 legendary); (2) `get_public_collection` → 49 rows newest-first, ONLY the 10 public-safe columns — no lat/lng/photo_url; (3) `is_public=false` → zero rows from both RPCs. Flag left `false` post-test. Social Phase 1 fully unblocked.
 - Migration 021 (operator retro-fix) deliberately NOT applied — destructive, separate diagnostic-first walkthrough.
 
-#### EAS — v1.0.39 production builds FINISHED (not yet submitted)
-- iOS build 61 (`db0e7abb`) + Android versionCode 31 (`a60bd6a8`), both from commit `f698b79`, finished ~25 min after trigger. Carries Social Phase 1 + PAYMENT_PENDING + profile-stats robustness + DE Baureihe. Store submission pending decision.
+#### EAS — v1.0.39 production builds FINISHED + SUBMITTED both stores
+- iOS build 61 (`db0e7abb`) + Android versionCode 31 (`a60bd6a8`), both from commit `f698b79`, finished ~25 min after trigger. Carries Social Phase 1 + PAYMENT_PENDING + profile-stats robustness + DE Baureihe.
+- **Submitted same evening** via `eas submit --latest` (iOS submission `0f8314e1`, Android `db350246`). Apple: binary processed, release notes pasted, **IN REVIEW**. Play: draft created per `eas.json` `releaseStatus: draft`, notes pasted, **pre-launch checks running** — rollout start pending.
 
 ### Docs
 
