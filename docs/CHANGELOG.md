@@ -5,6 +5,21 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-11
+
+### Frontend
+
+#### `frontend/app.json` — version bump 1.0.38 → 1.0.39
+- **Changed** `expo.version` from `1.0.38` to `1.0.39` for the next EAS production build (Social Phase 1 + PAYMENT_PENDING + profile-stats robustness + DE Baureihe, all committed 2026-06-09). 1.0.38 (iOS build 60) is already live on both stores, so submitting without a bump would be auto-rejected (ITMS-90186/90062). Build numbers auto-increment on EAS (`appVersionSource: remote` + `autoIncrement`); only the version string needs the manual bump.
+- Pre-build verification run 2026-06-11: frontend 245/245 tests + tsc clean, backend 263/263 + tsc clean, git clean/synced with origin, latest iOS EAS build confirmed 1.0.38 build 60.
+
+### Docs
+
+#### `docs/release-notes-v1.0.39.md` (NEW) — EN/DE/PL release notes for v1.0.39
+- **Added** store release notes (all under 500 chars for Play parity; bug fixes first per `feedback_release_notes_order.md`): pending-payment fix, profile-stats fix, Social Phase 1 public collections; DE notes additionally carry the "Baureihe" display line (DE-only change, omitted from EN/PL). Includes pre-submission reminders: **migration 020 must be applied before store rollout** (Social toggle writes `profiles.is_public`), EULA-link check for Apple, Play draft-rollout steps.
+
+---
+
 ## 2026-06-09
 
 ### Frontend
