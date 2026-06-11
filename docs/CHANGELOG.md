@@ -13,6 +13,16 @@ Format: newest first within each date block.
 - **Changed** `expo.version` from `1.0.38` to `1.0.39` for the next EAS production build (Social Phase 1 + PAYMENT_PENDING + profile-stats robustness + DE Baureihe, all committed 2026-06-09). 1.0.38 (iOS build 60) is already live on both stores, so submitting without a bump would be auto-rejected (ITMS-90186/90062). Build numbers auto-increment on EAS (`appVersionSource: remote` + `autoIncrement`); only the version string needs the manual bump.
 - Pre-build verification run 2026-06-11: frontend 245/245 tests + tsc clean, backend 263/263 + tsc clean, git clean/synced with origin, latest iOS EAS build confirmed 1.0.38 build 60.
 
+### Infrastructure
+
+#### Supabase — migration 020 APPLIED to prod (schema 019 → 020)
+- **Applied** `020_social_public_profiles.sql` via the dashboard SQL editor (evening session, after the v1.0.39 builds were triggered). Pre-apply audit passed: every `alias.column` reference checked against the real schema, `is_public` ships `not null default false` (no silent-persistence risk for live v1.0.38 clients), SECURITY DEFINER + pinned `search_path` matches the 006/014 pattern, RPC names/params/return columns match the frontend fetchers/mappers exactly.
+- **Verified** 3 steps with Stephen's own account (`15f0c12a…`): (1) `get_public_profile` → 1 row, true counts (117 spots / 69 classes / 16 rare / 8 epic / 7 legendary); (2) `get_public_collection` → 49 rows newest-first, ONLY the 10 public-safe columns — no lat/lng/photo_url; (3) `is_public=false` → zero rows from both RPCs. Flag left `false` post-test. Social Phase 1 fully unblocked.
+- Migration 021 (operator retro-fix) deliberately NOT applied — destructive, separate diagnostic-first walkthrough.
+
+#### EAS — v1.0.39 production builds FINISHED (not yet submitted)
+- iOS build 61 (`db0e7abb`) + Android versionCode 31 (`a60bd6a8`), both from commit `f698b79`, finished ~25 min after trigger. Carries Social Phase 1 + PAYMENT_PENDING + profile-stats robustness + DE Baureihe. Store submission pending decision.
+
 ### Docs
 
 #### `docs/release-notes-v1.0.39.md` (NEW) — EN/DE/PL release notes for v1.0.39
