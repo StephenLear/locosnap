@@ -9,6 +9,10 @@ Format: newest first within each date block.
 
 ### Backend
 
+#### `backend/src/services/vision.ts` + `trainSpecs.ts` — PKP Cargo Vectron (EU46) vs Newag Griffin (EU160) disambiguation (`4617462`)
+- **Added** a vision disambiguation rule after a Polish TikTok commenter (Zi3xu_z_LK91, EU07 ad) posted a scan of a PKP Cargo Siemens Vectron MS returned as "EU160" (Newag Griffin) with a hallucinated name ("Andrzej"). Both wear dark blue Polish liveries; the prompt had Vectron rules for DE/AT/CZ/SE but nothing for Polish designations. Fleet number decisive (EU46-5xx / NVR 5370 = Vectron, PKP Cargo; EU160-xxx = Griffin, PKP Intercity), cab-profile cues, plus a no-invented-names rule for both classes.
+- **Added** EU46 KNOWN_SPECS (5 key variants): 160 km/h, 6,400 kW, 90 t, Siemens Mobility (Munich-Allach), 25 built (EU46-501..525, verified via railvolution.net), multi-system. No cache invalidation needed — corrected class string lands on a fresh key. tsc clean, 263/263.
+
 #### `backend/src/services/rarity.ts` + `trainCache.ts` — ICE 1 (BR 401) rarity locked epic + cache invalidation (`9fb6cb2`)
 - **Added** KNOWN_RARITY epic lock across 12 BR 401 / ICE 1 key variants. The 2026-06-12 DE ad shows the ICE 1 EPIC card and drives scan traffic to the class, but the tier was AI-classified and operator-swayable (EN57 lesson: lock tier + invalidate together so viewer scans match the ad). Reason text: Germany's first high-speed train, first-generation fleet progressively withdrawn ahead of ~2030 retirement.
 - **Added** CLASS_INVALIDATIONS for the same key set at `2026-06-12T06:00:00Z` — deliberately just past deploy time (not end-of-day) so ad-day scans cache normally. Also flushes any month-old cached entry still carrying the hallucinated "37 built": KNOWN_SPECS `numberBuilt: 60` landed 2026-05-18 but shipped without an invalidation.
