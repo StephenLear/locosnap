@@ -1470,6 +1470,16 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "es64f4": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
   "siemens es64f4": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
   "eurosprinter f4": { maxSpeed: "140 km/h", power: "6,400 kW", weight: "87 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 1.5 kV DC + 3 kV DC)" },
+  // PKP Cargo EU46 — Siemens Vectron MS, 25 units EU46-501 to -525
+  // (NVR series 5370), delivered from 2016 for PL/DE/AT/CZ/SK/HU
+  // cross-border freight. Added 2026-06-12 after a Polish TikTok
+  // commenter's PKP Cargo Vectron scan was returned as "EU160"
+  // (Newag Griffin) — vision rule added the same day.
+  "eu46": { maxSpeed: "160 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (multi-system: 15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC)" },
+  "eu 46": { maxSpeed: "160 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (multi-system: 15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC)" },
+  "pkp eu46": { maxSpeed: "160 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (multi-system: 15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC)" },
+  "pkp cargo eu46": { maxSpeed: "160 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (multi-system: 15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC)" },
+  "5370": { maxSpeed: "160 km/h", power: "6,400 kW", weight: "90 tonnes", builder: "Siemens Mobility (Munich-Allach)", numberBuilt: 25, fuelType: "Electric (multi-system: 15 kV 16.7 Hz AC + 25 kV 50 Hz AC + 3 kV DC)" },
   // ÖBB 4020 — Vienna S-Bahn 3-car articulated EMU, built 1978–1987 by an
   // Austrian consortium: SGP (Simmering-Graz-Pauker) for the carbody and
   // mechanical, ELIN and Siemens for the electrical, with some sub-series
