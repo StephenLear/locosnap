@@ -5,6 +5,17 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-12
+
+### Backend
+
+#### `backend/src/services/rarity.ts` + `trainCache.ts` — ICE 1 (BR 401) rarity locked epic + cache invalidation (`9fb6cb2`)
+- **Added** KNOWN_RARITY epic lock across 12 BR 401 / ICE 1 key variants. The 2026-06-12 DE ad shows the ICE 1 EPIC card and drives scan traffic to the class, but the tier was AI-classified and operator-swayable (EN57 lesson: lock tier + invalidate together so viewer scans match the ad). Reason text: Germany's first high-speed train, first-generation fleet progressively withdrawn ahead of ~2030 retirement.
+- **Added** CLASS_INVALIDATIONS for the same key set at `2026-06-12T06:00:00Z` — deliberately just past deploy time (not end-of-day) so ad-day scans cache normally. Also flushes any month-old cached entry still carrying the hallucinated "37 built": KNOWN_SPECS `numberBuilt: 60` landed 2026-05-18 but shipped without an invalidation.
+- **No KNOWN_SPECS change**: `numberBuilt: 60` already locked since 05-18, and the Phase A verified-facts block forces the facts prose to honour it. `numberSurviving` stays AI-estimated (~37 plausible; no stable public figure). tsc clean, 263/263 backend tests. Pushed to main → Render auto-deploy.
+
+---
+
 ## 2026-06-11
 
 ### Frontend
