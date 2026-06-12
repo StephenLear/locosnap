@@ -220,6 +220,25 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "en57aks": "2026-06-09T23:59:00Z",
   "en57akł": "2026-06-09T23:59:00Z",
   "en71": "2026-06-09T23:59:00Z",
+  // ICE 1 (BR 401) — rarity locked "epic" 2026-06-12 (rarity.ts KNOWN_RARITY)
+  // because the 2026-06-12 DE ad shows the EPIC card and drives scan traffic.
+  // Also flushes any pre-2026-05-18 entry still carrying the hallucinated
+  // "37 built" (KNOWN_SPECS numberBuilt 60 landed 05-18 but had no
+  // invalidation, so month-old cached entries could still serve 37).
+  // Timestamp is mid-day deploy time, NOT end-of-day, so today's ad-driven
+  // scans cache normally after the deploy instead of missing all day.
+  "401": "2026-06-12T06:00:00Z",
+  "br 401": "2026-06-12T06:00:00Z",
+  "br401": "2026-06-12T06:00:00Z",
+  "db 401": "2026-06-12T06:00:00Z",
+  "db br 401": "2026-06-12T06:00:00Z",
+  "baureihe 401": "2026-06-12T06:00:00Z",
+  "db baureihe 401": "2026-06-12T06:00:00Z",
+  "class 401": "2026-06-12T06:00:00Z",
+  "db class 401": "2026-06-12T06:00:00Z",
+  "ice 1": "2026-06-12T06:00:00Z",
+  "ice1": "2026-06-12T06:00:00Z",
+  "db ice 1": "2026-06-12T06:00:00Z",
 };
 // Note: the `br 159` / `br159` keys already exist above (06-04 length fix) and were
 // bumped to 2026-06-05T23:59:00Z so the rarity anchor also refreshes their cache.

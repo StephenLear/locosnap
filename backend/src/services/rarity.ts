@@ -124,6 +124,24 @@ const KNOWN_RARITY: Record<string, { tier: RarityTier; reason?: string }> = {
   "br 159": { tier: "uncommon", reason: "Stadler EuroDual — a distinctive bi-mode locomotive from a small but growing fleet leased across several operators." },
   "br159": { tier: "uncommon", reason: "Stadler EuroDual — a distinctive bi-mode locomotive from a small but growing fleet leased across several operators." },
   "br 159 (stadler eurodual)": { tier: "uncommon", reason: "Stadler EuroDual — a distinctive bi-mode locomotive from a small but growing fleet leased across several operators." },
+  // ICE 1 (BR 401) — Germany's first high-speed train, 60 sets built 1989-1993
+  // (set 51 lost at Eschede 1998), progressively withdrawn ahead of its ~2030
+  // retirement. Locked 2026-06-12: the tier was AI-classified and the
+  // 2026-06-12 DE ad shows the EPIC card and drives scan traffic to this class
+  // (EN57 lesson: lock + invalidate together so viewer scans match the ad).
+  // Key set mirrors the KNOWN_SPECS BR 401 variants + cache invalidations.
+  "br 401": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "br401": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "401": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "db 401": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "db br 401": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "baureihe 401": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "db baureihe 401": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "class 401": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "db class 401": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "ice 1": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "ice1": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
+  "db ice 1": { tier: "epic", reason: "ICE 1 — Germany's first high-speed train. The first-generation fleet is being progressively withdrawn ahead of its planned retirement, making every remaining set an end-of-era spot." },
   // --- Tiers below lifted from RARITY_SYSTEM_PROMPT (already decided; locked
   // here so they are guaranteed, not merely guided by the prompt). ---
   "br 143": { tier: "epic" }, "class 143": { tier: "epic" }, "baureihe 143": { tier: "epic" }, "cd class 143": { tier: "epic" }, "čd class 143": { tier: "epic" },
