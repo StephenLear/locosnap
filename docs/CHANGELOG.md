@@ -5,6 +5,21 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-18
+
+### Backend
+
+#### `backend/src/services/trainSpecs.ts` + `trainCache.ts` + `vision.ts` — Newag Dragon 2 maxSpeed + operator fix (PL railfan flags on the "Mania" ad)
+- **Context:** PL railfans flagged the 06-18 DE Dragon ad's card — operator shown as "PKP Cargo" (wrong; the "Mania" unit E6ACTadb-043 is **Rail STM**, confirmed by commenter + Rynek Kolejowy/forumkolejowe) and top speed "160 km/h" (wrong; Dragon family is 120 km/h).
+- **Root cause (maxSpeed):** the vision layer returns the class as `"Newag Dragon 2 (E6ACTadb)"` (with the parenthetical), which never matched the existing bare `"e6actadb"` / `"dragon 2"` WIKIDATA_CORRECTIONS keys (exact-match lookup), so AI/Wikidata leaked 160 km/h onto the card.
+- **Added** full class-string keys to `WIKIDATA_CORRECTIONS` — `"newag dragon 2"`, `"newag dragon 2 (e6actadb)"`, `"newag dragon 2 (e6actadnb)"`, `"e6actadnb"` — mapped to the existing 120 km/h / 5,800 kW / Newag (Nowy Sącz) Dragon-family spec. Aligned to the backend's established 120 km/h convention rather than introducing a contested 140.
+- **Added** matching `CLASS_INVALIDATIONS` entries (`2026-06-18T20:00:00Z`) so any cached 160 km/h Dragon entry re-renders.
+- **Added** to the `vision.ts` Newag Dragon rule (6): operator must be read from the visible livery — do NOT default to PKP Cargo; Dragons run for many operators (PKP Cargo, Rail STM, Lotos Kolej, ORLEN KolTrans, Freightliner PL, RCP, Cargounit-leased); the green-and-pink "Mania" livery (E6ACTadb-043) is Rail STM; leave operator generic if not readable. (Operator has no field in SpecsOverride — it is vision-only.)
+- **EN57 — checked, NO change needed:** the same ad's EN57 card "Over 1,700 units" is stale (recording predates the 2026-04-28 fix); current backend has `numberBuilt: 1438` in KNOWN_SPECS and the verified-facts block feeds it to the facts layer at temperature 0.
+- tsc clean, 263/263 backend tests pass. **Not yet deployed — needs a push to go live on Render.**
+
+---
+
 ## 2026-06-12
 
 ### Backend

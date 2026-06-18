@@ -1329,6 +1329,18 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "en57akł": { maxSpeed: "110 km/h", power: "544 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1438, fuelType: "Electric (3 kV DC)" },
   "en57ak": { maxSpeed: "110 km/h", power: "544 kW", builder: "Pafawag (Wrocław)", numberBuilt: 1438, fuelType: "Electric (3 kV DC)" },
   "en71": { maxSpeed: "110 km/h", power: "1,032 kW", builder: "Pafawag (Wrocław)", numberBuilt: 67, fuelType: "Electric (3 kV DC)" },
+  // Newag Dragon 2 — FULL class-string keys. The vision layer returns the class as
+  // "Newag Dragon 2 (E6ACTadb)" etc., which did NOT match the bare "e6actadb" / "dragon 2"
+  // keys further below (exact-match lookup), so AI/Wikidata leaked a wrong 160 km/h onto the
+  // 06-18 "Mania" ad card. These add the full-string variants, mapped to the SAME 120 km/h
+  // Dragon-family spec used below (NEVER 160). "dragon 2" / "e6actadb" already exist below —
+  // not repeated here. Operator is unit/livery-specific (PKP Cargo, Rail STM, Lotos Kolej,
+  // ORLEN KolTrans, Freightliner PL, RCP, leased) and handled in vision.ts, not here.
+  // Flagged by PL railfans 2026-06-18; confirm the exact class string with a fresh scan.
+  "newag dragon 2": { maxSpeed: "120 km/h", power: "5,800 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
+  "newag dragon 2 (e6actadb)": { maxSpeed: "120 km/h", power: "5,800 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
+  "newag dragon 2 (e6actadnb)": { maxSpeed: "120 km/h", power: "5,800 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
+  "e6actadnb": { maxSpeed: "120 km/h", power: "5,800 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
   // ET22 — Polish heavy freight Co-Co electric, Pafawag 1969-1990,
   // ~1,184 built (one of the most numerous Polish electric locos
   // alongside the EN57). Max speed 125 km/h (NEVER 160 or 200 — it's

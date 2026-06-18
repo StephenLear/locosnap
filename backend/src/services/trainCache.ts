@@ -239,6 +239,15 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "ice 1": "2026-06-12T06:00:00Z",
   "ice1": "2026-06-12T06:00:00Z",
   "db ice 1": "2026-06-12T06:00:00Z",
+  // Newag Dragon 2 maxSpeed 160 -> 140 fix (trainSpecs.ts WIKIDATA_CORRECTIONS),
+  // flagged by PL railfans on the 06-18 "Mania" ad. Wipes any cached 160 km/h entry
+  // so the corrected 140 re-renders. Dragon-2-specific keys only (base Dragon = 120).
+  "newag dragon 2": "2026-06-18T20:00:00Z",
+  "newag dragon 2 (e6actadb)": "2026-06-18T20:00:00Z",
+  "newag dragon 2 (e6actadnb)": "2026-06-18T20:00:00Z",
+  "dragon 2": "2026-06-18T20:00:00Z",
+  "e6actadb": "2026-06-18T20:00:00Z",
+  "e6actadnb": "2026-06-18T20:00:00Z",
 };
 // Note: the `br 159` / `br159` keys already exist above (06-04 length fix) and were
 // bumped to 2026-06-05T23:59:00Z so the rarity anchor also refreshes their cache.
