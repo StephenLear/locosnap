@@ -1426,6 +1426,22 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "e6acta": { maxSpeed: "120 km/h", power: "5,000 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
   "e6actadb": { maxSpeed: "120 km/h", power: "5,800 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC) + Diesel" },
   "dragon 2": { maxSpeed: "120 km/h", power: "5,000 kW", builder: "Newag (Nowy Sącz)", numberBuilt: 50, fuelType: "Electric (3 kV DC)" },
+  // ČD Class 242 (Škoda 73E "Plecháč") — Czechoslovak/Czech Bo'Bo' AC
+  // electric, Škoda Works (Plzeň) 1975–1981, 90 built, single-system
+  // 25 kV 50 Hz AC. CORRECT spec is 120 km/h / 3,080 kW (continuous) —
+  // NOT 160 km/h / 4,400 kW which the card was returning. Flagged by
+  // @nejakysotous_ on the PL haul ad and web-verified 2026-06-19. Full
+  // class-string keys (vision returns "ČD Class 242"; cover diacritic
+  // and non-diacritic forms plus the 73E type designation).
+  "čd class 242": { maxSpeed: "120 km/h", power: "3,080 kW", weight: "85 t", builder: "Škoda Works (Plzeň)", numberBuilt: 90, fuelType: "Electric (25 kV 50 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "cd class 242": { maxSpeed: "120 km/h", power: "3,080 kW", weight: "85 t", builder: "Škoda Works (Plzeň)", numberBuilt: 90, fuelType: "Electric (25 kV 50 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "čd 242": { maxSpeed: "120 km/h", power: "3,080 kW", weight: "85 t", builder: "Škoda Works (Plzeň)", numberBuilt: 90, fuelType: "Electric (25 kV 50 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "cd 242": { maxSpeed: "120 km/h", power: "3,080 kW", weight: "85 t", builder: "Škoda Works (Plzeň)", numberBuilt: 90, fuelType: "Electric (25 kV 50 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "class 242": { maxSpeed: "120 km/h", power: "3,080 kW", weight: "85 t", builder: "Škoda Works (Plzeň)", numberBuilt: 90, fuelType: "Electric (25 kV 50 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "242": { maxSpeed: "120 km/h", power: "3,080 kW", weight: "85 t", builder: "Škoda Works (Plzeň)", numberBuilt: 90, fuelType: "Electric (25 kV 50 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "škoda 73e": { maxSpeed: "120 km/h", power: "3,080 kW", weight: "85 t", builder: "Škoda Works (Plzeň)", numberBuilt: 90, fuelType: "Electric (25 kV 50 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "skoda 73e": { maxSpeed: "120 km/h", power: "3,080 kW", weight: "85 t", builder: "Škoda Works (Plzeň)", numberBuilt: 90, fuelType: "Electric (25 kV 50 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "73e": { maxSpeed: "120 km/h", power: "3,080 kW", weight: "85 t", builder: "Škoda Works (Plzeň)", numberBuilt: 90, fuelType: "Electric (25 kV 50 Hz AC)", gauge: "Standard (1,435 mm)" },
   // DB Class 182 / 6190 series (Siemens ES64U2 Eurosprinter, German
   // private-operator Taurus). Same physical platform as ÖBB 1116 but
   // operated by Railadventure / MRCE / ELL / Lokomotion / BoxXpress

@@ -248,6 +248,19 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "dragon 2": "2026-06-18T20:00:00Z",
   "e6actadb": "2026-06-18T20:00:00Z",
   "e6actadnb": "2026-06-18T20:00:00Z",
+  // ČD Class 242 (Škoda 73E "Plecháč"): WIKIDATA_CORRECTIONS fix 2026-06-19 —
+  // card returned 160 km/h / 4,400 kW, corrected to 120 km/h / 3,080 kW (flagged
+  // by @nejakysotous_, web-verified). Invalidate pre-fix cached entries so the
+  // corrected specs re-render. All KNOWN_SPECS key variants covered.
+  "čd class 242": "2026-06-19T23:59:00Z",
+  "cd class 242": "2026-06-19T23:59:00Z",
+  "čd 242": "2026-06-19T23:59:00Z",
+  "cd 242": "2026-06-19T23:59:00Z",
+  "class 242": "2026-06-19T23:59:00Z",
+  "242": "2026-06-19T23:59:00Z",
+  "škoda 73e": "2026-06-19T23:59:00Z",
+  "skoda 73e": "2026-06-19T23:59:00Z",
+  "73e": "2026-06-19T23:59:00Z",
 };
 // Note: the `br 159` / `br159` keys already exist above (06-04 length fix) and were
 // bumped to 2026-06-05T23:59:00Z so the rarity anchor also refreshes their cache.
