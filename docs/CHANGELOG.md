@@ -5,6 +5,20 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-19
+
+### Backend
+
+#### `backend/src/services/trainSpecs.ts` + `trainCache.ts` — ČD Class 242 (Škoda 73E "Plecháč") spec correction (`ffbd3ce`)
+- **Context:** @nejakysotous_ (Czech railfan) flagged the PL haul ad's EPIC ČD Class 242 reveal card — speed shown "160 km/h" and power "4,400 kW", both wrong. Web-verified correct figures: **120 km/h / 3,080 kW** (Škoda 73E, 90 built 1975–81, 25 kV 50 Hz AC).
+- **Root cause:** no ČD Class 242 entry existed in `WIKIDATA_CORRECTIONS`, so AI/Wikidata leaked the wrong 160 km/h / 4,400 kW onto the card.
+- **Added** ČD Class 242 to `WIKIDATA_CORRECTIONS` — maxSpeed `120 km/h`, power `3,080 kW`, weight `85 t`, builder `Škoda Works (Plzeň)`, numberBuilt `90`, fuelType `Electric (25 kV 50 Hz AC)`, gauge `Standard (1,435 mm)`. Keyed with all realistic vision class-string variants (`čd class 242`, `cd class 242`, `čd 242`, `cd 242`, `class 242`, `242`, `škoda 73e`, `skoda 73e`, `73e`) to avoid the Dragon exact-match-keying trap.
+- **Added** matching `CLASS_INVALIDATIONS` entries (`2026-06-19T23:59:00Z`) for the same keys so pre-fix cached entries re-render. No global cache-version bump (per the per-class invalidation pattern).
+- **Not flagged / no change:** EPIC rarity for a 90-built still-active loco looks generous, but the commenter disputed only the specs — rarity left untouched.
+- tsc clean, 263/263 backend tests pass. Committed `ffbd3ce`, pushed to `origin/main` → Render auto-deploy.
+
+---
+
 ## 2026-06-18
 
 ### Backend
