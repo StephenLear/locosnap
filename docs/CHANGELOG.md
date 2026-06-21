@@ -7,6 +7,14 @@ Format: newest first within each date block.
 
 ## 2026-06-21
 
+### Database
+
+#### `supabase/migrations/022_spot_heatmap.sql` — Train Radar Phase 1: privacy-safe spot heatmap RPC (applied to prod)
+- **Added** `public.get_spot_heatmap(p_grid numeric=0.1, p_min_users int=2)` — a SECURITY DEFINER aggregate function (same pattern as the leaderboard RPCs 013/014) for the Train Radar heatmap. Returns coarse grid cells with `spot_count`, a rarity-weighted `rarity_score` (legendary 5 … common 1), `top_rarity`, and `distinct_classes`.
+- **Privacy:** definer rights are needed because migration 018 RLS-locks raw spot lat/lng to the owner; the function exposes ONLY cell-centre aggregates — never raw coordinates, never user_id — and applies **k-anonymity** (a cell is returned only when ≥ `p_min_users` distinct users have spotted there, default 2), so single-spotter patches are suppressed. `revoke all from public; grant execute to authenticated`.
+- **Validated on prod data:** 0.1° grid + k≥2 → ~80 cells (715 spots); 0.25° → ~103. Top cells resolve to real rail hubs (Vienna 43 spots/34 classes, Köln, Dresden, Leipzig, Karlsruhe).
+- Applied via SQL editor (project applies migrations straight to prod — no staging). Frontend map (Phase 2) deferred — needs `react-native-maps` (native dep + dev/EAS build).
+
 ### Backend
 
 #### `vision.ts` — strengthen the Loram C21 rail-grinder rule for front-view scans (`6f24b8f`)

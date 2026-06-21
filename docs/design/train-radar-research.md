@@ -1,5 +1,43 @@
 # Train Radar — Feasibility Research (2026-06-18)
 
+---
+
+## 2026-06-21 — PIVOT to a rarity-coloured SPOT HEATMAP + Phase 1 SHIPPED
+
+The "predict what passes your station" version stays blocked (no live loco-class feed — see
+below). Stephen reframed Radar as **"find a place where unusual spots can be seen — aggregate
+numbers at locations, no who-was-there."** That is buildable today off our own geotagged scans
+and is the moat-aligned version (collection data, no external feed).
+
+**Data sizing (prod, 2026-06-21):** 4,344 spots, **82.2%** carry coordinates (3,572 geo).
+Per-tier geo: legendary 370 / epic 281 / rare 795 / uncommon 1,230 / common 896.
+Privacy-safe hotspot cells **after k≥2 (≥2 distinct users)**:
+
+| grid | epic+legendary | rare+ | ALL spots |
+|---|---|---|---|
+| 0.1° (~10 km) | 16 | 32 | **80** |
+| 0.25° (~25 km) | 31 | 59 | **103** |
+
+**Verdict:** rare-only is too thin (16–59); an **all-spots heatmap** (~80–103 communal cells,
+715 spots in k≥2 cells) is the right call — a real regional heat layer that densifies as the
+user base grows. Surface "unusual" via a **rarity colour-weight** (legendary 5 … common 1), so
+rare-heavy areas glow hotter. Single-user rural patches stay suppressed (privacy + credibility).
+
+**MVP design:** all-spots density heatmap, rarity-coloured, served by ONE SECURITY DEFINER RPC
+(coarse grid + k≥2, cell-centre aggregates only — never raw coords/user_id; 018-compliant).
+
+**Phase 1 — SHIPPED 2026-06-21 (applied to prod):** `migration 022` adds
+`public.get_spot_heatmap(p_grid numeric=0.1, p_min_users int=2)` returning
+`cell_lat, cell_lng, spot_count, rarity_score, top_rarity, distinct_classes`. Validated: top
+cells resolve to real hubs (Vienna 43/34 classes, Köln, Dresden, Leipzig, Karlsruhe).
+
+**Phase 2 — NOT started:** the map screen. Needs `react-native-maps` (native dep → dev/EAS
+build). Open product calls: tier+grid default (rec rare-context via colour, all-spots base,
+0.1° or 0.25°), Pro-gate vs free acquisition hook, and whether spots already carry a
+reverse-geocoded place name (migration 009) for a list fallback.
+
+---
+
 Source idea: TrainSnap competitor teardown (2026-06-16). "Train Radar" = live departures from
 the user's nearest stations, flagging which classes are "confirmed / likely / worth chasing" —
 a daily-engagement prompt that gives a reason to open the app *before* spotting anything.
