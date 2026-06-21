@@ -88,6 +88,14 @@ let totalMisses = 0;
 export const CLASS_INVALIDATIONS: Record<string, string> = {
   // Add entries here when a class's cached specs/facts/rarity must be
   // invalidated due to a backend correction. Key is normalised class name.
+  // ET22 / "ST22" misID (2026-06-21): vision hallucinated a non-existent
+  // "ST22" class for an ET22-680 PKP Cargo scan → LEGENDARY / Newag / 6,400 kW
+  // (the raw "ST22" string missed every et22-keyed override). Fix canonicalises
+  // ST22 -> ET22 in classNames.ts; invalidate any pre-fix cached ET22/ST22
+  // entry so the corrected common Pafawag values render on the next scan.
+  "et22": "2026-06-21T12:00:00Z",
+  "pkp et22": "2026-06-21T12:00:00Z",
+  "st22": "2026-06-21T12:00:00Z",
   // BR 159 (Stadler EuroDual): added a verified length (23.0 m) to the
   // KNOWN_SPECS override 2026-06-04 (was null — flagged by Captrain BR 159
   // driver-in-training Damian). Invalidate pre-fix cached entries so the

@@ -49,6 +49,16 @@ describe("canonicaliseClass", () => {
     it("DR BR 132 (East German) maps to its post-1992 BR 232 number", () => {
       expect(canonicaliseClass("DR BR 132")).toBe("BR 232");
     });
+
+    it.each([
+      ["ST22", "ET22"],
+      ["st22", "ET22"],
+      ["ST 22", "ET22"],
+      ["ST-22", "ET22"],
+      ["PKP ST22", "ET22"],
+    ])("non-existent '%s' is rewritten to the real ET22 (misID fix 2026-06-21)", (input, expected) => {
+      expect(canonicaliseClass(input)).toBe(expected);
+    });
   });
 
   describe("leaves non-German / ambiguous labels untouched", () => {

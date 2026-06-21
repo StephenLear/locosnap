@@ -24,6 +24,18 @@
 // as new fragmentation is observed in the scan-distribution audit.
 const EXPLICIT_ALIASES: Record<string, string> = {
   "dr br 132": "BR 232", // DR 132 was renumbered to DB 232 "Ludmilla" post-1992
+  // "ST22" is NOT a real PKP class — it is a non-existent designation that
+  // vision hallucinates for the ET22 (a #ST22 SEO-hashtag / OCR misread of the
+  // "ET22-xxx" fleet stencil). Without this rewrite, the raw string "ST22"
+  // misses every et22-keyed specs/rarity/facts override and free-hallucinates
+  // as a LEGENDARY Newag 6,400 kW / 140 km/h loco (flagged 2026-06-21 on an
+  // ET22-680 PKP Cargo scan). Canonicalising to ET22 makes the class name,
+  // specs (Pafawag / 3,000 kW / 125 km/h / 1,184 built), rarity (common) and
+  // the verified-facts block all resolve to the real Pafawag workhorse.
+  "st22": "ET22",
+  "st 22": "ET22",
+  "st-22": "ET22",
+  "pkp st22": "ET22",
 };
 
 /**
