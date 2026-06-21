@@ -262,6 +262,13 @@ Estimated impact of the Sonnet→Haiku flip on the three structured services: ro
 ### Row Level Security
 RLS is enabled on all tables. Users can only read/write their own data.
 
+### Aggregate RPCs (SECURITY DEFINER) — how cross-user features work around owner-only RLS
+Migration 018 RLS-locks raw spot `latitude`/`longitude` to the owning user (GDPR/location privacy). Cross-user aggregate features therefore run as **SECURITY DEFINER** functions/views that aggregate with definer rights but expose ONLY safe aggregates — never raw coordinates, never `user_id`:
+- Leaderboard views + `get_weekly_rarity_champion` (migrations 011/013/014) — counts + public identity only.
+- **`get_spot_heatmap(p_grid, p_min_users)` (migration 022, Train Radar Phase 1, 2026-06-21)** — returns coarse grid-cell aggregates (`cell_lat, cell_lng, spot_count, rarity_score, top_rarity, distinct_classes`) for the heatmap, with **k-anonymity** (a cell appears only when ≥ `p_min_users` distinct users have spotted there, default 2). No raw coords/user_id leave the function. Frontend map (Phase 2) not yet built. Full spec: `docs/design/train-radar-research.md`.
+
+**Rule for future migrations touching these:** keep them definer and NEVER add raw lat/lng or `user_id` to their output — that would re-leak location.
+
 ### Data API grants — convention change effective 2026-10-30
 
 Supabase is removing default `public`-schema grants on the Data API. Email received 2026-05-14 confirms LocoSnap is affected (frontend + backend both use supabase-js = Data API; backend does NOT use a direct Postgres connection string).
