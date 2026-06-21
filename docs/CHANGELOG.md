@@ -9,6 +9,11 @@ Format: newest first within each date block.
 
 ### Backend
 
+#### `vision.ts` — strengthen the Loram C21 rail-grinder rule for front-view scans (`6f24b8f`)
+- **Context:** UK tester Steph re-flagged the misID the 2026-05-09 track-maintenance rule was meant to catch — a daytime **front-3/4** scan of **DR79244** (Loram C21(02) rail-grinder set) returned **Class 66 / Network Rail**. The existing rule keyed only on cues invisible head-on (grinding machinery, Loram logos, "C21xx" markings, night possessions), so the yellow cab pattern-matched a Class 66.
+- **Strengthened** the rule with anchors that work from the front: (a) **fleet-number** — any visible `DR79xxx` (C21(02) = DR79241–79247) or `DR7xxxx`/`DR9xxxx` data-panel number is definitive on-track plant, never a TOPS loco class (locos use bare 66xxx/70xxx); (b) **body-behind-the-cab** — flat railed work-deck body (not a full-height loco engine hood) = on-track machine; (c) **engineering-context** — crossover sidings + accompanying JNA/MHA wagons in the consist = engineering train.
+- **Honest limitation noted in-rule:** a cab-only close-up with no body/number/context in frame may stay unresolvable; the body+context anchors cover the common case. tsc clean; 268/268 tests. Committed `6f24b8f`, pushed → Render auto-deploy.
+
 #### `classNames.ts` + `vision.ts` + `trainCache.ts` — kill the hallucinated "ST22" class; map it to the real ET22 (`85ccdd0`)
 - **Context:** a fresh ET22-680 PKP Cargo scan (2026-06-21) returned class **"ST22"**, rarity **LEGENDARY**, builder **Newag**, **6,400 kW / 140 km/h / 87 t** — all wrong. "ST22" is not a real PKP class (a #ST22 SEO hashtag / misreading of the "ET22-xxx" fleet stencil). Latent since at least the 3 Apr 2026 scan; never surfaced because no prior ET22 ad showed the app card. Surfaced now while prepping a PL ET22 tier-debate ad (which would have put the wrong rarity card on screen).
 - **Root cause:** vision emitted the raw string `ST22`, which matched **none** of the `et22`-keyed specs/rarity/facts overrides, so every downstream layer free-hallucinated it as a modern legendary Newag loco (the same class-collision pattern as BR 232 / BR 140 / Sr1).
