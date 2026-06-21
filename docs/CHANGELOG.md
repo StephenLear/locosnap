@@ -5,6 +5,21 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-21
+
+### Backend
+
+#### `classNames.ts` + `vision.ts` + `trainCache.ts` — kill the hallucinated "ST22" class; map it to the real ET22 (`85ccdd0`)
+- **Context:** a fresh ET22-680 PKP Cargo scan (2026-06-21) returned class **"ST22"**, rarity **LEGENDARY**, builder **Newag**, **6,400 kW / 140 km/h / 87 t** — all wrong. "ST22" is not a real PKP class (a #ST22 SEO hashtag / misreading of the "ET22-xxx" fleet stencil). Latent since at least the 3 Apr 2026 scan; never surfaced because no prior ET22 ad showed the app card. Surfaced now while prepping a PL ET22 tier-debate ad (which would have put the wrong rarity card on screen).
+- **Root cause:** vision emitted the raw string `ST22`, which matched **none** of the `et22`-keyed specs/rarity/facts overrides, so every downstream layer free-hallucinated it as a modern legendary Newag loco (the same class-collision pattern as BR 232 / BR 140 / Sr1).
+- **Fix (one canonical choke point):** added `ST22` / `ST 22` / `ST-22` / `PKP ST22` → `ET22` to `EXPLICIT_ALIASES` in `classNames.ts`. Because `canonicaliseClass()` runs before caching/specs/facts/rarity/display, this single rewrite makes the class name, specs (Pafawag / 3,000 kW / 125 km/h / 1,184 built), rarity (**common**) and the verified-facts block all resolve to the real ET22.
+- **Defense-in-depth:** `vision.ts` ET22 prompt rule now states ST22 is a non-existent designation and must never be emitted.
+- **Cache:** `trainCache.ts` `CLASS_INVALIDATIONS` entries (`et22` / `pkp et22` / `st22`, `2026-06-21T12:00:00Z`) so any pre-fix cached entry re-renders. No global cache-version bump (per-class invalidation pattern).
+- **Tests:** added 5 `ST22 → ET22` cases to `classNames.test.ts`. tsc clean; **268/268** backend tests pass.
+- Committed `85ccdd0`, pushed to `origin/main` → Render auto-deploy. **Verify with a fresh ET22 scan once Render finishes — card should read ET22 / COMMON / Pafawag.**
+
+---
+
 ## 2026-06-19
 
 ### Backend
