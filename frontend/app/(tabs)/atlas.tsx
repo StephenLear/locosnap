@@ -27,7 +27,6 @@ import MapView, {
   PROVIDER_DEFAULT,
   Region,
 } from "react-native-maps";
-import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -120,7 +119,7 @@ function cellFillAlpha(spotCount: number): string {
 }
 
 export default function AtlasScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   // The Atlas is gated behind sign-in: the heatmap is communal collection data,
   // and the get_spot_heatmap RPC is authenticated-only. Signed-out users get
@@ -162,31 +161,32 @@ export default function AtlasScreen() {
     return () => clearTimeout(id);
   }, [cells]);
 
-  const onSelectCell = useCallback(async (cell: HeatmapCell) => {
-    setSelected(cell);
-    setSelectedPlace(null);
-    try {
-      const results = await Location.reverseGeocodeAsync({
-        latitude: cell.lat,
-        longitude: cell.lng,
-      });
-      const r = results[0];
-      if (r) {
-        // Field availability varies by platform/locale; city is often empty
-        // on Android for a coarse cell centre, so fall through to broader
-        // administrative areas before giving up.
-        const name =
-          r.city ||
-          r.subregion ||
-          r.district ||
-          r.region ||
-          r.country;
-        setSelectedPlace(name || null);
+  const onSelectCell = useCallback(
+    async (cell: HeatmapCell) => {
+      setSelected(cell);
+      setSelectedPlace(null);
+      // Resolve a place name from the COARSE cell centre (never the user's
+      // location). We use BigDataCloud's keyless reverse-geocode rather than
+      // expo-location's reverseGeocodeAsync, which relies on the device
+      // geocoder and returns nothing on many Android devices. Best-effort:
+      // any failure falls back to the "This area" label.
+      try {
+        const lang = (i18n.language || "en").slice(0, 2);
+        const res = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${cell.lat}&longitude=${cell.lng}&localityLanguage=${lang}`
+        );
+        if (res.ok) {
+          const d = await res.json();
+          const name =
+            d.city || d.locality || d.principalSubdivision || d.countryName;
+          if (name) setSelectedPlace(name);
+        }
+      } catch {
+        // Network/geocode failure — the info card still shows the stats.
       }
-    } catch {
-      // Reverse-geocode is best-effort; the stats still show without a name.
-    }
-  }, []);
+    },
+    [i18n.language]
+  );
 
   // ── Signed-out gate ──────────────────────────────────────────
   if (!user) {
