@@ -5,6 +5,19 @@
 
 export type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
+// Train Radar (Phase 2) — one privacy-safe heatmap cell returned by the
+// public.get_spot_heatmap RPC (migration 022). Coordinates are the COARSE
+// GRID CELL CENTRE (never a raw spot location); cells only appear once >= 2
+// distinct users have spotted there (k-anonymity). No user_id / spot id.
+export interface HeatmapCell {
+  lat: number;
+  lng: number;
+  spotCount: number;
+  rarityScore: number;
+  topRarity: RarityTier;
+  distinctClasses: number;
+}
+
 export type BlueprintStyle = "technical" | "vintage" | "schematic" | "cinematic";
 
 export const BLUEPRINT_STYLES: { id: BlueprintStyle; label: string; description: string; icon: string; proOnly: boolean }[] = [

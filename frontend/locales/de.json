@@ -3,7 +3,8 @@
     "scan": "Scannen",
     "history": "Sammlung",
     "profile": "Profil",
-    "leaderboard": "Bestenliste"
+    "leaderboard": "Bestenliste",
+    "radar": "Radar"
   },
   "scan": {
     "proRescue": {
@@ -424,6 +425,16 @@
     "rare": "Selten",
     "epic": "Episch",
     "legendary": "Legendär"
+  },
+  "radar": {
+    "subtitle": "Gemeinsame Hotspots, wo die Community Züge entdeckt hat. Gegenden mit selteneren Funden leuchten heller.",
+    "gridFine": "~10 km",
+    "gridCoarse": "~25 km",
+    "empty": "Noch keine gemeinsamen Hotspots. Gegenden erscheinen hier, sobald mindestens zwei Spotter sie teilen.",
+    "thisArea": "Dieser Bereich",
+    "spots": "Spots",
+    "classes": "Baureihen",
+    "rarest": "Seltenste"
   },
   "errors": {
     "networkError": "Keine Verbindung zu den LocoSnap-Servern. Bitte erneut versuchen.",

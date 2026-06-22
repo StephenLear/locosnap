@@ -32,6 +32,11 @@
         "backgroundColor": "#0a0f1a"
       },
       "package": "com.locosnap.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBrAPdliHgsv3Soj4yUxtJVYGULQfoTL38"
+        }
+      },
       "permissions": [
         "android.permission.CAMERA"
       ],

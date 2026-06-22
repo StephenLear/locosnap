@@ -15,6 +15,7 @@ import {
   PublicProfile,
   PublicCollectionItem,
   RarityTier,
+  HeatmapCell,
 } from "../types";
 import * as FileSystem from "expo-file-system/legacy";
 import { decode } from "base64-arraybuffer";
@@ -1471,4 +1472,46 @@ export async function checkAndUnlockAchievements(params: {
   }
 
   return newlyUnlocked;
+}
+
+// ── Train Radar (Phase 2) — privacy-safe spot heatmap ──────────
+/** Fetch the communal spot heatmap (migration 022 RPC). Returns coarse
+ *  grid cells (cell-centre coords only) that >= p_min_users distinct users
+ *  have spotted in — never raw coordinates or user ids. Empty array on
+ *  any error (RPC not deployed, network) so the screen degrades to its
+ *  empty state instead of throwing.
+ *
+ *  grid: 0.1 deg (~11 km, default) or 0.25 deg (~25 km) for a coarser view.
+ *  minUsers: k-anonymity floor; the RPC clamps to >= 1. */
+export async function fetchSpotHeatmap(
+  grid: number = 0.1,
+  minUsers: number = 2
+): Promise<HeatmapCell[]> {
+  const { data, error } = await supabase.rpc("get_spot_heatmap", {
+    p_grid: grid,
+    p_min_users: minUsers,
+  });
+  if (error) {
+    if (error.code !== "42883" && error.code !== "PGRST202") {
+      console.warn("Failed to fetch spot heatmap:", error.message);
+    }
+    return [];
+  }
+  return (data || []).map(
+    (row: {
+      cell_lat: number | string;
+      cell_lng: number | string;
+      spot_count: number | string;
+      rarity_score: number | string;
+      top_rarity: RarityTier;
+      distinct_classes: number | string;
+    }): HeatmapCell => ({
+      lat: Number(row.cell_lat),
+      lng: Number(row.cell_lng),
+      spotCount: Number(row.spot_count),
+      rarityScore: Number(row.rarity_score),
+      topRarity: row.top_rarity,
+      distinctClasses: Number(row.distinct_classes),
+    })
+  );
 }

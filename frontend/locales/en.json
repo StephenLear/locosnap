@@ -3,7 +3,8 @@
     "scan": "Scan",
     "history": "History",
     "profile": "Profile",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "radar": "Radar"
   },
   "scan": {
     "proRescue": {
@@ -413,6 +414,16 @@
     "rare": "Rare",
     "epic": "Epic",
     "legendary": "Legendary"
+  },
+  "radar": {
+    "subtitle": "Communal hotspots where the community has spotted trains. Areas with rarer finds glow hotter.",
+    "gridFine": "~10 km",
+    "gridCoarse": "~25 km",
+    "empty": "No communal hotspots yet. Areas appear here once at least two spotters share them.",
+    "thisArea": "This area",
+    "spots": "Spots",
+    "classes": "Classes",
+    "rarest": "Rarest"
   },
   "compare": {
     "emptyText": "No trains selected for comparison",

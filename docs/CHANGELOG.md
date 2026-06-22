@@ -5,6 +5,23 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-22
+
+### Frontend
+
+#### Train Radar Phase 2 — native map screen consuming the migration-022 heatmap RPC
+- **Decision context:** Phase 2 product calls confirmed this session — **native map** (react-native-maps), **free** (no Pro gate; daily-engagement/acquisition hook), **new 5th "Radar" tab**.
+- **`package.json`** — added `react-native-maps@1.20.1` via `expo install` (SDK-54-compatible, native dep → requires a dev/EAS build; will NOT run in Expo Go).
+- **`app.json`** — added `android.config.googleMaps.apiKey` with a **real, restricted** Google Maps SDK for Android key (project `locosnap-play-store`; billing linked to "My Billing Account" free trial). Key is **Application-restricted to Android apps → `com.locosnap.app` + the EAS upload-keystore SHA-1** (`EC:5E:C8:…:BD:D5`), so it's safe to commit to the public repo (Google's supported model). iOS uses Apple Maps via `PROVIDER_DEFAULT` (no key needed). No new location permission added — Radar shows aggregate cells only, never device location. **TODO before a production Play build:** also add the **Play App Signing SHA-1** (Play Console → App integrity) to the key's Android restrictions — Google re-signs the store build with a different cert, so the live app's map breaks without it. Dev/internal builds (EAS keystore) work with the SHA-1 already added.
+- **`types/index.ts`** — added `HeatmapCell` interface (`lat, lng, spotCount, rarityScore, topRarity, distinctClasses`).
+- **`services/supabase.ts`** — added `fetchSpotHeatmap(grid=0.1, minUsers=2)` calling `supabase.rpc("get_spot_heatmap", …)`; maps snake_case rows → `HeatmapCell[]`; returns `[]` on error (incl. `42883`/`PGRST202` not-deployed codes) so the screen degrades to its empty state.
+- **`app/(tabs)/radar.tsx`** (new) — `MapView` (`PROVIDER_DEFAULT`) Germany-centred. Each cell rendered as a rarity-coloured `Circle` (colour = `topRarity`; radius scales with `spotCount`, capped at half the grid; fill alpha scales with density = the "heat"). Circle isn't tappable in rn-maps 1.20, so a transparent `Marker` tap target overlays each cell; tapping reverse-geocodes the cell centre (`Location.reverseGeocodeAsync`, already used in card-reveal) into a place name and shows a bottom info card (place · spots · classes · rarest tier). Fine/coarse grid toggle (0.1°/0.25°), rarity legend, loading + empty states.
+- **`app/(tabs)/_layout.tsx`** — added the `radar` tab (Ionicons `radio`) between Leaderboard and Profile (tab bar now 5 items).
+- **`locales/{en,de,pl}.json`** — added `tabs.radar` + a `radar.*` block (subtitle, grid labels, empty, info-card labels) in all three languages.
+- **`__tests__/services.heatmap.test.ts`** (new) — unit tests for `fetchSpotHeatmap`: RPC params, snake_case→camelCase mapping with numeric coercion, and `[]` fallback on error / null data.
+- **Known limitation (Phase 2.1 candidate):** the heatmap RPC is `authenticated`-only, and the app lets signed-out users reach the tabs — so a signed-out user on Radar sees the generic empty state rather than a "sign in to explore" prompt. Degrades gracefully (no crash); copy could be made auth-aware later.
+- **Status:** tsc clean, 249/249 frontend tests pass. **NOT runnable in Expo Go (native dep) and NOT yet verified on-device** — needs a dev build. No EAS build triggered.
+
 ## 2026-06-21
 
 ### Database

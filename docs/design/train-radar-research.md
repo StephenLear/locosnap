@@ -31,10 +31,26 @@ rare-heavy areas glow hotter. Single-user rural patches stay suppressed (privacy
 `cell_lat, cell_lng, spot_count, rarity_score, top_rarity, distinct_classes`. Validated: top
 cells resolve to real hubs (Vienna 43/34 classes, Köln, Dresden, Leipzig, Karlsruhe).
 
-**Phase 2 — NOT started:** the map screen. Needs `react-native-maps` (native dep → dev/EAS
-build). Open product calls: tier+grid default (rec rare-context via colour, all-spots base,
-0.1° or 0.25°), Pro-gate vs free acquisition hook, and whether spots already carry a
-reverse-geocoded place name (migration 009) for a list fallback.
+**Phase 2 — BUILT 2026-06-22 (code complete; NOT yet on-device-verified or shipped).** The map
+screen. Product calls made this session: **native map** (`react-native-maps@1.20.1`), **FREE**
+(no Pro gate — daily-engagement/acquisition hook), **new 5th "Radar" tab**. Default grid 0.1°
+with a fine/coarse (0.1°/0.25°) toggle; all-spots base, rarity surfaced via cell colour
+(`top_rarity`) + density via radius/fill-alpha. Files: `app/(tabs)/radar.tsx` (MapView
+`PROVIDER_DEFAULT`, rarity-coloured `Circle`s + transparent `Marker` tap targets — Circle isn't
+tappable in rn-maps 1.20), `fetchSpotHeatmap()` in `services/supabase.ts`, `HeatmapCell` type,
+`tabs.radar` + `radar.*` i18n (EN/DE/PL). **Place-name list-fallback idea is moot — there is NO
+reverse-geocoded place_name column on spots** (the migration-009 "Phase 2" notes refer to a
+different country-serial feature); place names are derived on tap via
+`Location.reverseGeocodeAsync` on the cell centre.
+
+**Remaining before it can ship / be tested:**
+1. **Android Google Maps SDK key** — `app.json` `android.config.googleMaps.apiKey` is a
+   placeholder; Android shows a blank map until a real **restricted** key (package
+   `com.locosnap.app` + release SHA-1) is pasted in. iOS Apple Maps needs no key.
+2. **Dev build** — native dep ⇒ won't run in Expo Go; needs an EAS dev/preview build to test
+   on-device, then a production build (version bump) to ship.
+3. **On-device verification** — confirm cells render, tap → place name + stats works, dark map
+   style on Android, performance with ~80–103 cells.
 
 ---
 

@@ -3,7 +3,8 @@
     "scan": "Skanuj",
     "history": "Kolekcja",
     "profile": "Profil",
-    "leaderboard": "Ranking"
+    "leaderboard": "Ranking",
+    "radar": "Radar"
   },
   "scan": {
     "proRescue": {
@@ -421,6 +422,16 @@
     "rare": "Rzadki",
     "epic": "Epicki",
     "legendary": "Legendarny"
+  },
+  "radar": {
+    "subtitle": "Wspólne hotspoty, gdzie społeczność namierzyła pociągi. Miejsca z rzadszymi okazami świecą jaśniej.",
+    "gridFine": "~10 km",
+    "gridCoarse": "~25 km",
+    "empty": "Brak wspólnych hotspotów. Miejsca pojawią się tu, gdy podzieli się nimi co najmniej dwóch spotterów.",
+    "thisArea": "Ten obszar",
+    "spots": "Spoty",
+    "classes": "Serie",
+    "rarest": "Najrzadszy"
   },
   "compare": {
     "emptyText": "Nie wybrano pociągów do porównania",
