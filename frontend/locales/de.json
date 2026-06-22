@@ -4,7 +4,7 @@
     "history": "Sammlung",
     "profile": "Profil",
     "leaderboard": "Bestenliste",
-    "radar": "Radar"
+    "atlas": "Atlas"
   },
   "scan": {
     "proRescue": {
@@ -426,7 +426,7 @@
     "epic": "Episch",
     "legendary": "Legendär"
   },
-  "radar": {
+  "atlas": {
     "subtitle": "Gemeinsame Hotspots, wo die Community Züge entdeckt hat. Gegenden mit selteneren Funden leuchten heller.",
     "gridFine": "~10 km",
     "gridCoarse": "~25 km",
@@ -435,8 +435,8 @@
     "spots": "Spots",
     "classes": "Baureihen",
     "rarest": "Seltenste",
-    "signInTitle": "Melde dich an für das Zug-Radar",
-    "signInBody": "Das Zug-Radar zeigt die Hotspots der Community — wo seltene und häufige Züge auftauchen. Melde dich an, um die Karte zu erkunden.",
+    "signInTitle": "Melde dich an für den Spotting Atlas",
+    "signInBody": "Der Spotting Atlas zeigt die Hotspots der Community — wo seltene und häufige Züge auftauchen. Melde dich an, um die Karte zu erkunden.",
     "logIn": "Anmelden",
     "signUp": "Registrieren"
   },

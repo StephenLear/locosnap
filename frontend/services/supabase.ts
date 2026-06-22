@@ -1474,7 +1474,7 @@ export async function checkAndUnlockAchievements(params: {
   return newlyUnlocked;
 }
 
-// ── Train Radar (Phase 2) — privacy-safe spot heatmap ──────────
+// ── Spotting Atlas (Phase 2) — privacy-safe spot heatmap ───────
 /** Fetch the communal spot heatmap (migration 022 RPC). Returns coarse
  *  grid cells (cell-centre coords only) that >= p_min_users distinct users
  *  have spotted in — never raw coordinates or user ids. Empty array on

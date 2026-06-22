@@ -4,7 +4,7 @@
     "history": "History",
     "profile": "Profile",
     "leaderboard": "Leaderboard",
-    "radar": "Radar"
+    "atlas": "Atlas"
   },
   "scan": {
     "proRescue": {
@@ -415,7 +415,7 @@
     "epic": "Epic",
     "legendary": "Legendary"
   },
-  "radar": {
+  "atlas": {
     "subtitle": "Communal hotspots where the community has spotted trains. Areas with rarer finds glow hotter.",
     "gridFine": "~10 km",
     "gridCoarse": "~25 km",
@@ -424,8 +424,8 @@
     "spots": "Spots",
     "classes": "Classes",
     "rarest": "Rarest",
-    "signInTitle": "Sign in to explore Train Radar",
-    "signInBody": "Train Radar shows the community's spotting hotspots — where rare and common trains turn up. Sign in to explore the map.",
+    "signInTitle": "Sign in to explore the Spotting Atlas",
+    "signInBody": "The Spotting Atlas shows the community's spotting hotspots — where rare and common trains turn up. Sign in to explore the map.",
     "logIn": "Log In",
     "signUp": "Sign Up"
   },

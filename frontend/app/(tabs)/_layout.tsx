@@ -69,11 +69,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="radar"
+        name="atlas"
         options={{
-          title: t("tabs.radar"),
+          title: t("tabs.atlas"),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="radio" size={size} color={color} />
+            <Ionicons name="map" size={size} color={color} />
           ),
         }}
       />

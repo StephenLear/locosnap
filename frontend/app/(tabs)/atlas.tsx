@@ -1,5 +1,5 @@
 // ============================================================
-// LocoSnap — Train Radar (Phase 2)
+// LocoSnap — Spotting Atlas (Phase 2; formerly "Train Radar")
 //
 // Communal, privacy-safe spot heatmap. Renders the aggregate
 // cells from the get_spot_heatmap RPC (migration 022) as
@@ -111,10 +111,10 @@ function cellFillAlpha(spotCount: number): string {
   return byte;
 }
 
-export default function RadarScreen() {
+export default function AtlasScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  // Radar is gated behind sign-in: the heatmap is communal collection data,
+  // The Atlas is gated behind sign-in: the heatmap is communal collection data,
   // and the get_spot_heatmap RPC is authenticated-only. Signed-out users get
   // a sign-in prompt (which also drives sign-ups) rather than the map.
   const user = useAuthStore((s) => s.user);
@@ -163,16 +163,16 @@ export default function RadarScreen() {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.gate}>
-          <Ionicons name="radio" size={44} color={colors.accent} />
-          <Text style={styles.gateTitle}>{t("radar.signInTitle")}</Text>
-          <Text style={styles.gateBody}>{t("radar.signInBody")}</Text>
+          <Ionicons name="map" size={44} color={colors.accent} />
+          <Text style={styles.gateTitle}>{t("atlas.signInTitle")}</Text>
+          <Text style={styles.gateBody}>{t("atlas.signInBody")}</Text>
           <View style={styles.gateButtons}>
             <TouchableOpacity
               style={[styles.gateBtn, styles.gateBtnPrimary]}
               onPress={() => router.push("/sign-in?mode=login")}
             >
               <Ionicons name="log-in-outline" size={18} color={colors.accent} />
-              <Text style={styles.gateBtnTextPrimary}>{t("radar.logIn")}</Text>
+              <Text style={styles.gateBtnTextPrimary}>{t("atlas.logIn")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.gateBtn, styles.gateBtnSecondary]}
@@ -183,7 +183,7 @@ export default function RadarScreen() {
                 size={18}
                 color={colors.textPrimary}
               />
-              <Text style={styles.gateBtnTextSecondary}>{t("radar.signUp")}</Text>
+              <Text style={styles.gateBtnTextSecondary}>{t("atlas.signUp")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -238,8 +238,8 @@ export default function RadarScreen() {
       {/* Header overlay */}
       <View style={styles.header} pointerEvents="box-none">
         <View style={styles.headerCard}>
-          <Ionicons name="radio" size={16} color={colors.accent} />
-          <Text style={styles.headerSubtitle}>{t("radar.subtitle")}</Text>
+          <Ionicons name="map" size={16} color={colors.accent} />
+          <Text style={styles.headerSubtitle}>{t("atlas.subtitle")}</Text>
         </View>
 
         {/* Grid (detail) toggle */}
@@ -257,7 +257,7 @@ export default function RadarScreen() {
                 grid === GRID_FINE && styles.toggleTextActive,
               ]}
             >
-              {t("radar.gridFine")}
+              {t("atlas.gridFine")}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -273,7 +273,7 @@ export default function RadarScreen() {
                 grid === GRID_COARSE && styles.toggleTextActive,
               ]}
             >
-              {t("radar.gridCoarse")}
+              {t("atlas.gridCoarse")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -291,7 +291,7 @@ export default function RadarScreen() {
         <View style={styles.centerOverlay} pointerEvents="none">
           <View style={styles.emptyCard}>
             <Ionicons name="map-outline" size={32} color={colors.textMuted} />
-            <Text style={styles.emptyText}>{t("radar.empty")}</Text>
+            <Text style={styles.emptyText}>{t("atlas.empty")}</Text>
           </View>
         </View>
       )}
@@ -320,19 +320,19 @@ export default function RadarScreen() {
               color={rarityColors[selected.topRarity]}
             />
             <Text style={styles.infoPlace}>
-              {selectedPlace || t("radar.thisArea")}
+              {selectedPlace || t("atlas.thisArea")}
             </Text>
           </View>
           <View style={styles.infoStats}>
             <View style={styles.infoStat}>
               <Text style={styles.infoStatValue}>{selected.spotCount}</Text>
-              <Text style={styles.infoStatLabel}>{t("radar.spots")}</Text>
+              <Text style={styles.infoStatLabel}>{t("atlas.spots")}</Text>
             </View>
             <View style={styles.infoStat}>
               <Text style={styles.infoStatValue}>
                 {selected.distinctClasses}
               </Text>
-              <Text style={styles.infoStatLabel}>{t("radar.classes")}</Text>
+              <Text style={styles.infoStatLabel}>{t("atlas.classes")}</Text>
             </View>
             <View style={styles.infoStat}>
               <Text
@@ -343,7 +343,7 @@ export default function RadarScreen() {
               >
                 {t(`rarity.${selected.topRarity}`)}
               </Text>
-              <Text style={styles.infoStatLabel}>{t("radar.rarest")}</Text>
+              <Text style={styles.infoStatLabel}>{t("atlas.rarest")}</Text>
             </View>
           </View>
         </View>

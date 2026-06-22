@@ -1,5 +1,10 @@
 # Train Radar — Feasibility Research (2026-06-18)
 
+> **RENAMED 2026-06-22: the shipped feature is "Spotting Atlas" (tab "Atlas"),
+> not "Train Radar".** "Train Radar" was the competitor TrainSnap's term and
+> implied live tracking; the feature is a communal heatmap of past sightings.
+> This doc keeps the old name in its history below for traceability.
+
 ---
 
 ## 2026-06-21 — PIVOT to a rarity-coloured SPOT HEATMAP + Phase 1 SHIPPED

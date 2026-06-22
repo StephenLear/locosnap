@@ -5,7 +5,7 @@
 
 export type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
-// Train Radar (Phase 2) — one privacy-safe heatmap cell returned by the
+// Spotting Atlas (Phase 2) — one privacy-safe heatmap cell returned by the
 // public.get_spot_heatmap RPC (migration 022). Coordinates are the COARSE
 // GRID CELL CENTRE (never a raw spot location); cells only appear once >= 2
 // distinct users have spotted there (k-anonymity). No user_id / spot id.
