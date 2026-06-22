@@ -118,6 +118,15 @@ const KNOWN_RARITY: Record<string, { tier: RarityTier; reason?: string }> = {
   "br 193": { tier: "common", reason: "Siemens Vectron — the most numerous modern European electric locomotive, in daily service across the network with thousands built." },
   "br193": { tier: "common", reason: "Siemens Vectron — the most numerous modern European electric locomotive, in daily service across the network with thousands built." },
   "baureihe 193": { tier: "common", reason: "Siemens Vectron — the most numerous modern European electric locomotive, in daily service across the network with thousands built." },
+  // DB BR 111 — 227 built 1974–1984, a longtime DB Regio workhorse now being
+  // displaced by EMUs (KISS/Twindexx/Talent). Still regularly seen but a
+  // declining classic → uncommon (not rare yet; not common like a Vectron).
+  "br 111": { tier: "uncommon", reason: "DB BR 111 — 227-strong West German express electric from 1974–1984, still in DB Regio service but being phased out by modern EMUs; a declining-but-findable classic." },
+  "br111": { tier: "uncommon", reason: "DB BR 111 — 227-strong West German express electric from 1974–1984, still in DB Regio service but being phased out by modern EMUs; a declining-but-findable classic." },
+  "111": { tier: "uncommon", reason: "DB BR 111 — 227-strong West German express electric from 1974–1984, still in DB Regio service but being phased out by modern EMUs; a declining-but-findable classic." },
+  "baureihe 111": { tier: "uncommon", reason: "DB BR 111 — 227-strong West German express electric from 1974–1984, still in DB Regio service but being phased out by modern EMUs; a declining-but-findable classic." },
+  "db class 111": { tier: "uncommon", reason: "DB BR 111 — 227-strong West German express electric from 1974–1984, still in DB Regio service but being phased out by modern EMUs; a declining-but-findable classic." },
+  "db baureihe 111": { tier: "uncommon", reason: "DB BR 111 — 227-strong West German express electric from 1974–1984, still in DB Regio service but being phased out by modern EMUs; a declining-but-findable classic." },
   // Stadler EuroDual (DE class 159) — distinctive bi-mode fleet leased widely via
   // ELP and growing. Uncommon (consistent with the other small-but-growing modern
   // multi-operator fleets: Newag Dragon, BR 247). Revisit if a spotter flags it.

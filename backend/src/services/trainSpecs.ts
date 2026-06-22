@@ -269,6 +269,17 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "stadler flirt 3 xl": { builder: "Stadler Rail" },
   "flirt akku": { builder: "Stadler Rail" },
   "stadler flirt akku": { builder: "Stadler Rail" },
+  // DB BR 111 — West German Bo'Bo' express electric, 227 built 1974–1984. Live
+  // scan (2026-06-22) returned 4,800 kW (wrong) — continuous power is 3,620 kW
+  // (same as the related BR 110). Lock the correct specs. Builder consortium per
+  // the BR 110/111 family. (Rarity locked to uncommon in rarity.ts; build-year
+  // 1974–1984 locked in trainFacts.ts — live facts wrongly said "1960 and 1974".)
+  "br 111": { maxSpeed: "160 km/h", power: "3,620 kW", weight: "83 tonnes", builder: "Krauss-Maffei / Henschel / Krupp", numberBuilt: 227, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br111": { maxSpeed: "160 km/h", power: "3,620 kW", weight: "83 tonnes", builder: "Krauss-Maffei / Henschel / Krupp", numberBuilt: 227, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "111": { maxSpeed: "160 km/h", power: "3,620 kW", weight: "83 tonnes", builder: "Krauss-Maffei / Henschel / Krupp", numberBuilt: 227, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 111": { maxSpeed: "160 km/h", power: "3,620 kW", weight: "83 tonnes", builder: "Krauss-Maffei / Henschel / Krupp", numberBuilt: 227, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db class 111": { maxSpeed: "160 km/h", power: "3,620 kW", weight: "83 tonnes", builder: "Krauss-Maffei / Henschel / Krupp", numberBuilt: 227, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db baureihe 111": { maxSpeed: "160 km/h", power: "3,620 kW", weight: "83 tonnes", builder: "Krauss-Maffei / Henschel / Krupp", numberBuilt: 227, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   // DB Baureihe 114 — 160 km/h push-pull sub-class of BR 112.1, re-designated 1991-1992
   // from the East German DR Baureihe 212/112 (LEW Hennigsdorf 1990-1991 build). ~37 units
   // in the 114 sub-series, used predominantly in eastern Germany (Berlin/Brandenburg/

@@ -53,6 +53,11 @@ Format: newest first within each date block.
 - **Cache:** `CLASS_INVALIDATIONS` entries for the same FLIRT keys (`2026-06-22T20:00:00Z`) so any pre-fix cached entry re-renders. No global cache-version bump (per-class invalidation pattern).
 - tsc clean, 268/268 backend tests.
 
+#### `trainSpecs.ts` + `rarity.ts` + `trainFacts.ts` + `trainCache.ts` — BR 111 spec/facts/rarity lock
+- **Context:** prepping a DE tier-debate ad on the BR 111 (Stephen's pick). A fresh live scan (2026-06-22) showed **UNCOMMON** (good debate tier) but two errors: **POWER 4,800 kW** (BR 111 is ~3,620 kW) and facts prose **"built between 1960 and 1974"** (BR 111 was built 1974–1984; 1960s is the earlier BR 110). Can't run a tier-debate ad on a card with wrong specs.
+- **Fix (full lock):** `WIKIDATA_CORRECTIONS` BR 111 entry (6 key variants) — 160 km/h / **3,620 kW** / 83 t / Krauss-Maffei·Henschel·Krupp / 227 built / 15 kV 16.7 Hz AC / standard gauge; `KNOWN_RARITY` BR 111 → **uncommon** (locks the debate tier, prevents drift); `trainFacts.ts` BR 111 bullet locking **1974–1984** build years + "still in DB Regio service, being phased out by EMUs" framing + don't-confuse-with BR 110/113/114/115; `CLASS_INVALIDATIONS` BR 111 keys (`2026-06-22T22:00:00Z`).
+- tsc clean, 268/268 backend tests. Needs a re-scan after deploy to capture the corrected card for the ad.
+
 ## 2026-06-21
 
 ### Database

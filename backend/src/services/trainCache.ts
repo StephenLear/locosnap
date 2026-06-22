@@ -112,6 +112,16 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "stadler flirt 3 xl": "2026-06-22T20:00:00Z",
   "flirt akku": "2026-06-22T20:00:00Z",
   "stadler flirt akku": "2026-06-22T20:00:00Z",
+  // BR 111 fix (2026-06-22): live scan showed power 4,800 kW (correct 3,620) +
+  // facts "built 1960 and 1974" (correct 1974–1984). Added KNOWN_SPECS power lock,
+  // KNOWN_RARITY uncommon lock, and a trainFacts BR 111 bullet. Invalidate any
+  // pre-fix cached BR 111 so a re-scan renders the corrected card.
+  "br 111": "2026-06-22T22:00:00Z",
+  "br111": "2026-06-22T22:00:00Z",
+  "111": "2026-06-22T22:00:00Z",
+  "baureihe 111": "2026-06-22T22:00:00Z",
+  "db class 111": "2026-06-22T22:00:00Z",
+  "db baureihe 111": "2026-06-22T22:00:00Z",
   // BR 159 (Stadler EuroDual): added a verified length (23.0 m) to the
   // KNOWN_SPECS override 2026-06-04 (was null — flagged by Captrain BR 159
   // driver-in-training Damian). Invalidate pre-fix cached entries so the
