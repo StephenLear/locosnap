@@ -431,7 +431,11 @@
     "thisArea": "Ten obszar",
     "spots": "Spoty",
     "classes": "Serie",
-    "rarest": "Najrzadszy"
+    "rarest": "Najrzadszy",
+    "signInTitle": "Zaloguj się, aby odkryć Radar pociągów",
+    "signInBody": "Radar pociągów pokazuje hotspoty społeczności — gdzie pojawiają się rzadkie i pospolite pociągi. Zaloguj się, aby przeglądać mapę.",
+    "logIn": "Zaloguj się",
+    "signUp": "Zarejestruj się"
   },
   "compare": {
     "emptyText": "Nie wybrano pociągów do porównania",

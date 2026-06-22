@@ -29,9 +29,11 @@ import MapView, {
 } from "react-native-maps";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { colors } from "../../constants/theme";
 import { fetchSpotHeatmap } from "../../services/supabase";
+import { useAuthStore } from "../../store/authStore";
 import { HeatmapCell, RarityTier } from "../../types";
 
 // Mirrors the rarity palette used across history/results/cards.
@@ -111,6 +113,11 @@ function cellFillAlpha(spotCount: number): string {
 
 export default function RadarScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
+  // Radar is gated behind sign-in: the heatmap is communal collection data,
+  // and the get_spot_heatmap RPC is authenticated-only. Signed-out users get
+  // a sign-in prompt (which also drives sign-ups) rather than the map.
+  const user = useAuthStore((s) => s.user);
   const [cells, setCells] = useState<HeatmapCell[]>([]);
   const [loading, setLoading] = useState(true);
   const [grid, setGrid] = useState(GRID_FINE);
@@ -125,8 +132,13 @@ export default function RadarScreen() {
   }, []);
 
   useEffect(() => {
+    // Don't hit the auth-only RPC when signed out (it would just 401 → []).
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     load(grid);
-  }, [grid, load]);
+  }, [grid, load, user]);
 
   const onSelectCell = useCallback(async (cell: HeatmapCell) => {
     setSelected(cell);
@@ -145,6 +157,39 @@ export default function RadarScreen() {
       // Reverse-geocode is best-effort; the stats still show without a name.
     }
   }, []);
+
+  // ── Signed-out gate ──────────────────────────────────────────
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
+        <View style={styles.gate}>
+          <Ionicons name="radio" size={44} color={colors.accent} />
+          <Text style={styles.gateTitle}>{t("radar.signInTitle")}</Text>
+          <Text style={styles.gateBody}>{t("radar.signInBody")}</Text>
+          <View style={styles.gateButtons}>
+            <TouchableOpacity
+              style={[styles.gateBtn, styles.gateBtnPrimary]}
+              onPress={() => router.push("/sign-in?mode=login")}
+            >
+              <Ionicons name="log-in-outline" size={18} color={colors.accent} />
+              <Text style={styles.gateBtnTextPrimary}>{t("radar.logIn")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.gateBtn, styles.gateBtnSecondary]}
+              onPress={() => router.push("/sign-in?mode=signup")}
+            >
+              <Ionicons
+                name="person-add-outline"
+                size={18}
+                color={colors.textPrimary}
+              />
+              <Text style={styles.gateBtnTextSecondary}>{t("radar.signUp")}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
@@ -311,6 +356,54 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   map: { ...StyleSheet.absoluteFillObject },
   tapTarget: { width: 36, height: 36 },
+  gate: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+    gap: 14,
+  },
+  gateTitle: {
+    color: colors.textPrimary,
+    fontSize: 20,
+    fontWeight: "700",
+    textAlign: "center",
+    letterSpacing: 0.3,
+  },
+  gateBody: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  gateButtons: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+  gateBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  gateBtnPrimary: {
+    backgroundColor: colors.surfaceHighlight,
+    borderColor: colors.accent,
+  },
+  gateBtnSecondary: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+  },
+  gateBtnTextPrimary: { color: colors.accent, fontSize: 15, fontWeight: "700" },
+  gateBtnTextSecondary: {
+    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: "600",
+  },
   header: { position: "absolute", top: 12, left: 12, right: 12 },
   headerCard: {
     flexDirection: "row",

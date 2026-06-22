@@ -423,7 +423,11 @@
     "thisArea": "This area",
     "spots": "Spots",
     "classes": "Classes",
-    "rarest": "Rarest"
+    "rarest": "Rarest",
+    "signInTitle": "Sign in to explore Train Radar",
+    "signInBody": "Train Radar shows the community's spotting hotspots — where rare and common trains turn up. Sign in to explore the map.",
+    "logIn": "Log In",
+    "signUp": "Sign Up"
   },
   "compare": {
     "emptyText": "No trains selected for comparison",

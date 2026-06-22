@@ -434,7 +434,11 @@
     "thisArea": "Dieser Bereich",
     "spots": "Spots",
     "classes": "Baureihen",
-    "rarest": "Seltenste"
+    "rarest": "Seltenste",
+    "signInTitle": "Melde dich an für das Zug-Radar",
+    "signInBody": "Das Zug-Radar zeigt die Hotspots der Community — wo seltene und häufige Züge auftauchen. Melde dich an, um die Karte zu erkunden.",
+    "logIn": "Anmelden",
+    "signUp": "Registrieren"
   },
   "errors": {
     "networkError": "Keine Verbindung zu den LocoSnap-Servern. Bitte erneut versuchen.",
