@@ -45,6 +45,14 @@ const rarityColors: Record<RarityTier, string> = {
   legendary: "#f59e0b",
 };
 
+// Defensive: top_rarity comes from the DB (cast to RarityTier). If a row
+// ever carries a null/unexpected tier, fall back to the common colour so we
+// never build an invalid color string (e.g. "undefined" + alpha), which can
+// crash rn-maps' Circle on Android — and wouldn't show up in Expo Go.
+function rarityColor(tier: RarityTier): string {
+  return rarityColors[tier] ?? rarityColors.common;
+}
+
 const RARITY_ORDER: RarityTier[] = [
   "legendary",
   "epic",
@@ -210,9 +218,9 @@ export default function AtlasScreen() {
               key={key}
               center={{ latitude: cell.lat, longitude: cell.lng }}
               radius={cellRadius(cell, grid)}
-              strokeColor={rarityColors[cell.topRarity]}
+              strokeColor={rarityColor(cell.topRarity)}
               strokeWidth={2}
-              fillColor={`${rarityColors[cell.topRarity]}${cellFillAlpha(
+              fillColor={`${rarityColor(cell.topRarity)}${cellFillAlpha(
                 cell.spotCount
               )}`}
               zIndex={cell.spotCount}
@@ -317,7 +325,7 @@ export default function AtlasScreen() {
             <Ionicons
               name="location"
               size={18}
-              color={rarityColors[selected.topRarity]}
+              color={rarityColor(selected.topRarity)}
             />
             <Text style={styles.infoPlace}>
               {selectedPlace || t("atlas.thisArea")}
@@ -338,7 +346,7 @@ export default function AtlasScreen() {
               <Text
                 style={[
                   styles.infoStatValue,
-                  { color: rarityColors[selected.topRarity] },
+                  { color: rarityColor(selected.topRarity) },
                 ]}
               >
                 {t(`rarity.${selected.topRarity}`)}
