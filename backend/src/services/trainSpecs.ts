@@ -114,6 +114,7 @@ Rules:
 - VR Sm5 (Stadler FLIRT Finland, 2008+) — use these exact values; operator is HSL, NOT VR alone:
   maxSpeed "160 km/h", power "4,200 kW", weight "130 tonnes (4-car set)", builder "Stadler Rail (Bussnang)", numberBuilt 81, status "In service", fuelType "Electric (25 kV 50 Hz AC)", gauge "Finnish broad gauge (1,524 mm)", route "HSL commuter services across the Helsinki region"
   Four-car Stadler FLIRT variant for Finnish broad gauge, sharp angular FLIRT nose, HSL white/green livery. Fleet numbers "Sm5 64xx". Owned by **Pääkaupunkiseudun Junakalusto Oy** and operated under contract for HSL (Helsingin seudun liikenne). Operator field MUST be "HSL" or "HSL / VR", NEVER "VR" alone — VR only operates the trains on HSL's behalf. Only classify as Sm5 if the train has the unmistakable sharp angular Stadler FLIRT nose; a boxy 1970s cab is Sm2, a rounded single-curve nose is Sm4.
+- Stadler FLIRT (mainland Europe — ALL variants: FLIRT, FLIRT3, FLIRT 3XL, FLIRT Akku/battery): builder is ALWAYS "Stadler Rail" (German-market sets are assembled at Stadler Pankow, Berlin), NEVER Siemens, Bombardier, or Alstom. The FLIRT is Stadler's flagship regional EMU/BEMU — the builder is Stadler even when the class string carries a length suffix like "3XL" and regardless of operator (Go-Ahead, National Express, NS, SBB, ČD, etc., all run Stadler-built FLIRTs). Fan-flagged 2026-06-22: a "Stadler FLIRT 3XL" was wrongly attributed to Siemens.
 - DB BR 648 / Alstom Coradia LINT 41 — use these exact values; this is a modern workhorse DMU, NOT limited production:
   maxSpeed "120 km/h", power "630 kW (2× MTU 6R 183 TD13H diesel, ~315 kW each)", weight "68 tonnes service weight", length "41.8 m (articulated 2-car)", builder "Alstom Transport (formerly LHB Salzgitter)", numberBuilt 300, status "In active service (production ongoing)", fuelType "Diesel", gauge "Standard (1,435 mm)", route "German regional non-electrified lines under DB Regio, HLB, NAH.SH, erixx, vlexx, Vias, Nordwestbahn"
   Modern 2-car articulated diesel multiple unit built by Alstom from 1999 onwards (LHB Salzgitter originally, acquired by Alstom). The LINT family includes LINT 27 (BR 640, single car, 27 m), LINT 41 (BR 648, 2-car articulated, 41.8 m), LINT 54 (BR 622, 3-car), and LINT 81 (4-car). "LINT" = "Leichter Innovativer Nahverkehrs-Triebwagen" (light innovative local-transport railcar). CRITICAL FACTS the AI must never contradict: (a) numberBuilt across the whole 648 family is 300+ (NEVER 192 — that is the VR Dv12 Finnish diesel, a completely different locomotive on a different continent); (b) builder is "Alstom Transport" or "Alstom (formerly LHB Salzgitter)" — NEVER "Bombardier", NEVER "Siemens", NEVER "Stadler"; (c) status is "In active service" with production continuing — NEVER "withdrawn", "limited production", "specialized service", or "extremely rare"; (d) operator field can be DB Regio, HLB, NAH.SH, erixx, vlexx, Vias, or Nordwestbahn depending on livery — all are mainstream German regional operators; (e) fuelType is "Diesel" — NEVER electric (no pantograph, no electrified equipment). Distinguish from BR 642 (Siemens Desiro Classic DMU — similar role, different cab) and BR 643 (Bombardier Talent 1 DMU — different manufacturer).
@@ -251,6 +252,23 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // DB Class 642 (Siemens Desiro Classic) — Wikidata returns wrong builder
   "db class 642": { builder: "Siemens" },
   "class 642": { builder: "Siemens" },
+  // Stadler FLIRT (all mainland variants) — builder is ALWAYS Stadler, never
+  // Siemens. Fan-flagged 2026-06-22 ("Stadler Flirt 3XL von Siemens"). Builder-
+  // only override (a partial merge): specs vary by variant, so only the builder
+  // is corrected; class name + every other spec are left untouched. The Finnish
+  // Sm5 FLIRT keeps its own full entry (keyed sm5), unaffected by these keys.
+  "flirt": { builder: "Stadler Rail" },
+  "stadler flirt": { builder: "Stadler Rail" },
+  "flirt3": { builder: "Stadler Rail" },
+  "flirt 3": { builder: "Stadler Rail" },
+  "stadler flirt3": { builder: "Stadler Rail" },
+  // NOTE: "stadler flirt 3" already has a full BR 428 entry below — not repeated.
+  "flirt 3xl": { builder: "Stadler Rail" },
+  "flirt3 xl": { builder: "Stadler Rail" },
+  "stadler flirt 3xl": { builder: "Stadler Rail" },
+  "stadler flirt 3 xl": { builder: "Stadler Rail" },
+  "flirt akku": { builder: "Stadler Rail" },
+  "stadler flirt akku": { builder: "Stadler Rail" },
   // DB Baureihe 114 — 160 km/h push-pull sub-class of BR 112.1, re-designated 1991-1992
   // from the East German DR Baureihe 212/112 (LEW Hennigsdorf 1990-1991 build). ~37 units
   // in the 114 sub-series, used predominantly in eastern Germany (Berlin/Brandenburg/

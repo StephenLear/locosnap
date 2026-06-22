@@ -39,6 +39,14 @@ Format: newest first within each date block.
 - **Server-side ⇒ took effect immediately for all clients, incl. already-installed builds** — no app rebuild needed for this fix.
 - **Validated on prod (verified-only):** 0.1° → **18 cells / 76 spots** (busiest cell 9); 0.25° → **28 cells / 154 spots**. Down from ~80 cells pre-filter — confirms much of the prior data was the gallery-at-home pollution. Map is now accurate but thinner; densifies as verified spots accumulate.
 
+### Backend
+
+#### `trainSpecs.ts` + `trainCache.ts` — Stadler FLIRT builder fix (Siemens → Stadler)
+- **Context:** IG tester `sammyrox.official` flagged the BR 101 ad — the app called a **Stadler FLIRT 3XL** a *Siemens* product. The class name was right ("Stadler FLIRT 3XL") but the specs AI hallucinated the builder, because the generic / "3XL" FLIRT variants had no override (the BR 428 "stadler flirt 3" and BR 429 "stadler flirt 5" entries existed and were correct, but the bare/3XL strings did not).
+- **Fix (defense-in-depth, mirrors the ST22 pattern):** (a) `WIKIDATA_CORRECTIONS` builder-only overrides `{ builder: "Stadler Rail" }` for the uncovered FLIRT keys (`flirt`, `stadler flirt`, `flirt3`, `flirt 3`, `stadler flirt3`, `flirt 3xl`, `flirt3 xl`, `stadler flirt 3xl`, `stadler flirt 3 xl`, `flirt akku`, `stadler flirt akku`) — partial shallow merge, so only the builder is corrected, all other specs untouched; (b) a specs-prompt CRITICAL FACTS rule stating the FLIRT builder is ALWAYS Stadler, never Siemens/Bombardier/Alstom, even with a "3XL" suffix, for the long tail of variant strings. Existing `stadler flirt 3`/`5`/`finland` entries left intact (already correct).
+- **Cache:** `CLASS_INVALIDATIONS` entries for the same FLIRT keys (`2026-06-22T20:00:00Z`) so any pre-fix cached entry re-renders. No global cache-version bump (per-class invalidation pattern).
+- tsc clean, 268/268 backend tests.
+
 ## 2026-06-21
 
 ### Database

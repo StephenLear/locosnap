@@ -96,6 +96,22 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "et22": "2026-06-21T12:00:00Z",
   "pkp et22": "2026-06-21T12:00:00Z",
   "st22": "2026-06-21T12:00:00Z",
+  // Stadler FLIRT builder fix (2026-06-22): a "Stadler FLIRT 3XL" was returned
+  // with builder "Siemens". WIKIDATA_CORRECTIONS now forces builder "Stadler
+  // Rail" for all FLIRT variants; invalidate any pre-fix cached FLIRT entry so
+  // the corrected builder renders on the next scan.
+  "flirt": "2026-06-22T20:00:00Z",
+  "stadler flirt": "2026-06-22T20:00:00Z",
+  "flirt3": "2026-06-22T20:00:00Z",
+  "flirt 3": "2026-06-22T20:00:00Z",
+  "stadler flirt3": "2026-06-22T20:00:00Z",
+  "stadler flirt 3": "2026-06-22T20:00:00Z",
+  "flirt 3xl": "2026-06-22T20:00:00Z",
+  "flirt3 xl": "2026-06-22T20:00:00Z",
+  "stadler flirt 3xl": "2026-06-22T20:00:00Z",
+  "stadler flirt 3 xl": "2026-06-22T20:00:00Z",
+  "flirt akku": "2026-06-22T20:00:00Z",
+  "stadler flirt akku": "2026-06-22T20:00:00Z",
   // BR 159 (Stadler EuroDual): added a verified length (23.0 m) to the
   // KNOWN_SPECS override 2026-06-04 (was null — flagged by Captrain BR 159
   // driver-in-training Damian). Invalidate pre-fix cached entries so the
