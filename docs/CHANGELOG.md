@@ -7,6 +7,9 @@ Format: newest first within each date block.
 
 ## 2026-06-22
 
+### Release — v1.0.40 (production build + submit)
+- **`app.json` version 1.0.39 → 1.0.40.** Headline feature: the **Spotting Atlas** (new tab — communal verified-only spot heatmap). Also includes: the sign-in gate, BigDataCloud place names, verified-only data (migration 023), and the Stadler FLIRT builder fix (backend, already deployed). Production EAS build (all platforms, autoIncrement build number) → submit to App Store + Play. Maps key is production-ready (Play App Signing SHA-1 `76:0E…` + EAS keystore SHA `EC:5E…` both registered). Ties into the staged v1.0.40 ASO draft.
+
 ### Frontend
 
 #### Spotting Atlas (formerly "Train Radar") Phase 2 — native map screen consuming the migration-022 heatmap RPC
