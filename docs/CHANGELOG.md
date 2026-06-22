@@ -21,7 +21,21 @@ Format: newest first within each date block.
 - **`locales/{en,de,pl}.json`** — added `tabs.atlas` + an `atlas.*` block (subtitle, grid labels, empty, info-card labels, sign-in gate strings) in all three languages.
 - **Sign-in gate (added this session, before push):** the Atlas is gated behind sign-in — the heatmap is communal collection data and the RPC is `authenticated`-only, so giving it to signed-out users would hand the feature to non-registered users. Signed-out users now see a teaser card (map icon + "Sign in to explore the Spotting Atlas" + body) with **Log In / Sign Up** CTAs routing to `/sign-in?mode=login` and `/sign-in?mode=signup` (mirrors the Profile tab's three-CTA pattern). The tab stays visible to all (creates sign-up pull); the auth-only RPC is not called when signed out. Map renders only for signed-in users.
 - **`__tests__/services.heatmap.test.ts`** (new) — unit tests for `fetchSpotHeatmap`: RPC params, snake_case→camelCase mapping with numeric coercion, and `[]` fallback on error / null data.
-- **Status:** tsc clean, 249/249 frontend tests pass. **NOT runnable in Expo Go (native dep) and NOT yet verified on-device** — needs a dev build. No EAS build triggered.
+- **Status:** tsc clean, 249/249 frontend tests pass. **NOT runnable in Expo Go (native dep) and NOT yet verified on-device** — needs a dev build.
+
+#### Spotting Atlas — on-device test fixes (Android preview build a6d21716 / iOS fa4237c6)
+- **Builds:** EAS **preview** APK + IPA built and installed (Android keystore SHA-1 matches the restricted Maps key; map renders, circles draw, data loads, tap → info card works). First real on-device test surfaced the items below.
+- **Red default pins → rarity-coloured dots** (`app/(tabs)/atlas.tsx`): the transparent tap-target `Marker` fell back to Android's default red pin (a transparent custom marker view doesn't suppress the default pin). Replaced with a visible rarity-coloured centre dot (14px, white border) in a 40px transparent hit-area, plus a `tracksViewChanges` toggle (true on data load → false after 1.5s) so the custom view actually renders before Android snapshots it.
+- **Place name showed "This area"** — broadened the reverse-geocode fallback chain to `city → subregion → district → region → country` (the coarse cell centre often has a null `city` on Android).
+- **Default grid → coarse (0.25°)** — with verified-only data the map is thin; 0.25° aggregates more per cell for a denser first impression. Fine (0.1°) still available via the toggle.
+
+### Database
+
+#### `supabase/migrations/023_spot_heatmap_verified_only.sql` — Atlas heatmap: verified spots only (applied to prod)
+- **Problem (caught in review):** the Phase-1 RPC counted every spot with a lat/lng, including the `personal`/`unverified` tiers. A **gallery scan of a photo with no EXIF GPS records the user's current device location** (their home), not where the train was — dropping false hotspots at users' homes.
+- **Fix:** `create or replace get_spot_heatmap` adds `where … s.verification_tier in ('verified-live', 'verified-recent-gallery')` — the exact trust filter the leaderboard RPCs (013/014) already use. Excludes `personal`/`unverified`. Signature unchanged so grants persist (revoke/grant repeated for clarity).
+- **Server-side ⇒ took effect immediately for all clients, incl. already-installed builds** — no app rebuild needed for this fix.
+- **Validated on prod (verified-only):** 0.1° → **18 cells / 76 spots** (busiest cell 9); 0.25° → **28 cells / 154 spots**. Down from ~80 cells pre-filter — confirms much of the prior data was the gallery-at-home pollution. Map is now accurate but thinner; densifies as verified spots accumulate.
 
 ## 2026-06-21
 

@@ -128,9 +128,16 @@ export default function AtlasScreen() {
   const user = useAuthStore((s) => s.user);
   const [cells, setCells] = useState<HeatmapCell[]>([]);
   const [loading, setLoading] = useState(true);
-  const [grid, setGrid] = useState(GRID_FINE);
+  // Default to the coarser grid: with verified-only data the map is currently
+  // thin, and 0.25° aggregates more spots per cell (denser first impression).
+  // Users can switch to the finer 0.1° view via the toggle.
+  const [grid, setGrid] = useState(GRID_COARSE);
   const [selected, setSelected] = useState<HeatmapCell | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null);
+  // Marker custom views must be "tracked" while they first render, or Android
+  // snapshots them empty and falls back to the default red pin. Track briefly
+  // after each data load, then stop (perf) once the dots have drawn.
+  const [tracksChanges, setTracksChanges] = useState(true);
 
   const load = useCallback(async (g: number) => {
     setLoading(true);
@@ -148,6 +155,13 @@ export default function AtlasScreen() {
     load(grid);
   }, [grid, load, user]);
 
+  useEffect(() => {
+    if (cells.length === 0) return;
+    setTracksChanges(true);
+    const id = setTimeout(() => setTracksChanges(false), 1500);
+    return () => clearTimeout(id);
+  }, [cells]);
+
   const onSelectCell = useCallback(async (cell: HeatmapCell) => {
     setSelected(cell);
     setSelectedPlace(null);
@@ -158,7 +172,15 @@ export default function AtlasScreen() {
       });
       const r = results[0];
       if (r) {
-        const name = r.city || r.subregion || r.region || r.country;
+        // Field availability varies by platform/locale; city is often empty
+        // on Android for a coarse cell centre, so fall through to broader
+        // administrative areas before giving up.
+        const name =
+          r.city ||
+          r.subregion ||
+          r.district ||
+          r.region ||
+          r.country;
         setSelectedPlace(name || null);
       }
     } catch {
@@ -227,18 +249,26 @@ export default function AtlasScreen() {
             />
           );
         })}
-        {/* Transparent tap targets (Circle isn't tappable in rn-maps 1.20). */}
+        {/* Rarity-coloured centre dot per cell — Circle isn't tappable in
+            rn-maps 1.20, so this dot is the tap target. A *visible* custom
+            view is required: a transparent one falls back to the default red
+            pin on Android. The padded wrapper enlarges the tap area. */}
         {cells.map((cell, i) => (
           <Marker
-            key={`tap_${cell.lat}_${cell.lng}_${i}`}
+            key={`dot_${cell.lat}_${cell.lng}_${i}`}
             coordinate={{ latitude: cell.lat, longitude: cell.lng }}
             anchor={{ x: 0.5, y: 0.5 }}
-            tracksViewChanges={false}
+            tracksViewChanges={tracksChanges}
             onPress={() => onSelectCell(cell)}
           >
-            {/* Invisible child fully replaces the default pin, leaving only
-                a transparent tap target over the Circle. */}
-            <View style={styles.tapTarget} />
+            <View style={styles.cellHit}>
+              <View
+                style={[
+                  styles.cellDot,
+                  { backgroundColor: rarityColor(cell.topRarity) },
+                ]}
+              />
+            </View>
           </Marker>
         ))}
       </MapView>
@@ -363,7 +393,19 @@ export default function AtlasScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   map: { ...StyleSheet.absoluteFillObject },
-  tapTarget: { width: 36, height: 36 },
+  cellHit: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cellDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 1.5,
+    borderColor: "#ffffff",
+  },
   gate: {
     flex: 1,
     alignItems: "center",

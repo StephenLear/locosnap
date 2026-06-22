@@ -48,14 +48,23 @@ reverse-geocoded place_name column on spots** (the migration-009 "Phase 2" notes
 different country-serial feature); place names are derived on tap via
 `Location.reverseGeocodeAsync` on the cell centre.
 
-**Remaining before it can ship / be tested:**
-1. **Android Google Maps SDK key** — `app.json` `android.config.googleMaps.apiKey` is a
-   placeholder; Android shows a blank map until a real **restricted** key (package
-   `com.locosnap.app` + release SHA-1) is pasted in. iOS Apple Maps needs no key.
-2. **Dev build** — native dep ⇒ won't run in Expo Go; needs an EAS dev/preview build to test
-   on-device, then a production build (version bump) to ship.
-3. **On-device verification** — confirm cells render, tap → place name + stats works, dark map
-   style on Android, performance with ~80–103 cells.
+**Status 2026-06-22 — on-device tested + data corrected:**
+1. **Android Google Maps SDK key — DONE.** Real restricted key (GCP `locosnap-play-store`,
+   Application-restricted to `com.locosnap.app` + EAS keystore SHA-1) in `app.json`. iOS Apple
+   Maps needs none. Add the Play App Signing SHA-1 before a production Play build.
+2. **EAS preview builds made + installed** (Android a6d21716 / iOS fa4237c6). Map renders,
+   circles draw, data loads, tap → info card works.
+3. **On-device fixes applied:** transparent tap-markers showed Android's default red pin →
+   replaced with rarity-coloured centre dots; reverse-geocode fallback broadened
+   (city→subregion→district→region→country); default grid set to coarse 0.25°.
+4. **DATA FIX — migration 023 (applied to prod): verified spots only.** The Phase-1 RPC counted
+   `personal`/`unverified` spots; a gallery scan of an EXIF-less photo records the user's CURRENT
+   device location (home), not the train's — false hotspots. 023 filters to
+   `verification_tier in ('verified-live','verified-recent-gallery')` (same as leaderboard
+   013/014). Verified-only prod counts: 0.1° → 18 cells/76 spots; 0.25° → 28 cells/154 spots
+   (down from ~80 pre-filter; accurate but thinner, densifies over time).
+5. **Still to do before public ship:** Play App Signing SHA-1 on the Maps key; a production build
+   (version bump); broader on-device pass (dark map style, perf, sign-in gate).
 
 ---
 
