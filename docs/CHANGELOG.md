@@ -7,8 +7,11 @@ Format: newest first within each date block.
 
 ## 2026-06-22
 
-### Release — v1.0.40 (production build + submit)
-- **`app.json` version 1.0.39 → 1.0.40.** Headline feature: the **Spotting Atlas** (new tab — communal verified-only spot heatmap). Also includes: the sign-in gate, BigDataCloud place names, verified-only data (migration 023), and the Stadler FLIRT builder fix (backend, already deployed). Production EAS build (all platforms, autoIncrement build number) → submit to App Store + Play. Maps key is production-ready (Play App Signing SHA-1 `76:0E…` + EAS keystore SHA `EC:5E…` both registered). Ties into the staged v1.0.40 ASO draft.
+### Release — v1.0.40 (production build + submitted to both stores)
+- **`app.json` version 1.0.39 → 1.0.40.** Headline feature: the **Spotting Atlas** (new tab — communal verified-only spot heatmap). Also includes: the sign-in gate, BigDataCloud place names, verified-only data (migration 023), and the Stadler FLIRT builder fix (backend, already deployed). Maps key is production-ready (Play App Signing SHA-1 `76:0E…` + EAS keystore SHA `EC:5E…` both registered). Ties into the staged v1.0.40 ASO draft.
+- **Builds:** production EAS builds — Android AAB `40cf54be` (versionCode 33), iOS `b3cfefb5` (build 63).
+- **Submitted via `eas submit`:** Android → Play **production track as DRAFT** (versionCode 33; Stephen controls final rollout); iOS → App Store Connect (build 63, processing → TestFlight). **Final "submit for review" is done by Stephen** (his standing preference). Release notes (EN/DE/PL) + an App Review note explaining the Atlas sign-in gate prepared in the 2026-06-22 handover / session.
+- **On-device validated before ship:** Android — map, rarity dots, place names (BigDataCloud), verified-only data all confirmed working on a real device.
 
 ### Frontend
 
