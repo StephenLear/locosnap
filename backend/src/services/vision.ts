@@ -601,12 +601,21 @@ async function identifyWithClaude(
     // Covers:
     //   402 = billing limit hit
     //   429 = rate limit (too many requests for this minute)
+    //   500 = Anthropic internal server error (transient api_error)
+    //   503 = service unavailable
     //   529 = overloaded (Anthropic-wide capacity issue, returned with
     //         `{"type":"overloaded_error","message":"Overloaded"}` body)
     // The fallback is silent from the user's perspective — they get an OpenAI
     // identification instead of a Claude one. Both providers have the same
     // train-ID schema so the result is interchangeable.
-    if ((status === 402 || status === 429 || status === 529) && config.hasOpenAI) {
+    if (
+      (status === 402 ||
+        status === 429 ||
+        status === 500 ||
+        status === 503 ||
+        status === 529) &&
+      config.hasOpenAI
+    ) {
       console.warn(
         `[VISION] Anthropic returned ${status} — falling back to OpenAI`
       );

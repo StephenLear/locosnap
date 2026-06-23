@@ -5,6 +5,13 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-23
+
+### Backend
+
+#### Vision OpenAI-fallback now covers Anthropic 500/503 (`services/vision.ts`)
+- **Extended the runtime Anthropic→OpenAI vision fallback trigger from `402/429/529` to `402/429/500/503/529`.** Prompted by a Sentry issue (`REACT-NATIVE-B`): a `500 {"type":"error","error":{"type":"api_error","message":"Internal server error"},"request_id":"req_…"}` on `POST /api/identify` — an upstream Anthropic transient 500. The fallback to GPT-4o Vision previously only fired on 402/429/529, so an Anthropic **500** (or 503) failed the scan and surfaced a 500 to the client instead of silently retrying on OpenAI. `OPENAI_API_KEY` confirmed set in prod Render (so `config.hasOpenAI` is true and the fallback actually runs). Comment block updated to document 500/503. tsc clean, **268/268 backend tests pass**. Low-volume issue (8 events over 3 months); the Sentry issue is safe to Archive. **Not yet deployed — needs a push to go live on Render.**
+
 ## 2026-06-22
 
 ### Release — v1.0.40 (production build + submitted to both stores)
