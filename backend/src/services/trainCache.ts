@@ -303,10 +303,13 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "dr19": "2026-06-24T10:00:00Z",
   "vr dr19": "2026-06-24T10:00:00Z",
   "dr 19": "2026-06-24T10:00:00Z",
-  "dr16": "2026-06-24T10:00:00Z",
-  "vr dr16": "2026-06-24T10:00:00Z",
-  "dr 16": "2026-06-24T10:00:00Z",
-  "arcticrail dr16": "2026-06-24T10:00:00Z",
+  // Dr16 bumped to T15:00 (2nd report same day): Oula confirmed VR has FULLY
+  // withdrawn the Dr16 — ArcticRail is now the SOLE operator (2 units). Re-renders
+  // any entry cached after the morning push that still said "VR keeps spares".
+  "dr16": "2026-06-24T15:00:00Z",
+  "vr dr16": "2026-06-24T15:00:00Z",
+  "dr 16": "2026-06-24T15:00:00Z",
+  "arcticrail dr16": "2026-06-24T15:00:00Z",
   "dv12": "2026-06-24T10:00:00Z",
   "vr dv12": "2026-06-24T10:00:00Z",
   "dv 12": "2026-06-24T10:00:00Z",

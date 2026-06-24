@@ -18,7 +18,8 @@ Format: newest first within each date block.
   - **`rarity.ts`** — added a prompt bullet + `KNOWN_RARITY` overrides: **Dr16 = "epic"** (23 built, VR fleet retired by 2026, only a handful with ArcticRail), **Dr19 = "uncommon"** (modern 60-unit growing fleet, same logic as Sr3).
   - **`trainFacts.ts`** — added Dr19 and Dr16 verified-facts blocks; corrected the Dv12 block's inaccurate "Dr19 Eurolight" label (Stadler's bespoke central-cab design, not a Eurolight).
   - **`trainCache.ts`** — per-class `CLASS_INVALIDATIONS` for `dr19`/`dr16`/`dv12` (+ variants), 2026-06-24, so any prior cached entries re-render. No global cache-version bump (per-class pattern).
-- **Status:** tsc clean, **268/268 backend tests pass**, no duplicate-key collisions. **Not yet deployed — needs a push to go live on Render.**
+- **Status:** tsc clean, **268/268 backend tests pass**, no duplicate-key collisions. Shipped + pushed (commit `53b2db6`).
+- **Follow-up same day (Oula 2nd report):** VR has now **fully withdrawn** the Dr16 — **ArcticRail is the sole operator** (2 units, web-corroborated). Updated `vision.ts` + `trainFacts.ts` + `rarity.ts` so the operator of any in-service Dr16 is **ArcticRail** (no longer "VR keeps a couple as spares"); bumped the `dr16` cache invalidation to `2026-06-24T15:00:00Z` to re-render anything cached after the morning push. tsc clean, 268/268. **Not yet deployed — needs a push to go live on Render.**
 
 ## 2026-06-23
 
