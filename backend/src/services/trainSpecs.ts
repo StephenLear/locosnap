@@ -980,6 +980,21 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   // mis-attribute it to ABB/SLM (Sr2) or Strömberg (Sr1).
   "sr3": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 80, fuelType: "Electric (25 kV 50 Hz AC)" },
   "vr sr3": { maxSpeed: "200 km/h", power: "6,400 kW", builder: "Siemens", numberBuilt: 80, fuelType: "Electric (25 kV 50 Hz AC)" },
+  // VR Dr19 — Stadler Rail Valencia, in service from May 2023. 60 ordered (options
+  // for 100 more), all due by end 2026. Bo'Bo' diesel-electric, dual Caterpillar C32
+  // engines = 1,900 kW. Single full-width "Central Cab". The class most often
+  // misidentified as Dv12 — flagged by tester Oula 2026-06-24.
+  "dr19": { maxSpeed: "120 km/h", power: "1,900 kW", builder: "Stadler Rail Valencia", numberBuilt: 60, fuelType: "Diesel" },
+  "vr dr19": { maxSpeed: "120 km/h", power: "1,900 kW", builder: "Stadler Rail Valencia", numberBuilt: 60, fuelType: "Diesel" },
+  "dr 19": { maxSpeed: "120 km/h", power: "1,900 kW", builder: "Stadler Rail Valencia", numberBuilt: 60, fuelType: "Diesel" },
+  // VR Dr16 "Iso Vaalee" — Valmet (2801-2809) + Transtech (2810-2823) 1985-1992,
+  // 23 built. Bo'Bo' four-axle (NOT Co'Co'), Pielstick 12PA4 derated to 1,500 kW
+  // from 1997. Near-withdrawn by VR (last units retired March 2026); a few restored
+  // by private operator ArcticRail. Flagged by tester Oula 2026-06-24.
+  "dr16": { maxSpeed: "140 km/h", power: "1,500 kW", builder: "Valmet / Transtech", numberBuilt: 23, fuelType: "Diesel" },
+  "vr dr16": { maxSpeed: "140 km/h", power: "1,500 kW", builder: "Valmet / Transtech", numberBuilt: 23, fuelType: "Diesel" },
+  "dr 16": { maxSpeed: "140 km/h", power: "1,500 kW", builder: "Valmet / Transtech", numberBuilt: 23, fuelType: "Diesel" },
+  "arcticrail dr16": { maxSpeed: "140 km/h", power: "1,500 kW", builder: "Valmet / Transtech", numberBuilt: 23, fuelType: "Diesel" },
   // LSWR Urie S15 (BR 30506) — Robert Urie 4-6-0, Eastleigh 1920-1921, 20 units
   // in the Urie batch. Preserved 30506 based at Watercress Line / Mid-Hants Railway.
   // NOT Schools class, NOT 4-4-0, NOT 1914. Discovered 2026-04-19 when a UK tester

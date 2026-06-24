@@ -295,6 +295,21 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "škoda 73e": "2026-06-19T23:59:00Z",
   "skoda 73e": "2026-06-19T23:59:00Z",
   "73e": "2026-06-19T23:59:00Z",
+  // VR Finnish diesels — tester Oula 2026-06-24. Dr19 was being identified as Dv12
+  // (added dedicated vision rule + KNOWN_SPECS + rarity "uncommon" + facts block).
+  // Dr16 had thin/wrong data (Bo'Bo' not Co'Co') + near-withdrawn/ArcticRail status
+  // (rarity "epic" + facts block). Dv12 facts de-"Eurolight"-ed. Invalidate any prior
+  // cached entries for all three so they re-render. Per-class only (no global bump).
+  "dr19": "2026-06-24T10:00:00Z",
+  "vr dr19": "2026-06-24T10:00:00Z",
+  "dr 19": "2026-06-24T10:00:00Z",
+  "dr16": "2026-06-24T10:00:00Z",
+  "vr dr16": "2026-06-24T10:00:00Z",
+  "dr 16": "2026-06-24T10:00:00Z",
+  "arcticrail dr16": "2026-06-24T10:00:00Z",
+  "dv12": "2026-06-24T10:00:00Z",
+  "vr dv12": "2026-06-24T10:00:00Z",
+  "dv 12": "2026-06-24T10:00:00Z",
 };
 // Note: the `br 159` / `br159` keys already exist above (06-04 length fix) and were
 // bumped to 2026-06-05T23:59:00Z so the rarity anchor also refreshes their cache.

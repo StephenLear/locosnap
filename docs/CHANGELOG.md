@@ -5,6 +5,21 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-24
+
+### Backend
+
+#### VR Dr19 + Dr16 Finnish diesel corrections (tester Oula) — `vision.ts`, `trainSpecs.ts`, `rarity.ts`, `trainFacts.ts`, `trainCache.ts`
+- **Context:** Finnish tester Oula reported two issues: (1) the app identifies a **VR Dr19** (Stadler's new mainline diesel, now hauling most diesel freight in their area and a common station sight) as a **Dv12**; (2) **VR Dr16** scans returned thin / partly-incorrect data, and the operator picture has changed — VR has withdrawn nearly the whole Dr16 fleet (keeping ~2 spares) while the private operator **ArcticRail** has restored a couple to active freight service. Facts web-verified against Wikipedia / Railway Gazette / Stadler before shipping.
+- **Root cause:** Dr19 and Dr16 had **no dedicated handling** — Dr19 was only mentioned inside the Dv12 vision rule, Dr16 only as an axle-count cue. The existing Dv12 rule also contained **two factual errors**: it called the Dr16 "Co'Co' six-axle" (it is **Bo'Bo' four-axle** — confirmed by the 82–84 t weight at ~20.5 t/axle) and described the Dr19 as having "cabs at BOTH ends" (it has a **single full-width central "high cab"** — Stadler's own "Central Cab" design). The shared centre-cab silhouette is exactly why the model collapsed Dr19 into Dv12. NOTE: Dv12, Dr16 and Dr19 are ALL Bo'Bo' four-axle, so axle count cannot separate them — era/size/cab layout must.
+- **Fix (defense-in-depth, mirrors the Dr18/Sr1 pattern):**
+  - **`vision.ts`** — corrected the two wrong cross-references in the Dv12 rule; added a **dedicated Dr19 rule** (Stadler central/high cab, 88 t / 18 m, dual Cat C32 = 1,900 kW, 60 ordered, "NEVER Dv12") and a **dedicated Dr16 rule** ("Iso Vaalee", Bo'Bo' four-axle, single off-centre cab, near-withdrawn, ArcticRail).
+  - **`trainSpecs.ts`** — added `KNOWN_SPECS` for `dr19`/`dr16` (+ `vr `/spaced/`arcticrail ` variants): Dr19 120 km/h / 1,900 kW / Stadler Rail Valencia / 60; Dr16 140 km/h / 1,500 kW / Valmet · Transtech / 23.
+  - **`rarity.ts`** — added a prompt bullet + `KNOWN_RARITY` overrides: **Dr16 = "epic"** (23 built, VR fleet retired by 2026, only a handful with ArcticRail), **Dr19 = "uncommon"** (modern 60-unit growing fleet, same logic as Sr3).
+  - **`trainFacts.ts`** — added Dr19 and Dr16 verified-facts blocks; corrected the Dv12 block's inaccurate "Dr19 Eurolight" label (Stadler's bespoke central-cab design, not a Eurolight).
+  - **`trainCache.ts`** — per-class `CLASS_INVALIDATIONS` for `dr19`/`dr16`/`dv12` (+ variants), 2026-06-24, so any prior cached entries re-render. No global cache-version bump (per-class pattern).
+- **Status:** tsc clean, **268/268 backend tests pass**, no duplicate-key collisions. **Not yet deployed — needs a push to go live on Render.**
+
 ## 2026-06-23
 
 ### Backend
