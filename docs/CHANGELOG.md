@@ -9,8 +9,9 @@ Format: newest first within each date block.
 
 ### Backend
 
-#### `src/services/imageGen.ts` — Migrate blueprint generation from retired `dall-e-3` to `gpt-image-1` (HIGH-SEV outage fix)
+#### `src/services/imageGen.ts` — Migrate blueprint generation from retired `dall-e-3` to `gpt-image-1` (HIGH-SEV outage fix) — DEPLOYED + VERIFIED
 - **Context:** Blueprint generation had been DOWN for ALL users (every request HTTP 400) since OpenAI retired the DALL-E models. Render runs blueprints via OpenAI (no `REPLICATE_API_TOKEN`), and the code hardcoded `model: "dall-e-3"`. Diagnosed 2026-06-25 (tester Oula's "Blueprint Failed" report); fix plan in `docs/issues/2026-06-25-blueprint-dalle3-retired.md`.
+- **Verified LIVE 2026-06-26:** deployed in commit `2a8e6da` → Render; a real scan produced a BR 232 / DB Cargo blueprint in the technical-navy style at the correct portrait ratio. Outage resolved for all users.
 - **Changed** OpenAI image request: `model` `"dall-e-3"` → `"gpt-image-1"`; `size` `"1024x1792"` → `"1024x1536"` (gpt-image-1 has no 1024x1792 — would 400); `quality` `"hd"` → `"medium"` (gpt-image-1 uses low/medium/high — "hd" would 400). Each old value was itself an independent 400 trigger, so this is not a drop-in rename.
 - **Removed** the `style: "natural"|"vivid"` request param — gpt-image-1 has no `style` param (unknown-param 400). Also removed the now-dead `dalleStyle` field from the `StyleConfig` interface and all four `STYLE_PROMPTS` entries.
 - **Changed** response handling: gpt-image-1 returns base64 (`data[0].b64_json`), NOT a hosted URL. New `uploadBlueprintToStorage(taskId, base64)` decodes it and uploads to the Supabase Storage `blueprints` bucket (service-key write, `upsert: true`), then stores the stable public URL in `task.imageUrl`. Side benefit: fixes the latent expiring-provider-URL bug (DALL-E/Replicate hosted URLs expired ~1h, rotting saved blueprints) — Supabase URLs are permanent.
