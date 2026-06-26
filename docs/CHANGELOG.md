@@ -9,6 +9,12 @@ Format: newest first within each date block.
 
 ### Backend
 
+#### `src/services/vision.ts` — VR Dr19 misidentified as Dv12: add fleet-number disambiguation (tester Oula)
+- **Context:** Oula sent the exact photo still returning Dv12 — a VR green centre-cab diesel with cab-side number **2835**. Verified via Railvolution / Railway Gazette that **2835 is a VR Dr19** (Stadler series **2831–2890**, 60 units, in service since May 2023). The app's "Dv12" was wrong; "Dr19" was the correct target all along.
+- **Root cause:** the Dr19 rule relied entirely on visual cues and over-indexed on "modern 2020s boxy slab sides," so a traditional-looking green centre-cab Dr19 fell back to Dv12. Unlike nearly every other strong rule in `vision.ts` (ICE variants, DSB, Sm2/4/5), it never used the **fleet number** — even though the number cleanly separates the three look-alikes.
+- **Fixed (prompt only):** Dr19 rule now **leads with a DEFINITIVE fleet-number rule** — Dv12 = 2501–2760, Dr16 = 2801–2823, **Dr19 = 2831–2890**; any VR diesel with a cab-side number ≥ 2831 (e.g. "2835") is a Dr19, never Dv12, regardless of styling. Softened the over-strict "boxy slab modern" cue (don't reject a classic centre-cab look), added the **end-walkways/handrails** cue, and corrected the livery to **bright green with the green "VR" logo**. The Dv12 rule gained the negative cross-reference (2801+ is NOT Dv12).
+- **Scope:** vision runs per image → no cache invalidation. Dr19 KNOWN_SPECS / rarity / facts already shipped 2026-06-24, so a correct ID now flows through. `tsc` clean, 270 backend tests pass. Commit `976c008`. Pending Render deploy + Oula retest of the 2835 photo.
+
 #### `src/services/imageGen.ts` — Migrate blueprint generation from retired `dall-e-3` to `gpt-image-1` (HIGH-SEV outage fix) — DEPLOYED + VERIFIED
 - **Context:** Blueprint generation had been DOWN for ALL users (every request HTTP 400) since OpenAI retired the DALL-E models. Render runs blueprints via OpenAI (no `REPLICATE_API_TOKEN`), and the code hardcoded `model: "dall-e-3"`. Diagnosed 2026-06-25 (tester Oula's "Blueprint Failed" report); fix plan in `docs/issues/2026-06-25-blueprint-dalle3-retired.md`.
 - **Verified LIVE 2026-06-26:** deployed in commit `2a8e6da` → Render; a real scan produced a BR 232 / DB Cargo blueprint in the technical-navy style at the correct portrait ratio. Outage resolved for all users.
