@@ -5,6 +5,34 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-26
+
+### Backend
+
+#### `src/services/imageGen.ts` — Migrate blueprint generation from retired `dall-e-3` to `gpt-image-1` (HIGH-SEV outage fix)
+- **Context:** Blueprint generation had been DOWN for ALL users (every request HTTP 400) since OpenAI retired the DALL-E models. Render runs blueprints via OpenAI (no `REPLICATE_API_TOKEN`), and the code hardcoded `model: "dall-e-3"`. Diagnosed 2026-06-25 (tester Oula's "Blueprint Failed" report); fix plan in `docs/issues/2026-06-25-blueprint-dalle3-retired.md`.
+- **Changed** OpenAI image request: `model` `"dall-e-3"` → `"gpt-image-1"`; `size` `"1024x1792"` → `"1024x1536"` (gpt-image-1 has no 1024x1792 — would 400); `quality` `"hd"` → `"medium"` (gpt-image-1 uses low/medium/high — "hd" would 400). Each old value was itself an independent 400 trigger, so this is not a drop-in rename.
+- **Removed** the `style: "natural"|"vivid"` request param — gpt-image-1 has no `style` param (unknown-param 400). Also removed the now-dead `dalleStyle` field from the `StyleConfig` interface and all four `STYLE_PROMPTS` entries.
+- **Changed** response handling: gpt-image-1 returns base64 (`data[0].b64_json`), NOT a hosted URL. New `uploadBlueprintToStorage(taskId, base64)` decodes it and uploads to the Supabase Storage `blueprints` bucket (service-key write, `upsert: true`), then stores the stable public URL in `task.imageUrl`. Side benefit: fixes the latent expiring-provider-URL bug (DALL-E/Replicate hosted URLs expired ~1h, rotting saved blueprints) — Supabase URLs are permanent.
+- **Fixed** observability black hole: new `describeImageGenError()` surfaces OpenAI's real reason (`error.response.data.error.message`) instead of the generic axios "Request failed with status code 400"; the background `generateImage().catch` now calls `captureServerError(...)` so blueprint failures reach Sentry. Root cause of the silent outage: the old `.catch` stored only the generic message and never called Sentry, so an app-wide failure was invisible until a tester reported it.
+- **Added** imports: `getSupabase` (Storage client) and `captureServerError` (Sentry wrapper).
+
+#### `src/__tests__/services/imageGen.test.ts` — Cover the gpt-image-1 path
+- **Changed** mocks to the new reality: axios returns `b64_json` (not `url`); added a mocked Supabase Storage client (`upload` + `getPublicUrl`) and a mocked `captureServerError`; env mock gains `hasSupabase: true`; `isAxiosError` preserved on the axios mock for the error path.
+- **Added** tests asserting (a) the OpenAI request body uses `gpt-image-1` / `1024x1536` / `medium` with no `style`, (b) the base64 is uploaded to Storage and the task completes with the public URL, (c) an axios 400 surfaces OpenAI's real reason into `task.error`. Suite now 270 backend tests (was 268), all passing; `tsc` clean.
+
+### Infrastructure
+
+#### Supabase Storage — `blueprints` bucket (confirmed present + public)
+- **Verified** the required PUBLIC Supabase Storage bucket `blueprints` already exists (dashboard, project `vfzudbnmtwgirlrfoxpq`, 2026-06-26 — public, 3 policies, alongside `spot-photos`). Backend writes go through the service-role key (bypasses RLS); public bucket means `getPublicUrl` is client-readable. No bucket creation needed.
+
+### Docs
+
+- `docs/issues/2026-06-25-blueprint-dalle3-retired.md` — status updated to CODE FIXED + "What shipped" + "Remaining before live".
+- `docs/ARCHITECTURE.md` — header bumped to 2026-06-26 (blueprint fix state); provider table updated DALL-E 3 → gpt-image-1.
+
+---
+
 ## 2026-06-24
 
 ### Backend

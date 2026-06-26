@@ -2,7 +2,7 @@
 
 **Opened:** 2026-06-25
 **Severity:** HIGH — blueprint generation is DOWN for every user (paying + free), has been since OpenAI retired the DALL-E models. Surfaced by tester Oula ("Blueprint Failed — Retry / Request failed with status code 400").
-**Status:** OPEN — diagnosed, not fixed. No code changed 2026-06-25.
+**Status:** CODE FIXED 2026-06-26 — migrated to `gpt-image-1` (quality `medium`), base64→Supabase Storage, real-error capture + Sentry. `tsc` clean, 270 backend tests pass. **Supabase `blueprints` bucket CONFIRMED to exist + be PUBLIC** (verified via dashboard 2026-06-26, alongside `spot-photos`). Remaining = deploy to Render + verify a real scan. See "Remaining before live" at the bottom.
 
 ## Root cause (confirmed)
 - Render runs blueprints through **OpenAI** (no `REPLICATE_API_TOKEN` set → `config.hasReplicate` is false → the DALL-E branch in `imageGen.ts` is used).
@@ -38,3 +38,16 @@ Switch blueprints to **Replicate SDXL** — the code branch already exists and r
 - `backend/src/services/imageGen.ts` — the fix (model, size, quality, style removal, base64→Storage upload, error capture)
 - `backend/src/config/supabase.ts` — service client for the Storage upload
 - `backend/src/services/imageGen.ts` STYLE_PROMPTS — `dalleStyle` field becomes unused after removing `style`
+
+## What shipped in code (2026-06-26)
+- `imageGen.ts`: OpenAI branch now calls `model: "gpt-image-1"`, `size: "1024x1536"`, `quality: "medium"`, no `style` param.
+- Response handling: reads `data[0].b64_json`, decodes, and uploads to the Supabase Storage `blueprints` bucket via a new `uploadBlueprintToStorage(taskId, base64)` helper; stores the returned public URL in `task.imageUrl`.
+- Observability: new `describeImageGenError()` surfaces OpenAI's real `error.response.data.error.message` (instead of the generic axios 400); the background `.catch` now calls `captureServerError(...)` so blueprint failures hit Sentry.
+- Removed the now-dead `dalleStyle` field from `StyleConfig` + all four style objects.
+- Tests: `imageGen.test.ts` rewritten to mock the base64 response + Supabase Storage; asserts the gpt-image-1 params (model/size/quality, no style), the Storage upload + public URL, and the error path returns OpenAI's real reason. Suite: 270 pass (was 268).
+
+## Remaining before live
+1. ~~Create the Supabase Storage bucket `blueprints` (public).~~ **DONE — confirmed to already exist + be PUBLIC** (dashboard, project `vfzudbnmtwgirlrfoxpq`, 2026-06-26).
+2. **Deploy to Render** (push `main`) so the new code goes live. `OPENAI_API_KEY` + `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are present in Render env (vision/specs already use them).
+3. **Verify:** trigger a real scan (or Oula) → poll `/api/blueprint/:taskId` → expect `completed` with a `supabase.../blueprints/<taskId>.png` URL. Check OpenAI spend ticks up and Sentry stays quiet.
+4. (Optional but recommended) Verify the final gpt-image-1 quality/size against current OpenAI docs the first time a real image returns — params used here come from the 2026-06-25 dashboard research.

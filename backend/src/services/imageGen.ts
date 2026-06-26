@@ -7,8 +7,60 @@ import Replicate from "replicate";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../config/env";
+import { getSupabase } from "../config/supabase";
+import { captureServerError } from "./analytics";
 import { TrainIdentification, TrainSpecs, BlueprintTask, BlueprintStyle } from "../types";
 import { setBlueprintTask, getBlueprintTask } from "./redis";
+
+// Supabase Storage bucket holding generated blueprint images.
+// Must exist and be PUBLIC (Supabase dashboard → Storage → New bucket → "blueprints", public).
+const BLUEPRINT_BUCKET = "blueprints";
+
+/**
+ * Decode a base64 image and upload it to Supabase Storage, returning a stable
+ * public URL. gpt-image-1 returns base64 (not a hosted URL), and provider-hosted
+ * URLs expire (~1h) anyway — Supabase-hosted URLs are permanent.
+ */
+async function uploadBlueprintToStorage(
+  taskId: string,
+  base64: string
+): Promise<string> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    throw new Error(
+      "Supabase not configured — cannot store gpt-image-1 blueprint (base64) image"
+    );
+  }
+
+  const buffer = Buffer.from(base64, "base64");
+  const path = `${taskId}.png`;
+
+  const { error } = await supabase.storage
+    .from(BLUEPRINT_BUCKET)
+    .upload(path, buffer, { contentType: "image/png", upsert: true });
+
+  if (error) {
+    throw new Error(`Supabase Storage upload failed: ${error.message}`);
+  }
+
+  const { data } = supabase.storage.from(BLUEPRINT_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/**
+ * Extract the real, human-readable reason from an image-gen failure.
+ * OpenAI returns the actual cause in error.response.data.error.message
+ * (e.g. model_not_found / invalid size), which axios otherwise hides behind
+ * the generic "Request failed with status code 400".
+ */
+function describeImageGenError(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const apiError = error.response?.data?.error;
+    if (apiError?.message) return `OpenAI image error: ${apiError.message}`;
+    return `OpenAI request failed: ${error.message}`;
+  }
+  return (error as Error)?.message || "Blueprint generation failed";
+}
 
 // Initialize Replicate client (if available)
 let replicate: Replicate | null = null;
@@ -26,7 +78,6 @@ interface StyleConfig {
   vibe: string;
   negativePrompt: string;
   guidanceScale: number;
-  dalleStyle: "natural" | "vivid";
 }
 
 const STYLE_PROMPTS: Record<BlueprintStyle, StyleConfig> = {
@@ -44,7 +95,6 @@ const STYLE_PROMPTS: Record<BlueprintStyle, StyleConfig> = {
     vibe: `Aspect Ratio: 9:16 (portrait). This is a TALL PORTRAIT poster. The locomotive side elevation must be LARGE, spanning the full width of the canvas. Content fills top to bottom. Overall vibe: serious, precise, locomotive works drawing — like a Swindon, Crewe, or Doncaster works technical poster printed in A2 portrait format.`,
     negativePrompt: "blurry, low quality, cartoon, anime, watermark, text errors, distorted, unrealistic proportions, cars, automobiles, photograph, photo, sepia, old paper, vintage, white background, blank space, empty canvas, landscape orientation, wide format",
     guidanceScale: 12,
-    dalleStyle: "natural",
   },
   vintage: {
     design: `Design style:
@@ -60,7 +110,6 @@ const STYLE_PROMPTS: Record<BlueprintStyle, StyleConfig> = {
     vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a priceless original engineering drawing from the 1890s, discovered in the archives of a Great Western Railway works — hand-inked by a master draughtsman. Sepia and brown tones throughout, aged paper texture.`,
     negativePrompt: "blurry, low quality, anime, watermark, modern, digital art, 3D render, photograph, photo, neon colours, bright colours, blue background, navy background, computer generated, clean lines",
     guidanceScale: 10,
-    dalleStyle: "natural",
   },
   schematic: {
     design: `Design style:
@@ -76,7 +125,6 @@ const STYLE_PROMPTS: Record<BlueprintStyle, StyleConfig> = {
     vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a modern technical manual illustration — clean, minimal, information-dense, like an IKEA assembly guide meets Japanese train technical manual. Pure white background with black line art.`,
     negativePrompt: "blurry, low quality, anime, watermark, dark background, navy background, colourful, photograph, photo, shading, gradients, shadows, 3D render, realistic, sepia, vintage, aged paper",
     guidanceScale: 14,
-    dalleStyle: "natural",
   },
   cinematic: {
     design: `Design style:
@@ -91,7 +139,6 @@ const STYLE_PROMPTS: Record<BlueprintStyle, StyleConfig> = {
     vibe: `Aspect Ratio: 9:16 (portrait). Overall vibe: a hero shot from a prestige BBC railway documentary — dramatic, beautiful, awe-inspiring — the locomotive as protagonist. Photorealistic, cinematic, dramatic lighting.`,
     negativePrompt: "blurry, low quality, anime, watermark, text, labels, annotations, diagram, blueprint, technical drawing, schematic, line art, flat, 2D, cartoon, dimension lines",
     guidanceScale: 8,
-    dalleStyle: "vivid",
   },
 };
 
@@ -162,6 +209,9 @@ export async function startBlueprintGeneration(
   // Run generation in background (don't await)
   generateImage(taskId, prompt, style).catch(async (error) => {
     console.error(`Blueprint generation failed for task ${taskId}:`, error);
+    // Report to Sentry so an app-wide blueprint outage is visible without a
+    // user report (the dall-e-3 retirement was invisible until a tester hit it).
+    captureServerError(error as Error, { taskId, stage: "blueprint-generation" });
     const t = await getBlueprintTask(taskId);
     if (t) {
       t.status = "failed";
@@ -174,8 +224,9 @@ export async function startBlueprintGeneration(
 }
 
 /**
- * Actually generate the image (runs in background)
- * Uses per-style negative prompts, guidance scale, and DALL-E style parameter
+ * Actually generate the image (runs in background).
+ * Replicate path uses per-style negative prompts + guidance scale; OpenAI path
+ * uses gpt-image-1 (base64 → Supabase Storage).
  */
 async function generateImage(
   taskId: string,
@@ -221,17 +272,19 @@ async function generateImage(
       throw error;
     }
   } else if (config.hasOpenAI) {
-    // Fallback to OpenAI DALL-E 3
+    // OpenAI gpt-image-1 (dall-e-3 was retired by OpenAI 2026 → HTTP 400).
+    // gpt-image-1 differs from dall-e-3: size enum is 1024x1536 (no 1024x1792),
+    // quality is low/medium/high (no "hd"), there is NO style param, and it
+    // returns base64 (b64_json), never a hosted URL.
     try {
       const response = await axios.post(
         "https://api.openai.com/v1/images/generations",
         {
-          model: "dall-e-3",
+          model: "gpt-image-1",
           prompt: prompt,
           n: 1,
-          size: "1024x1792", // Closest to 9:16
-          quality: "hd",
-          style: styleConfig.dalleStyle,
+          size: "1024x1536", // Portrait — closest gpt-image-1 size to 9:16
+          quality: "medium",
         },
         {
           headers: {
@@ -242,18 +295,23 @@ async function generateImage(
         }
       );
 
-      const imageUrl = response.data.data[0]?.url;
+      const b64 = response.data.data[0]?.b64_json;
 
-      if (!imageUrl) {
-        throw new Error("No image URL in OpenAI response");
+      if (!b64) {
+        throw new Error("No base64 image in gpt-image-1 response");
       }
+
+      // gpt-image-1 returns base64 — persist to Supabase Storage for a stable URL.
+      const imageUrl = await uploadBlueprintToStorage(taskId, b64);
 
       task.status = "completed";
       task.imageUrl = imageUrl;
       task.completedAt = new Date();
       await setBlueprintTask(taskId, task);
     } catch (error) {
-      throw error;
+      // Surface OpenAI's real reason (model/size/quality) instead of the
+      // generic axios 400 — Sentry capture happens at the outer chokepoint.
+      throw new Error(describeImageGenError(error));
     }
   } else {
     task.status = "failed";
