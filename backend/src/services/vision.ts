@@ -127,6 +127,8 @@ Formation length as a secondary cue:
 - Two power cars (one each end) + intermediate coaches → BR 401 (ICE 1). 14-car, fleet "401 xxx", built 1991–1996, 60 trainsets.
 - One power car + coaches + flat-fronted Steuerwagen at the other end → BR 402 (ICE 2). 7-car, fleet "402 xxx".
 
+TYPE FIELD for BR 401 (ICE 1) and BR 402 (ICE 2): these are POWER-CAR-HAULED high-speed trains (power cars pulling unpowered coaches), NOT self-propelled multiple units. The vehicleType / type field MUST be "High-speed train" (power-car-hauled) — NEVER "EMU" and NEVER "distributed-power EMU". Distributed traction belongs to the ICE 3 family and BR 412 (ICE 4); the ICE 1/ICE 2 concentrate traction in their power cars. Returning "EMU" for BR 401 or BR 402 is always wrong.
+
 WIDE, UPRIGHT, FLAT-FRONTED NOSE — large rectangular windscreen with a prominent HORIZONTAL CHIN EDGE/UNDERCUT below it, body noticeably wider than ICE 3, does NOT taper to a point → BR 412 (ICE 4). Max speed 250 km/h (never 300 or 320). Available in 8, 12, or 13-car formations. Fleet "412 xxx". ~108 units — the most common ICE type in Germany by passenger numbers since 2019. At any major German terminus, BR 412 is statistically the most likely ICE train.
 
 POINTED, AERODYNAMIC NOSE tapering to a clear front point, seamless distributed-power EMU with no separate power cars → ICE 3 family. Continue to Step 2.

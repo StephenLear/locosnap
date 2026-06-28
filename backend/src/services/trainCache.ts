@@ -261,18 +261,22 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   // invalidation, so month-old cached entries could still serve 37).
   // Timestamp is mid-day deploy time, NOT end-of-day, so today's ad-driven
   // scans cache normally after the deploy instead of missing all day.
-  "401": "2026-06-12T06:00:00Z",
-  "br 401": "2026-06-12T06:00:00Z",
-  "br401": "2026-06-12T06:00:00Z",
-  "db 401": "2026-06-12T06:00:00Z",
-  "db br 401": "2026-06-12T06:00:00Z",
-  "baureihe 401": "2026-06-12T06:00:00Z",
-  "db baureihe 401": "2026-06-12T06:00:00Z",
-  "class 401": "2026-06-12T06:00:00Z",
-  "db class 401": "2026-06-12T06:00:00Z",
-  "ice 1": "2026-06-12T06:00:00Z",
-  "ice1": "2026-06-12T06:00:00Z",
-  "db ice 1": "2026-06-12T06:00:00Z",
+  // Bumped to 2026-06-28 to flush ICE 1 entries carrying facts/type fixed
+  // this day: type "EMU" -> power-car-hauled; removed "distributed-power"
+  // and the 406.9 km/h ICE-V record misattribution (trainFacts.ts BR 401
+  // block + vision.ts ICE 1/2 type rule added 2026-06-28).
+  "401": "2026-06-28T12:00:00Z",
+  "br 401": "2026-06-28T12:00:00Z",
+  "br401": "2026-06-28T12:00:00Z",
+  "db 401": "2026-06-28T12:00:00Z",
+  "db br 401": "2026-06-28T12:00:00Z",
+  "baureihe 401": "2026-06-28T12:00:00Z",
+  "db baureihe 401": "2026-06-28T12:00:00Z",
+  "class 401": "2026-06-28T12:00:00Z",
+  "db class 401": "2026-06-28T12:00:00Z",
+  "ice 1": "2026-06-28T12:00:00Z",
+  "ice1": "2026-06-28T12:00:00Z",
+  "db ice 1": "2026-06-28T12:00:00Z",
   // Newag Dragon 2 maxSpeed 160 -> 140 fix (trainSpecs.ts WIKIDATA_CORRECTIONS),
   // flagged by PL railfans on the 06-18 "Mania" ad. Wipes any cached 160 km/h entry
   // so the corrected 140 re-renders. Dragon-2-specific keys only (base Dragon = 120).
