@@ -5,6 +5,25 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-28
+
+### Backend
+
+#### `src/services/trainFacts.ts` — Add BR 401 / ICE 1 facts block (correct the EMU / distributed-power / world-record hallucinations)
+- **Added** a hardcoded BR 401 / ICE 1 class block (previously none — facts were AI-generated and wrong). States: ICE 1 is **power-car-hauled** (two power cars + unpowered coaches, 14-car), **NOT an EMU** and **NOT distributed traction**; type must be "High-speed train", never "EMU".
+- **Fixed** the world-record misattribution — the **406.9 km/h** record was set by the experimental **ICE-V (1988)**, NOT the production BR 401 (service max 280 km/h). Root cause: no ICE 1 facts guard, so the facts layer hallucinated "first purpose-built high-speed EMU", "distributed-power traction across 14 cars", and the 406.9 km/h record (all shown on a live scan card).
+- **Added** 2026 modernisation context: LDV life-extension to ~2030+, and the "ICE 1 outlives the ICE 2 (withdrawn by 2027)" framing.
+
+#### `src/services/vision.ts` — Pin ICE 1/ICE 2 vehicle type
+- **Changed** the ICE 1/ICE 2 section to pin the type field for BR 401 and BR 402 to "High-speed train" (power-car-hauled) and forbid "EMU" / "distributed-power EMU" (mirrors the existing IC1/IC2 "NEVER EMU" rule). Fixes the card showing "DB Fernverkehr · EMU" for an ICE 1.
+
+#### `src/services/trainCache.ts` — Flush stale ICE 1 cache
+- **Changed** the ICE 1 / BR 401 `CLASS_INVALIDATIONS` timestamps from `2026-06-12T06:00:00Z` to `2026-06-28T12:00:00Z` (12 key variants) so cached entries regenerate with the corrected facts/type. Per the per-class invalidation pattern — global cache version NOT bumped.
+
+Surfaced while building the ICE 1 DE ad (an ICE 2 scan came back as ICE 1/EPIC, then the ICE 1 facts themselves proved wrong). tsc clean, 270/270 tests pass. Committed `9ae7707`, pushed to `main` — Render auto-deploys.
+
+---
+
 ## 2026-06-26
 
 ### Backend
