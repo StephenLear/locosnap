@@ -178,6 +178,17 @@ const KNOWN_RARITY: Record<string, { tier: RarityTier; reason?: string }> = {
   "dr19": { tier: "uncommon" }, "vr dr19": { tier: "uncommon" },
   "eu05": { tier: "legendary" }, "ep05": { tier: "legendary" }, "et21": { tier: "epic" },
   "class 69": { tier: "rare" },
+  // DB BR 102 (Škoda 109E "Emil") — only 6 built (102 001–006) for the single
+  // München-Nürnberg-Express, one destroyed by fire 2025. A tiny, route-confined
+  // modern fleet → rare (findable on its one line with effort, not near-extinct
+  // like the epic 143/485). Live scan 2026-06-29 wrongly returned common (no
+  // override). Added 2026-06-30; mirrors the trainSpecs/cache key set.
+  "br 102": { tier: "rare", reason: "DB BR 102 (Škoda 109E) — only 6 built for the single München-Nürnberg-Express service; a tiny, route-confined modern fleet (one unit lost to fire in 2025)." },
+  "br102": { tier: "rare", reason: "DB BR 102 (Škoda 109E) — only 6 built for the single München-Nürnberg-Express service; a tiny, route-confined modern fleet (one unit lost to fire in 2025)." },
+  "102": { tier: "rare", reason: "DB BR 102 (Škoda 109E) — only 6 built for the single München-Nürnberg-Express service; a tiny, route-confined modern fleet (one unit lost to fire in 2025)." },
+  "baureihe 102": { tier: "rare", reason: "DB BR 102 (Škoda 109E) — only 6 built for the single München-Nürnberg-Express service; a tiny, route-confined modern fleet (one unit lost to fire in 2025)." },
+  "db class 102": { tier: "rare", reason: "DB BR 102 (Škoda 109E) — only 6 built for the single München-Nürnberg-Express service; a tiny, route-confined modern fleet (one unit lost to fire in 2025)." },
+  "db baureihe 102": { tier: "rare", reason: "DB BR 102 (Škoda 109E) — only 6 built for the single München-Nürnberg-Express service; a tiny, route-confined modern fleet (one unit lost to fire in 2025)." },
 };
 
 function applyKnownRarity(className: string, info: RarityInfo): RarityInfo {

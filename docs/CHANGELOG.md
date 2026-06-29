@@ -5,6 +5,30 @@ Format: newest first within each date block.
 
 ---
 
+## 2026-06-30
+
+### Backend
+
+#### `src/services/trainSpecs.ts` — Add BR 102 (Škoda 109E "Emil") KNOWN_SPECS override
+- **Fixed** a live scan (2026-06-29) that returned **160 km/h / 4,800 kW** for BR 102 because no override existed and the values were AI-hallucinated. Locked the **verified** figures: **200 km/h, 6,400 kW, 88 t, 18.0 m, Škoda Transportation, 6 built, 15 kV 16.7 Hz AC, standard gauge** (web-verified vs de.wikipedia.org/wiki/DB-Baureihe_102).
+- **Added** keys `br 102` / `br102` / `102` / `baureihe 102` / `db class 102` / `db baureihe 102`. Deliberately keyed on "102" forms only (never the bare `109e` string) so the override cannot bleed into the Czech ČD 380, which shares the 109E platform.
+
+#### `src/services/rarity.ts` — Lock BR 102 to RARE
+- **Fixed** the live scan returning **COMMON** (rarity was AI-decided, operator-swayed). Locked **rare** via `KNOWN_RARITY`: only **6 built** (102 001–006), confined to the single München-Nürnberg-Express, one unit (006) lost to fire in 2025 — a tiny, route-confined modern fleet. Rare (findable on its one line with effort), not epic/near-extinct.
+
+#### `src/services/trainFacts.ts` — Add BR 102 facts anchor
+- **Added** a hardcoded BR 102 / Škoda 109E block (previously none — facts were free-form). Locks: operator **DB Regio** (München-Nürnberg-Express) — **never DB Fernverkehr**; **200 km/h**, **6,400 kW**, **6 built**, builder **Škoda**; troubled/delayed introduction, **102 006 fire at Nürnberg 10 Aug 2025**, phase-out after 2028. Distinguishes from ČD 380 (Czech 109E) and BR 101.
+
+#### `src/services/vision.ts` — BR 102 vs ČD 380 disambiguation + DB Regio operator anchor
+- **Fixed** the card showing operator **DB Fernverkehr** (wrong). Added a rule: a Škoda 109E in DB livery on a German service hauling Dosto coaches = **BR 102 / DB Regio / Electric**, never DB Fernverkehr/InterCity; the same shape in ČD livery on a Czech service = ČD 380. Livery + country decide which 109E it is.
+
+#### `src/services/trainCache.ts` — Invalidate cached BR 102
+- **Added** `CLASS_INVALIDATIONS` entries for all six BR 102 key variants at `2026-06-30T01:00:00Z` so any pre-fix cached BR 102 (with the wrong specs/rarity/operator) is refreshed on the next scan.
+
+**Verification:** `tsc --noEmit` clean; **270/270 tests pass**. Not yet deployed — needs a push to go live on Render. Context: building a DE Germany-rescue ad on BR 102, and the pre-build scan-verify caught the full misID before it could ship in the ad card.
+
+---
+
 ## 2026-06-28
 
 ### Backend

@@ -122,6 +122,17 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "baureihe 111": "2026-06-22T22:00:00Z",
   "db class 111": "2026-06-22T22:00:00Z",
   "db baureihe 111": "2026-06-22T22:00:00Z",
+  // BR 102 fix (2026-06-30): live scan showed DB Fernverkehr / 160 km/h /
+  // 4,800 kW / COMMON / "103 left" — all wrong (no override existed). Added
+  // KNOWN_SPECS (200 km/h, 6,400 kW, Škoda, 6 built), KNOWN_RARITY rare lock,
+  // a vision DB-Regio operator anchor, and a trainFacts BR 102 bullet.
+  // Invalidate any pre-fix cached BR 102 so a re-scan renders the corrected card.
+  "br 102": "2026-06-30T01:00:00Z",
+  "br102": "2026-06-30T01:00:00Z",
+  "102": "2026-06-30T01:00:00Z",
+  "baureihe 102": "2026-06-30T01:00:00Z",
+  "db class 102": "2026-06-30T01:00:00Z",
+  "db baureihe 102": "2026-06-30T01:00:00Z",
   // BR 159 (Stadler EuroDual): added a verified length (23.0 m) to the
   // KNOWN_SPECS override 2026-06-04 (was null — flagged by Captrain BR 159
   // driver-in-training Damian). Invalidate pre-fix cached entries so the

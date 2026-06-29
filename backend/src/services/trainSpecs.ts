@@ -280,6 +280,20 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "baureihe 111": { maxSpeed: "160 km/h", power: "3,620 kW", weight: "83 tonnes", builder: "Krauss-Maffei / Henschel / Krupp", numberBuilt: 227, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   "db class 111": { maxSpeed: "160 km/h", power: "3,620 kW", weight: "83 tonnes", builder: "Krauss-Maffei / Henschel / Krupp", numberBuilt: 227, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   "db baureihe 111": { maxSpeed: "160 km/h", power: "3,620 kW", weight: "83 tonnes", builder: "Krauss-Maffei / Henschel / Krupp", numberBuilt: 227, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  // DB Baureihe 102 (Škoda 109E "Emil") — Škoda Transportation electric loco for the
+  // München-Nürnberg-Express (DB Regio). Only 6 built (102 001–006), one of the
+  // smallest modern German fleets. Live scan (2026-06-29) hallucinated 160 km/h /
+  // 4,800 kW because no override existed — verified figures are 200 km/h / 6,400 kW
+  // (de.wikipedia.org/wiki/DB-Baureihe_102). Same Škoda 109E platform as the Czech
+  // CD 380, but a SEPARATE 6-unit German fleet — key on "102" forms only, never the
+  // bare "109e" string (which would bleed into CD 380). (Rarity locked rare in
+  // rarity.ts; operator DB Regio + facts locked in vision.ts + trainFacts.ts.)
+  "br 102": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "88 tonnes", length: "18.0 m", builder: "Škoda Transportation", numberBuilt: 6, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "br102": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "88 tonnes", length: "18.0 m", builder: "Škoda Transportation", numberBuilt: 6, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "102": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "88 tonnes", length: "18.0 m", builder: "Škoda Transportation", numberBuilt: 6, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "baureihe 102": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "88 tonnes", length: "18.0 m", builder: "Škoda Transportation", numberBuilt: 6, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db class 102": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "88 tonnes", length: "18.0 m", builder: "Škoda Transportation", numberBuilt: 6, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
+  "db baureihe 102": { maxSpeed: "200 km/h", power: "6,400 kW", weight: "88 tonnes", length: "18.0 m", builder: "Škoda Transportation", numberBuilt: 6, fuelType: "Electric (15 kV 16.7 Hz AC)", gauge: "Standard (1,435 mm)" },
   // DB Baureihe 114 — 160 km/h push-pull sub-class of BR 112.1, re-designated 1991-1992
   // from the East German DR Baureihe 212/112 (LEW Hennigsdorf 1990-1991 build). ~37 units
   // in the 114 sub-series, used predominantly in eastern Germany (Berlin/Brandenburg/
