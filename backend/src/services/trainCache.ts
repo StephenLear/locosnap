@@ -88,6 +88,16 @@ let totalMisses = 0;
 export const CLASS_INVALIDATIONS: Record<string, string> = {
   // Add entries here when a class's cached specs/facts/rarity must be
   // invalidated due to a backend correction. Key is normalised class name.
+  // VR Sr3 fix (2026-06-30, tester Oula + en.wikipedia): added Fenniarail's 3 units
+  // (201-203, total 83) and fixed the "70 of 80 surviving / 80 of 80 in use" facts
+  // contradiction. (Sr1 wheel-arrangement/speed fix bumps the existing Sr1 entries below.)
+  "sr3": "2026-06-30T07:00:00Z",
+  "vr sr3": "2026-06-30T07:00:00Z",
+  "sr 3": "2026-06-30T07:00:00Z",
+  "vr sr 3": "2026-06-30T07:00:00Z",
+  "sr-3": "2026-06-30T07:00:00Z",
+  "vr sr-3": "2026-06-30T07:00:00Z",
+  "class sr3": "2026-06-30T07:00:00Z",
   // ET22 / "ST22" misID (2026-06-21): vision hallucinated a non-existent
   // "ST22" class for an ET22-680 PKP Cargo scan → LEGENDARY / Newag / 6,400 kW
   // (the raw "ST22" string missed every et22-keyed override). Fix canonicalises
@@ -186,13 +196,14 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   // same session. Variant coverage per the 2026-05-24 checklist — every
   // KNOWN_SPECS lookup key + English variant + common spacing/hyphenation
   // forms. Caught 2026-05-24 by Finnish TikTok commenter "Deevee".
-  "sr1": "2026-05-24T11:00:00Z",
-  "vr sr1": "2026-05-24T11:00:00Z",
-  "sr 1": "2026-05-24T11:00:00Z",
-  "vr sr 1": "2026-05-24T11:00:00Z",
-  "sr-1": "2026-05-24T11:00:00Z",
-  "vr sr-1": "2026-05-24T11:00:00Z",
-  "class sr1": "2026-05-24T11:00:00Z",
+  // Bumped 2026-06-30 (Oula Bo'Bo'/140 km/h correction supersedes the 05-24 Deevee fix).
+  "sr1": "2026-06-30T07:00:00Z",
+  "vr sr1": "2026-06-30T07:00:00Z",
+  "sr 1": "2026-06-30T07:00:00Z",
+  "vr sr 1": "2026-06-30T07:00:00Z",
+  "sr-1": "2026-06-30T07:00:00Z",
+  "vr sr-1": "2026-06-30T07:00:00Z",
+  "class sr1": "2026-06-30T07:00:00Z",
   // DB BR 114: facts-layer claimed "viersystemige Elektrolokomotive" + NRW/Lower-
   // Saxony routing + "Krauss-Maffei / Henschel / Krupp" builder — three independent
   // fabrications. Reality: single-system 15 kV 16.7 Hz AC, eastern Germany only,

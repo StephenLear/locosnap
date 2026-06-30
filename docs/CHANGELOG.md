@@ -27,6 +27,22 @@ Format: newest first within each date block.
 
 **Verification:** `tsc --noEmit` clean; **270/270 tests pass**. Not yet deployed — needs a push to go live on Render. Context: building a DE Germany-rescue ad on BR 102, and the pre-build scan-verify caught the full misID before it could ship in the ad card.
 
+#### `src/services/trainSpecs.ts`, `trainFacts.ts`, `vision.ts`, `rarity.ts` — VR Sr1 wheel-arrangement + top-speed correction (tester Oula, web-verified)
+- **Fixed** the VR Sr1 being hardcoded as **Co'Co' six-axle @ 160 km/h** — both wrong. Corrected to **Bo'Bo' four-axle @ 140 km/h**, **112 built** (110 Novocherkassk + 2 VR Hyvinkää 1993/95), across all four services. Verified vs en.wikipedia.org/wiki/VR_Class_Sr1.
+- **Root cause:** the 2026-05-24 "Deevee" fix corrected a "groundbreaking 1920s Bo-Bo" hallucination but wrongly assumed BOTH the decade AND the wheel arrangement were wrong — only the decade was (1920s → 1970s); the "Bo-Bo" was correct. That fix flipped a correct Bo'Bo' to Co'Co' and left the speed at 160. Lesson captured in the facts rule: when a commenter flags two things in one sentence, verify each independently.
+- **Changed** the `vision.ts` Sr1/Sr2/Sr3 disambiguation: since all three Sr-classes are now correctly Bo'Bo' four-axle, **axle count no longer separates them** — the cues now rely on livery (red-green-yellow tricolor = Sr1), fleet number (30xx/32xx/33xx), and cab silhouette. Removed the "six axles = Sr1" negative rule and the "Sr1 (Co'Co')" claim in the Dv12 deepening rule.
+- **Changed** Sr1 duties in `trainFacts.ts` per Oula: Sr1 is now a **backup loco** (steps in when an Sr2/Sr3 fails), works **timber + mixed freight in Eastern/Central Finland**, and on tourist-season Lapland runs (Rovaniemi/Kemijärvi/Kolari) is **swapped to a Dr19 at Oulu** — it does NOT regularly haul scheduled expresses or primary northern iron-ore freight (that is Sr3).
+
+#### `src/services/trainFacts.ts`, `rarity.ts` — VR Sr3 Fenniarail addition + fleet-contradiction fix
+- **Fixed** a facts-layer contradiction Oula caught (text said "70 of 80 surviving" alongside "80 of 80 in use"). Added an Sr3 facts anchor locking **80 VR units, all in service**.
+- **Added** the private operator **Fenniarail Oy's 3 Sr3 units (numbered 201-203)** — class total **83** (80 VR + 3 Fenniarail). Verified vs en.wikipedia.org/wiki/VR_Class_Sr3.
+
+#### `src/services/trainCache.ts` — Invalidate cached Sr1 + Sr3
+- **Changed** the 7 existing `sr1` variant invalidations from `2026-05-24` to `2026-06-30T07:00:00Z` (the Oula correction supersedes the Deevee fix).
+- **Added** `sr3` variant invalidations at `2026-06-30T07:00:00Z` so the Fenniarail/fleet fix renders on the next Sr3 scan.
+
+**Verification (Sr fix):** `tsc --noEmit` clean; **270/270 tests pass**. Not yet deployed — needs a push to go live on Render. Context: tester Oula corrections (also confirmed blueprint generation is working again post-gpt-image-1 migration).
+
 ---
 
 ## 2026-06-28
