@@ -98,6 +98,15 @@ export const CLASS_INVALIDATIONS: Record<string, string> = {
   "sr-3": "2026-06-30T07:00:00Z",
   "vr sr-3": "2026-06-30T07:00:00Z",
   "class sr3": "2026-06-30T07:00:00Z",
+  // BR Class 43 / HST NMT "Flying Banana" fix (2026-06-30, Steph the Spotter NMT scan):
+  // facts conflated the HST with the APT + returned "157 built" (should be 197). Added
+  // KNOWN_SPECS (197 built), facts anchor (HST != APT), rarity (general 43 uncommon /
+  // Network Rail Yellow NMT rare). Invalidate any pre-fix cached Class 43 / HST entry.
+  "class 43": "2026-06-30T16:00:00Z",
+  "class43": "2026-06-30T16:00:00Z",
+  "br class 43": "2026-06-30T16:00:00Z",
+  "hst": "2026-06-30T16:00:00Z",
+  "intercity 125": "2026-06-30T16:00:00Z",
   // ET22 / "ST22" misID (2026-06-21): vision hallucinated a non-existent
   // "ST22" class for an ET22-680 PKP Cargo scan → LEGENDARY / Newag / 6,400 kW
   // (the raw "ST22" string missed every et22-keyed override). Fix canonicalises

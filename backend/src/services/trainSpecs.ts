@@ -1154,6 +1154,17 @@ const WIKIDATA_CORRECTIONS: Record<string, SpecsOverride> = {
   "db baureihe 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "class 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
   "db class 430": { maxSpeed: "140 km/h", power: "2,350 kW", weight: "139 tonnes", builder: "Bombardier / Alstom", numberBuilt: 253, fuelType: "Electric (15 kV 16.7 Hz AC)" },
+  // BR Class 43 (HST / InterCity 125 power car) — BREL Crewe Works 1975-1982,
+  // 197 built (NEVER 157). Paxman Valenta 2,250 hp (NMT power cars re-engined MTU).
+  // 125 mph; holds the world diesel record 148.5 mph (1987). Bo-Bo four-axle.
+  // Added 2026-06-30 after a Network Rail NMT "Flying Banana" scan (Steph the Spotter
+  // footage) returned "157 built". Rarity handled in rarity.ts (general 43 = uncommon,
+  // Network Rail Yellow NMT = rare). NOT part of the APT — see trainFacts.ts.
+  "class 43": { maxSpeed: "125 mph", power: "2,250 hp", weight: "70 tonnes", builder: "BREL Crewe", numberBuilt: 197, fuelType: "Diesel" },
+  "class43": { maxSpeed: "125 mph", power: "2,250 hp", weight: "70 tonnes", builder: "BREL Crewe", numberBuilt: 197, fuelType: "Diesel" },
+  "br class 43": { maxSpeed: "125 mph", power: "2,250 hp", weight: "70 tonnes", builder: "BREL Crewe", numberBuilt: 197, fuelType: "Diesel" },
+  "hst": { maxSpeed: "125 mph", power: "2,250 hp", weight: "70 tonnes", builder: "BREL Crewe", numberBuilt: 197, fuelType: "Diesel" },
+  "intercity 125": { maxSpeed: "125 mph", power: "2,250 hp", weight: "70 tonnes", builder: "BREL Crewe", numberBuilt: 197, fuelType: "Diesel" },
   // DB BR 155 / DR Baureihe 250 — Co'Co' six-axle heavy freight electric,
   // East German LEW Hennigsdorf design, 273 built (3 prototypes 1974 + 270
   // series 1977–1984). DR 250 renumbered DB 155 on 1 January 1992 after

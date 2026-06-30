@@ -43,6 +43,19 @@ Format: newest first within each date block.
 
 **Verification (Sr fix):** `tsc --noEmit` clean; **270/270 tests pass**. Not yet deployed — needs a push to go live on Render. Context: tester Oula corrections (also confirmed blueprint generation is working again post-gpt-image-1 migration).
 
+#### `src/services/trainSpecs.ts`, `trainFacts.ts`, `rarity.ts`, `vision.ts` — BR Class 43 / HST + Network Rail NMT "Flying Banana" grounding
+- **Fixed** a scan of the Network Rail New Measurement Train (Steph the Spotter footage, power cars 43062 & 43014) that returned two real errors: facts said the Class 43 was *"part of the Advanced Passenger Train"* (**wrong** — the HST and APT were separate BR projects) and the stat line read *"157 built"* (**wrong** — 197 power cars, BREL Crewe 1975–82). Web-verified vs en.wikipedia.org/wiki/British_Rail_Class_43_(HST).
+- **Added** `class 43` / `class43` / `br class 43` / `hst` / `intercity 125` KNOWN_SPECS (125 mph, 2,250 hp, 70 t, **BREL Crewe**, **197 built**, Diesel) — previously no Class 43 override, so build count was AI-hallucinated.
+- **Added** a Class 43 facts anchor: HST is **separate from the APT** (explicit "do NOT conflate"); world diesel speed record 148.5 mph (1987); NMT = unique all-yellow measurement set (power cars 43013/43014/43062, re-engined MTU, since 2003). Also instructs the model **not to bake the photographer's burned-in caption** (e.g. "through Ashchurch on 14/01/20xx") into the facts as a class fact — that was the source of a wrong date on the card.
+- **Added** Class 43 rarity rule: general Class 43 HST = **uncommon** (197 built, ~50+ survive with ScotRail/charter); **Network Rail Yellow NMT = rare** (unique 3-power-car trophy). User-confirmed tier choice.
+- **Added** a vision anchor: all-yellow streamlined HST set = Class 43 NMT (never Class 91 wedge, never a tamper/on-track machine); records "Network Rail Yellow" so the rare rating fires.
+- **Changed** the Class 43 KNOWN_SPECS builder to `"BREL Crewe"` (short form) to match the existing `trainSpecs.test.ts` expectation.
+
+#### `src/services/trainCache.ts` — Invalidate cached Class 43 / HST
+- **Added** `class 43` / `class43` / `br class 43` / `hst` / `intercity 125` invalidations at `2026-06-30T16:00:00Z` so the corrected specs/facts/rarity render on the next HST scan.
+
+**Verification (Class 43 fix):** `tsc --noEmit` clean; **270/270 tests pass**. Not yet deployed — needs a push to go live on Render. Context: scan-verify for a planned UK ad on the Flying Banana (tester Steph the Spotter's footage); caught the misID before it could ship in the ad card.
+
 ---
 
 ## 2026-06-28
